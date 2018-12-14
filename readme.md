@@ -5,11 +5,11 @@ A real time 3D strange attractor scout.
 
 | Windows | Windows Viewports |
 | ----- | ----|
-| | |
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS01.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ss001.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
 
 | Linux | Mac OS X |
 | --- | --- |
-| | |
+| [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS09.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS04.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
 
 Yes, another attractor visualizer, but [**glChAoS.P**](https://michelemorrone.eu/glchaosp/screenshots.html#videoSS) allows you to explore interactively any attractor type, modifyng linearly the values and displaying the changes obtained, immediately, in 3D and in realtime.
 
