@@ -93,7 +93,7 @@ This is a great version, solid beta and full functional, but based on a *under d
 \
 *Tested on Windows 7, 8 and 10*
 
-- **Linux**
+- **Linux**\
 *ParticlesLinux*: native executable (64 bit) is provided for OpenGL \>= 4.5, 
 (you can recompile it, with appropriate define, to obtain an OpenGL 4.1 compliant)
 \
@@ -109,7 +109,7 @@ Read Build/CMake sections for further information.
     - **wine**    
     The Windows executable, 32/64 bit, works fine also in wine 3.xx with no evident loss of performance
 
-- **OS X**
+- **OS X**\
 *ParticlesOSX*: native executable (64 bit) is provided for OpenGL 4.1
 \
 From *“Finder”* click on applescript: *“ParticlesOSX.app*”, or form command line type directly the command: `./ParticleOSX`
@@ -142,11 +142,13 @@ Furthers “build” option are provided:
 - Single thread version.
 
 **CMake**
+
 In the folder *“./src”*there is the *“CmakeLists.txt”*, use this folder as base directory.
 
 Read below more obout your OS.
 
 **GLFW:**
+
 Enclosed 32/64bit built library for Windows, and 64bit for Linux and OS X 
 \
 When build glChAoSP, compiler looks for GLFW installed library, before, in the follows path:
@@ -159,6 +161,7 @@ In this case you need to have installed GLFW Library, ver 3.3 development branch
 
 
 **Windows**
+
 Windows user needs of Visual Studio 2017 or, in alternative, CMake 3.10 (or higher) for other compilers toolschain (non tested, but it should work).
 
 - **Microsoft Visual Studio**
@@ -173,6 +176,7 @@ You can use CMake to generate a VS2015 solution: previous versions do not suppor
 If you want use *LLVM clang* to build glChAoSP, inside Visual Studio, you can use the LLVM plugin (after to have installed clang, in windows) and simply change the toolschain in *“Properties → General → Platform Toolset”*
 
 **Linux**
+
 Lunux users need to install the GCC C/C++ v.5 or higher (or clang v.5 or higher) compilers and associated tools such as *make* and *CMake* (need v3.10 or higher).
 To install gcc C/C++:
 * Debian, Ubuntu: `sudo apt-get install build-essential cmake cmake-qt-gui`
@@ -193,6 +197,7 @@ Use `buildGLFW.sh` from `./src` directory, or build GLFW directly from `./src/sr
 (documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))
 
 **OS X**
+
 Mac users must have installed Xcode and the Command Line Tools, CMake 3.10 or higher.
 
 CMake use the enclosed built version of GLFW (actual development branch v.3.3)
