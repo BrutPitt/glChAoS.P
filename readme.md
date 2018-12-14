@@ -226,7 +226,7 @@ Then go to the folder of cmake ( `cd cmake-3.XX.XX-Linux-x86_64`) and from there
 
 ### 3rd party tools and color maps
 
-**glChAoSP** uses 3rd party software tools components, they are located in the `“./src/src/libs”` folder and built with the program.
+[**glChAoS.P**](https://michelemorrone.eu/glchaosp) uses 3rd party software tools components, they are located in the `“./src/src/libs”` folder and built with the program.
 A copy of each is included in the repository, to avoid incompatibility with future changes.
 
 Structure and description of 3rd parts libraries/tools/palettes, and related copyrights and licenses:
@@ -273,3 +273,5 @@ colorMaps/jjg\_step.json → J.J. Green palettes (creative commons noncommercial
 Conversion from gpf format to json 256 variations.
 
 
+License
+[**glChAoS.P**](https://michelemorrone.eu/glchaosp) is licensed under the BSD 2-Clause License, see *license.txt* for more information.
