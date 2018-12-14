@@ -1,0 +1,14 @@
+*.c linguist-language=cpp
+*.h linguist-language=cpp
+*.html binary
+*.exe binary
+*.json binary
+*.ttf binary
+*.sca binary
+*.so binary
+*.a binary
+*.dylib binary 
+ParticlesLinux binary
+ParticlesOSX binary
+.suo binary
+src/ export-ignore

@@ -1,0 +1,286 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{56104f73-690e-4346-863f-a39b27bcde9a}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{ef17315a-7332-41e5-a419-adb722ac3cae}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{9f524bd5-18b5-442f-a6ee-ea6fbba94b5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3th party Libs">
+      <UniqueIdentifier>{57badc92-3c3f-4358-8a81-807cc145476b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3th party Libs\tinyFileDialog">
+      <UniqueIdentifier>{8bbea1f2-e3e0-45a9-827a-44917a5ad85b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3th party Libs\ImGui">
+      <UniqueIdentifier>{be9424c3-61d5-43f9-b411-649378ceb793}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3th party Libs\IconsFontAwesome">
+      <UniqueIdentifier>{052bf795-8297-42d1-8dfc-c1ab6a73f628}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3th party Libs\configuru">
+      <UniqueIdentifier>{243bf99a-911f-4631-b784-e385eb5c2e93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="User Interface">
+      <UniqueIdentifier>{083e3a9b-0d19-47c1-917d-06c7f7193e6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3th party Libs\glad">
+      <UniqueIdentifier>{af3d82ee-4bed-4662-a521-d5489d8b1756}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tools">
+      <UniqueIdentifier>{9cfab857-b068-41d2-99c6-781e9ff685c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tools\imguiTools">
+      <UniqueIdentifier>{47af35bf-c6b2-4ef4-9510-220a9a7793c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3th party Libs\lodePNG">
+      <UniqueIdentifier>{f49a71cc-0a4d-412c-8da2-1c1007ce2eaf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\colorMaps.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\glApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\glWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\mmFBO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\palettes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ParticlesUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ShadersClasses.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\vertexbuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\uiMainDlg.cpp">
+      <Filter>User Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\uiSettings.cpp">
+      <Filter>User Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libs\ImGui\imgui.cpp">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libs\ImGui\imgui_draw.cpp">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libs\tinyFileDialog\tinyfiledialogs.c">
+      <Filter>3th party Libs\tinyFileDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\attractorsBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\attractorsFiles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\attractorsStartVals.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\ui\uiAttractorsDlg.cpp">
+      <Filter>User Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\configFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libs\glad\glad.cpp">
+      <Filter>3th party Libs\glad</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libs\imGui\imgui_widgets.cpp">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libs\imGui\imgui_impl_opengl3.cpp">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libs\imGui\imgui_impl_glfw.cpp">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tools\glslProgramObject.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tools\glslShaderObject.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libs\lodePNG\lodepng.cpp">
+      <Filter>3th party Libs\lodePNG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tools\oglAxes.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tools\imguiControls.cpp">
+      <Filter>Tools\imguiTools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tools\imGuIZMO.cpp">
+      <Filter>Tools\imguiTools</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\glApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\glWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mmFBO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\palettes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ParticlesUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ShadersClasses.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\vertexbuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\appDefines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ui\uiMainDlg.h">
+      <Filter>User Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ui\uiSettings.h">
+      <Filter>User Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\glad\glad.h">
+      <Filter>3th party Libs\glad</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\configuru\configuru.hpp">
+      <Filter>3th party Libs\configuru</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\configuru\visit_struct.hpp">
+      <Filter>3th party Libs\configuru</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\configuru\visit_struct_intrusive.hpp">
+      <Filter>3th party Libs\configuru</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\IconsFontAwesome\IconsFontAwesome.h">
+      <Filter>3th party Libs\IconsFontAwesome</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\ImGui\imconfig.h">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\ImGui\imgui.h">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\ImGui\imgui_internal.h">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\ImGui\stb_rect_pack.h">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\ImGui\stb_textedit.h">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\ImGui\stb_truetype.h">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\tinyFileDialog\tinyfiledialogs.h">
+      <Filter>3th party Libs\tinyFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\attractorsBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\attractorsStartVals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\imGui\imgui_impl_opengl3.h">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\imGui\imgui_impl_glfw.h">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\glslProgramObject.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\glslShaderObject.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\transforms.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\virtualGizmo.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\lodePNG\lodepng.h">
+      <Filter>3th party Libs\lodePNG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\ui\uiHelpEng.h">
+      <Filter>User Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\oglAxes.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\imguiControls.h">
+      <Filter>Tools\imguiTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\imGuIZMO.h">
+      <Filter>Tools\imguiTools</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Shaders\BillboardFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\BillboardGeom.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\BillboardVert.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\cmTexturedFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\MergedRenderingFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\mmFBO_all_vert.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\MotionBlurFS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\PointSpriteFragLight.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\PointSpriteVert.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\RadialBlur2PassFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\fxaaFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\colorSpaces.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\oglAxesFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\oglAxesVert.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\ReadMe.txt" />
+  </ItemGroup>
+</Project>

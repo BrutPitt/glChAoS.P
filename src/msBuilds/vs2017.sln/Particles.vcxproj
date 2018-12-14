@@ -1,0 +1,456 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug OpenGL 4.1|Win32">
+      <Configuration>Debug OpenGL 4.1</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug OpenGL 4.1|x64">
+      <Configuration>Debug OpenGL 4.1</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release OpenGL 4.1|Win32">
+      <Configuration>Release OpenGL 4.1</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release OpenGL 4.1|x64">
+      <Configuration>Release OpenGL 4.1</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7BE468C8-02A3-41A6-9553-99A208C2D4D9}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="myMacros.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="myMacros.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="myMacros.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="myMacros.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="myMacros.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="myMacros.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="myMacros.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="myMacros.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.50727.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\obj\</IntDir>
+    <IncludePath>$(IncludePath);$(Include)</IncludePath>
+    <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib32\Debug</LibraryPath>
+    <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|Win32'">
+    <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\obj\</IntDir>
+    <IncludePath>$(IncludePath);$(Include)</IncludePath>
+    <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib32\Debug</LibraryPath>
+    <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\obj\</IntDir>
+    <IncludePath>$(IncludePath);$(Include)</IncludePath>
+    <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib\Debug</LibraryPath>
+    <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|x64'">
+    <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\obj\</IntDir>
+    <IncludePath>$(IncludePath);$(Include)</IncludePath>
+    <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib\Debug</LibraryPath>
+    <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\obj\</IntDir>
+    <IncludePath>$(IncludePath);$(Include)</IncludePath>
+    <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib32\Release</LibraryPath>
+    <ExecutablePath>$(ExecutablePath);D:\Lang\DeV\Bin$(PlatformArchitecture)</ExecutablePath>
+    <SourcePath>$(SourcePath)</SourcePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|Win32'">
+    <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\obj\</IntDir>
+    <IncludePath>$(IncludePath);$(Include)</IncludePath>
+    <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib32\Release</LibraryPath>
+    <ExecutablePath>$(ExecutablePath);D:\Lang\DeV\Bin$(PlatformArchitecture)</ExecutablePath>
+    <SourcePath>$(SourcePath)</SourcePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\obj\</IntDir>
+    <IncludePath>$(IncludePath);$(Include);</IncludePath>
+    <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib\Release</LibraryPath>
+    <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|x64'">
+    <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\obj\</IntDir>
+    <IncludePath>$(IncludePath);$(Include);</IncludePath>
+    <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib\Release</LibraryPath>
+    <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;USE_THREAD_TO_FILL;USE_MAPPED_BUFFER;_DEBUG;_CRT_SECURE_NO_DEPRECATE;WIN32;_WINDOWS;GLM_ENABLE_EXPERIMENTAL;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
+      <BrowseInformation>false</BrowseInformation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\src\libs\glfw\lib$(PlatformArchitecture)\Debug</AdditionalLibraryDirectories>
+      <SubSystem>NotSet</SubSystem>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;USE_THREAD_TO_FILL;_DEBUG;_CRT_SECURE_NO_DEPRECATE;WIN32;_WINDOWS;GLM_ENABLE_EXPERIMENTAL;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
+      <BrowseInformation>false</BrowseInformation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\src\libs\glfw\lib$(PlatformArchitecture)\Debug</AdditionalLibraryDirectories>
+      <SubSystem>NotSet</SubSystem>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;USE_THREAD_TO_FILL;USE_MAPPED_BUFFER;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <FloatingPointExceptions>
+      </FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\src\libs\glfw\lib\Debug</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;USE_THREAD_TO_FILL;_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;GLM_ENABLE_EXPERIMENTAL;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <FloatingPointExceptions>
+      </FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\src\libs\glfw\lib\Debug</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;USE_THREAD_TO_FILL;USE_MAPPED_BUFFER;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <OpenMPSupport>false</OpenMPSupport>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
+      <BrowseInformation>false</BrowseInformation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\src\libs\glfw\lib$(PlatformArchitecture)\Release</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries);MSVCRT.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <SubSystem>NotSet</SubSystem>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;USE_THREAD_TO_FILL;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <OpenMPSupport>false</OpenMPSupport>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
+      <BrowseInformation>false</BrowseInformation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\src\libs\glfw\lib$(PlatformArchitecture)\Release</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries);MSVCRT.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <SubSystem>NotSet</SubSystem>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;USE_THREAD_TO_FILL;USE_MAPPED_BUFFER;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <OpenMPSupport>
+      </OpenMPSupport>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
+      <FloatingPointExceptions>
+      </FloatingPointExceptions>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries);MSVCRT.lib</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>NotSet</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|x64'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;USE_THREAD_TO_FILL;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <OpenMPSupport>
+      </OpenMPSupport>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
+      <FloatingPointExceptions>
+      </FloatingPointExceptions>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries);MSVCRT.lib</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>NotSet</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\libs\lodePNG\lodepng.cpp" />
+    <ClCompile Include="..\..\src\tools\glslProgramObject.cpp" />
+    <ClCompile Include="..\..\src\tools\glslShaderObject.cpp" />
+    <ClCompile Include="..\..\src\attractorsBase.cpp" />
+    <ClCompile Include="..\..\src\attractorsFiles.cpp" />
+    <ClCompile Include="..\..\src\attractorsStartVals.cpp" />
+    <ClCompile Include="..\..\src\colorMaps.cpp" />
+    <ClCompile Include="..\..\src\configFile.cpp" />
+    <ClCompile Include="..\..\src\glApp.cpp" />
+    <ClCompile Include="..\..\src\glWindow.cpp" />
+    <ClCompile Include="..\..\src\libs\glad\glad.cpp" />
+    <ClCompile Include="..\..\src\libs\ImGui\imgui.cpp" />
+    <ClCompile Include="..\..\src\libs\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\src\libs\imGui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="..\..\src\libs\imGui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\..\src\libs\imGui\imgui_widgets.cpp" />
+    <ClCompile Include="..\..\src\libs\tinyFileDialog\tinyfiledialogs.c" />
+    <ClCompile Include="..\..\src\mmFBO.cpp" />
+    <ClCompile Include="..\..\src\palettes.cpp" />
+    <ClCompile Include="..\..\src\ParticlesUtils.cpp" />
+    <ClCompile Include="..\..\src\ShadersClasses.cpp" />
+    <ClCompile Include="..\..\src\tools\imguiControls.cpp" />
+    <ClCompile Include="..\..\src\tools\imGuIZMO.cpp" />
+    <ClCompile Include="..\..\src\tools\oglAxes.cpp" />
+    <ClCompile Include="..\..\src\ui\uiAttractorsDlg.cpp" />
+    <ClCompile Include="..\..\src\ui\uiMainDlg.cpp" />
+    <ClCompile Include="..\..\src\ui\uiSettings.cpp" />
+    <ClCompile Include="..\..\src\vertexbuffer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\libs\lodePNG\lodepng.h" />
+    <ClInclude Include="..\..\src\tools\glslProgramObject.h" />
+    <ClInclude Include="..\..\src\tools\glslShaderObject.h" />
+    <ClInclude Include="..\..\src\tools\imguiControls.h" />
+    <ClInclude Include="..\..\src\tools\imGuIZMO.h" />
+    <ClInclude Include="..\..\src\tools\oglAxes.h" />
+    <ClInclude Include="..\..\src\tools\transforms.h" />
+    <ClInclude Include="..\..\src\tools\virtualGizmo.h" />
+    <ClInclude Include="..\..\src\appDefines.h" />
+    <ClInclude Include="..\..\src\attractorsBase.h" />
+    <ClInclude Include="..\..\src\attractorsStartVals.h" />
+    <ClInclude Include="..\..\src\glApp.h" />
+    <ClInclude Include="..\..\src\glWindow.h" />
+    <ClInclude Include="..\..\src\libs\configuru\configuru.hpp" />
+    <ClInclude Include="..\..\src\libs\configuru\visit_struct.hpp" />
+    <ClInclude Include="..\..\src\libs\configuru\visit_struct_intrusive.hpp" />
+    <ClInclude Include="..\..\src\libs\glad\glad.h" />
+    <ClInclude Include="..\..\src\libs\IconsFontAwesome\IconsFontAwesome.h" />
+    <ClInclude Include="..\..\src\libs\ImGui\imconfig.h" />
+    <ClInclude Include="..\..\src\libs\ImGui\imgui.h" />
+    <ClInclude Include="..\..\src\libs\imGui\imgui_impl_glfw.h" />
+    <ClInclude Include="..\..\src\libs\imGui\imgui_impl_opengl3.h" />
+    <ClInclude Include="..\..\src\libs\ImGui\imgui_internal.h" />
+    <ClInclude Include="..\..\src\libs\ImGui\stb_rect_pack.h" />
+    <ClInclude Include="..\..\src\libs\ImGui\stb_textedit.h" />
+    <ClInclude Include="..\..\src\libs\ImGui\stb_truetype.h" />
+    <ClInclude Include="..\..\src\libs\tinyFileDialog\tinyfiledialogs.h" />
+    <ClInclude Include="..\..\src\mmFBO.h" />
+    <ClInclude Include="..\..\src\palettes.h" />
+    <ClInclude Include="..\..\src\ParticlesUtils.h" />
+    <ClInclude Include="..\..\src\ShadersClasses.h" />
+    <ClInclude Include="..\..\src\ui\uiHelpEng.h" />
+    <ClInclude Include="..\..\src\ui\uiMainDlg.h" />
+    <ClInclude Include="..\..\src\ui\uiSettings.h" />
+    <ClInclude Include="..\..\src\vertexbuffer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Shaders\BillboardFrag.glsl" />
+    <None Include="..\..\..\Shaders\BillboardGeom.glsl" />
+    <None Include="..\..\..\Shaders\BillboardVert.glsl" />
+    <None Include="..\..\..\Shaders\cmTexturedFrag.glsl" />
+    <None Include="..\..\..\Shaders\colorSpaces.glsl" />
+    <None Include="..\..\..\Shaders\fxaaFrag.glsl" />
+    <None Include="..\..\..\Shaders\MergedRenderingFrag.glsl" />
+    <None Include="..\..\..\Shaders\mmFBO_all_vert.glsl" />
+    <None Include="..\..\..\Shaders\MotionBlurFS.glsl" />
+    <None Include="..\..\..\Shaders\oglAxesFrag.glsl" />
+    <None Include="..\..\..\Shaders\oglAxesVert.glsl" />
+    <None Include="..\..\..\Shaders\PointSpriteFragLight.glsl" />
+    <None Include="..\..\..\Shaders\PointSpriteVert.glsl" />
+    <None Include="..\..\..\Shaders\RadialBlur2PassFrag.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\ReadMe.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
