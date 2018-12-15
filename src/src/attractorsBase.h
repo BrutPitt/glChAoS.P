@@ -890,14 +890,14 @@ public:
     void startData();
 };
 
-//  Thomas
+//  Halvorsen
 ////////////////////////////////////////////////////////////////////////////
 class Halvorsen : public attractorDtType
 {
 public:
 
     Halvorsen() {
-        stepFn = (stepPtrFn) &Thomas::Step;    
+        stepFn = (stepPtrFn) &Halvorsen::Step;    
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -905,6 +905,151 @@ public:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
+
+//  Arneodo 
+////////////////////////////////////////////////////////////////////////////
+class Arneodo : public attractorDtType
+{
+public:
+
+    Arneodo() {
+        stepFn = (stepPtrFn) &Arneodo::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+//  Bouali 
+////////////////////////////////////////////////////////////////////////////
+class Bouali : public attractorDtType
+{
+public:
+
+    Bouali() {
+        stepFn = (stepPtrFn) &Bouali::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+//  Hadley
+////////////////////////////////////////////////////////////////////////////
+class Hadley : public attractorDtType
+{
+public:
+
+    Hadley() {
+        stepFn = (stepPtrFn) &Hadley::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+//  LiuChen
+////////////////////////////////////////////////////////////////////////////
+class LiuChen : public attractorDtType
+{
+public:
+
+    LiuChen() {
+        stepFn = (stepPtrFn) &LiuChen::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+//  GenesioTesi
+////////////////////////////////////////////////////////////////////////////
+class GenesioTesi : public attractorDtType
+{
+public:
+
+    GenesioTesi() {
+        stepFn = (stepPtrFn) &GenesioTesi::Step;    
+
+        m_POV = vec3( 0.f, 0, 10.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+//  NewtonLeipnik
+////////////////////////////////////////////////////////////////////////////
+class NewtonLeipnik : public attractorDtType
+{
+public:
+
+    NewtonLeipnik() {
+        stepFn = (stepPtrFn) &NewtonLeipnik::Step;    
+
+        m_POV = vec3( 0.f, 0, 10.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+//  NoseHoover
+////////////////////////////////////////////////////////////////////////////
+class NoseHoover : public attractorDtType
+{
+public:
+
+    NoseHoover() {
+        stepFn = (stepPtrFn) &NoseHoover::Step;    
+
+        m_POV = vec3( 0.f, 0, 10.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+//  RayleighBenard
+////////////////////////////////////////////////////////////////////////////
+class RayleighBenard : public attractorDtType
+{
+public:
+
+    RayleighBenard() {
+        stepFn = (stepPtrFn) &RayleighBenard::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+//  Sakarya  
+////////////////////////////////////////////////////////////////////////////
+class Sakarya : public attractorDtType
+{
+public:
+
+    Sakarya() {
+        stepFn = (stepPtrFn) &Sakarya::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
 
 //  Magnetic base class
 ////////////////////////////////////////////////////////////////////////////
@@ -1117,38 +1262,51 @@ class AttractorsClass
 {
 public:
     AttractorsClass() {
-        PB(MagneticRight, "Magnetic Right")
-        PB(MagneticLeft , "Magnetic Left" )
-        PB(MagneticFull , "Magnetic Full" )
-        PB(PolynomialA  , "Polynomial A"  )
-        PB(PolynomialB  , "Polynomial B"  )
-        PB(PolynomialC  , "Polynomial C"  )
-        PB(PolynomialABS, "Polynomial Abs")
-        PB(PolynomialPow, "Polynomial Pow")
-        PB(PolynomialSin, "Polynomial Sin")
-        PB(PowerN3D     , "Polynom N-order")
-        PB(Rampe01      , "Rampe  1"      )
-        PB(Rampe02      , "Rampe  2"      )
-        PB(Rampe03      , "Rampe  3"      )
-        PB(Rampe04      , "Rampe  4"      )
-        PB(Rampe05      , "Rampe  5"      )
-        PB(Rampe06      , "Rampe  6"      )
-        PB(Rampe07      , "Rampe  7"      )
-        PB(Rampe08      , "Rampe  8"      )
-        PB(Rampe09      , "Rampe  9"      )
-        PB(Rampe10      , "Rampe 10"      )
-        PB(Pickover     , "Pickover"      )
-        PB(SinCos       , "Sin Cos"       )
-        PB(Lorenz       , "Lorenz"        )
-        PB(ChenLee      , "Chen Lee"      )
-        PB(TSUCS        , "TSUCS 1&2"     )
-        PB(Aizawa       , "Aizawa"        )
-        PB(YuWang       , "Yu-Wang"       )
-        PB(FourWing     , "Four Wing"     )
-        PB(FourWing2    , "Four Wing 2"   )
-        PB(FourWing3    , "Four Wing 3"   )
-        PB(Thomas       , "Thomas"        )
-        PB(Halvorsen    , "Halvorsen"     )
+        PB(MagneticRight , "Magnetic Right")
+        PB(MagneticLeft  , "Magnetic Left" )
+        PB(MagneticFull  , "Magnetic Full" )
+        PB(PolynomialA   , "Polynomial A"  )
+        PB(PolynomialB   , "Polynomial B"  )
+        PB(PolynomialC   , "Polynomial C"  )
+        PB(PolynomialABS , "Polynomial Abs")
+        PB(PolynomialPow , "Polynomial Pow")
+        PB(PolynomialSin , "Polynomial Sin")
+        PB(PowerN3D      , "Polynom N-order")
+        PB(Rampe01       , "Rampe  1"      )
+        PB(Rampe02       , "Rampe  2"      )
+        PB(Rampe03       , "Rampe  3"      )
+        PB(Rampe04       , "Rampe  4"      )
+        PB(Rampe05       , "Rampe  5"      )
+        PB(Rampe06       , "Rampe  6"      )
+        PB(Rampe07       , "Rampe  7"      )
+        PB(Rampe08       , "Rampe  8"      )
+        PB(Rampe09       , "Rampe  9"      )
+        PB(Rampe10       , "Rampe 10"      )
+        PB(Pickover      , "Pickover"      )
+        PB(SinCos        , "Sin Cos"       )
+        PB(Lorenz        , "Lorenz"        )
+        PB(ChenLee       , "Chen Lee"      )
+        PB(TSUCS         , "TSUCS 1&2"     )
+        PB(Aizawa        , "Aizawa"        )
+        PB(YuWang        , "Yu-Wang"       )
+        PB(FourWing      , "Four Wing"     )
+        PB(FourWing2     , "Four Wing 2"   )
+        PB(FourWing3     , "Four Wing 3"   )
+        PB(Thomas        , "Thomas"        )
+        PB(Halvorsen     , "Halvorsen"     )
+        PB(Arneodo       , "Arneodo"       )
+        PB(Bouali        , "Bouali"        )
+        PB(Hadley        , "Hadley"        )
+        PB(LiuChen       , "LiuChen"       )
+        PB(GenesioTesi   , "GenesioTesi"   )
+        PB(NewtonLeipnik , "NewtonLeipnik" )
+        PB(NoseHoover    , "NoseHoover"    )
+        PB(RayleighBenard,"RayleighBenard" )
+        PB(Sakarya       ,"Sakarya"        )
+          
+            
+            
+
         //PB(Hopalong          , "Hopalong"      )
 
         selected = -1;

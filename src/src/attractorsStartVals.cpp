@@ -494,6 +494,111 @@ void Halvorsen::startData()
     Insert(vVal[0]);
 }
 
+void Arneodo::startData()
+{
+    vVal.push_back(vec3(.1f, .0f, .0f));
+
+    kVal.push_back(-5.5f);
+    kVal.push_back(3.5f);
+    kVal.push_back(-1.0f);
+
+    Insert(vVal[0]);
+}
+
+void Bouali::startData()
+{
+    vVal.push_back(vec3(1.f, .1f, .1f));
+
+    kVal.push_back(4.0f);
+    kVal.push_back(1.0f);
+    kVal.push_back(0.3f);
+    kVal.push_back(.05f);
+    kVal.push_back(1.5f);
+    kVal.push_back(1.0f);
+
+    Insert(vVal[0]);
+}
+
+void Hadley::startData()
+{
+    vVal.push_back(vec3(.1f, .0f, .0f));
+
+    kVal.push_back(0.2f);
+    kVal.push_back(4.0f);
+    kVal.push_back(8.0f);
+    kVal.push_back(1.0f);
+
+    Insert(vVal[0]);
+}
+
+void LiuChen::startData()
+{
+    vVal.push_back(vec3(1.f, 3.f, 5.f));
+
+    kVal.push_back(2.4f);
+    kVal.push_back(-3.78f);
+    kVal.push_back(14.f);
+    kVal.push_back(-11.f);
+    kVal.push_back(4.f);
+    kVal.push_back(5.58f);
+    kVal.push_back(-1.f);
+
+    Insert(vVal[0]);
+}
+
+void GenesioTesi::startData()
+{
+    vVal.push_back(vec3(.1f, .1f, .1f));
+
+    kVal.push_back(.44f);
+    kVal.push_back(1.1f);
+    kVal.push_back(1.0f);
+
+    Insert(vVal[0]);
+}
+
+void NewtonLeipnik::startData()
+{
+    vVal.push_back(vec3(.349f, 0.f, -.16f));
+
+    kVal.push_back(.4f);
+    kVal.push_back(.175f);
+
+    Insert(vVal[0]);
+}
+
+void NoseHoover::startData()
+{
+    vVal.push_back(vec3(.1f, .0f, .0f));
+
+    kVal.push_back(1.5f);
+
+    Insert(vVal[0]);
+}
+
+void RayleighBenard::startData()
+{
+    vVal.push_back(vec3(.1f, 0.f, 0.f));
+
+    kVal.push_back(9.f);
+    kVal.push_back(5.f);
+    kVal.push_back(12.f);
+
+    Insert(vVal[0]);
+}
+
+
+void Sakarya::startData()
+{
+    vVal.push_back(vec3(1.f, -1.f, 1.f));
+
+    kVal.push_back(.4f);
+    kVal.push_back(.3f);
+
+    Insert(vVal[0]);
+}
+
+
 void Lorenz::startData()
 {
     //16.242, 29.4125, 1.16328, infinite loop
