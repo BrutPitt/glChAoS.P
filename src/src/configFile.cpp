@@ -191,9 +191,11 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["bilatInt"        ] = glow->getImgTuning()->getBlatComponent();
     c["bilatMix"        ] = glow->getImgTuning()->getMixBilateral() ;
     c["mixTexture"      ] = glow->getMixTexture();
+    c["glowThreshold"   ] = glow->getThreshold();
+
 //FXAA
     c["fxaaOn"          ] = ptr->getFXAA()->isOn();
-    c["Threshold"       ] = ptr->getFXAA()->getThreshold();
+    c["fxaaThreshold"   ] = ptr->getFXAA()->getThreshold();
     c["ReductMul"       ] = ptr->getFXAA()->getReductMul();
     c["ReductMin"       ] = ptr->getFXAA()->getReductMin();
     c["Span"            ] = ptr->getFXAA()->getSpan();
@@ -291,6 +293,13 @@ void mainGLApp::selectCaptureFolder() {
 void getRenderMode(Config &c, particlesBaseClass *ptr)
 {
 
+    auto getBlendIdx = [&] (GLuint blendCode) -> int
+    {
+        for(int i=0; i<ptr->getBlendArrayElements(); i++)
+            if(ptr->getBlendArray()[i] == blendCode) return i;
+        return 0;
+    };
+    
 //Rendering
     ptr->setDstBlend(       c.get_or("dstBlendAttrib"  , ptr->getDstBlend()       ));
     ptr->setSrcBlend(       c.get_or("srcBlendAttrib"  , ptr->getSrcBlend()       ));
@@ -303,6 +312,9 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     ptr->setAlphaKFactor(   c.get_or("alphaKFactor"    , ptr->getAlphaKFactor()   ));
     ptr->setAlphaAtten(     c.get_or("alphaAttenFactor", ptr->getAlphaAtten()     ));
     ptr->setAlphaSkip(      c.get_or("alphaSkip"       , ptr->getAlphaSkip()      ));
+
+    ptr->dstBlendIdx(getBlendIdx(ptr->getDstBlend()));
+    ptr->srcBlendIdx(getBlendIdx(ptr->getSrcBlend()));
 
 //Colors
     ptr->getCMSettings()->setVelIntensity(c.get_or("ColorVel"  , ptr->getCMSettings()->getVelIntensity()));
@@ -340,17 +352,18 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     glow->setSigma(     c.get_or("sigma"       , glow->getSigma()     ));
     glow->setSigmaRadX( c.get_or("sigmaRadX"   , glow->getSigmaRadX() ));
     glow->setMixTexture(c.get_or("mixTexture"  , glow->getMixTexture()));
+    glow->setThreshold(c.get_or("glowThreshold", glow->getThreshold()));
 
     glow->getImgTuning()->setTextComponent(c.get_or("renderInt", glow->getImgTuning()->getTextComponent()));
     glow->getImgTuning()->setBlurComponent(c.get_or("blurInt"  , glow->getImgTuning()->getBlurComponent()));
     glow->getImgTuning()->setBlatComponent(c.get_or("bilatInt" , glow->getImgTuning()->getBlatComponent()));
     glow->getImgTuning()->setMixBilateral (c.get_or("bilatMix" , glow->getImgTuning()->getMixBilateral() ));
 //FXAA
-    ptr->getFXAA()->activate(    c.get_or("fxaaOn"   , ptr->getFXAA()->isOn()));
-    ptr->getFXAA()->setThreshold(c.get_or("Threshold", ptr->getFXAA()->getThreshold()));
-    ptr->getFXAA()->setReductMul(c.get_or("ReductMul", ptr->getFXAA()->getReductMul()));
-    ptr->getFXAA()->setReductMin(c.get_or("ReductMin", ptr->getFXAA()->getReductMin()));
-    ptr->getFXAA()->setSpan     (c.get_or("Span"     , ptr->getFXAA()->getSpan     ()));
+    ptr->getFXAA()->activate(    c.get_or("fxaaOn"       , ptr->getFXAA()->isOn()));
+    ptr->getFXAA()->setThreshold(c.get_or("fxaaThreshold", ptr->getFXAA()->getThreshold()));
+    ptr->getFXAA()->setReductMul(c.get_or("ReductMul"    , ptr->getFXAA()->getReductMul()));
+    ptr->getFXAA()->setReductMin(c.get_or("ReductMin"    , ptr->getFXAA()->getReductMin()));
+    ptr->getFXAA()->setSpan     (c.get_or("Span"         , ptr->getFXAA()->getSpan     ()));
 
 //DisplayAdjoust
     glow->getImgTuning()->setGamma(    c.get_or("Gamma"     , glow->getImgTuning()->getGamma()    ));

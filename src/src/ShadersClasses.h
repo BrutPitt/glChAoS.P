@@ -53,7 +53,6 @@
 
 using namespace glm;
 
-
 template<class T>
 inline T trim(T x, T inc, T min, T max) {
     T tmp = x+inc;
@@ -390,6 +389,12 @@ public:
 
     int getWhitchRenderMode() { return whichRenderMode; }
 
+    
+    int getBlendArrayElements() { return blendArray.size(); }
+    std::vector<GLuint> &getBlendArray() { return blendArray; }
+    std::vector<const char *> &getBlendArrayStrings() { return blendingStrings; }
+
+
 protected:
     int whichRenderMode;    
 
@@ -408,6 +413,10 @@ protected:
     mmFBO renderFBO, msaaFBO;
 
     transformsClass tMat;
+
+    std::vector<GLuint> blendArray;
+    std::vector<const char *> blendingStrings;
+
 private:
     GLuint buildTexture(char *filename=NULL);
 };
@@ -875,6 +884,12 @@ public:
 
     radialBlurClass *getGlowRender()  { return glowRender; }
     fxaaClass *getFXAA() { return fxaaFilter; } 
+
+    void dstBlendIdx(int i) { dstIdxBlendAttrib = i; }
+    int  dstBlendIdx() { return dstIdxBlendAttrib; }
+
+    void srcBlendIdx(int i) { srcIdxBlendAttrib = i; }
+    int  srcBlendIdx() { return srcIdxBlendAttrib; }
 
 protected:
     GLuint dstBlendAttrib, srcBlendAttrib;

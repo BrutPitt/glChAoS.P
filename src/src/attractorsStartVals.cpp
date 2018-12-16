@@ -598,6 +598,39 @@ void Sakarya::startData()
     Insert(vVal[0]);
 }
 
+void Robinson::startData()
+{
+    vVal.push_back(vec3(.1f, .1f, .1f));
+
+    kVal.push_back(0.71f);
+    kVal.push_back(1.8587f);
+    kVal.push_back(0.7061f);
+    kVal.push_back(0.1f);
+    kVal.push_back(1.f);
+
+    Insert(vVal[0]);
+}
+
+void Rossler::startData()
+{
+    vVal.push_back(vec3(.1f, 0.f, 0.f));
+
+    kVal.push_back(.2f);
+    kVal.push_back(.2f);
+    kVal.push_back(5.7f);
+
+    Insert(vVal[0]);
+}
+
+void Rucklidge::startData()
+{
+    vVal.push_back(vec3(1.f, 0.f, 0.f));
+
+    kVal.push_back(6.7f);
+    kVal.push_back(2.f);
+
+    Insert(vVal[0]);
+}
 
 void Lorenz::startData()
 {

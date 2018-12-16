@@ -48,9 +48,6 @@
 
 extern HLSTexture hlsTexture;
 
-extern const char *blendingStrings[];
-extern GLuint blendArray[];
-
 int ShowStyleSelector(const float w);
 void selectTheme(int style_idx);
 
@@ -272,12 +269,22 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
         
                 //////////Linea 2//////////
                 ImGui::PushItemWidth(wButt2);
-                    ImGui::SetCursorPosX(posA);     
-                        if(ImGui::Combo(buildID(base, idA++, id), &particles->srcIdxBlendAttrib, blendingStrings,19) )
-                            particles->setSrcBlend(blendArray[particles->srcIdxBlendAttrib]);
+                    ImGui::SetCursorPosX(posA);  
+                    {
+                        int idx = particles->srcBlendIdx();
+                        if(ImGui::Combo(buildID(base, idA++, id), &idx, particles->getBlendArrayStrings().data(), particles->getBlendArrayElements())) {
+                            particles->setSrcBlend(particles->getBlendArray()[idx]);
+                            particles->srcBlendIdx(idx);
+                        }
+                    }
                     ImGui::SameLine(posC4);
-                        if(ImGui::Combo(buildID(base, idA++, id), &particles->dstIdxBlendAttrib, blendingStrings,19))
-                            particles->setDstBlend(blendArray[particles->dstIdxBlendAttrib]);
+                    {
+                        int idx = particles->dstBlendIdx();
+                        if(ImGui::Combo(buildID(base, idA++, id), &idx, particles->getBlendArrayStrings().data(), particles->getBlendArrayElements())) {
+                            particles->setDstBlend(particles->getBlendArray()[idx]);
+                            particles->dstBlendIdx(idx);
+                        }
+                    }
                 ImGui::PopItemWidth();
         
                 //////////Linea 3//////////        

@@ -37,52 +37,8 @@
 
 #include "glWindow.h"
 
-
 #include "attractorsBase.h"
 #include "ParticlesUtils.h"
-
-GLuint blendArray[] = {
-GL_ZERO,
-GL_ONE,
-GL_SRC_COLOR 	,
-GL_ONE_MINUS_SRC_COLOR 	,
-GL_DST_COLOR 	,
-GL_ONE_MINUS_DST_COLOR ,
-GL_SRC_ALPHA,
-GL_ONE_MINUS_SRC_ALPHA,
-GL_DST_ALPHA,
-GL_ONE_MINUS_DST_ALPHA,
-GL_CONSTANT_COLOR 	,
-GL_ONE_MINUS_CONSTANT_COLOR ,
-GL_CONSTANT_ALPHA 	,
-GL_ONE_MINUS_CONSTANT_ALPHA ,
-GL_SRC_ALPHA_SATURATE,
-GL_SRC1_COLOR,
-GL_ONE_MINUS_SRC1_COLOR,
-GL_SRC1_ALPHA,
-GL_ONE_MINUS_SRC1_ALPHA };
-
-const char *blendingStrings [] = {
-    "Zero"                    ,
-    "One"                     ,
-    "Src_Color"               ,
-    "One_Minus_Src_Color"     ,
-    "Dst_Color"               ,
-    "One_Minus_Dst_Color "    ,
-    "Src_Alpha"               ,
-    "One_Minus_Src_Alpha"     ,
-    "Dst_Alpha"               ,
-    "One_Minus_Dst_Alpha"     ,
-    "Constant_Color	"        ,
-    "One_Minus_Constant_Color",
-    "Constant_Alpha"          ,
-    "One_Minus_Constant_Alpha",
-    "Src_Alpha_Saturate"      ,
-    "Src1_Color"              ,
-    "One_Minus_Src1_Color"    ,
-    "Src1_Alpha"              ,
-    "One_Minus_Src1_Alpha"    
-};
 
 
 imgTuningClass::imgTuningClass(dataBlurClass *ptrGlow) {
@@ -360,6 +316,29 @@ renderBaseClass::renderBaseClass()
 {
     //particlesToDraw = (GLsizeiptr) 50000000L;
     //maxParticles = (GLsizeiptr) PARTICLES_MAX;
+
+#define PB(ID,NAME) blendArray.push_back(ID); blendingStrings.push_back(NAME);
+    PB(GL_ZERO                     ,"Zero"                    )
+    PB(GL_ONE                      ,"One"                     )
+    PB(GL_SRC_COLOR 	           ,"Src_Color"               )
+    PB(GL_ONE_MINUS_SRC_COLOR 	   ,"One_Minus_Src_Color"     )
+    PB(GL_DST_COLOR 	           ,"Dst_Color"               )
+    PB(GL_ONE_MINUS_DST_COLOR      ,"One_Minus_Dst_Color "    )
+    PB(GL_SRC_ALPHA                ,"Src_Alpha"               )
+    PB(GL_ONE_MINUS_SRC_ALPHA      ,"One_Minus_Src_Alpha"     )
+    PB(GL_DST_ALPHA                ,"Dst_Alpha"               )
+    PB(GL_ONE_MINUS_DST_ALPHA      ,"One_Minus_Dst_Alpha"     )
+    PB(GL_CONSTANT_COLOR 	       ,"Constant_Color	"         )
+    PB(GL_ONE_MINUS_CONSTANT_COLOR ,"One_Minus_Constant_Color")
+    PB(GL_CONSTANT_ALPHA 	       ,"Constant_Alpha"          )
+    PB(GL_ONE_MINUS_CONSTANT_ALPHA ,"One_Minus_Constant_Alpha")
+    PB(GL_SRC_ALPHA_SATURATE       ,"Src_Alpha_Saturate"      )
+    PB(GL_SRC1_COLOR               ,"Src1_Color"              )
+    PB(GL_ONE_MINUS_SRC1_COLOR     ,"One_Minus_Src1_Color"    )
+    PB(GL_SRC1_ALPHA               ,"Src1_Alpha"              )
+    PB(GL_ONE_MINUS_SRC1_ALPHA     ,"One_Minus_Src1_Alpha"    )
+#undef PB
+
     setRenderMode(RENDER_USE_POINTS);
 
     renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true);

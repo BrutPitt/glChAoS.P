@@ -1050,6 +1050,54 @@ public:
     void startData();
 };
 
+//  Robinson
+////////////////////////////////////////////////////////////////////////////
+class Robinson : public attractorDtType
+{
+public:
+
+    Robinson() {
+        stepFn = (stepPtrFn) &Robinson::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+//  Rossler
+////////////////////////////////////////////////////////////////////////////
+class Rossler : public attractorDtType
+{
+public:
+
+    Rossler() {
+        stepFn = (stepPtrFn) &Rossler::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+
+//  Rucklidge
+////////////////////////////////////////////////////////////////////////////
+class Rucklidge : public attractorDtType
+{
+public:
+
+    Rucklidge() {
+        stepFn = (stepPtrFn) &Rucklidge::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
 
 //  Magnetic base class
 ////////////////////////////////////////////////////////////////////////////
@@ -1301,8 +1349,11 @@ public:
         PB(GenesioTesi   , "GenesioTesi"   )
         PB(NewtonLeipnik , "NewtonLeipnik" )
         PB(NoseHoover    , "NoseHoover"    )
-        PB(RayleighBenard,"RayleighBenard" )
-        PB(Sakarya       ,"Sakarya"        )
+        PB(RayleighBenard, "RayleighBenard")
+        PB(Sakarya       , "Sakarya"       )
+        PB(Robinson      , "Robinson"      )
+        PB(Rossler       , "Rossler"       )
+        PB(Rucklidge     , "Rucklidge"     )
           
             
             

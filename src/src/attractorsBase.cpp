@@ -598,6 +598,28 @@ inline void Sakarya::Step(vec3 &v, vec3 &vp)
  	vp.y = v.y + dtStepInc*(-v.x - v.y + kVal[0]*v.x*v.z); 
  	vp.z = v.z + dtStepInc*(v.z - kVal[1]*v.x*v.y);
 }
+////////////////////////////////////////////////////////////////////////////
+inline void Robinson::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, b, c, d, v
+    const float x2 = v.x*v.x;
+	vp.x = v.x + dtStepInc*v.y;
+ 	vp.y = v.y + dtStepInc*(v.x - 2*x2*v.x - kVal[0]*v.y + kVal[1]*x2*v.y - kVal[4]*v.y*v.z); 
+ 	vp.z = v.z + dtStepInc*(-kVal[2]*v.z + kVal[3]*x2);
+}
+////////////////////////////////////////////////////////////////////////////
+inline void Rossler::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, b, c
+	vp.x = v.x + dtStepInc*(-v.y - v.z);
+ 	vp.y = v.y + dtStepInc*(v.x + kVal[0]*v.y); 
+ 	vp.z = v.z + dtStepInc*(kVal[1] + v.z*(v.x - kVal[2]));
+}
+////////////////////////////////////////////////////////////////////////////
+inline void Rucklidge::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, k
+	vp.x = v.x + dtStepInc*(-kVal[1]*v.x + kVal[0]*v.y - v.y*v.z);
+ 	vp.y = v.y + dtStepInc*v.x; 
+ 	vp.z = v.z + dtStepInc*(-v.z + v.y*v.y);
+}
 
 ////////////////////////////////////////////////////////////////////////////
 inline void Magnetic::Step(vec3 &v, vec3 &vp) 
