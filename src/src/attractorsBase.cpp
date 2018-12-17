@@ -397,12 +397,19 @@ inline void Rampe01::Step(vec3 &v, vec3 &vp)
 ////////////////////////////////////////////////////////////////////////////
 inline void Rampe02::Step(vec3 &v, vec3 &vp)
 {
-    vp.x = v.z*sin(kVal[0].x*v.x)+cos(kVal[1].x*v.y);
-    vp.y = v.x*sin(kVal[0].y*v.y)+cos(kVal[1].y*v.z);
-    vp.z = v.y*sin(kVal[0].z*v.z)+cos(kVal[1].z*v.x);
+    vp.x = v.z*sin(kVal[0].x*v.x)+acos(kVal[1].x*v.y);
+    vp.y = v.x*sin(kVal[0].y*v.y)+acos(kVal[1].y*v.z);
+    vp.z = v.y*sin(kVal[0].z*v.z)+acos(kVal[1].z*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
 inline void Rampe03::Step(vec3 &v, vec3 &vp)
+{
+    vp.x = v.x*v.z*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y);
+    vp.y = v.y*v.x*sin(kVal[0].y*v.y)-cos(kVal[1].y*v.z);
+    vp.z = v.z*v.y*sin(kVal[0].z*v.z)-cos(kVal[1].z*v.x);
+}
+////////////////////////////////////////////////////////////////////////////
+inline void Rampe03A::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.z*v.z*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y);
     vp.y = v.x*v.x*sin(kVal[0].y*v.y)-cos(kVal[1].y*v.z);
@@ -456,6 +463,13 @@ inline void Rampe10::Step(vec3 &v, vec3 &vp)
     vp.x = v.z*v.y*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y)+asin(kVal[2].x*v.z);
     vp.y = v.x*v.z*sin(kVal[0].y*v.x)-cos(kVal[1].y*v.y)+ sin(kVal[2].y*v.z);
     vp.z = v.y*v.x*sin(kVal[0].z*v.x)-cos(kVal[1].z*v.y)+ sin(kVal[2].z*v.z);
+}
+////////////////////////////////////////////////////////////////////////////
+inline void KingsDream::Step(vec3 &v, vec3 &vp)
+{
+    vp.x = sin(v.z * kVal[0]) + kVal[3] * sin(v.x * kVal[0]);
+    vp.y = sin(v.x * kVal[1]) + kVal[4] * sin(v.y * kVal[1]);
+    vp.z = sin(v.y * kVal[2]) + kVal[5] * sin(v.z * kVal[2]);
 }
 ////////////////////////////////////////////////////////////////////////////
 inline void Pickover::Step(vec3 &v, vec3 &vp) 

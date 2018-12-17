@@ -614,6 +614,15 @@ protected:
     void startData();
 };
 /////////////////////////////////////////////////
+class Rampe03A : public RampeBase
+{
+public:
+    Rampe03A() { stepFn = (stepPtrFn) &Rampe03A::Step; }
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+/////////////////////////////////////////////////
 class Rampe04 : public RampeBase
 {
 public:
@@ -681,6 +690,22 @@ protected:
 //  Scalar K Coeff Attractors
 //--------------------------------------------------------------------------
 
+//  KingsDream base class
+////////////////////////////////////////////////////////////////////////////
+class KingsDream : public attractorScalarK
+{
+public:
+    KingsDream() { 
+        stepFn = (stepPtrFn) &KingsDream::Step; 
+        vMin = -0.5; vMax = 0.5; kMin = -2.0; kMax = 2.0;
+        m_POV = vec3( 0.f, 0, 10.f);
+    }
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+    void searchAttractor()  { searchLyapunov(); }
+};
+
 //  Pickover base class
 ////////////////////////////////////////////////////////////////////////////
 class Pickover : public attractorScalarK
@@ -690,13 +715,15 @@ public:
     Pickover() {
         stepFn = (stepPtrFn) &Pickover::Step;    
 
-        vMin = 0.0; vMax = 0.0; kMin = -3.0; kMax = 3.0;
+        vMin = -1.0; vMax = 1.0; kMin = -3.0; kMax = 3.0;
 
         m_POV = vec3( 0.f, 0, 7.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
+    void searchAttractor()  { searchLyapunov(); }
 };
 
 //  SinCos base class
@@ -710,13 +737,15 @@ public:
 
         kMin = -glm::pi<float>();
         kMax =  glm::pi<float>();
-        vMin = 0.0; vMax = 0.0;
+        vMin = -1.0; vMax = 1.0;
 
         m_POV = vec3( 0.f, 0, 12.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
+    void searchAttractor()  { searchLyapunov(); }
 };
 
 //--------------------------------------------------------------------------
@@ -1310,50 +1339,52 @@ class AttractorsClass
 {
 public:
     AttractorsClass() {
-        PB(MagneticRight , "Magnetic Right")
-        PB(MagneticLeft  , "Magnetic Left" )
-        PB(MagneticFull  , "Magnetic Full" )
-        PB(PolynomialA   , "Polynomial A"  )
-        PB(PolynomialB   , "Polynomial B"  )
-        PB(PolynomialC   , "Polynomial C"  )
-        PB(PolynomialABS , "Polynomial Abs")
-        PB(PolynomialPow , "Polynomial Pow")
-        PB(PolynomialSin , "Polynomial Sin")
+        PB(MagneticRight , "Magnetic Right" )
+        PB(MagneticLeft  , "Magnetic Left"  )
+        PB(MagneticFull  , "Magnetic Full"  )
+        PB(PolynomialA   , "Polynomial A"   )
+        PB(PolynomialB   , "Polynomial B"   )
+        PB(PolynomialC   , "Polynomial C"   )
+        PB(PolynomialABS , "Polynomial Abs" )
+        PB(PolynomialPow , "Polynomial Pow" )
+        PB(PolynomialSin , "Polynomial Sin" )
         PB(PowerN3D      , "Polynom N-order")
-        PB(Rampe01       , "Rampe  1"      )
-        PB(Rampe02       , "Rampe  2"      )
-        PB(Rampe03       , "Rampe  3"      )
-        PB(Rampe04       , "Rampe  4"      )
-        PB(Rampe05       , "Rampe  5"      )
-        PB(Rampe06       , "Rampe  6"      )
-        PB(Rampe07       , "Rampe  7"      )
-        PB(Rampe08       , "Rampe  8"      )
-        PB(Rampe09       , "Rampe  9"      )
-        PB(Rampe10       , "Rampe 10"      )
-        PB(Pickover      , "Pickover"      )
-        PB(SinCos        , "Sin Cos"       )
-        PB(Lorenz        , "Lorenz"        )
-        PB(ChenLee       , "Chen Lee"      )
-        PB(TSUCS         , "TSUCS 1&2"     )
-        PB(Aizawa        , "Aizawa"        )
-        PB(YuWang        , "Yu-Wang"       )
-        PB(FourWing      , "Four Wing"     )
-        PB(FourWing2     , "Four Wing 2"   )
-        PB(FourWing3     , "Four Wing 3"   )
-        PB(Thomas        , "Thomas"        )
-        PB(Halvorsen     , "Halvorsen"     )
-        PB(Arneodo       , "Arneodo"       )
-        PB(Bouali        , "Bouali"        )
-        PB(Hadley        , "Hadley"        )
-        PB(LiuChen       , "LiuChen"       )
-        PB(GenesioTesi   , "GenesioTesi"   )
-        PB(NewtonLeipnik , "NewtonLeipnik" )
-        PB(NoseHoover    , "NoseHoover"    )
-        PB(RayleighBenard, "RayleighBenard")
-        PB(Sakarya       , "Sakarya"       )
-        PB(Robinson      , "Robinson"      )
-        PB(Rossler       , "Rossler"       )
-        PB(Rucklidge     , "Rucklidge"     )
+        PB(Rampe01       , "Rampe  1"       )
+        PB(Rampe02       , "Rampe  2"       )
+        PB(Rampe03       , "Rampe  3"       )
+        PB(Rampe03A      , "Rampe  3 mod"   )
+        PB(Rampe04       , "Rampe  4"       )
+        PB(Rampe05       , "Rampe  5"       )
+        PB(Rampe06       , "Rampe  6"       )
+        PB(Rampe07       , "Rampe  7"       )
+        PB(Rampe08       , "Rampe  8"       )
+        PB(Rampe09       , "Rampe  9"       )
+        PB(Rampe10       , "Rampe 10"       )
+        PB(KingsDream    , "King's Dream"   )
+        PB(Pickover      , "Pickover"       )
+        PB(SinCos        , "Sin Cos"        )
+        PB(Lorenz        , "Lorenz"         )
+        PB(ChenLee       , "Chen Lee"       )
+        PB(TSUCS         , "TSUCS 1&2"      )
+        PB(Aizawa        , "Aizawa"         )
+        PB(YuWang        , "Yu-Wang"        )
+        PB(FourWing      , "Four Wing"      )
+        PB(FourWing2     , "Four Wing 2"    )
+        PB(FourWing3     , "Four Wing 3"    )
+        PB(Thomas        , "Thomas"         )
+        PB(Halvorsen     , "Halvorsen"      )
+        PB(Arneodo       , "Arneodo"        )
+        PB(Bouali        , "Bouali"         )
+        PB(Hadley        , "Hadley"         )
+        PB(LiuChen       , "LiuChen"        )
+        PB(GenesioTesi   , "GenesioTesi"    )
+        PB(NewtonLeipnik , "NewtonLeipnik"  )
+        PB(NoseHoover    , "NoseHoover"     )
+        PB(RayleighBenard, "RayleighBenard" )
+        PB(Sakarya       , "Sakarya"        )
+        PB(Robinson      , "Robinson"       )
+        PB(Rossler       , "Rossler"        )
+        PB(Rucklidge     , "Rucklidge"      )
           
             
             

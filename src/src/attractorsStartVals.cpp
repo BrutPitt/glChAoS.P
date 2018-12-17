@@ -313,6 +313,15 @@ void Rampe03::startData()
 
     Insert(vVal[0]);
 }
+void Rampe03A::startData()
+{
+    vVal.push_back(vec3(0.0f));
+
+    kVal.push_back(vec3(1.586, 1.124, 0.281));
+    kVal.push_back(vec3(1.586, 1.124, 0.281));
+
+    Insert(vVal[0]);
+}
 void Rampe04::startData()
 {
     vVal.push_back(vec3(0.0f));
@@ -375,6 +384,19 @@ void Rampe10::startData()
     kVal.push_back(vec3(1.586, 1.124, 0.281));
     kVal.push_back(vec3(1.586, 1.124, 0.281));
     kVal.push_back(vec3(1.586, 1.124, 0.281));
+
+    Insert(vVal[0]);
+}
+void KingsDream::startData()
+{
+    vVal.push_back(vec3(0.0f));
+
+    kVal.push_back( 0.8068027);
+    kVal.push_back(-0.1956844);
+    kVal.push_back(-1.5730495);
+    kVal.push_back( 2.2741647);
+    kVal.push_back( 0.3097776);
+    kVal.push_back(-2.7527168);
 
     Insert(vVal[0]);
 }
