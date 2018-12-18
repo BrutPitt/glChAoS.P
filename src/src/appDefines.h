@@ -46,7 +46,7 @@
 //#define USE_THREAD_TO_FILL
 //#define USE_MAPPED_BUFFER
 
-//#define GLAPP_IMGUI_VIEWPORT
+#define GLAPP_IMGUI_VIEWPORT
 
 #define DRAGFLOAT_POW_2 (1.0f)
 #define DRAGFLOAT_POW_3 (1.0f)
