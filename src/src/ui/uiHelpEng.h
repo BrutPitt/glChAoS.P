@@ -104,6 +104,15 @@
     "       Shift & Drag : value increment/decrement faster\n"\
     "       Ctrl + Click or Double Click: enter to edit value\n"
 
+#define GLAPP_HELP_MAX_PART\
+     "After resizing particles buffer, need to restart the program for validate new buffer dimension"
+
+#define GLAPP_HELP_FONTS\
+     "In settings fase the fonts can appear slightly 'blurred', after you have selected and saved a preferred"\
+     " dimension, restart the program for a clear font appearance.\n"\
+     "Prefer always \"FontSize\" that is the real dimension of the characters.\n"\
+     "\"FontScale\" is an antialiased zoom of \"FontSize\"."
+
 
 #define GLAPP_HELP_ABOUT\
     "Copyright (c) 2018/2019 Michele Morrone\n"\
