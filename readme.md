@@ -156,7 +156,7 @@ When build glChAoSP, compiler looks for GLFW installed library, before, in the f
 - src/src/libs/glfw/buildOSX (OSX)
 - src/src/libs/glfw/buildWin (Windows)
 
-So, you nedd to delete it, or modify the CMake file, to use personal ones version.
+So, you need to delete it, or modify the CMake file, to use personal ones version.
 In this case you need to have installed GLFW Library, ver 3.3 development branch or higher, or re-build the enclosed version in `“./src/src/libs/glfw”` folder: this is the development branch for version 3.3 (cloned form the github)
 
 
@@ -210,7 +210,7 @@ Or use `sh buildGLFW.sh OSX` from ./src directory, or build GLFW directly from `
 
 (documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))
 
-Several warning are visualized, it is normal: I'm not a mac guru (advice and suggestions are appreciated). I tested it only on OS X 10.14 Mojave (build and binary).
+Several warnings are visualized, it is normal: I'm not a mac guru (advice and suggestions are appreciated). I tested it only on OS X 10.14 Mojave (build and binary).
 
 **CMake**
 
