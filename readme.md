@@ -56,7 +56,7 @@ About the GPUs that support the OpenGL 4.5 (with appropriate drivers and OS perm
 ### About performance
 Glow effects, mostly with sigma \> 5, requires expensive calculations in tems of performance
 
-If you have solw performance try, in this order:
+If you have slow performance try, in this order:
 - Disable *GlowEffects* and/or *FXAA* 
 - Prefer *Pointsprite* on AMD and Intel GPU (sensible difference of performance) 
 - Decrease number of particles buffer \< 3000
