@@ -85,16 +85,16 @@ On Mac OS X, for a limitation of the OS (from Mojave Apple have deprecated OpenG
 Are provided executable for the followings OS:
 
 - **Windows**\
-*Particles.exe* and *Particles32.exe*: native executable (64 and 32 bit) are provided for OpenGL \>= 4.5: *Preferably use the 64-bit version*.
+`Particles.exe` and `Particles32.exe`: native executable (64 and 32 bit) are provided for OpenGL \>= 4.5: *Preferably use the 64-bit version*.
 (you can recompile it, with appropriate define, to obtain an OpenGL 4.1 compliant)
 \
-*ParticlesViewports.exe*: beta version of multiple viewports is also provided (floating GUI windows that can go out outside of main Viewport/Window): (only 64 bits).
+`ParticlesViewports.exe`: beta version of multiple viewports is also provided (floating GUI windows that can go out outside of main Viewport/Window): (only 64 bits).
 This is a great version, solid beta and full functional, but based on a *under development* version of  [**ImGui**](https://github.com/ocornut/imgui) library.
 \
 *Tested on Windows 7, 8 and 10*
 
 - **Linux**\
-*ParticlesLinux*: native executable (64 bit) is provided for OpenGL \>= 4.5, 
+`ParticlesLinux`: native executable (64 bit) is provided for OpenGL \>= 4.5, 
 (you can recompile it, with appropriate define, to obtain an OpenGL 4.1 compliant)
 \
 After clone, copy or decompression, take care that executable bit of the file `ParticlesLinux` is active (chmod +x).
@@ -110,9 +110,9 @@ Read Build/CMake sections for further information.
     The Windows executable, 32/64 bit, works fine also in wine 3.xx with no evident loss of performance
 
 - **OS X**\
-*ParticlesOSX*: native executable (64 bit) is provided for OpenGL 4.1
+`ParticlesOSX`: native executable (64 bit) is provided for OpenGL 4.1
 \
-From *“Finder”* click on applescript: *“ParticlesOSX.app*”, or form command line type directly the command: `./ParticleOSX`
+From *“Finder”* click on applescript: `ParticlesOSX.app`, or form command line type directly the command: `./ParticleOSX`
 \
 This was tested on OS X ver 10.14 (Mojave) only, although with subsequent updates and different library versions you may need to rebuild it.
 Read Build/CMake sections for further information.
@@ -143,7 +143,7 @@ Furthers “build” option are provided:
 
 **CMake**
 
-In the folder *“./src”*there is the *“CmakeLists.txt”*, use this folder as base directory.
+In the folder `./src` there is the `CmakeLists.txt`, use this folder as base directory.
 
 Read below more obout your OS.
 
@@ -165,7 +165,7 @@ In this case you need to have installed GLFW Library, ver 3.3 development branch
 Windows user needs of Visual Studio 2017 or, in alternative, CMake 3.10 (or higher) for other compilers toolschain (non tested, but it should work).
 
 - **Microsoft Visual Studio**
-In the folder `“./src/msBuilds”` there is the solution project for use with Visual Studio 2017.
+In the folder `./src/msBuilds` there is the solution project for use with Visual Studio 2017.
 \
 The current VisualStudio solution refers to my environment variable RAMDISK (`R:`), and subsequent VS intrinsic variables to generate binary output:
 `$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\` 
