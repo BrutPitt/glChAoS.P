@@ -42,6 +42,8 @@
 AttractorsClass attractorsList; // need to resolve inlines
 //deque<glm::vec3> AttractorBase::stepQueue;
 
+
+
 //  Attractor base class
 ////////////////////////////////////////////////////////////////////////////
 
@@ -671,7 +673,7 @@ inline void juliaBulb_IIM::Step(vec3 &v, vec3 &vp)
     };
 
     preStep(v,vp);
-    const int rnd = Random::get<int>(0,INT_MAX);
+    const int rnd = xorshift64();
     radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
 
 }
@@ -693,7 +695,7 @@ inline void juliaBulb4th_IIM::Step(vec3 &v, vec3 &vp)
     };
 
     preStep(v,vp);
-    radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), Random::get<int>(0, INT_MAX) % degreeN, Random::get<int>(0, INT_MAX) % degreeN);
+    radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), xorshift64() % degreeN, xorshift64() % degreeN);
 
 }
 
@@ -711,7 +713,7 @@ inline void BicomplexJ_IIM::Step(vec3 &v, vec3 &vp)
     };
 
     preStep(v,vp);
-    const int rnd = Random::get<int>(int(0),int(INT_MAX));
+    const int rnd = xorshift64();
     radiciBicomplex(vec4(v, last4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
 
 }
@@ -729,7 +731,7 @@ inline void BicomplexJMod0_IIM::Step(vec3 &v, vec3 &vp)
     };
 
     preStep(v,vp);
-    const int rnd = Random::get<int>(int(0),int(INT_MAX));
+    const int rnd = xorshift64();
     radiciBicomplex(vec4(v, dim4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
 
 }
@@ -748,7 +750,7 @@ inline void BicomplexJMod1_IIM::Step(vec3 &v, vec3 &vp)
     };
 
     preStep(v,vp);
-    const int rnd = Random::get<int>(int(0),int(INT_MAX));
+    const int rnd = xorshift64();
     radiciBicomplex(vec4(v, last4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
 
 }
@@ -765,17 +767,41 @@ inline void quatJulia_IIM::Step(vec3 &v, vec3 &vp)
         const float r = sqrtf(xQ + yQ + zQ + wQ);
         const float a = sqrtf((p.x+r)*.5);
         const float b = (r-p.x) * a / (yQ + zQ + wQ);
-        vp = sign * vec3(a, b*p.y, b*p.z /*, b*dim4D */);
+        vp = sign * vec3(a, b*p.y, b*p.z );
         last4D =  sign * b*p.w;
     };
 
     preStep(v,vp);
-    const int rnd = Random::get<int>(int(0),int(INT_MAX));
+    const int rnd = xorshift64();
     radiciEq(vec4(v, last4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f);
 
 }
 
+/*
+inline void quatJulia_IIM::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, k
 
+    auto radiciEq = [&](const vec4 &p, float sign)
+    {
+        const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z, wQ = p.w * p.w;
+        const float r = sqrtf(xQ + yQ + zQ + wQ);
+        const float a = sqrtf((p.x+r)*.5);
+        const float b = (r-p.x) * a / (yQ + zQ + wQ);
+        vIter = sign * vec4(a, b*p.y, b*p.z, b*p.w);
+    };
+
+    preStep(v,vp);
+    vIter = vec4(v, last4D);
+
+    while(depth++<maxDepth) {
+        const int rnd = Random::get<int>(int(0),int(INT_MAX));
+        radiciEq(vIter-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f);
+    };
+    
+    vp = vec3(vIter); last4D = vIter.w;
+
+}
+*/
 inline void glynnJB_IIM::Step(vec3 &v, vec3 &vp) 
 {
 //Glynn roots: {x,y,z}^(1/1.5) = {x,y,z}^(2/3)
@@ -850,7 +876,7 @@ inline void glynnJB_IIM::Step(vec3 &v, vec3 &vp)
 
     preStep(v,vp);
     int nRad = numRadici();
-    int rnd = Random::get<int>(0, INT_MAX);
+    int rnd = fastRandom.rnd64();
     radiciEq(rnd % nRad);
 
 }

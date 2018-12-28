@@ -103,10 +103,11 @@ add_executable(${PROJECT_NAME}
         src/libs/ImGui/imstb_truetype.h
         src/libs/lodePNG/lodepng.cpp
         src/libs/lodePNG/lodepng.h
-        src/libs/Random/random.hpp
         src/libs/tinyFileDialog/tinyfiledialogs.c
         src/libs/tinyFileDialog/tinyfiledialogs.h
         src/libs/configuru/configuru.hpp
+        src/tools/fastRandom.cpp
+        src/tools/fastRandom.h
         src/tools/imGuIZMO.cpp
         src/tools/imGuIZMO.h
         src/tools/imguiControls.cpp

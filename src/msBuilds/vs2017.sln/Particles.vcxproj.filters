@@ -128,6 +128,9 @@
     <ClCompile Include="..\..\src\tools\imGuIZMO.cpp">
       <Filter>Tools\imguiTools</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\tools\fastRandom.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\glApp.h">
@@ -234,6 +237,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\tools\imGuIZMO.h">
       <Filter>Tools\imguiTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\fastRandom.h">
+      <Filter>Tools</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -366,6 +366,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\libs\lodePNG\lodepng.cpp" />
+    <ClCompile Include="..\..\src\tools\fastRandom.cpp" />
     <ClCompile Include="..\..\src\tools\glslProgramObject.cpp" />
     <ClCompile Include="..\..\src\tools\glslShaderObject.cpp" />
     <ClCompile Include="..\..\src\attractorsBase.cpp" />
@@ -396,6 +397,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\libs\lodePNG\lodepng.h" />
+    <ClInclude Include="..\..\src\tools\fastRandom.h" />
     <ClInclude Include="..\..\src\tools\glslProgramObject.h" />
     <ClInclude Include="..\..\src\tools\glslShaderObject.h" />
     <ClInclude Include="..\..\src\tools\imguiControls.h" />

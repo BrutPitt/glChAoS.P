@@ -56,25 +56,24 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "libs/configuru/configuru.hpp"
+#include <configuru/configuru.hpp>
 
-#include "libs/Random/random.hpp"
-
+#include <fastRandom.h>
 #include "attractorsStartVals.h"
 
 
 //void resetVBOindexes();
 
+
 using namespace glm;
 using namespace std;
 using namespace configuru;
 
-using Random = effolkronium::random_static;
 
 #define BUFFER_DIM 100
 
 //#define RANDOM(MIN, MAX) ((MIN)+((float)rand()/(float)RAND_MAX)*((MAX)-(MIN)))
-#define RANDOM(MIN, MAX) (Random::get<float>(float(MIN),float(MAX)))
+
 
 class attractorDlgClass;
 class AttractorsClass;
@@ -354,17 +353,27 @@ protected:
     virtual void preStep(vec3 &v, vec3 &vp) {
         if(depth++>maxDepth) {
             depth = 0;
-
-            last4D = dim4D + RANDOM(vMin, vMax);
-            v = vVal[0] + vec3(RANDOM(vMin, vMax),
-                               RANDOM(vMin, vMax),
-                               RANDOM(vMin, vMax));
+/*
+            last4D = dim4D +   FLOAT_RANDOM(vMin, vMax, fastRandom.SWB());
+            v = vVal[0] + vec3(FLOAT_RANDOM(vMin, vMax, fastRandom.SWB()),
+                               FLOAT_RANDOM(vMin, vMax, fastRandom.SWB()),
+                               FLOAT_RANDOM(vMin, vMax, fastRandom.SWB()));
             
-            kRnd = vec4(RANDOM(kMin, kMax),
-                        RANDOM(kMin, kMax),
-                        RANDOM(kMin, kMax),
-                        RANDOM(kMin, kMax));
-        }
+            kRnd = vec4(FLOAT_RANDOM(kMin, kMax, fastRandom.SWB()),
+                        FLOAT_RANDOM(kMin, kMax, fastRandom.SWB()),
+                        FLOAT_RANDOM(kMin, kMax, fastRandom.SWB()),
+                        FLOAT_RANDOM(kMin, kMax, fastRandom.SWB()));
+*/
+            last4D = dim4D +   fastRandom.floatRnd(vMin, vMax);
+            v = vVal[0] + vec3(fastRandom.floatRnd(vMin, vMax),
+                               fastRandom.floatRnd(vMin, vMax),
+                               fastRandom.floatRnd(vMin, vMax));
+            
+            kRnd = vec4(fastRandom.floatRnd(kMin, kMax),
+                        fastRandom.floatRnd(kMin, kMax),
+                        fastRandom.floatRnd(kMin, kMax),
+                        fastRandom.floatRnd(kMin, kMax));
+        } 
     }
 
     //  Personal vals
@@ -375,14 +384,15 @@ protected:
     virtual void additionalDataCtrls();
 
     vec4 kRnd = vec4(0.f);
+    vec4 vIter;
     std::vector<vec3> eqRoots;
     
     int maxDepth = 50;
     int degreeN = 2;
     float last4D = 1;
 
-private:
     int depth = 0;
+private:
 };
 
 class fractalIIM_4D : public fractalIIMBase
@@ -392,7 +402,7 @@ public:
     int getPtSize() { return attPt4D; }
 
     virtual void initStep() {
-        last4D = 0;
+        last4D = dim4D;
         attractorScalarK::initStep();
     }
 
