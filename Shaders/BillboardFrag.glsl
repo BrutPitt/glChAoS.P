@@ -63,7 +63,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
 
 
 //in vec4 geomPos;
-in vec4 LightRay; 
+//in vec4 LightRay; 
 in vec3 posEye;
 
 in float pointSZ;
@@ -83,6 +83,27 @@ float getAlpha(float alpha)
 
 }
 
+float getSpotSpecular(vec3 light, vec3 N)
+{
+// point on surface of sphere in eye space
+    vec3 spherePosEye = -posEye + N*pointSZ;
+
+	vec3 v = normalize(spherePosEye);
+    vec3 h = normalize(light + v);
+    return pow(max(0.0, dot(N, h)), u.lightShinExp);
+}
+
+float getParallelSpecular(vec3 light, vec3 N)
+{
+// point on surface 
+    vec3 spherePosEye = N*pointSZ;
+
+	vec3 v = normalize(spherePosEye);
+    vec3 h = normalize(light + v);
+    return pow(max(0.0, dot(N, h)), u.lightShinExp);
+}
+
+float luminance(vec3 c) { return dot(c, vec3(0.2990, 0.5870, 0.1140)); }
 
 
 LAYUOT_INDEX(1) subroutine(_pixelColor) vec4 pixelColorLight()
@@ -95,29 +116,19 @@ LAYUOT_INDEX(1) subroutine(_pixelColor) vec4 pixelColorLight()
 
     float alpha = getAlpha(color.a);
 
-    N = vec3((texCoord - vec2(.5)), texVal); // xy = radius in 0, z = magnitudo
-    //N.z = texVal;   //Using texIntensityVal, sastest, instead: N.z = sqrt(1.0-mag);
+    N.xy = (texCoord - vec2(.5))*2.0; // xy = radius in 0
 
     float mag = dot(N.xy, N.xy);
-    if (mag > .25 || alpha < u.alphaSkip) discard;   // kill pixels outside circle: r=.5
+    if (mag > 1.0 || alpha < u.alphaSkip) discard;   // kill pixels outside circle: r=.5
     
+    N.z = sqrt(1.0-mag); // z = sphere magnitudo
     N = normalize(N);
     
-    //float val = ;    
-    float diffuse = max(0.0, dot((LightRay.xyz), N)); //LightRay.xyz normalized in VS
+    vec3 light = normalize(u.lightDir);
+    float diffuse = max(0.0, dot((light), N)); //LightRay.xyz normalized in VS
     
 
-    //float alpha = smoothstep(0.0, .9, color.a*color.a);
-
-
-// point on surface of sphere in eye space
-    vec3 spherePosEye =  N*pointSZ;  //N*radius
-
-//    gl_FragColor = gl_Color * diffuse;
-
-	vec3 v = normalize(spherePosEye);
-    vec3 h = normalize(LightRay.xyz + v);
-    float specular = pow(max(0.0, dot(N,h)), u.lightShinExp);
+    float specular = getParallelSpecular(light, N);
 
     vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,
                                 (color.rgb * diffuse *u.lightDiffInt + 
@@ -143,6 +154,8 @@ LAYUOT_INDEX(1) subroutine(_pixelColor) vec4 pixelColorLight()
     //vec4 col = vec4(lColor.rgb , alpha*alphaK*(clamp(alphaAtten, 0.0, 1.7))); 
 
     vec4 col = vec4(lColor.rgb , alpha * diffuse *u.lightDiffInt);
+
+    if( luminance(col.xyz)  < u.alphaSkip) discard;
 
     
     //float alphaAtten = (color.a)/(pow(length(posEye),distAlphaFactor));

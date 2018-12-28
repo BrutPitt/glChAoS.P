@@ -46,7 +46,7 @@
 //#define USE_THREAD_TO_FILL
 //#define USE_MAPPED_BUFFER
 
-//#define GLAPP_IMGUI_VIEWPORT
+#define GLAPP_IMGUI_VIEWPORT
 
 //Attractor, Fractal, OpenGL, 3D, C++, Particles, ImGui, Source, Code, Algorithm, Chaos, caos
 

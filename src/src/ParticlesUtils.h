@@ -51,7 +51,7 @@
 using namespace glm;
 
 
-float* createGaussianMap(int N, int components);
+float* createGaussianMap(int N, const vec4 & hermVals, int components, int solid);
 
 class textureBaseClass 
 {
@@ -62,7 +62,7 @@ public:
     GLuint getTexID()   { return texID;   }
     GLuint getTexSize() { return texSize; }
 
-    GLuint texID   = -1;
+    GLuint texID   = 0;
     GLuint texSize =  0;
 
 protected:

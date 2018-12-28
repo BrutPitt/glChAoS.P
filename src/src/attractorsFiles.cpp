@@ -236,6 +236,23 @@ vector<float>  k((kVal.size()*3));
     cfg["kData"] = Config::array(k); 
 }
 
+//  FractalIMMBase Attractor
+////////////////////////////////////////////////////////////////////////////
+void fractalIIMBase::saveAdditionalData(Config &cfg) 
+{
+    cfg["maxDepth" ] = maxDepth;
+    cfg["dim4D" ] = dim4D;
+    cfg["fractDegreeN" ] = degreeN;
+}
+
+void fractalIIMBase::loadAdditionalData(Config &cfg) 
+{
+    maxDepth = cfg.get_or("maxDepth",    maxDepth);
+    dim4D    = cfg.get_or("dim4D",       dim4D   );
+    degreeN  = cfg.get_or("fractDegreeN",degreeN );
+}
+
+
 //  PowerN3D Attractor
 ////////////////////////////////////////////////////////////////////////////
 void PowerN3D::saveAdditionalData(Config &cfg) 

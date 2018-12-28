@@ -226,17 +226,9 @@ void AttractorBase::searchLyapunov()
 }
 
 
-//  Lorenz Attractor
-////////////////////////////////////////////////////////////////////////////
-inline void Lorenz::Step(vec3 &v, vec3 &vp)
-{
-    vp.x = v.x+dtStepInc*(kVal[0]*(v.y-v.x));
-    vp.y = v.y+dtStepInc*(v.x*(kVal[1]-v.z)-v.y);
-    vp.z = v.z+dtStepInc*(v.x*v.y-kVal[2]*v.z);
-}
-
 //  Hopalong Attractor
 ////////////////////////////////////////////////////////////////////////////
+/*
 void Hopalong::Step(float *ptr, int numElements) 
 {
     vec3 vp;
@@ -249,6 +241,7 @@ void Hopalong::Step(float *ptr, int numElements)
 
 }
 
+
 void Hopalong::Step()
 {
 
@@ -257,13 +250,12 @@ void Hopalong::Step()
 
     const float r=.01f;
     float a = kVal[0]*r, b = kVal[1]*r, c = kVal[2]*r;
-/*
-    Insert(vec3(
-        v.z - sqrt(abs(kVal[1] * v.x - kVal[2])) * (v.x>0. ? 1. : -1.),
-        v.z - sqrt(abs(kVal[3] * v.y - kVal[4])) * (v.y>0. ? 1. : -1.),
-        (kVal[0] + kVal[5])  - v.x - v.y
-        ));
-*/
+
+    //Insert(vec3(
+    //    v.z - sqrt(abs(kVal[1] * v.x - kVal[2])) * (v.x>0. ? 1. : -1.),
+    //    v.z - sqrt(abs(kVal[3] * v.y - kVal[4])) * (v.y>0. ? 1. : -1.),
+    //    (kVal[0] + kVal[5])  - v.x - v.y
+    //    ));
     static float zy = 0;
     static float oldZ = v.z;
     vec3 nV;
@@ -302,6 +294,26 @@ inline void Hopalong::Step(float *&ptr, vec3 &v, vec3 &vp) {
     vp.y = *(ptr++) = step*sin(2.f*M_PI*_x)*sin(2.f*M_PI*_y);
     vp.z = *(ptr++) = step*cos(2.f*M_PI*_x)                ;
     *(ptr++) = distance(v,vp);
+
+    _zy = oldZ - sqrt(abs(kVal[4]*_r * v.x - kVal[5]*_r)) * (v.x > 0.f ? 1. : (v.x < 0.f ? -1.: 0)),
+
+    v = vp;            
+
+    oldZ = v.z;
+    step += kVal[6]/100000.f;
+}
+*/
+inline void Hopalong::Step(vec3 &v, vec3 &vp) {
+    float a = kVal[0]*_r, b = kVal[1]*_r, c = kVal[2]*_r;  
+        
+    float oldX = _x, oldY = _y;
+                    _x = oldY - sqrt(abs(b*_r * _x - c*_r)) * (_x > 0.f ? 1. : (_x < 0.f ? -1.: 0));
+                    _y = a*_r - oldX;
+    float z = step;
+
+    vp.x = step*sin(2.f*M_PI*_x)*cos(2.f*M_PI*_y);
+    vp.y = step*sin(2.f*M_PI*_x)*sin(2.f*M_PI*_y);
+    vp.z = step*cos(2.f*M_PI*_x)                ;
 
     _zy = oldZ - sqrt(abs(kVal[4]*_r * v.x - kVal[5]*_r)) * (v.x > 0.f ? 1. : (v.x < 0.f ? -1.: 0)),
 
@@ -486,6 +498,13 @@ inline void SinCos::Step(vec3 &v, vec3 &vp)
     vp.z = -cos(kVal[6]*v.x) + cos(kVal[7]*v.y) + cos(kVal[8]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
+inline void Lorenz::Step(vec3 &v, vec3 &vp)
+{
+    vp.x = v.x+dtStepInc*(kVal[0]*(v.y-v.x));
+    vp.y = v.y+dtStepInc*(v.x*(kVal[1]-v.z)-v.y);
+    vp.z = v.z+dtStepInc*(v.x*v.y-kVal[2]*v.z);
+}
+////////////////////////////////////////////////////////////////////////////
 inline void ChenLee::Step(vec3 &v, vec3 &vp) 
 {
     vp.x = v.x + dtStepInc*(kVal[0]*v.x - v.y*v.z);
@@ -635,6 +654,208 @@ inline void Rucklidge::Step(vec3 &v, vec3 &vp)
  	vp.z = v.z + dtStepInc*(-v.z + v.y*v.y);
 }
 
+// stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set
+////////////////////////////////////////////////////////////////////////////
+inline void juliaBulb_IIM::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, k
+    auto radiciEq = [&](const vec3 &p, float sign1, float sign2) {
+        const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z;
+        float r = sqrtf(xQ+yQ+zQ);
+        float a = sign1 * sqrtf(yQ + xQ*(2.f+zQ/(xQ+yQ)) - 2.f*p.x*r);
+        float b = sign2 * sqrtf(r - p.x - a) * .5f;
+        float c = yQ*yQ + xQ * (yQ - zQ);
+        float d = a * (p.x * (r+p.x) + yQ);
+        vp = vec3(b * ((p.x*yQ-d) * (xQ+yQ) - p.x*xQ*zQ) / (p.y*c),
+                  b,
+                  -p.z/sqrtf(2 * (r - d *(xQ+yQ)/c)));
+    };
+
+    preStep(v,vp);
+    const int rnd = Random::get<int>(0,INT_MAX);
+    radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
+
+}
+// stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set
+////////////////////////////////////////////////////////////////////////////
+inline void juliaBulb4th_IIM::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, k
+    
+    auto radiciEq = [&](const vec3 &p, int kTheta, int kPhi) {
+        const float r = length(p);
+        const int absOrder = abs(degreeN);
+        const int k1 = (absOrder - (p.z<0 ? 0 : 1)), k2 = (3*absOrder + (p.z<0 ? 4 : 2));
+
+        const int dk = ((absOrder%2)==0 && (kPhi<<2)>k1 && (kPhi<<2)<k2) ? (sign(p.z) * ( (absOrder % 4) ? 1 : -1)) : 0;
+        const float theta  = (atan2f(p.y,p.x) + (2 * kTheta + dk) * glm::pi<float>()) / float(degreeN);
+        const float phi    = (asinf(p.z/r)    + (2 * kPhi   - dk) * glm::pi<float>()) / float(degreeN);
+        const float cosphi = cosf(phi);
+        vp = powf(r, 1.0f/float(degreeN)) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi));
+    };
+
+    preStep(v,vp);
+    radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), Random::get<int>(0, INT_MAX) % degreeN, Random::get<int>(0, INT_MAX) % degreeN);
+
+}
+
+// stochastic adaptation of P.Nylander's Mathematica formula of Bicomplex Julia set
+////////////////////////////////////////////////////////////////////////////
+inline void BicomplexJ_IIM::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, k
+
+    auto radiciBicomplex = [&](const vec4 &p, float sign1, float sign2)
+    {
+        const std::complex<float> z1(p.x, p.y), z2(-p.w, p.z);
+        const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
+        vp = .5f * vec3(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag());
+        last4D =  .5f * w1.real()-w2.real();
+    };
+
+    preStep(v,vp);
+    const int rnd = Random::get<int>(int(0),int(INT_MAX));
+    radiciBicomplex(vec4(v, last4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
+
+}
+
+// stochastic adaptation of P.Nylander's Mathematica formula of Bicomplex Julia set
+////////////////////////////////////////////////////////////////////////////
+inline void BicomplexJMod0_IIM::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, k
+
+    auto radiciBicomplex = [&](const vec4 &p, float sign1, float sign2)
+    {
+        const std::complex<float> z1(p.x, p.y), z2(-p.w, p.z);
+        const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
+        vp = .5f * vec3(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag()/*, w1.real()-w2.real()*/);
+    };
+
+    preStep(v,vp);
+    const int rnd = Random::get<int>(int(0),int(INT_MAX));
+    radiciBicomplex(vec4(v, dim4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
+
+}
+
+// stochastic adaptation of P.Nylander's Mathematica formula of Bicomplex Julia set
+////////////////////////////////////////////////////////////////////////////
+inline void BicomplexJMod1_IIM::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, k
+
+    auto radiciBicomplex = [&](const vec4 &p, float sign1, float sign2)
+    {
+        const std::complex<float> z1(p.x, p.y), z2(-p.w, vVal[0].z);
+        const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
+        vp = .5f * vec3(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag()/*, w1.real()-w2.real()*/);
+        last4D =  .5f * w1.real()-w2.real();
+    };
+
+    preStep(v,vp);
+    const int rnd = Random::get<int>(int(0),int(INT_MAX));
+    radiciBicomplex(vec4(v, last4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
+
+}
+
+// stochastic adaptation of P.Nylander's Mathematica formula of quaternion Julia set
+////////////////////////////////////////////////////////////////////////////
+
+inline void quatJulia_IIM::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, k
+
+    auto radiciEq = [&](const vec4 &p, float sign)
+    {
+        const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z, wQ = p.w * p.w;
+        const float r = sqrtf(xQ + yQ + zQ + wQ);
+        const float a = sqrtf((p.x+r)*.5);
+        const float b = (r-p.x) * a / (yQ + zQ + wQ);
+        vp = sign * vec3(a, b*p.y, b*p.z /*, b*dim4D */);
+        last4D =  sign * b*p.w;
+    };
+
+    preStep(v,vp);
+    const int rnd = Random::get<int>(int(0),int(INT_MAX));
+    radiciEq(vec4(v, last4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f);
+
+}
+
+
+inline void glynnJB_IIM::Step(vec3 &v, vec3 &vp) 
+{
+//Glynn roots: {x,y,z}^(1/1.5) = {x,y,z}^(2/3)
+    const vec3 p = v-((vec3 &)*kVal.data()+vec3(kRnd));
+    const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z;
+    float r = sqrtf(xQ+yQ+zQ);
+
+    auto powN = [&] (vec3 &p, float n) -> vec3 {
+        const float theta = n * atan2f(p.x, p.y);
+        const float phi = n * asinf(p.z/r);
+        return pow(vec3(r), r*vec3(cosf(theta) * cosf(phi), sinf(theta) * cosf(phi), sinf(phi)));
+    };
+
+    auto numRadici = [&] () -> int {
+        return (zQ > xQ + yQ) ? 3 : (p.x < 0 ? 2 : 1);
+    };
+
+    auto radiciEq = [&] (int k) {
+        const float n = 1.75f;
+
+        float ktheta, kphi;
+/*
+        if(!k) { ktheta = kphi = 0.0; }
+        else { 
+            if(!(zQ > xQ + yQ)) { ktheta=(p.y<0.0?2.0:1.0); kphi=0.0; } 
+            else {
+                if(k==1) {
+                    if(p.x<0.0 && p.y<0.0) {ktheta=2.0; kphi=0.0;} else {ktheta=0.5; kphi=(p.z>0.0?0.5:2.5);}
+                }
+                else {
+                    if(p.x<0.0 && p.y>0.0) {ktheta=1.0; kphi=0.0;} else {ktheta=2.5; kphi=(p.z>0.0?0.5:2.5);}
+                }
+            }
+        }
+*/
+        if(!k) { ktheta = kphi = 0.0; }
+        else { 
+            if(!(zQ > xQ + yQ)) { ktheta=(p.y<0.0?2.0:1.0); kphi=0.0; } 
+            else {
+                if(k==1) {
+                    if(p.x<0.0 && p.y<0.0) {ktheta=2.0; kphi=0.0;} else {ktheta=0.5; kphi=(p.z>0.0?0.5:2.5);}
+                }
+                else {
+                    if(p.x<0.0 && p.y>0.0) {ktheta=1.0; kphi=0.0;} else {ktheta=2.5; kphi=(p.z>0.0?0.5:2.5);}
+                }
+            }
+        }
+        const float theta  = (atan2f(p.y,p.x)+ ktheta * glm::pi<float>())/n;
+        const float phi    = (acosf(p.z/r)   + kphi   * glm::pi<float>())/n;
+
+        const float cosphi = cosf(phi);
+        vp = powf(r,1.0f/n) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi));
+    };
+    
+
+/*
+    auto radiciEqA = [&](const vec3 &p, float kTheta, float kPhi) {
+        float dN = 1.5;
+        const float r = length(p);
+        const int k1 = (dN - (p.z<0 ? 0 : 1)), k2 = (3*dN + (p.z<0 ? 4 : 2));
+
+        const int dk = ((kPhi*4.f)>k1 && (kPhi*4.f)<k2) ? (sign(p.z) * 1 ) : 0;
+        const float theta  = (atan2f(p.y,p.x) + (2 * kTheta + dk) * glm::pi<float>()) / float(dN);
+        const float phi    = (asinf(p.z/r)    + (2 * kPhi   - dk) * glm::pi<float>()) / float(dN);
+        const float cosphi = cosf(phi);
+        vp = powf(r, 1.0f/float(dN)) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi));
+    };
+
+    preStep(v,vp);
+    radiciEqA(v-((vec3 &)*kVal.data()+vec3(kRnd)), Random::get<int>(0, INT_MAX) % degreeN, Random::get<int>(0, INT_MAX) % degreeN);
+*/
+
+    preStep(v,vp);
+    int nRad = numRadici();
+    int rnd = Random::get<int>(0, INT_MAX);
+    radiciEq(rnd % nRad);
+
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 inline void Magnetic::Step(vec3 &v, vec3 &vp) 
 {
@@ -650,7 +871,6 @@ inline void Magnetic::Step(vec3 &v, vec3 &vp)
 
 inline const vec3 Magnetic::straight(const vec3 &vx, int i) 
 {
-
     return vx;
 }
 

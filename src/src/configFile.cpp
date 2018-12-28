@@ -156,6 +156,7 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["alphaKFactor"    ] = ptr->getAlphaKFactor();
     c["alphaAttenFactor"] = ptr->getAlphaAtten();
     c["alphaSkip"       ] = ptr->getAlphaSkip();   
+    c["dotsType"        ] = ptr->getDotType();   
 
 
 //Colors
@@ -312,6 +313,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     ptr->setAlphaKFactor(   c.get_or("alphaKFactor"    , ptr->getAlphaKFactor()   ));
     ptr->setAlphaAtten(     c.get_or("alphaAttenFactor", ptr->getAlphaAtten()     ));
     ptr->setAlphaSkip(      c.get_or("alphaSkip"       , ptr->getAlphaSkip()      ));
+    ptr->setDotType(        c.get_or("dotsType"        , ptr->getDotType()        ));
 
     ptr->dstBlendIdx(getBlendIdx(ptr->getDstBlend()));
     ptr->srcBlendIdx(getBlendIdx(ptr->getSrcBlend()));

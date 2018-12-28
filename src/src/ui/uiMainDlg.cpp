@@ -262,7 +262,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
         if(isOpen) {
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-            ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*7), true); 
+            ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*8-ImGui::GetStyle().ItemSpacing.y*3), true); 
                 //////////Linea 1//////////
                 ImGui::SetCursorPosX(INDENT(posA)); ImGui::TextDisabled("Blending Src"); 
                 ImGui::SameLine(INDENT(posC4));     ImGui::TextDisabled("Blending Dst");           
@@ -363,6 +363,15 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                         if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.0,  1.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAlphaSkip(f);
                     }
                 ImGui::PopItemWidth();
+
+                ImGui::SetCursorPosX(posA);
+                    {
+                        bool b = particles->getDotType();
+                        char txt[32];
+                        sprintf(txt, b ? "solidDot " ICON_FA_CHECK_SQUARE_O "%s" : "solidDot " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
+                        if(colCheckButton(b , txt, wButt3)) particles->setDotType(b^1);
+                    }
+
 
             ImGui::EndChild();
             ImGui::PopStyleVar();
@@ -1396,6 +1405,9 @@ void progSettingDlgClass::view()
         const int idxTheme = ShowStyleSelector(wButt-ImGui::GetCursorPosX());
 
         ImGui::Text(" Fonts");
+        ImGui::SameLine();
+        ShowHelpMarker(GLAPP_HELP_FONTS);
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextDisabled("FontSize:");
         ImGui::SameLine();
@@ -1457,6 +1469,9 @@ void progSettingDlgClass::view()
         ImGui::NewLine();
 
         ImGui::Text(" MAX # of particles");
+        ImGui::SameLine();
+        ShowHelpMarker(GLAPP_HELP_MAX_PART);
+
         ImGui::AlignTextToFramePadding();
         ImGui::TextDisabled("#:"); 
         ImGui::SameLine(); 

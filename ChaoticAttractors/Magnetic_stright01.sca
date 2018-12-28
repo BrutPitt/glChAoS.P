@@ -1,6 +1,6 @@
 {
 	"Attractor":   {
-		"Name":     "MagneticRight",
+		"Name":     "MagneticStraight",
 		"nMagnets": 18,
 		"kMax":     2.18,
 		"kMin":     -2.12,

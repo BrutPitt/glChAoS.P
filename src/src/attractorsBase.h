@@ -44,6 +44,7 @@
 #include <deque>
 #include <vector>
 #include <string>
+#include <complex>
 
 #include <thread>
 #include <mutex>
@@ -89,6 +90,7 @@ public:
 
     enum { attLoadPtVal, attLoadKtVal };
     enum { attHaveKVect, attHaveKScalar }; 
+    enum { attPt3D = 3, attPt4D };
 
     AttractorBase() 
     {
@@ -188,8 +190,13 @@ public:
 
     bool dtType() { return isDTtype; }
 
+    virtual int getPtSize() { return attPt3D; }
+    float getDim4D() { return dim4D; }
+    void setDim4D(float f) { dim4D = f; }
+
     vector<vec3> vVal;
 protected:
+    float dim4D = 0;
 
     //innerThreadStepPtrFn innerThreadStepFn;
     stepPtrFn stepFn;
@@ -330,6 +337,153 @@ protected:
 
 };
 
+class fractalIIMBase : public attractorScalarK
+{
+public:
+
+protected:
+    fractalIIMBase() {
+        vMin = 0.f; vMax = 0.f; kMin = 0.f; kMax = 0.f;
+        m_POV = vec3( 0.f, 0, 7.f);
+    }
+
+    void maxDepthReached() {
+
+    }
+
+    virtual void preStep(vec3 &v, vec3 &vp) {
+        if(depth++>maxDepth) {
+            depth = 0;
+
+            last4D = dim4D + RANDOM(vMin, vMax);
+            v = vVal[0] + vec3(RANDOM(vMin, vMax),
+                               RANDOM(vMin, vMax),
+                               RANDOM(vMin, vMax));
+            
+            kRnd = vec4(RANDOM(kMin, kMax),
+                        RANDOM(kMin, kMax),
+                        RANDOM(kMin, kMax),
+                        RANDOM(kMin, kMax));
+        }
+    }
+
+    //  Personal vals
+    ///////////////////////////////////////
+    void saveAdditionalData(Config &cfg);
+    void loadAdditionalData(Config &cfg);
+
+    virtual void additionalDataCtrls();
+
+    vec4 kRnd = vec4(0.f);
+    std::vector<vec3> eqRoots;
+    
+    int maxDepth = 50;
+    int degreeN = 2;
+    float last4D = 1;
+
+private:
+    int depth = 0;
+};
+
+class fractalIIM_4D : public fractalIIMBase
+{
+public:
+    //void preStep(vec3 &v, vec3 &vp) { last4D = RANDOM(vMin, vMax); fractalIIMBase::preStep(v,vp); }
+    int getPtSize() { return attPt4D; }
+
+    virtual void initStep() {
+        last4D = 0;
+        attractorScalarK::initStep();
+    }
+
+    //  Personal vals
+    ///////////////////////////////////////
+    //void additionalDataCtrls();
+protected:
+
+};
+
+class fractalIIM_Nth : public fractalIIMBase
+{
+public:
+    //  Personal vals
+    ///////////////////////////////////////
+    void additionalDataCtrls();
+protected:
+
+};
+
+
+class juliaBulb_IIM : public fractalIIMBase
+{    
+public:
+    juliaBulb_IIM() { stepFn = (stepPtrFn) &juliaBulb_IIM::Step; }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+class juliaBulb4th_IIM : public fractalIIM_Nth
+{    
+public:
+    juliaBulb4th_IIM() { stepFn = (stepPtrFn) &juliaBulb4th_IIM::Step; }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+class BicomplexJ_IIM : public fractalIIM_4D
+{    
+public:
+    BicomplexJ_IIM() { stepFn = (stepPtrFn) &BicomplexJ_IIM::Step; }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+class BicomplexJMod0_IIM : public fractalIIM_4D
+{    
+public:
+    BicomplexJMod0_IIM() { stepFn = (stepPtrFn) &BicomplexJMod0_IIM::Step; }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+class BicomplexJMod1_IIM : public fractalIIM_4D
+{    
+public:
+    BicomplexJMod1_IIM() { stepFn = (stepPtrFn) &BicomplexJMod1_IIM::Step; }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+class quatJulia_IIM : public fractalIIM_4D
+{    
+public:
+    quatJulia_IIM() { stepFn = (stepPtrFn) &quatJulia_IIM::Step; }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+
+class glynnJB_IIM : public fractalIIMBase
+{    
+public:
+    glynnJB_IIM() { stepFn = (stepPtrFn) &glynnJB_IIM::Step;  }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
 
 
 //  Hopalong base class
@@ -366,10 +520,10 @@ public:
         _r=.01f;
     }
 
-    void Step();
-    void Step(float *ptr, int numElements);
-    inline void Step(float *&ptr, vec3 &v, vec3 &vp);
-    inline void Step(vec3 &v, vec3 &vp) {}
+    //void Step();
+    //void Step(float *ptr, int numElements);
+    //inline void Step(float *&ptr, vec3 &v, vec3 &vp);
+    void Step(vec3 &v, vec3 &vp);
 
     void startData();
 
@@ -445,7 +599,7 @@ public:
     ///////////////////////////////////////
     void setOrder(const int n)
     { 
-        order = n;
+        tmpOrder = order = n;
         resetData();
 
         kVal.resize(nCoeff);
@@ -1146,6 +1300,7 @@ public:
     void initStep() {
         resetQueue();
         Insert(vec3(0.f));
+        tmpElements = vVal.size();
     }
 
     void Step(vec3 &v, vec3 &vp);
@@ -1229,6 +1384,8 @@ public:
             if(fabs(v0.x-v1.x)>.01 || fabs(v0.y-v1.y)>.01 || fabs(v0.z-v1.z)>.01) break;
         }
     }
+    
+    void searchAttractor()  { searchLyapunov(); }
 
 
 
@@ -1266,34 +1423,30 @@ protected:
         initStep();
     }
 };
-
 //  Magnetic LeftShift
 ///////////////////////////////////////
 class MagneticLeft : public Magnetic {
 public:
-    MagneticLeft() {
-        increment = &Magnetic::leftShift;
-    }
+    MagneticLeft() { increment = &Magnetic::leftShift; }
 };
-
 //  Magnetic RightShift
 ///////////////////////////////////////
 class MagneticRight : public Magnetic {
 public:
-    MagneticRight() {
-        increment = &Magnetic::rightShift;
-    }
+    MagneticRight() { increment = &Magnetic::rightShift; }
 };
-
 //  Magnetic Full permutated
 ///////////////////////////////////////
 class MagneticFull : public Magnetic {
 public:
-    MagneticFull() {
-        increment = &Magnetic::fullPermutated;
-    }
+    MagneticFull() { increment = &Magnetic::fullPermutated; }
 };
-
+//  Magnetic Full permutated
+///////////////////////////////////////
+class MagneticStraight : public Magnetic {
+public:
+    MagneticStraight() { increment = &Magnetic::straight; }
+};
 
 //  Attractors Thread helper class
 ////////////////////////////////////////////////////////////////////////////
@@ -1339,57 +1492,61 @@ class AttractorsClass
 {
 public:
     AttractorsClass() {
-        PB(MagneticRight , "Magnetic Right" )
-        PB(MagneticLeft  , "Magnetic Left"  )
-        PB(MagneticFull  , "Magnetic Full"  )
-        PB(PolynomialA   , "Polynomial A"   )
-        PB(PolynomialB   , "Polynomial B"   )
-        PB(PolynomialC   , "Polynomial C"   )
-        PB(PolynomialABS , "Polynomial Abs" )
-        PB(PolynomialPow , "Polynomial Pow" )
-        PB(PolynomialSin , "Polynomial Sin" )
-        PB(PowerN3D      , "Polynom N-order")
-        PB(Rampe01       , "Rampe  1"       )
-        PB(Rampe02       , "Rampe  2"       )
-        PB(Rampe03       , "Rampe  3"       )
-        PB(Rampe03A      , "Rampe  3 mod"   )
-        PB(Rampe04       , "Rampe  4"       )
-        PB(Rampe05       , "Rampe  5"       )
-        PB(Rampe06       , "Rampe  6"       )
-        PB(Rampe07       , "Rampe  7"       )
-        PB(Rampe08       , "Rampe  8"       )
-        PB(Rampe09       , "Rampe  9"       )
-        PB(Rampe10       , "Rampe 10"       )
-        PB(KingsDream    , "King's Dream"   )
-        PB(Pickover      , "Pickover"       )
-        PB(SinCos        , "Sin Cos"        )
-        PB(Lorenz        , "Lorenz"         )
-        PB(ChenLee       , "Chen Lee"       )
-        PB(TSUCS         , "TSUCS 1&2"      )
-        PB(Aizawa        , "Aizawa"         )
-        PB(YuWang        , "Yu-Wang"        )
-        PB(FourWing      , "Four Wing"      )
-        PB(FourWing2     , "Four Wing 2"    )
-        PB(FourWing3     , "Four Wing 3"    )
-        PB(Thomas        , "Thomas"         )
-        PB(Halvorsen     , "Halvorsen"      )
-        PB(Arneodo       , "Arneodo"        )
-        PB(Bouali        , "Bouali"         )
-        PB(Hadley        , "Hadley"         )
-        PB(LiuChen       , "LiuChen"        )
-        PB(GenesioTesi   , "GenesioTesi"    )
-        PB(NewtonLeipnik , "NewtonLeipnik"  )
-        PB(NoseHoover    , "NoseHoover"     )
-        PB(RayleighBenard, "RayleighBenard" )
-        PB(Sakarya       , "Sakarya"        )
-        PB(Robinson      , "Robinson"       )
-        PB(Rossler       , "Rossler"        )
-        PB(Rucklidge     , "Rucklidge"      )
-          
-            
-            
-
-        //PB(Hopalong          , "Hopalong"      )
+        PB(MagneticRight      , u8"\uf006" " MagneticRight"      )
+        PB(MagneticLeft       , u8"\uf006" " MagneticLeft"       )
+        PB(MagneticFull       , u8"\uf006" " MagneticFull"       )
+        PB(MagneticStraight   , u8"\uf006" " MagneticStraight"   )
+        PB(PolynomialA        , u8"\uf006" " Polynom A"          )
+        PB(PolynomialB        , u8"\uf006" " Polynom B"          )
+        PB(PolynomialC        , u8"\uf006" " Polynom C"          )
+        PB(PolynomialABS      , u8"\uf006" " Polynom Abs"        )
+        PB(PolynomialPow      , u8"\uf006" " Polynom Pow"        )
+        PB(PolynomialSin      , u8"\uf006" " Polynom Sin"        )
+        PB(PowerN3D           , u8"\uf006" " Polynom N-order"    )
+        PB(Rampe01            , u8"\uf006" " Rampe01"            )
+        PB(Rampe02            , u8"\uf006" " Rampe02"            )
+        PB(Rampe03            , u8"\uf006" " Rampe03"            )
+        PB(Rampe03A           , u8"\uf006" " Rampe03 mod."       )
+        PB(Rampe04            , u8"\uf006" " Rampe04"            )
+        PB(Rampe05            , u8"\uf006" " Rampe05"            )
+        PB(Rampe06            , u8"\uf006" " Rampe06"            )
+        PB(Rampe07            , u8"\uf006" " Rampe07"            )
+        PB(Rampe08            , u8"\uf006" " Rampe08"            )
+        PB(Rampe09            , u8"\uf006" " Rampe09"            )
+        PB(Rampe10            , u8"\uf006" " Rampe10"            )
+        PB(KingsDream         , u8"\uf006" " King's Dream"       )
+        PB(Pickover           , u8"\uf006" " Pickover"           )
+        PB(SinCos             , u8"\uf006" " Sin Cos"            )
+        PB(Lorenz             , u8"\uf192" " Lorenz"             )
+        PB(ChenLee            , u8"\uf192" " Chen Lee"           )
+        PB(TSUCS              , u8"\uf192" " TSUCS 1&2"          )
+        PB(Aizawa             , u8"\uf192" " Aizawa"             )
+        PB(YuWang             , u8"\uf192" " Yu-Wang"            )
+        PB(FourWing           , u8"\uf192" " FourWing"           )
+        PB(FourWing2          , u8"\uf192" " FourWing 2"         )
+        PB(FourWing3          , u8"\uf192" " FourWing 3"         )
+        PB(Thomas             , u8"\uf192" " Thomas"             )
+        PB(Halvorsen          , u8"\uf192" " Halvorsen"          )
+        PB(Arneodo            , u8"\uf192" " Arneodo"            )
+        PB(Bouali             , u8"\uf192" " Bouali"             )
+        PB(Hadley             , u8"\uf192" " Hadley"             )
+        PB(LiuChen            , u8"\uf192" " LiuChen"            )
+        PB(GenesioTesi        , u8"\uf192" " GenesioTesi"        )
+        PB(NewtonLeipnik      , u8"\uf192" " NewtonLeipnik"      )
+        PB(NoseHoover         , u8"\uf192" " NoseHoover"         )
+        PB(RayleighBenard     , u8"\uf192" " RayleighBenard"     )
+        PB(Sakarya            , u8"\uf192" " Sakarya"            )
+        PB(Robinson           , u8"\uf192" " Robinson"           )
+        PB(Rossler            , u8"\uf192" " Rossler"            )
+        PB(Rucklidge          , u8"\uf192" " Rucklidge"          )
+        PB(juliaBulb_IIM      , u8"\uf2dc" " JuliaBulb"          )
+        PB(juliaBulb4th_IIM   , u8"\uf2dc" " JuliaBulb Nth"      )
+        PB(BicomplexJ_IIM     , u8"\uf2dc" " biCmplxJulia"       )
+        PB(BicomplexJMod0_IIM , u8"\uf2dc" " biCmplxJulia mod.0" )
+        PB(BicomplexJMod1_IIM , u8"\uf2dc" " biCmplxJulia mod.1" )
+        PB(quatJulia_IIM      , u8"\uf2dc" " quatJulia"          )
+//        PB(glynnJB_IIM        , u8"\uf2dc" " Glynn JuliaBulb"    )
+//        PB(Hopalong        , "Hopalong"         )
 
         selected = -1;
 

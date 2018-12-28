@@ -90,10 +90,10 @@ float getAlpha(float alpha)
 float getSpotSpecular(vec3 N)
 {
 // point on surface of sphere in eye space
-    vec3 spherePosEye = posEye + N*pointSZ;
+    vec3 spherePosEye = -posEye + N*pointSZ;
 
-	vec3 v = normalize(-spherePosEye);
-    vec3 h = normalize(LightRay.xyz + v);
+	//vec3 v = normalize();
+    vec3 h = normalize(u.lightDir + spherePosEye);
     return pow(max(0.0, dot(N, h)), u.lightShinExp);
 }
 
@@ -118,12 +118,10 @@ LAYUOT_INDEX(1) subroutine(_pixelColor) vec4 pixelColorLight()
 
     float alpha = getAlpha(color.a);
 
-    N.xy = gl_PointCoord-vec2(.5);
-    //N = vec3(vec2(gl_PointCoord.x-.5, -gl_PointCoord.y+.5), texVal); // xy = radius in 0, z = magnitudo
-    //N.z = texVal;   //Using texIntensityVal, sastest, instead: N.z = sqrt(1.0-mag);
+    N.xy = (gl_PointCoord - vec2(.5))*2.0; // xy = radius in 0
 
     float mag = dot(N.xy, N.xy);
-    if (mag > .25f || alpha < u.alphaSkip) discard;   // kill pixels outside circle: r=.5
+    if (mag > 1.0f || alpha < u.alphaSkip) discard;   // kill pixels outside circle: r=.5
     
     N.z = sqrt(1.0-mag);
     N = normalize(N);
@@ -140,7 +138,7 @@ LAYUOT_INDEX(1) subroutine(_pixelColor) vec4 pixelColorLight()
                                 vec3(specular) *u.lightSpecInt     + 
                                 (color.rgb+u.lightAmbInt*0.1) * u.lightAmbInt)); /*+ color.rgb * (1.0 - negDiffuse)+ color.rgb * ambient + vec3(specular) * .6*/
  
-    vec4 col = vec4(lColor.rgb , alpha);
+    vec4 col = vec4(lColor.rgb , alpha  * diffuse *u.lightDiffInt);
 
     //float alphaAtten = (color.a)/(pow(length(posEye),distAlphaFactor));
     //gl_FragColor = vec4(color.rgb , min(color.a*alphaK,alphaAtten)); 

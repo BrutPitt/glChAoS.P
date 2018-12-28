@@ -78,7 +78,6 @@ out gl_PerVertex
 
 out float pointDistance;
 out vec4 particleColor;
-out vec4 LightDir; 
 out vec3 posEyeVS;
 
 
@@ -88,8 +87,6 @@ out vec3 posEyeVS;
 #define dueterzi 2./3.
 #define unsesto  1./6.
 #define unterzo  1./3.
-
-//vec4 myEye = vec4(0.f, 0.f, 3.f, 1.f);
 
 
 float hue2rgb(float p, float q, float t)
@@ -141,8 +138,6 @@ vec4 HLStoRGB( vec4 HLS)
 
 void main(void)
 {
-  //InfoIn = vec2(gl_MultiTexCoord0.w,gl_Vertex.w);
-  //timeE = gl_MultiTexCoord1.y;
 
     vec4 vtxPos = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
     float vel = a_ActualPoint.w*u.velIntensity;
@@ -176,7 +171,7 @@ void main(void)
     gl_PointSize = dist<u.clippingDist ? 0.0 : u.pointSize*.001 * ptAtten ;
    
     //LightDir = normalize(m.mvMatrix *vec4(u.lightDir, 1.f)) ;
-    LightDir = normalize(vec4(u.lightDir, 1.f)) ;
+    //LightDir = normalize(vec4(u.lightDir, 1.f)) ;
 
     particleColor = cOut;
 

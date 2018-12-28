@@ -86,22 +86,25 @@ extern CMap3 cm_deep   ;
 extern CMap3 cm_delta  ;
 */
 #define BUILT_IN_STRING "BuiltIn"
-#define PUSH_BACK(ELEM) rgb.push_back(ELEM); name.push_back(#ELEM); type.push_back(BUILT_IN_STRING);
 class cmContainerClass 
 {
 public:
 
-    
+#define PB(ELEM) rgb.push_back(ELEM);\
+                 name.push_back(#ELEM);\
+                 type.push_back(BUILT_IN_STRING);
+
     cmContainerClass() {
         //rgb.resize(50);
         if(!loadColorMaps("colorMaps/palettes.json")) {
-            PUSH_BACK(cm_viridis);
-            PUSH_BACK(cm_parula );
-            PUSH_BACK(cm_plasma );
-            PUSH_BACK(cm_thermal);
-            PUSH_BACK(cm_inferno);
-            PUSH_BACK(cm_magma  );
+            PB(cm_viridis);
+            PB(cm_parula );
+            PB(cm_plasma );
+            PB(cm_thermal);
+            PB(cm_inferno);
+            PB(cm_magma  );
         }
+#undef PB
 /*
         PUSH_BACK(cm_Algae  );
         PUSH_BACK(cm_Phase  );
@@ -216,4 +219,4 @@ public:
     vector<string> type;
 };
 
-#undef PUSH_BACK
+

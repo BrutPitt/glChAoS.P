@@ -40,12 +40,10 @@ layout(std140) uniform;
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
-in vec4 LightDir[];
 in vec3 posEyeVS[];
 in vec4 particleColor[];
 in float pointDistance[];
 
-out vec4 LightRay;
 out vec3 posEye;
 out float pointSZ;
 out vec2 texCoord;
@@ -77,17 +75,12 @@ void main(void){
   mat2 RotationMatrix;
 
 //Get elapsed time in texcoord.y to zoom particle in 5 sec.
-  //float sz  = clamp(timeE[0], 0.0, 4.0);
   
   posEye  = posEyeVS[0];
-  //float sz = pointSize*.0025 / dist;
   float sz  = gl_in[0].gl_PointSize;
   ptDist = pointDistance[0];
 
   pointSZ = sz;
-  //if(sz<1/500.f) sz=1/500.f ;
-
-  LightRay = LightDir[0];
 
 
   RotationMatrix[0] = vec2(1.0, 0.0); //vec2(cos(InfoIn[0].x),-sin(InfoIn[0].x));

@@ -358,6 +358,7 @@ public:
     renderBaseClass();
 
     enum { noShowAxes, showAxesToViewCoR, showAxesToSetCoR };
+    enum { dotsAlpha, dotsSolid };
 
     virtual ~renderBaseClass();
 
@@ -401,10 +402,8 @@ protected:
     motionBlurClass *motionBlur;
     mergedRenderingClass *mergedRendering;
 
-
     cmContainerClass colorMapContainer;
 
-    GLuint texParticleID;
     bool flagUpdate;
 
     oglAxes *axes;
@@ -417,8 +416,11 @@ protected:
     std::vector<GLuint> blendArray;
     std::vector<const char *> blendingStrings;
 
+    GLuint texDotsSolid = 0;
+    GLuint buildDotTexture(GLuint texID, int size, const vec4 &v, int typeDots);
+    int dotsTexSize = 64;
+
 private:
-    GLuint buildTexture(char *filename=NULL);
 };
 
 class radialBlurClass : public BlurBaseClass
@@ -809,13 +811,16 @@ public:
         glowRender = new radialBlurClass(this);
         colorMap = new ColorMapSettingsClass(this);
         fxaaFilter = new fxaaClass(this);
+
+        texDotsAlpha = buildDotTexture(texDotsAlpha, dotsTexSize, hermiteVals, dotsAlpha);
     }
 
     ~particlesBaseClass ()  {  delete glowRender; delete colorMap; delete fxaaFilter; }
 
     void getCommonLocals() {
 #ifndef GLAPP_REQUIRE_OGL45
-        LOCpaletteTex = getUniformLocation("paletteTex" );
+        locPaletteTex = getUniformLocation("paletteTex" );
+        locDotsTex = getUniformLocation("tex"); 
 #endif
 
     }
@@ -825,7 +830,7 @@ public:
     }
 
 #ifndef GLAPP_REQUIRE_OGL45
-    void updatePalTex()  { setUniform1i(LOCpaletteTex, getCMSettings()->getModfTex()); }
+    void updatePalTex()  { setUniform1i(locPaletteTex, getCMSettings()->getModfTex()); }
 #endif
 
     virtual void render(GLuint fbOut, emitterBaseClass *em);
@@ -891,19 +896,30 @@ public:
     void srcBlendIdx(int i) { srcIdxBlendAttrib = i; }
     int  srcBlendIdx() { return srcIdxBlendAttrib; }
 
+    void setHermiteVals(vec4 &v) { hermiteVals = v; }
+    vec4& getHermiteVals() { return hermiteVals; }
+
+    void setDotType(int type) { dotType = type; }
+    int getDotType() { return dotType; }
+
 protected:
     GLuint dstBlendAttrib, srcBlendAttrib;
     int dstIdxBlendAttrib, srcIdxBlendAttrib;
 
     ColorMapSettingsClass *colorMap;
 
+    GLuint texDotsAlpha = 0; 
+    int dotType = 0;
+
     radialBlurClass *glowRender;
     fxaaClass *fxaaFilter;
+
+    vec4 hermiteVals = vec4(.7f, 0.f, .3f, 0.f);
     
     GLfloat stepInc;  
 
-#ifndef GLAPP_REQUIRE_OGL45
-    GLuint LOCpaletteTex;
+#if !defined(GLAPP_REQUIRE_OGL45)
+    GLuint locDotsTex, locPaletteTex;
 #endif
 
     enum lightIDX { off, on };

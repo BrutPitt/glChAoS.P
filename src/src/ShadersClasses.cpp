@@ -106,7 +106,7 @@ void shaderPointClass::initShader()
 #if !defined(GLAPP_REQUIRE_OGL45)
     bindPipeline();
     useProgram();
-    setUniform1i(getUniformLocation("tex"),texParticleID);
+    locDotsTex = getUniformLocation("tex"); 
 
     idxSubLightOn = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorLight");
     idxSubLightOff = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorOnly");
@@ -165,14 +165,14 @@ void shaderBillboardClass::initShader()
 
     bindPipeline();
     useProgram();
-    setUniform1i(getUniformLocation("tex"),texParticleID);
-    
+
+    getCommonLocals();
+
     idxSubLightOn = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorLight");
     idxSubLightOff = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorOnly");
     ProgramObject::reset();
 #endif
 
-    getCommonLocals();
 }
 
 const GLfloat black[] = {0.f, 0.f, 0.f, 1.f};
@@ -211,16 +211,18 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
        
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, colorMap->getModfTex());
-    glBindTextureUnit(1, texParticleID);
+    glBindTextureUnit(1, getDotType() ? texDotsSolid : texDotsAlpha);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &lightStateIDX);
 #else
     glActiveTexture(GL_TEXTURE0+colorMap->getModfTex());
     glBindTexture(GL_TEXTURE_2D,colorMap->getModfTex());
 
-    glActiveTexture(GL_TEXTURE0+texParticleID);
-    glBindTexture(GL_TEXTURE_2D,texParticleID);
+    const GLuint texID = getDotType() ? texDotsSolid : texDotsAlpha;
+    glActiveTexture(GL_TEXTURE0+texID);
+    glBindTexture(GL_TEXTURE_2D,texID);
 
     useProgram();
+    setUniform1i(locDotsTex,texID);
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), lightStateIDX==1 ? &idxSubLightOn : &idxSubLightOff);
 
@@ -357,7 +359,8 @@ renderBaseClass::renderBaseClass()
     mergedRendering = new mergedRenderingClass(this);
 
 
-    texParticleID = buildTexture();
+    texDotsSolid = buildDotTexture(texDotsSolid, dotsTexSize, vec4(0.f), dotsSolid);
+
 }
 
 renderBaseClass::~renderBaseClass()
@@ -372,6 +375,67 @@ void renderBaseClass::setRenderMode(int which)
         if(which!=RENDER_USE_BOTH && whichRenderMode==RENDER_USE_BOTH) getMergedRendering()->Deactivate();
     whichRenderMode=which; setFlagUpdate(); 
 }
+
+// 
+//  Particles Texture
+////////////////////////////////////////////////////////////////////////////
+GLuint renderBaseClass::buildDotTexture(GLuint texID, int size, const vec4 &v, int type)
+{
+    unsigned char *ptrBuffer;
+    float *buffer;
+
+    buffer = createGaussianMap(size, v,  1, type);
+
+    const int w = size, h = size;
+
+    if(texID) {
+        glDeleteTextures(1,&texID);
+        CHECK_GL_ERROR();
+    }
+
+#ifdef GLAPP_REQUIRE_OGL45
+    glCreateTextures(GL_TEXTURE_2D , 1, &texID);
+    glTextureStorage2D(texID, 7, GL_R32F, w, h);
+    glTextureSubImage2D(texID, 0, 0, 0, w, h, GL_RED, GL_FLOAT, buffer);
+    glGenerateTextureMipmap(texID);
+    glTextureParameteri(texID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTextureParameteri(texID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#else
+
+    glGenTextures(1, &texID);					// Generate OpenGL texture IDs
+    glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
+
+    //glTexStorage2D(GL_TEXTURE_2D, 7, GL_R32F, w, h);
+    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RED, GL_FLOAT, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, w, h, 0, GL_RED, GL_FLOAT, buffer);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    //glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
+    glBindTexture(GL_TEXTURE_2D, 0);
+#endif
+    CHECK_GL_ERROR();
+    
+    delete buffer;
+
+    return texID;
+
+}
+
+/////////////////////////////////////////
+//
+// BlurBase (Glow)
+//
+/////////////////////////////////////////
 
 void BlurBaseClass::create()    {
 

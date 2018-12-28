@@ -79,85 +79,120 @@ int AttractorBase::additionalDataDlg()
 }
 
 
+inline void headerAdditionalDataCtrls(int numControls = 1)
+{
+
+    const float border = DLG_BORDER_SIZE;
+
+    const float w = ImGui::GetContentRegionAvailWidth();
+    const float wButt = (w - (border*6)) *.4 / float(numControls); // dim/5 * 2
+
+    ImGui::SameLine();
+
+    ImGui::PushItemWidth(wButt);
+    ImGui::SetCursorPosX(INDENT(border));     
+    ImGui::AlignTextToFramePadding();
+
+    ImGui::SetCursorPosX(DLG_BORDER_SIZE);        
+}
+
+void fractalIIMBase::additionalDataCtrls()
+{
+
+    headerAdditionalDataCtrls();
+
+    int i = maxDepth;
+    if(ImGui::DragInt("##or", &i, 1, 1, 2000, "Depth: %03d")) maxDepth = i;
+    ImGui::SameLine();
+    ImGui::PopItemWidth();
+
+}
+/*
+void fractalIIM_4D::additionalDataCtrls()
+{
+
+    headerAdditionalDataCtrls(2);
+
+    float f = dim4D;
+    if(ImGui::DragFloat("##4d", &f, .0001, 0.0, 0.0, "4D: %.7f")) dim4D = f;
+    ImGui::SameLine();
+
+    int i = maxDepth;
+    if(ImGui::DragInt("##or", &i, 1, 1, 2000, "Depth: %03d")) maxDepth = i;
+    ImGui::SameLine();
+    ImGui::PopItemWidth();
+
+}
+*/
+void fractalIIM_Nth::additionalDataCtrls()
+{
+
+    headerAdditionalDataCtrls(2);
+
+    {
+        static int oldN = degreeN;
+        int i = degreeN;
+        if(ImGui::DragInt("##dgr", &i, .1, -100, 100, "Dgree: %03d")) {
+            //degreeN = i>-2 && i<3 ? (degreeN = oldN > i ? -2 : 3) : i; 
+            degreeN = i>-2 && i<2 ? (degreeN = oldN > i ? -2 : 2) : i;
+            oldN = i;
+        }
+        ImGui::SameLine();
+    }
+    {
+        int i = maxDepth;
+        if(ImGui::DragInt("##or", &i, 1, 1, 2000, "Depth: %03d")) maxDepth = i;
+        ImGui::SameLine();
+    }
+    ImGui::PopItemWidth();
+
+}
+
 void attractorDtType::additionalDataCtrls()
 {
-        const float border = DLG_BORDER_SIZE;
 
-        const float w = ImGui::GetContentRegionAvailWidth();
-        const float wButt = (w - (border*6)) *.4; // dim/5 * 2
+    headerAdditionalDataCtrls();
 
-        ImGui::SameLine();
+    float f = dtStepInc;
 
-        float f = dtStepInc;
-
-        ImGui::PushItemWidth(wButt);
-        ImGui::SetCursorPosX(INDENT(border));     
-        ImGui::AlignTextToFramePadding();
-        //ImGui::TextDisabled("dt Increment");
-
-        if(ImGui::DragFloat("##dtI", &f, .000001f, 0.0, 1.0, "dt: %.8f",1.0f)) dtStepInc = f;
-        ImGui::PopItemWidth();
+    if(ImGui::DragFloat("##dtI", &f, .000001f, 0.0, 1.0, "dt: %.8f",1.0f)) dtStepInc = f;
+    ImGui::PopItemWidth();
 }
 
 void PowerN3D::additionalDataCtrls()
 {
 
-        const float border = DLG_BORDER_SIZE;
+    headerAdditionalDataCtrls();        
 
-        const float w = ImGui::GetContentRegionAvailWidth();
-        const float wButt = (w - (border*6)) *.2; // dim/5
-
-        ImGui::SameLine();
-
-        //Num Elements
-        ImGui::PushItemWidth(wButt);
-        ImGui::SetCursorPosX(INDENT(border));
-        ImGui::AlignTextToFramePadding();
-        //ImGui::Text("Elements:"); 
+    ImGui::DragInt("##or", &tmpOrder, .1, 1, 20, "Order: %03d");
+    ImGui::SameLine();
+    if(ImGui::Button(" Set "/*, ImVec2(wButt,0.0)*/)) {
+        attractorsList.getThreadStep()->stopThread();
         
-        ImGui::SetCursorPosX(border);        
-        ImGui::DragInt("##or", &tmpOrder, .1, 1, 20, "Order: %03d");
-        ImGui::SameLine();
-        if(ImGui::Button("Set", ImVec2(wButt,0.0))) {
-            attractorsList.getThreadStep()->stopThread();
-        
-            setOrder(tmpOrder);
-            attractorsList.getThreadStep()->restartEmitter();
-            attractorsList.getThreadStep()->startThread();
+        setOrder(tmpOrder);
+        attractorsList.getThreadStep()->restartEmitter();
+        attractorsList.getThreadStep()->startThread();
 
-        }
-        ImGui::PopItemWidth();
-
+    }
+    ImGui::PopItemWidth();
 }
 
 
 void Magnetic::additionalDataCtrls()
 {
-        const float border = DLG_BORDER_SIZE;
-
-        const float w = ImGui::GetContentRegionAvailWidth();
-        const float wButt = (w - (border*6)) *.2; // dim/5
-
-        ImGui::SameLine();
-
-        //Num Elements
-        ImGui::PushItemWidth(wButt);
-        ImGui::SetCursorPosX(INDENT(border));
-        ImGui::AlignTextToFramePadding();
-        //ImGui::Text("Elements:"); 
+    headerAdditionalDataCtrls();
         
-        ImGui::SetCursorPosX(border);        
-        ImGui::DragInt("##el", &tmpElements, .1, 2, 999, "Elem: %03d");
-        ImGui::SameLine();
-        if(ImGui::Button("Set", ImVec2(wButt,0.0))) {
-            attractorsList.getThreadStep()->stopThread();
+    ImGui::DragInt("##el", &tmpElements, .1, 2, 999, "Elem: %03d");
+    ImGui::SameLine();
+    if(ImGui::Button(" Set " /*, ImVec2(wButt,0.0)*/)) {
+        attractorsList.getThreadStep()->stopThread();
         
-            setElements(tmpElements);
-            attractorsList.getThreadStep()->restartEmitter();
-            attractorsList.getThreadStep()->startThread();
+        setElements(tmpElements);
+        attractorsList.getThreadStep()->restartEmitter();
+        attractorsList.getThreadStep()->startThread();
 
-        }
-        ImGui::PopItemWidth();
+    }
+    ImGui::PopItemWidth();
 }
 
 
@@ -196,7 +231,7 @@ void attractorDlgClass::view()
         ImGui::Columns(2);
 
         static bool firstTime = true;
-        if(firstTime) { ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth()*.17); firstTime = false; }
+        if(firstTime) { ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth()*.225); firstTime = false; }
 
         // left
         ImGui::BeginGroup(); 
@@ -351,6 +386,8 @@ const float border = 5;
     int valIdx = selIdx;   
 
     int idx = 0;
+    static const char *idCell = "XYZW";
+    AttractorBase *att = attractorsList.get();
 
     auto populateData = [&] (auto colWidth, int elem, int pos, int nCol = 1) {
         const int typeVal = ImGui::GetColumnIndex();
@@ -360,7 +397,7 @@ const float border = 5;
                 sprintf(s,"##c_%03d",i+1);
                 szItem = colWidth/3.f - (border + style.ItemInnerSpacing.x * 4.f) ;
             } else {
-                sprintf(s,"##c_%c", (typeVal ? 'A' : 'X') +i);
+                sprintf(s,"##c_%c", (typeVal==AttractorBase::attLoadKtVal ? 'A'+i : idCell[i]) );
                 szItem = colWidth - (border*2 + style.ItemInnerSpacing.x) ;
             }
                     
@@ -377,16 +414,16 @@ const float border = 5;
             auto innerLoop3 = [&] () {                        
                 for(int j = 0; j < 3; j++, idx++)
                 {
-                    s[3] = (typeVal ? '1' : '4') + j; //name different for single column
+                    s[3] = (typeVal ? '1' : '5') + j; //name different for single column
                     if(idx==selIdx) {
                         ImGui::PushStyleColor(ImGuiCol_FrameBg,style.Colors[ImGuiCol_PlotHistogram]); 
                         ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,style.Colors[ImGuiCol_PlotHistogramHovered]); 
                         ImGui::PushStyleColor(ImGuiCol_FrameBgActive,style.Colors[ImGuiCol_CheckMark]); 
                     }
                         
-                    float f = attractorsList.get()->getValue(i,j,typeVal);
+                    float f = att->getValue(i,j,typeVal);
                     if(ImGui::DragFloatEx(s, (float *) &f, .0001, 0.0, 0.0, "%.7f",1.0f,ImVec2(.93,0.5))) 
-                        { attractorsList.get()->setValue(i, j, typeVal, f); valIdx=idx; }
+                        { att->setValue(i, j, typeVal, f); valIdx=idx; }
                     ImGui::SameLine(0, style.ItemInnerSpacing.x);
 
                     if(idx==selIdx) { 
@@ -398,15 +435,18 @@ const float border = 5;
                 ImGui::NewLine();
             };
             auto innerLoop = [&] () {                        
-                  s[3] = typeVal ? '1' : '4'; //name different for single column
+                  s[3] = typeVal ? '1' : '5'; //name different for single column
                 if(idx==selIdx) {
                     ImGui::PushStyleColor(ImGuiCol_FrameBg,style.Colors[ImGuiCol_PlotHistogram]); 
                 }
-                        
-                float f = attractorsList.get()->getValue(i,typeVal);
-                if(ImGui::DragFloatEx(s, (float *) &f, .0001, 0.0, 0.0, "%.7f",1.0f,ImVec2(.93,0.5))) 
-                    { attractorsList.get()->setValue(i, typeVal, f); valIdx=idx; }
-
+                
+                const bool test4D = !typeVal && att->getPtSize()==AttractorBase::attPt4D && i==3;
+                float f =  test4D ? att->getDim4D() : att->getValue(i,typeVal);
+                if(ImGui::DragFloatEx(s, (float *) &f, .0001, 0.0, 0.0, "%.7f",1.0f,ImVec2(.93,0.5))) {
+                    if(test4D) att->setDim4D(f);
+                    else       att->setValue(i, typeVal, f); 
+                    valIdx=idx; 
+                }
                 if(idx==selIdx) ImGui::PopStyleColor();
                 idx++;
             };
@@ -422,9 +462,10 @@ const float border = 5;
     {
         const float wCl = ImGui::GetContentRegionAvailWidth();
 
-        const int nElem = attractorsList.get()->getNumElements(AttractorBase::attLoadPtVal);
+        const int nElem = att->getNumElements(AttractorBase::attLoadPtVal);
         if(nElem > 1) { columnsHeader(wCl, "X", "Y", "Z"); populateData(wCl, nElem, border, 3); }
-        else          { columnHeader(wCl, "Start Pt"); populateData(wCl,     3, border, 1); }
+        else          { columnHeader(wCl, "Start Pt"); 
+                        populateData(wCl, att->getPtSize(), border, 1); }
     }
 
     ImGui::SetCursorPosY(posY);
@@ -434,8 +475,8 @@ const float border = 5;
     {
         const float wCl = ImGui::GetContentRegionAvailWidth();
 
-        const int nElem = attractorsList.get()->getNumElements(AttractorBase::attLoadKtVal);
-        const int nCol = attractorsList.get()->getKType() == AttractorBase::attHaveKVect ? 3 : 1;
+        const int nElem = att->getNumElements(AttractorBase::attLoadKtVal);
+        const int nCol = att->getKType() == AttractorBase::attHaveKVect ? 3 : 1;
         if(nCol > 1) columnsHeader(wCl, "Kx", "Ky", "Kz");
         else         columnHeader(wCl, " K Vals ");
 

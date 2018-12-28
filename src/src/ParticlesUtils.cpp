@@ -81,50 +81,54 @@ vec3 getRandomVector( void )
 }
 
 //------------------------------------------------------------------------------
-// Function     	  : EvalHermite
-// Description	    :
+//  EvalHermite(float pA, float pB, float vA, float vB, float u)
+//  Evaluates Hermite basis functions for the specified coefficients.
 //------------------------------------------------------------------------------
-/**
-* EvalHermite(float pA, float pB, float vA, float vB, float u)
-* @brief Evaluates Hermite basis functions for the specified coefficients.
-*/
-inline float evalHermite(float pA, float pB, float vA, float vB, float u)
+inline float evalHermite(const vec4 &v, float u)
 {
-    float u2=(u*u), u3=u2*u;
-    float B0 = 2*u3 - 3*u2 + 1;
-    float B1 = -2*u3 + 3*u2;
-    float B2 = u3 - 2*u2 + u;
-    float B3 = u3 - u;
-    return( B0*pA + B1*pB + B2*vA + B3*vB );
+    const float u2=(u*u), u3=u2*u;
+
+    const vec4 b( 2*u3 - 3*u2 + 1,
+                 -2*u3 + 3*u2,
+                    u3 - 2*u2 + u,
+                    u3        - u);
+
+    return dot(b,v);
 }
 
 
-float* createGaussianMap(int N, int components)
+float* createGaussianMap(int N, const vec4 & hermVals, int components, int typeSolid)
 {
+    const int size = N*N;
+    float *M = new float[size];
+    float *m = M;
 
-    float *M = new float[components*(N+1)*(N+1)];
-    float *B = new float[components*(N+1)*(N+1)];
     float X,Y,Y2,Dist;
-    float Incr = 2.0f/N;
-    int i=0;
-    int j = 0;
+    float Incr = 2.0f/float(N);
+    
     Y = -1.0f;
     //float mmax = 0;
-    for (int y=0; y<N; y++, Y+=Incr)
-    {
+    for(int y=0; y<N; y++, Y+=Incr) {
         Y2=Y*Y;
         X = -1.0f;
-        for (int x=0; x<N; x++, X+=Incr, i+=components, j+=components)
-        {
+        for(int x=0; x<N; x++, X+=Incr) {
             Dist = (float)sqrtf(X*X+Y2);
-            if (Dist>1) Dist=1;
-            M[i+1] = M[i] = evalHermite(.7f,0.0,0.3,0.0,Dist);
-            for(int k=0; k<components; k++)
-                B[j+k] = M[i]; //(unsigned char)(M[i] * 255);
+            //if (Dist>1) Dist=1;
+            if (Dist>1) *m++ = 0.f;
+            else        *m++ =typeSolid ? 1.f : evalHermite(hermVals,Dist);
         }
     }
-    delete [] M;
-    return(B);
+
+    if(components>1) {
+        float *B = new float[components*size];
+        float *b = B;
+            m = M;
+            for(int k=components*size; k>0; k--)
+                *b++ = *m++; //(unsigned char)(M[i] * 255);
+        delete [] M;
+        return B;
+    } else return M;
+
 }
 
 #define unsesto  .166666666666666666667
@@ -167,7 +171,7 @@ vec3 HLStoRGB( vec3 HLS)
 void textureBaseClass::buildTex1D()
 {
 
-    if(texID!=-1) {
+    if(texID) {
         glDeleteTextures(1,&texID);
         CHECK_GL_ERROR();
     }
