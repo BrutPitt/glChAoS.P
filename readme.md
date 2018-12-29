@@ -252,9 +252,6 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
 - libs/lodePNG → LodePNG a PNG saver
 [https://github.com/lvandeve/lodepng](https://github.com/lvandeve/lodepng)
 
-- libs/Random → Random for modern C++
-[https://github.com/effolkronium/random](https://github.com/effolkronium/random)
-
 - libs/tinyFileDialog → file dialogs ( cross-platform C C++ )
 [https://github.com/native-toolkit/tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
 
