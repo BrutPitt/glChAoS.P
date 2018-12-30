@@ -66,9 +66,9 @@ If you have slow performance try, in this order:
 
 ### Supported Operating systems:
 
-[x] Microsoft Windows
-[x] Linux/Unix
-[x] Mac OS X
+- [x] Microsoft Windows
+- [x] Linux/Unix
+- [x] Mac OS X
 
 **Tested Operating System Versions:**
 
