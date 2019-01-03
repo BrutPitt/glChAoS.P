@@ -126,7 +126,7 @@ public:
     virtual void loadAdditionalData(Config &cfg) {}
 
     virtual int additionalDataDlg();
-    virtual void additionalDataCtrls() {}
+    virtual void additionalDataCtrls();
 
     virtual void saveKVals(Config &cfg) = 0;
     virtual void loadKVals(Config &cfg) = 0;
@@ -350,7 +350,7 @@ protected:
 
     }
 
-    virtual void preStep(vec3 &v, vec3 &vp) {
+    virtual void preStep(vec3 &v) {
         if(depth++>maxDepth) {
             depth = 0;
 /*
@@ -395,30 +395,13 @@ protected:
 private:
 };
 
-class fractalIIM_4D : public fractalIIMBase
-{
-public:
-    //void preStep(vec3 &v, vec3 &vp) { last4D = RANDOM(vMin, vMax); fractalIIMBase::preStep(v,vp); }
-    int getPtSize() { return attPt4D; }
-
-    virtual void initStep() {
-        last4D = dim4D;
-        attractorScalarK::initStep();
-    }
-
-    //  Personal vals
-    ///////////////////////////////////////
-    //void additionalDataCtrls();
-protected:
-
-};
 
 class fractalIIM_Nth : public fractalIIMBase
 {
 public:
     //  Personal vals
     ///////////////////////////////////////
-    void additionalDataCtrls();
+    virtual void additionalDataCtrls();
 protected:
 
 };
@@ -444,36 +427,171 @@ protected:
     void startData();
 };
 
-class BicomplexJ_IIM : public fractalIIM_4D
+class fractalIIM_4D : public fractalIIMBase
+{
+public:
+    //void preStep(vec3 &v, vec3 &vp) { last4D = RANDOM(vMin, vMax); fractalIIMBase::preStep(v,vp); }
+    int getPtSize() { return attPt4D; }
+
+    virtual void initStep() {
+        last4D = dim4D;
+        attractorScalarK::initStep();
+    }
+
+    //  Personal vals
+    ///////////////////////////////////////
+    //void additionalDataCtrls();
+protected:
+
+};
+
+
+class BicomplexBase : public fractalIIM_4D
+{
+public:
+    typedef void (BicomplexBase::*magneticPtrFn)(const vec3 &, int);
+    void startData();
+
+    void radiciBicomplex(const vec4 &pt, vec3 &vp)
+    {           
+        const int rnd = xorshift64();
+        const float sign1 = (rnd&1) ? 1.f : -1.f, sign2 = (rnd&2) ? 1.f : -1.f;
+        const vec4 p(pt - ((vec4 &)*kVal.data()+kRnd));
+
+        const std::complex<float> z1(p.x, p.y), z2(-p.w, p.z);
+        const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
+        vp = .5f * vec3(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag()/*, w1.real()-w2.real()*/);
+        last4D =  .5f * (w1.real()-w2.real());
+    };
+
+};
+
+/////////////////////////////////////////////////
+class BicomplexJ_IIM : public BicomplexBase 
 {    
 public:
     BicomplexJ_IIM() { stepFn = (stepPtrFn) &BicomplexJ_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
-    void startData();
+    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(v, last4D), vp); }
 };
 
-class BicomplexJMod0_IIM : public fractalIIM_4D
+/////////////////////////////////////////////////
+class BicomplexJMod0_IIM : public BicomplexBase
 {    
 public:
     BicomplexJMod0_IIM() { stepFn = (stepPtrFn) &BicomplexJMod0_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
-    void startData();
+    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(v, dim4D), vp); }
 };
 
-class BicomplexJMod1_IIM : public fractalIIM_4D
+/////////////////////////////////////////////////
+class BicomplexJMod1_IIM : public BicomplexBase
 {    
 public:
     BicomplexJMod1_IIM() { stepFn = (stepPtrFn) &BicomplexJMod1_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
-    void startData();
+    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, vVal[0].z, last4D), vp); }
+};
+/////////////////////////////////////////////////
+class BicomplexJMod2_IIM : public BicomplexBase
+{    
+public:
+    BicomplexJMod2_IIM() { stepFn = (stepPtrFn) &BicomplexJMod2_IIM::Step; }
+
+protected:
+    //void Step(vec3 &v, vec3 &vp) { preStep(v,vp); radiciBicomplex(vec4(last4D, v.x, v.z, v.x), vp); }
+    //void Step(vec3 &v, vec3 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.y, v.z, last4D, v.x), vp); }
+    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.z, v.y), vp); }
+    //void Step(vec3 &v, vec3 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.x, v.y, v.y, v.y), vp); }
 };
 
+/////////////////////////////////////////////////
+class BicomplexJMod3_IIM : public BicomplexBase
+{    
+public:
+    BicomplexJMod3_IIM() { stepFn = (stepPtrFn) &BicomplexJMod3_IIM::Step; }
+
+protected:
+    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(vVal[0].x, v.y, v.z, last4D), vp); }
+};
+/////////////////////////////////////////////////
+class BicomplexJMod4_IIM : public BicomplexBase
+{    
+public:
+    BicomplexJMod4_IIM() { stepFn = (stepPtrFn) &BicomplexJMod4_IIM::Step; }
+
+protected:
+    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.x, last4D), vp); }
+};
+/////////////////////////////////////////////////
+class BicomplexJMod5_IIM : public BicomplexBase
+{    
+public:
+    BicomplexJMod5_IIM() { stepFn = (stepPtrFn) &BicomplexJMod5_IIM::Step; }
+
+protected:
+    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4( v.y, v.x, last4D, v.z), vp); }
+};
+/////////////////////////////////////////////////
+class BicomplexJMod6_IIM : public BicomplexBase
+{    
+public:
+    BicomplexJMod6_IIM() { stepFn = (stepPtrFn) &BicomplexJMod6_IIM::Step; }
+
+protected:
+    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(vVal[0].x, vVal[0].y, v.z, last4D), vp); }
+};
+/////////////////////////////////////////////////
+class BicomplexJMod7_IIM : public BicomplexBase
+{    
+public:
+    BicomplexJMod7_IIM() { stepFn = (stepPtrFn) &BicomplexJMod7_IIM::Step; }
+
+protected:
+    //void Step(vec3 &v, vec3 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, v.x), vp); }
+    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4( v.x, v.x, v.z, dim4D), vp); }
+    //void Step(vec3 &v, vec3 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, last4D), vp); }
+};
+
+/////////////////////////////////////////////////
+class BicomplexJExplorer : public BicomplexBase
+{    
+public:
+    BicomplexJExplorer() { 
+        stepFn = (stepPtrFn) &BicomplexJExplorer::Step; 
+    }
+
+    void additionalDataCtrls();
+    virtual void initStep() {
+        fractalIIMBase::initStep();
+        a1[0] = a2[0] = a3[0] = a4[0] = &vVal[0].x;
+        a1[1] = a2[1] = a3[1] = a4[1] = &vVal[0].y;
+        a1[2] = a2[2] = a3[2] = a4[2] = &vVal[0].z;
+        a1[3] = a2[3] = a3[3] = a4[3] = &dim4D;
+        a1[4] = a2[4] = a3[4] = a4[4] = &vt.x;
+        a1[5] = a2[5] = a3[5] = a4[5] = &vt.y;
+        a1[6] = a2[6] = a3[6] = a4[6] = &vt.z;
+        a1[7] = a2[7] = a3[7] = a4[7] = &last4D;        
+    }
+
+protected:
+    void Step(vec3 &v, vec3 &vp) { 
+        preStep(v); 
+        vt = v; 
+        radiciBicomplex(vec4( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]), vp); 
+    }
+private:
+    float *a1[8], *a2[8], *a3[8], *a4[8];
+    int idx0 = 4, idx1 = 5, idx2 = 6, idx3 = 7 ;
+    const char str[8][4] { "s.X", "s.Y", "s.Z", "s.W", "i.X", "i.Y", "i.Z", "i.W" }; 
+    vec3 vt;
+
+};
+
+/////////////////////////////////////////////////
 class quatJulia_IIM : public fractalIIM_4D
 {    
 public:
@@ -1551,10 +1669,18 @@ public:
         PB(Rucklidge          , u8"\uf192" " Rucklidge"          )
         PB(juliaBulb_IIM      , u8"\uf2dc" " JuliaBulb"          )
         PB(juliaBulb4th_IIM   , u8"\uf2dc" " JuliaBulb Nth"      )
-        PB(BicomplexJ_IIM     , u8"\uf2dc" " biCmplxJulia"       )
-        PB(BicomplexJMod0_IIM , u8"\uf2dc" " biCmplxJulia mod.0" )
-        PB(BicomplexJMod1_IIM , u8"\uf2dc" " biCmplxJulia mod.1" )
+        PB(BicomplexJ_IIM     , u8"\uf2dc" " biComplex Julia"    )
+        PB(BicomplexJMod0_IIM , u8"\uf2dc" " biCplxJ m.0"        )
+        PB(BicomplexJMod1_IIM , u8"\uf2dc" " biCplxJ m.1"        )
+        PB(BicomplexJMod2_IIM , u8"\uf2dc" " biCplxJ m.2"        )
+        PB(BicomplexJMod3_IIM , u8"\uf2dc" " biCplxJ m.3"        )
+        PB(BicomplexJMod4_IIM , u8"\uf2dc" " biCplxJ m.4"        )
+        PB(BicomplexJMod5_IIM , u8"\uf2dc" " biCplxJ m.5"        )
+        PB(BicomplexJMod6_IIM , u8"\uf2dc" " biCplxJ m.6"        )
+        PB(BicomplexJMod7_IIM , u8"\uf2dc" " biCplxJ m.7"        )
         PB(quatJulia_IIM      , u8"\uf2dc" " quatJulia"          )
+        PB(BicomplexJExplorer , u8"\uf2dc" " biComplexJExplorer" )
+            
 //        PB(glynnJB_IIM        , u8"\uf2dc" " Glynn JuliaBulb"    )
 //        PB(Hopalong        , "Hopalong"         )
 

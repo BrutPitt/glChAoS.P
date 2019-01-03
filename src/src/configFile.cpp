@@ -403,6 +403,9 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
         pSys->getMotionBlur()->setBlurIntensity(  c.get_or("blurIntensity", pSys->getMotionBlur()->getBlurIntensity()  ));
         pSys->getMergedRendering()->setMixingVal( c.get_or("mixingVal"    , pSys->getMergedRendering()->getMixingVal() ));
         pSys->getEmitter()->setSizeCircularBuffer(c.get_or("circBuff"     , pSys->getEmitter()->getSizeCircularBuffer()));
+        if(pSys->getEmitter()->getSizeCircularBuffer()>pSys->getEmitter()->getSizeAllocatedBuffer())
+            pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeAllocatedBuffer());
+
         pSys->getEmitter()->restartCircBuff(      c.get_or("rstrtCircBuff", pSys->getEmitter()->restartCircBuff()      ));        
         pSys->getEmitter()->stopFull(             c.get_or("stopCircBuff" , pSys->getEmitter()->stopFull()             ));
 

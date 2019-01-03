@@ -672,7 +672,7 @@ inline void juliaBulb_IIM::Step(vec3 &v, vec3 &vp)
                   -p.z/sqrtf(2 * (r - d *(xQ+yQ)/c)));
     };
 
-    preStep(v,vp);
+    preStep(v);
     const int rnd = xorshift64();
     radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
 
@@ -694,70 +694,14 @@ inline void juliaBulb4th_IIM::Step(vec3 &v, vec3 &vp)
         vp = powf(r, 1.0f/float(degreeN)) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi));
     };
 
-    preStep(v,vp);
+    preStep(v);
+    //const vec3 p(v.z, v.y, v.x);
     radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), xorshift64() % degreeN, xorshift64() % degreeN);
-
-}
-
-// stochastic adaptation of P.Nylander's Mathematica formula of Bicomplex Julia set
-////////////////////////////////////////////////////////////////////////////
-inline void BicomplexJ_IIM::Step(vec3 &v, vec3 &vp) 
-{ // kVal[] -> a, k
-
-    auto radiciBicomplex = [&](const vec4 &p, float sign1, float sign2)
-    {
-        const std::complex<float> z1(p.x, p.y), z2(-p.w, p.z);
-        const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
-        vp = .5f * vec3(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag());
-        last4D =  .5f * w1.real()-w2.real();
-    };
-
-    preStep(v,vp);
-    const int rnd = xorshift64();
-    radiciBicomplex(vec4(v, last4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
-
-}
-
-// stochastic adaptation of P.Nylander's Mathematica formula of Bicomplex Julia set
-////////////////////////////////////////////////////////////////////////////
-inline void BicomplexJMod0_IIM::Step(vec3 &v, vec3 &vp) 
-{ // kVal[] -> a, k
-
-    auto radiciBicomplex = [&](const vec4 &p, float sign1, float sign2)
-    {
-        const std::complex<float> z1(p.x, p.y), z2(-p.w, p.z);
-        const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
-        vp = .5f * vec3(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag()/*, w1.real()-w2.real()*/);
-    };
-
-    preStep(v,vp);
-    const int rnd = xorshift64();
-    radiciBicomplex(vec4(v, dim4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
-
-}
-
-// stochastic adaptation of P.Nylander's Mathematica formula of Bicomplex Julia set
-////////////////////////////////////////////////////////////////////////////
-inline void BicomplexJMod1_IIM::Step(vec3 &v, vec3 &vp) 
-{ // kVal[] -> a, k
-
-    auto radiciBicomplex = [&](const vec4 &p, float sign1, float sign2)
-    {
-        const std::complex<float> z1(p.x, p.y), z2(-p.w, vVal[0].z);
-        const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
-        vp = .5f * vec3(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag()/*, w1.real()-w2.real()*/);
-        last4D =  .5f * w1.real()-w2.real();
-    };
-
-    preStep(v,vp);
-    const int rnd = xorshift64();
-    radiciBicomplex(vec4(v, last4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
 
 }
 
 // stochastic adaptation of P.Nylander's Mathematica formula of quaternion Julia set
 ////////////////////////////////////////////////////////////////////////////
-
 inline void quatJulia_IIM::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, k
 
@@ -771,7 +715,7 @@ inline void quatJulia_IIM::Step(vec3 &v, vec3 &vp)
         last4D =  sign * b*p.w;
     };
 
-    preStep(v,vp);
+    preStep(v);
     const int rnd = xorshift64();
     radiciEq(vec4(v, last4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f);
 
@@ -807,7 +751,8 @@ inline void glynnJB_IIM::Step(vec3 &v, vec3 &vp)
 //Glynn roots: {x,y,z}^(1/1.5) = {x,y,z}^(2/3)
     const vec3 p = v-((vec3 &)*kVal.data()+vec3(kRnd));
     const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z;
-    float r = sqrtf(xQ+yQ+zQ);
+    const float r = sqrtf(xQ+yQ+zQ);
+    const bool isCone = bool(zQ > xQ + yQ);
 
     auto powN = [&] (vec3 &p, float n) -> vec3 {
         const float theta = n * atan2f(p.x, p.y);
@@ -816,13 +761,27 @@ inline void glynnJB_IIM::Step(vec3 &v, vec3 &vp)
     };
 
     auto numRadici = [&] () -> int {
-        return (zQ > xQ + yQ) ? 3 : (p.x < 0 ? 2 : 1);
+        return (isCone) ? 3 : (p.x < 0 ? 2 : 1);
     };
 
     auto radiciEq = [&] (int k) {
-        const float n = 1.75f;
+        const float n = 1.5f;
 
         float ktheta, kphi;
+
+        if(!k) { ktheta = kphi = 0.0; }
+        else { 
+            if(!isCone) { ktheta=(p.y<0.0?2.0:1.0); kphi=0.0; } 
+            else {
+                if(k==1) {
+                    if(p.x<0.0 && p.y<0.0) {ktheta=2.0; kphi=0.0;} else {ktheta=0.5; kphi=(p.z>0.0?0.5:2.5);}
+                }
+                else {
+                    if(p.x<0.0 && p.y>0.0) {ktheta=1.0; kphi=0.0;} else {ktheta=2.5; kphi=(p.z>0.0?0.5:2.5);}
+                }
+            }
+        }
+
 /*
         if(!k) { ktheta = kphi = 0.0; }
         else { 
@@ -837,20 +796,8 @@ inline void glynnJB_IIM::Step(vec3 &v, vec3 &vp)
             }
         }
 */
-        if(!k) { ktheta = kphi = 0.0; }
-        else { 
-            if(!(zQ > xQ + yQ)) { ktheta=(p.y<0.0?2.0:1.0); kphi=0.0; } 
-            else {
-                if(k==1) {
-                    if(p.x<0.0 && p.y<0.0) {ktheta=2.0; kphi=0.0;} else {ktheta=0.5; kphi=(p.z>0.0?0.5:2.5);}
-                }
-                else {
-                    if(p.x<0.0 && p.y>0.0) {ktheta=1.0; kphi=0.0;} else {ktheta=2.5; kphi=(p.z>0.0?0.5:2.5);}
-                }
-            }
-        }
         const float theta  = (atan2f(p.y,p.x)+ ktheta * glm::pi<float>())/n;
-        const float phi    = (acosf(p.z/r)   + kphi   * glm::pi<float>())/n;
+        const float phi    = (acosf(p.z/(r == 0.f ? FLT_EPSILON : r))   + kphi   * glm::pi<float>())/n;
 
         const float cosphi = cosf(phi);
         vp = powf(r,1.0f/n) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi));
@@ -874,10 +821,10 @@ inline void glynnJB_IIM::Step(vec3 &v, vec3 &vp)
     radiciEqA(v-((vec3 &)*kVal.data()+vec3(kRnd)), Random::get<int>(0, INT_MAX) % degreeN, Random::get<int>(0, INT_MAX) % degreeN);
 */
 
-    preStep(v,vp);
+    preStep(v);
     int nRad = numRadici();
     int rnd = fastRandom.rnd64();
-    radiciEq(rnd % nRad);
+    radiciEq(rnd & 3);
 
 }
 

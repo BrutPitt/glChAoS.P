@@ -5,7 +5,7 @@ fastRandomClass fastRandom;
 uint32_t xorshift32()
 {
 	/* Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" */
-    static uint32_t state = fastRandom.rnd64();
+    static uint32_t state = fastRandom.rnd32();
 	uint32_t x = state;
 	x ^= x << 13;
 	x ^= x >> 17;
@@ -16,7 +16,7 @@ uint32_t xorshift32()
 
 uint64_t xorshift64()
 {
-    static uint64_t state = fastRandom.rnd64();
+    static size_t state = fastRandom.rnd64();
 	uint64_t x = state;
 	x^= x << 13;
 	x^= x >> 7;

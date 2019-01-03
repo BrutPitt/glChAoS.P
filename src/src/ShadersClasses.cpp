@@ -106,15 +106,15 @@ void shaderPointClass::initShader()
 #if !defined(GLAPP_REQUIRE_OGL45)
     bindPipeline();
     useProgram();
-    locDotsTex = getUniformLocation("tex"); 
+
+    getCommonLocals();
 
     idxSubLightOn = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorLight");
     idxSubLightOff = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorOnly");
 
+
     ProgramObject::reset();
 #endif
-
-    getCommonLocals();
 }
 
 /////////////////////////////////////////
@@ -344,7 +344,7 @@ renderBaseClass::renderBaseClass()
     setRenderMode(RENDER_USE_POINTS);
 
     renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true);
-    msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true, 4);
+    //msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true, 4);
 
     axes = new oglAxes;
 
@@ -366,6 +366,7 @@ renderBaseClass::renderBaseClass()
 renderBaseClass::~renderBaseClass()
 {
      delete motionBlur; delete mergedRendering;
+     delete axes;
 }
 
 void renderBaseClass::setRenderMode(int which) 

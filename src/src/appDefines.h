@@ -46,9 +46,9 @@
 //#define USE_THREAD_TO_FILL
 //#define USE_MAPPED_BUFFER
 
-#define GLAPP_IMGUI_VIEWPORT
+//#define GLAPP_IMGUI_VIEWPORT
 
-//Attractor, Fractal, OpenGL, 3D, C++, Particles, ImGui, Source, Code, Algorithm, Chaos, caos
+//Attractor, Fractal, OpenGL, 3D, C++, Particles, ImGui, Source, Code, Algorithm, Chaos, caos, hypercomplex, Julia
 
 #define DRAGFLOAT_POW_2 (1.0f)
 #define DRAGFLOAT_POW_3 (1.0f)

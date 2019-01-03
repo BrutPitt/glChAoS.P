@@ -680,30 +680,7 @@ void juliaBulb_IIM::startData()
     Insert(vVal[0]);
 }
 
-void BicomplexJ_IIM::startData()
-{
-    vVal.push_back(vec3(0.0f));
-
-    kVal.push_back(- .2f);
-    kVal.push_back(  .8f);
-    kVal.push_back( 0.0f);
-    kVal.push_back( 0.0f);
-
-    Insert(vVal[0]);
-}
-void BicomplexJMod0_IIM::startData()
-{
-    vVal.push_back(vec3(0.0f));
-
-    kVal.push_back(- .2f);
-    kVal.push_back(  .8f);
-    kVal.push_back( 0.0f);
-    kVal.push_back( 0.0f);
-
-    Insert(vVal[0]);
-}
-
-void BicomplexJMod1_IIM::startData()
+void BicomplexBase::startData()
 {
     vVal.push_back(vec3(0.0f));
 

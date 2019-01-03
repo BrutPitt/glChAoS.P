@@ -225,7 +225,7 @@ private:
 class mainImGuiDlgClass  : public baseDlgClass
 {
 public:
-    mainImGuiDlgClass() : baseDlgClass(" Tools", true) { }
+    mainImGuiDlgClass() : baseDlgClass(" glChAoS.P", true) { }
 
 
     ~mainImGuiDlgClass() { }

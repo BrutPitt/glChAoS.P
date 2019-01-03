@@ -367,7 +367,7 @@ public:
 
 
     mmFBO &getRenderFBO() { return renderFBO; }; 
-    mmFBO &getMSAAFBO() { return msaaFBO; };
+    //mmFBO &getMSAAFBO() { return msaaFBO; };
     int getWidth()  { return getRenderFBO().getSizeX(); }
     int getHeight() { return getRenderFBO().getSizeY(); }
 
@@ -409,7 +409,7 @@ protected:
     oglAxes *axes;
     int axesShow = noShowAxes;
 
-    mmFBO renderFBO, msaaFBO;
+    mmFBO renderFBO; //, msaaFBO;
 
     transformsClass tMat;
 

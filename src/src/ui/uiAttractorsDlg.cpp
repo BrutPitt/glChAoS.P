@@ -107,6 +107,11 @@ void fractalIIMBase::additionalDataCtrls()
     ImGui::PopItemWidth();
 
 }
+
+void AttractorBase::additionalDataCtrls() 
+{
+    ImGui::NewLine();
+}
 /*
 void fractalIIM_4D::additionalDataCtrls()
 {
@@ -126,6 +131,8 @@ void fractalIIM_4D::additionalDataCtrls()
 */
 void fractalIIM_Nth::additionalDataCtrls()
 {
+
+    ImGui::NewLine();
 
     headerAdditionalDataCtrls(2);
 
@@ -148,9 +155,30 @@ void fractalIIM_Nth::additionalDataCtrls()
 
 }
 
-void attractorDtType::additionalDataCtrls()
+void BicomplexJExplorer::additionalDataCtrls()
 {
 
+
+    headerAdditionalDataCtrls(4);
+    ImGui::SameLine(DLG_BORDER_SIZE);
+
+    ImGui::DragInt("##indici0", &idx0, .1, 0, 7, str[idx0]); ImGui::SameLine();
+    ImGui::DragInt("##indici1", &idx1, .1, 0, 7, str[idx1]); ImGui::SameLine();
+    ImGui::DragInt("##indici2", &idx2, .1, 0, 7, str[idx2]); ImGui::SameLine();
+    ImGui::DragInt("##indici3", &idx3, .1, 0, 7, str[idx3]); 
+    ImGui::PopItemWidth();
+
+    ImGui::NewLine();
+
+    fractalIIMBase::additionalDataCtrls();
+}
+
+
+
+void attractorDtType::additionalDataCtrls()
+{
+        
+    ImGui::NewLine();
     headerAdditionalDataCtrls();
 
     float f = dtStepInc;
@@ -161,7 +189,7 @@ void attractorDtType::additionalDataCtrls()
 
 void PowerN3D::additionalDataCtrls()
 {
-
+    ImGui::NewLine();
     headerAdditionalDataCtrls();        
 
     ImGui::DragInt("##or", &tmpOrder, .1, 1, 20, "Order: %03d");
@@ -180,6 +208,7 @@ void PowerN3D::additionalDataCtrls()
 
 void Magnetic::additionalDataCtrls()
 {
+    ImGui::NewLine();
     headerAdditionalDataCtrls();
         
     ImGui::DragInt("##el", &tmpElements, .1, 2, 999, "Elem: %03d");
@@ -320,7 +349,7 @@ void attractorDlgClass::view()
 
                 }
 */
-                ImGui::NewLine();
+                //ImGui::NewLine();
                 attractorsList.get()->additionalDataCtrls();
                 ImGui::SameLine();
 

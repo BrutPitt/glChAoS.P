@@ -60,6 +60,7 @@ public:
         glCreateVertexArrays(1, &vao);
         glCreateBuffers(1,&vbo);
 #else
+        glGenVertexArrays(1, &vao);
         glGenBuffers(1,&vbo);
 #endif
         bytesPerVertex = attributesPerVertex * COMPONENTS_PER_ATTRIBUTE * sizeof(float); 
@@ -68,9 +69,7 @@ public:
 
     ~vertexBufferBaseClass() 
     {
-#ifdef GLAPP_REQUIRE_OGL45 
         glDeleteVertexArrays(1, &vao);
-#endif
         glDeleteBuffers(1,&vbo);
         delete [] vtxBuffer;
     }
@@ -86,34 +85,20 @@ public:
     GLuint   getVBO()            { return vbo; };
     GLenum   getPrimitive() { return primitive; }
 
-    void ActivateClientStates()  {
-#if !defined(GLAPP_REQUIRE_OGL45)
-        glBindBuffer(GL_ARRAY_BUFFER,vbo);
-        for(int i =0; i<attributesPerVertex; i++) {
-            glVertexAttribPointer(i, COMPONENTS_PER_ATTRIBUTE, GL_FLOAT, GL_FALSE,bytesPerVertex, (GLvoid *) (i*COMPONENTS_PER_ATTRIBUTE*sizeof(float))); 
-            glEnableVertexAttribArray(i);
-        } 
-#endif
-    }
-
-    void DeactivateClientStates() {       
-#if !defined(GLAPP_REQUIRE_OGL45)
-        for(int i = 0; i<attributesPerVertex; i++) glDisableVertexAttribArray(i);
-#endif
-    }
-
     virtual void initBufferStorage(GLsizeiptr numElements) = 0;
     virtual void buildVertexAttrib() {
-#ifdef GLAPP_REQUIRE_OGL45
         const int locID = 0;
+#ifdef GLAPP_REQUIRE_OGL45
         glVertexArrayAttribBinding(vao,locID, 0);
         glVertexArrayAttribFormat(vao, locID, COMPONENTS_PER_ATTRIBUTE, GL_FLOAT, GL_FALSE, 0);
         glEnableVertexArrayAttrib(vao, locID);        
 
         glVertexArrayVertexBuffer(vao, 0, vbo, 0, bytesPerVertex);
 #else
-        ActivateClientStates();
-        glBindBuffer(GL_ARRAY_BUFFER,0);
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glVertexAttribPointer(locID, COMPONENTS_PER_ATTRIBUTE, GL_FLOAT, GL_FALSE, bytesPerVertex, 0L);
+        glEnableVertexAttribArray(locID);
 #endif
         CHECK_GL_ERROR();
     }
@@ -157,15 +142,8 @@ public:
     }
 
     void draw(GLuint maxSize) {
-#ifdef GLAPP_REQUIRE_OGL45
         glBindVertexArray(vao);
         glDrawArrays(primitive,0, uploadedVtx<maxSize ? uploadedVtx : maxSize);
-#else
-        ActivateClientStates();
-        glDrawArrays(primitive,0,uploadedVtx<maxSize ? uploadedVtx : maxSize);
-        DeactivateClientStates();
-        CHECK_GL_ERROR();
-#endif
     }
 
 //  Feedback functions
@@ -187,9 +165,8 @@ public:
     }
     void drawRange(GLuint start, GLuint size) 
     {
-        ActivateClientStates();
+        glBindVertexArray(vao);
         glDrawArrays(primitive,start,size);
-        DeactivateClientStates();
     }
 
 protected:
