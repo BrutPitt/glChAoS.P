@@ -40,12 +40,15 @@
     #define M_PI       3.14159265358979323846
 #endif //M_PI
 
-#ifdef APP_USE_GLEW
-    #include <GL/glew.h>
+#ifdef __EMSCRIPTEN__
+    #include <emscripten.h>
+    #include <emscripten/html5.h>
+    #include <GLES3/gl3.h>
 #else
-    #include "libs/glad/glad.h"
+#include <glad/glad.h>
 #endif
-#include "glm/glm.hpp"
+
+#include <glm/glm.hpp>
 #include <vector>
 
 using namespace glm;
@@ -62,11 +65,13 @@ public:
     GLuint getTexID()   { return texID;   }
     GLuint getTexSize() { return texSize; }
 
-    GLuint texID   = 0;
+    GLuint texID  ;
     GLuint texSize =  0;
 
 protected:
-    void buildTex1D();
+    bool generated = false;
+    void genTex();
+    void assignAttribs(GLint filterMin, GLint filterMag, GLint wrap);
 
 };
 
@@ -106,21 +111,6 @@ private:
 extern HLSTexture hlsTexture;
 
 
-
-class sigmaTextureClass  : public textureBaseClass
-{
-public:
-
-    sigmaTextureClass();
-    ~sigmaTextureClass();
-    void buildTex(int size,float sigma);
-    void rebuild(float sigma);
-
-
-private:
-
-};
-//extern sigmaTextureClass hlsTexture;
 
 
 

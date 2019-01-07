@@ -64,13 +64,12 @@ void glWindow::onInit()
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
     
-
+#if !defined(__EMSCRIPTEN__)
     glEnable( GL_PROGRAM_POINT_SIZE );
     glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
-
+#endif
 
     glViewport(0,0,theApp->GetWidth(), theApp->GetHeight());
-
     vao = new vaoClass;
     
     //rndTexture.buildTex(1024);
@@ -115,10 +114,8 @@ void glWindow::onInit()
 
 
 
-#ifdef APP_USE_FBO
     mmFBO::Init(theApp->GetWidth(), theApp->GetHeight()); 
 
-#endif
 
 }
 
@@ -138,14 +135,17 @@ void glWindow::onExit()
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onRender()
 {
+    transformsClass *model = getParticlesSystem()->getTMat();
+
     //  render ColorMaps: rebuild texture only if settings are changed
     //////////////////////////////////////////////////////////////////
     particlesSystem->shaderPointClass::getCMSettings()->render();
+
+#if !defined(GLCHAOSP_LIGHTVER)
+
     particlesSystem->shaderBillboardClass::getCMSettings()->render();
 
-
-    transformsClass *axes = getParticlesSystem()->getAxes()->getTransforms(),
-                    *model = getParticlesSystem()->getTMat();
+    transformsClass *axes = getParticlesSystem()->getAxes()->getTransforms();
 
     auto syncAxes = [&] () {
         axes->setView(model->getPOV(), getParticlesSystem()->getTMat()->getTGT());    
@@ -189,38 +189,43 @@ void glWindow::onRender()
         }
 
         model->applyTransforms();
-
     }
-
     
     //  render Attractor
     //////////////////////////////////////////////////////////////////
     GLuint texRendered = particlesSystem->render();
 
-
     //  Motion Blur
     //////////////////////////////////////////////////////////////////
     if(particlesSystem->getMotionBlur()->Active()) {
 
-
     //glDisable(GL_BLEND);
-#ifdef GLAPP_REQUIRE_OGL45
+    #ifdef GLAPP_REQUIRE_OGL45
         glBlitNamedFramebuffer(particlesSystem->getMotionBlur()->render(texRendered),
                                0,
                                0,0,particlesSystem->getWidth(), particlesSystem->getHeight(),
                                0,0,theApp->GetWidth(), theApp->GetHeight(),
                                GL_COLOR_BUFFER_BIT, GL_NEAREST );
-#else
+    #else
         glBindFramebuffer(GL_READ_FRAMEBUFFER, particlesSystem->getMotionBlur()->render(texRendered));
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
         glBlitFramebuffer(0,0,particlesSystem->getWidth(), particlesSystem->getHeight(),
                           0,0,theApp->GetWidth(), theApp->GetHeight(),
                           GL_COLOR_BUFFER_BIT, GL_NEAREST );
-#endif
+    #endif
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind both FRAMEBUFFERS to default
+#else 
+
+    model->applyTransforms();
+    GLuint texRendered = particlesSystem->render();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind both FRAMEBUFFERS to default
+#endif
+
+    //
 
     particlesSystem->clearFlagUpdate();
 
@@ -247,6 +252,7 @@ void glWindow::onIdle()
 void glWindow::onReshape(GLint w, GLint h)
 {
     glViewport(0,0,w,h);
+
 
     if(particlesSystem) particlesSystem->onReshape(w,h);
 

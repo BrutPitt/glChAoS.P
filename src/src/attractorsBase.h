@@ -188,6 +188,7 @@ public:
     void dlgAdditionalDataVisible(bool b) { bDlgAdditionalDataVisible=b; }
 
     bool dtType() { return isDTtype; }
+    bool fractalType() { return isFractal; }
 
     virtual int getPtSize() { return attPt3D; }
     float getDim4D() { return dim4D; }
@@ -219,6 +220,7 @@ protected:
 
     bool flagFileData = false;
     bool isDTtype = false;
+    bool isFractal = false;
 private:
 
 };
@@ -344,6 +346,7 @@ protected:
     fractalIIMBase() {
         vMin = 0.f; vMax = 0.f; kMin = 0.f; kMax = 0.f;
         m_POV = vec3( 0.f, 0, 7.f);
+        isFractal = true; 
     }
 
     void maxDepthReached() {
@@ -1606,7 +1609,11 @@ private:
 
 //  Attractor Class container
 ////////////////////////////////////////////////////////////////////////////
+#if !defined(GLCHAOSP_LIGHTVER)
 #define ATT_PATH "startData/"
+#else
+#define ATT_PATH "startDataWGL/"
+#endif
 #define ATT_EXT ".sca"
 
 #define PB(ATT,DISPLAY_NAME) ptr.push_back(new ATT());\
@@ -1679,7 +1686,7 @@ public:
         PB(BicomplexJMod6_IIM , u8"\uf2dc" " biCplxJ m.6"        )
         PB(BicomplexJMod7_IIM , u8"\uf2dc" " biCplxJ m.7"        )
         PB(quatJulia_IIM      , u8"\uf2dc" " quatJulia"          )
-        PB(BicomplexJExplorer , u8"\uf2dc" " biComplexJExplorer" )
+//        PB(BicomplexJExplorer , u8"\uf2dc" " biComplexJExplorer" )
             
 //        PB(glynnJB_IIM        , u8"\uf2dc" " Glynn JuliaBulb"    )
 //        PB(Hopalong        , "Hopalong"         )

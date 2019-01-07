@@ -40,7 +40,6 @@ layout(std140) uniform;
 LAYUOT_BINDING(1) uniform sampler2D tex;
 uniform vec2 WinAspect;
 
-subroutine vec4 _pixelColor();
 
 LAYUOT_BINDING(2) uniform _particlesData {
     float lightDiffInt;
@@ -60,7 +59,13 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float velIntensity;
 } u;
 
-//#define _LIGHT_
+#ifdef GL_ES
+    #define SUBROUTINE(X) 
+#else
+    subroutine vec4 _pixelColor();
+    subroutine uniform _pixelColor pixelColor;
+    #define SUBROUTINE(X) subroutine(X)
+#endif
 
 
 
@@ -82,8 +87,8 @@ out vec4 outColor;
 float getAlpha(float alpha)
 {
 
-    CONST float alphaAtten = exp(-0.1*pow(pointDistance+1.f, u.alphaDistAtten*.1));
-    return clamp(alpha*alpha * alphaAtten * u.alphaK, 0.0, 1.0);
+    CONST float alphaAtten = exp(-0.1*sign(pointDistance)*pow(abs(pointDistance+1.f)+1.f, u.alphaDistAtten*.1));
+    return clamp(alpha * alphaAtten * u.alphaK, 0.0, 1.0);
 
 }
 
@@ -109,7 +114,7 @@ float getParallelSpecular(vec3 N)
 
 CONST float LOG2 = 1.442695;
 
-LAYUOT_INDEX(1) subroutine(_pixelColor) vec4 pixelColorLight()
+LAYUOT_INDEX(1) SUBROUTINE(_pixelColor) vec4 pixelColorLight()
 {
     vec3 N;
 
@@ -146,7 +151,7 @@ LAYUOT_INDEX(1) subroutine(_pixelColor) vec4 pixelColorLight()
 
 }
 
-LAYUOT_INDEX(0) subroutine(_pixelColor)  vec4 pixelColorOnly()
+LAYUOT_INDEX(0) SUBROUTINE(_pixelColor)  vec4 pixelColorOnly()
 {
 
     vec4 color = particleColor * texture(tex, gl_PointCoord).r;
@@ -158,13 +163,14 @@ LAYUOT_INDEX(0) subroutine(_pixelColor)  vec4 pixelColorOnly()
 
 }
 
-subroutine uniform _pixelColor pixelColor;
 
 void main()
 {
 
+#ifdef GL_ES
+    outColor = pixelColorOnly();
+#else
     gl_FragDepth = -posEye.z*u.zFar;
-    //outColor = vec4(vec3((gl_FragDepth)), 1.f);
-
     outColor = pixelColor();
+#endif
 }

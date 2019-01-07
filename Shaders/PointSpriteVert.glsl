@@ -46,8 +46,6 @@
 
 layout(std140) uniform;
 
-layout (location = 0) in vec4 a_ActualPoint;
-
 uniform float velIntensity;
 
 LAYUOT_BINDING(2) uniform _particlesData {
@@ -85,14 +83,15 @@ out vec4 particleColor;
 
 LAYUOT_BINDING(0) uniform sampler2D paletteTex;
 
+layout (location = 0) in vec4 a_ActualPoint;
 
-
+#ifndef GL_ES
 out gl_PerVertex
 {
 	vec4 gl_Position;
     float gl_PointSize;
 };
-
+#endif
 
 void main()                                                 
 {              
@@ -109,7 +108,7 @@ void main()
         pointDistance = dist;
         
         //gl_PointSize = dist<clippingDist ? 0.0 : pointSize / max(.01,pow(dist,distSizeFactor)); 
-        float ptAtten = exp(-0.01*pow(dist+1.f, u.pointDistAtten*.1));
+        float ptAtten = exp(-0.01*sign(dist)*pow(abs(dist+1.f), u.pointDistAtten*.1));
         gl_PointSize = dist<u.clippingDist ? 0.0 : u.pointSize * ptAtten ; 
 
         if(gl_PointSize<1.0) gl_PointSize = 1.0;

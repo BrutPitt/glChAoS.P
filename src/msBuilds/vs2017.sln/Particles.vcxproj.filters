@@ -285,6 +285,9 @@
     <None Include="..\..\..\Shaders\oglAxesVert.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\..\..\Shaders\RadialBlur2PassFragWGL.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\ReadMe.txt" />

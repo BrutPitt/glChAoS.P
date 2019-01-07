@@ -167,7 +167,7 @@ void main(void)
 
     //gl_PointSize = dist<u.clippingDist ? 0.0 : u.pointSize*.003 / max(0.01,pow(dist,u.pointDistAtten));
 
-    float ptAtten = exp(-0.01*pow(dist+1.f, u.pointDistAtten*.1));
+    float ptAtten = exp(-0.01*sign(dist)*pow(abs(dist+1.f), u.pointDistAtten*.1));
     gl_PointSize = dist<u.clippingDist ? 0.0 : u.pointSize*.001 * ptAtten ;
    
     //LightDir = normalize(m.mvMatrix *vec4(u.lightDir, 1.f)) ;

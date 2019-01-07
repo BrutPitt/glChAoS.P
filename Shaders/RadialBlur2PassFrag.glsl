@@ -58,30 +58,37 @@
 ///////////////////////////////////////////////////////////////////////
 // Multipass Glow
 ///////////////////////////////////////////////////////////////////////
-subroutine vec4 _radialPass();
+layout(std140) uniform;
 
-uniform vec4 sigma;
-uniform float threshold;
-uniform vec2 wSize; // = vec2(512.0, 512.0);
-uniform vec2 invScrnSize;
-uniform bool toneMap;
-uniform vec2 toneMapVals; // tonemap -> col = A * pow(col, G); -> x = A and y = G
+
+#ifdef GL_ES
+    #define SUBROUTINE(X) 
+#else
+    subroutine vec4 _radialPass();
+subroutine uniform _radialPass imageResult;
+    #define SUBROUTINE(X) subroutine(X)
+#endif
+
+
+LAYUOT_BINDING(2) uniform _blurData {
+    vec4 sigma;
+    float threshold;
+    bool toneMap;
+    vec2 toneMapVals; // tonemap -> col = A * pow(col, G); -> x = A and y = G
+
+    vec4 texControls;
+    vec4 videoControls; //videoControls vec4 ->  1.f/m_gamma, m_exposure, m_bright, m_contrast
+
+    float mixTexture;
+
+    int blurCallType;
+};
+
 LAYUOT_BINDING(0) uniform sampler2D origTexture;
 LAYUOT_BINDING(1) uniform sampler2D pass1Texture;
 
-uniform vec4 texControls;
-uniform vec4 videoControls; //videoControls vec4 ->  1.f/m_gamma, m_exposure, m_bright, m_contrast
 
 in vec2 vTexCoord;
-
-//#ifndef BLUR_PASS_1
-uniform float mixTexture;
-//float gamma = controls.x;
-//float exposure = controls.y;
-//float bright = controls.z;
-//float contrast = controls.w;
-//#endif
-
 out vec4 outColor;
 
 CONST vec2 aspect = vec2(1.0, 1.0);
@@ -281,10 +288,12 @@ vec4 qualitySetting(vec4 col)
     //Brightness/Contrast 
     col.xyz = rgb2hsl(col.rgb);
 
-    col.yz = contrastHSL( col.yz, videoControls.w);
-    col.z  = brightnessHSL(col.z, videoControls.z);
-
+#ifdef GL_ES
+    col.yz = clamp(col.yz,vec2(0.0), vec2(1.0));
+    col.rgb = hsl2rgb(vec3(col.xyz));
+#else
     col.rgb = hsl2rgb(vec3(col.x,saturate(col.yz)));
+#endif        
         
     if(videoControls.w>0.0) col.rgb = contrastRGB(col.rgb, videoControls.w + (1.0+epsilon));
         //if(videoControls.w>0.0) col.rgb = contrast2(col.rgb, (videoControls.w ));
@@ -295,14 +304,14 @@ vec4 qualitySetting(vec4 col)
 
 //  Pass1 Gauss Blur
 ////////////////////////////////////////////////////////////////////////////
-LAYUOT_INDEX(1) subroutine(_radialPass) vec4 radialPass1()
+LAYUOT_INDEX(1) SUBROUTINE(_radialPass) vec4 radialPass1()
 {
     return gPass(origTexture, vec2(1.0, 0.0));
 }
 
 //  Pass2 Gauss Blur
 ////////////////////////////////////////////////////////////////////////////
-LAYUOT_INDEX(2) subroutine(_radialPass) vec4 radialPass2()
+LAYUOT_INDEX(2) SUBROUTINE(_radialPass) vec4 radialPass2()
 {
     vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y; //origTex * intensity
     vec4 blurred = gPass(pass1Texture, vec2(0.0, 1.0))* texControls.x;                //blur * intensity
@@ -315,7 +324,7 @@ LAYUOT_INDEX(2) subroutine(_radialPass) vec4 radialPass2()
 
 //  Pass2 Gauss Blur + threshold -> reduced (1/4) bilateral
 ////////////////////////////////////////////////////////////////////////////
-LAYUOT_INDEX(3) subroutine(_radialPass) vec4 radialPass2withBilateral()
+LAYUOT_INDEX(3) SUBROUTINE(_radialPass) vec4 radialPass2withBilateral()
 {
     vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y;
     vec4 blurred = gPass(pass1Texture, vec2(0.0, 1.0))* texControls.x;
@@ -330,7 +339,7 @@ LAYUOT_INDEX(3) subroutine(_radialPass) vec4 radialPass2withBilateral()
 
 //  Bilateral onePass
 ////////////////////////////////////////////////////////////////////////////
-LAYUOT_INDEX(4) subroutine(_radialPass) vec4 bilateralSmooth()
+LAYUOT_INDEX(4) SUBROUTINE(_radialPass) vec4 bilateralSmooth()
 {
     vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y; //origTex intensity
     vec4 newBlur = bilateralSmartSmoothOK() * texControls.z;
@@ -339,15 +348,19 @@ LAYUOT_INDEX(4) subroutine(_radialPass) vec4 bilateralSmooth()
 
 //  bypass, only image adjust
 ////////////////////////////////////////////////////////////////////////////
-LAYUOT_INDEX(0) subroutine(_radialPass) vec4 byPass()
+LAYUOT_INDEX(0) SUBROUTINE(_radialPass) vec4 byPass()
 {
     return qualitySetting(min(texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y, 1.0f));
 }
 
-subroutine uniform _radialPass imageResult;
 
 
 void main ()
 {
+#ifdef GL_ES
+    if(blurCallType==0) outColor = byPass();
+    else                outColor = bilateralSmooth();
+#else
     outColor = imageResult();
+#endif
 }

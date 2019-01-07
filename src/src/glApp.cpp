@@ -42,22 +42,15 @@
 
 #include "ShadersClasses.h"
 
-#ifdef APP_USE_IMGUI
-/*
-#include "libs/ImGui/imgui.h"
-#include "../libs/ImGui/imgui_impl_glfw.h"
-#include "../libs/ImGui/imgui_impl_opengl3.h"
-*/
 #include "ui/uiSettings.h"
 
 
 
-
-GLFWmonitor* getCurrentMonitor(GLFWwindow *window);
-void toggleFullscreenOnOff(GLFWwindow* window);
-bool isDoubleClick(int button, int action, double x, double y, double ms);
+#if !defined (__EMSCRIPTEN__)
+    GLFWmonitor* getCurrentMonitor(GLFWwindow *window);
+    void toggleFullscreenOnOff(GLFWwindow* window);
+    bool isDoubleClick(int button, int action, double x, double y, double ms);
 #endif
-
 
 
 static void glfwErrorCallback(int error, const char* description)
@@ -67,10 +60,8 @@ static void glfwErrorCallback(int error, const char* description)
 
 void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-#ifdef APP_USE_IMGUI
-    //ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
-    //if(ImGui::GetIO().WantCaptureKeyboard) return;
-#endif
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+    if(ImGui::GetIO().WantCaptureKeyboard) return;
     //if ((key == GLFW_KEY_LEFT_CONTROL || key == GLFW_KEY_RIGHT_CONTROL) && action == GLFW_PRESS)
     if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         theDlg.visible(theDlg.visible()^1);
@@ -92,11 +83,15 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
             case GLFW_KEY_F2 : theDlg.attractorDlg.toggleVisible();   break;
             case GLFW_KEY_F3 : theDlg.particlesDlg.toggleVisible();   break;
             case GLFW_KEY_F4 : theDlg.imGuIZMODlg.toggleVisible();    break;
-            case GLFW_KEY_F5 : theDlg.viewSettingDlg.toggleVisible(); break;
-            case GLFW_KEY_F6 : theDlg.infoDlg.toggleVisible();        break;
+            case GLFW_KEY_F5 : theDlg.infoDlg.toggleVisible();        break;
+#if !defined(GLCHAOSP_LIGHTVER)
+            case GLFW_KEY_F6 : theDlg.viewSettingDlg.toggleVisible(); break;
             case GLFW_KEY_F7 : theDlg.dataDlg.toggleVisible();        break;
             case GLFW_KEY_F8 : theDlg.progSettingDlg.toggleVisible(); break;
+#endif
+#if !defined (__EMSCRIPTEN__)
             case GLFW_KEY_F11: toggleFullscreenOnOff(window);         break;
+#endif
             default:                                                  break;
 
         }
@@ -104,8 +99,13 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
     } else if( key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
         attractorsList.restart(); //theWnd->getParticlesSystem()->restartEmitter();    
     }
+#if !defined(GLCHAOSP_LIGHTVER)
+    else if( key == GLFW_KEY_I && action == GLFW_PRESS) {
+        theApp->invertSettings(); //theWnd->getParticlesSystem()->restartEmitter();    
+    }
+#endif
     else if(action == GLFW_PRESS) {            
-        theWnd->onKeyDown(key==GLFW_KEY_ENTER ? 13 : key, 0, 0);
+        theWnd->onKeyDown(key==GLFW_KEY_ENTER ? 13 : key, 0, 0);           
     }
 }
 
@@ -114,44 +114,45 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
 void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {   
 
-#ifdef APP_USE_IMGUI
-    //ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+    ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
     if(ImGui::GetIO().WantCaptureMouse) return;
-#endif
 
     double x,y;
     glfwGetCursorPos(window, &x, &y);
 
     if (action == GLFW_PRESS) {
+#if !defined (__EMSCRIPTEN__)
         if(isDoubleClick(button, action, x , y, 300)) toggleFullscreenOnOff(window);
-        else theWnd->onMouseButton(button, APP_MOUSE_BUTTON_DOWN, x, y); 
+        else 
+#endif
+            theWnd->onMouseButton(button, APP_MOUSE_BUTTON_DOWN, x, y); 
         //getApp()->LeftButtonDown();
             
     } else if (action == GLFW_RELEASE) {        
+#if !defined (__EMSCRIPTEN__)
         isDoubleClick(button, action, x , y, 300);
+#endif
         theWnd->onMouseButton(button, APP_MOUSE_BUTTON_UP, x, y); 
         
         //getApp()->LeftButtonUp();
     }
 }
 
-/*
 static void glfwCharCallback(GLFWwindow* window, unsigned int c)
 {
-#ifdef APP_USE_IMGUI
     ImGui_ImplGlfw_CharCallback(window, c);
     if(ImGui::GetIO().WantCaptureKeyboard) return;
-#endif
 }
 
 void glfwScrollCallback(GLFWwindow* window, double x, double y)
 {
-#ifdef APP_USE_IMGUI
+#if !defined (__EMSCRIPTEN__)
     ImGui_ImplGlfw_ScrollCallback(window, x, y);
-    if(ImGui::GetIO().WantCaptureMouse) return;
+#else
+    ImGui_ImplGlfw_ScrollCallback(window, x, -y);
 #endif
+    if(ImGui::GetIO().WantCaptureMouse) return;
 }
-*/
 
 static void glfwMousePosCallback(GLFWwindow* window, double x, double y)
 {
@@ -165,6 +166,8 @@ void glfwWindowSizeCallback(GLFWwindow* window, int width, int height)
 {
     theWnd->onReshape(width,height);
 }
+
+#if !defined (__EMSCRIPTEN__)
 
 bool isDoubleClick(int button, int action, double x, double y, double ms)
 {
@@ -249,7 +252,7 @@ GLFWmonitor* getCurrentMonitor(GLFWwindow *window)
     }
     return bestmonitor;
 }
-
+#endif
 
 // Interface
 /////////////////////////////////////////////////
@@ -261,7 +264,6 @@ mainGLApp* mainGLApp::theMainApp = 0;
 
 /////////////////////////////////////////////////
 // ImGui utils
-#ifdef APP_USE_IMGUI
 void mainGLApp::imguiInit()
 {
     // Setup ImGui binding
@@ -277,9 +279,8 @@ void mainGLApp::imguiInit()
 #endif
 
     //ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui_ImplGlfw_InitForOpenGL(mainGLFWwnd, true);
+    ImGui_ImplGlfw_InitForOpenGL(mainGLFWwnd, false);
     ImGui_ImplOpenGL3_Init(get_glslVer().c_str());
-
     //ImGui::StyleColorsDark();
     setGUIStyle();
 }
@@ -294,7 +295,6 @@ int mainGLApp::imguiExit()
 
     return 0;
 }
-#endif
 
 void mainGLApp::getScreenShot() 
 {
@@ -325,24 +325,42 @@ void mainGLApp::glfwInit()
 
     if (!::glfwInit()) exit(EXIT_FAILURE);
        
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-#ifdef GLAPP_REQUIRE_OGL45
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-    glslVersion = "#version 450\n";
-    glslDefines = "#define LAYUOT_BINDING(X) layout (binding = X)\n"
-                  "#define LAYUOT_INDEX(X) layout(index = X)\n"
-                  "#define CONST const\n";
+#if !defined (__EMSCRIPTEN__)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    #ifdef GLAPP_REQUIRE_OGL45
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+        glslVersion = "#version 450\n";
+        glslDefines = "#define LAYUOT_BINDING(X) layout (binding = X)\n"
+                      "#define LAYUOT_INDEX(X) layout(index = X)\n"
+                      "#define CONST const\n";
+    #else
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+        glslVersion = "#version 410\n";
+        glslDefines = "#define LAYUOT_BINDING(X)\n"
+                      "#define LAYUOT_INDEX(X)\n"
+    #ifdef GLCHAOSP_LIGHTVER
+                      "#define TEST_WGL\n"
+    #endif
+                      "#define CONST\n";
+    #endif
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //GLFW_OPENGL_ANY_PROFILE
+        glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
 #else
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glslVersion = "#version 410\n";
-    glslDefines = "#define LAYUOT_BINDING(X)\n"
-                  "#define LAYUOT_INDEX(X)\n"
-                  "#define CONST\n";
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+        glslVersion = "#version 300 es\n";
+        glslDefines = "precision highp float;\n"
+                      "#define LAYUOT_BINDING(X)\n"
+                      "#define LAYUOT_INDEX(X)\n"
+                      "#define CONST\n";
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //GLFW_OPENGL_ANY_PROFILE
+        glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
+        glfwWindowHint(GLFW_SAMPLES,0);
 #endif
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //GLFW_OPENGL_ANY_PROFILE
     //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-    glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
+    
 
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
@@ -358,25 +376,22 @@ void mainGLApp::glfwInit()
     if(getPosX()>=0 && getPosY()>=0) glfwSetWindowPos(getGLFWWnd(), getPosX(), getPosY());
 
     //secondary = glfwCreateWindow(512, 512, "My Engine", NULL, getGLFWWnd());
-#ifdef APP_USE_GLEW
-    if (!glewInit()) exit(1); 
-#endif
 
     glfwMakeContextCurrent(getGLFWWnd());
 
     //glfwSetWindowOpacity(getGLFWWnd(),.5);
 
-#if !defined(APP_USE_GLEW)
+#if !defined (__EMSCRIPTEN__)
     //Init OpenGL
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 #endif
 
     glfwSetKeyCallback(getGLFWWnd(), glfwKeyCallback);
-    //glfwSetCharCallback(getGLFWWnd(), glfwCharCallback);
+    glfwSetCharCallback(getGLFWWnd(), glfwCharCallback);
     glfwSetCursorPosCallback(getGLFWWnd(), glfwMousePosCallback);
     glfwSetMouseButtonCallback(getGLFWWnd(), glfwMouseButtonCallback);
     glfwSetWindowSizeCallback(getGLFWWnd(), glfwWindowSizeCallback);
-    //glfwSetScrollCallback(getGLFWWnd(), glfwScrollCallback);
+    glfwSetScrollCallback(getGLFWWnd(), glfwScrollCallback);
 
     //theWnd->onReshape(GetWidth(),GetHeight());
     //gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
@@ -428,18 +443,14 @@ mainGLApp::~mainGLApp()
     delete glEngineWnd;
 }
 
-void mainGLApp::onInit() 
+void mainGLApp::onInit(int w, int h) 
 {
 
     xPosition = yPosition = -1;
-    width = INIT_WINDOW_W, height = INIT_WINDOW_H;
+    width = w, height = h;
     windowTitle = GLAPP_PROG_NAME;
 
 //Init OpenGL
-#ifdef APP_USE_GLEW
-    //if (!glewInit()) exit(1);    
-#endif
-
    loadProgConfig();
 
 // Imitialize both FrameWorks
@@ -448,9 +459,7 @@ void mainGLApp::onInit()
 // Imitialize both GL engine
     glEngineWnd->onInit();
 
-#ifdef APP_USE_IMGUI
     imguiInit();
-#endif
 
 }
 
@@ -458,13 +467,32 @@ int mainGLApp::onExit()
 {
     glEngineWnd->onExit();
 // Exit from both FrameWorks
-#ifdef APP_USE_IMGUI
     imguiExit();
-#endif
+
     glfwExit();
 
 // need to test returns code... now 0!        
     return 0;
+}
+
+void newFrame()
+{
+    glfwPollEvents();
+
+    theWnd->onIdle();
+    theWnd->onRender();
+
+    theApp->getMainDlg().renderImGui();
+/*
+    static int j = 0;
+    if(j++>100) {
+        theWnd->getParticlesSystem()->selectColorMap(3);
+        j=0;
+    }
+*/
+    glfwMakeContextCurrent(theApp->getGLFWWnd());
+    glfwSwapBuffers(theApp->getGLFWWnd());
+
 }
 
 void mainGLApp::mainLoop() 
@@ -474,53 +502,27 @@ void mainGLApp::mainLoop()
         glfwPollEvents();
         glfwGetFramebufferSize(getGLFWWnd(), &width, &height);
 
-        if (!glfwGetWindowAttrib(getGLFWWnd(), GLFW_ICONIFIED)) {
-            
+        if (!glfwGetWindowAttrib(getGLFWWnd(), GLFW_ICONIFIED)) 
+
+#if !defined(GLCHAOSP_LIGHTVER)
             theWnd->onIdle();
-#ifndef APP_DEBUG_GUI_INTERFACE
+
+            // debug interface
+            //glClearColor(0.0, 0.0, 0.0, 0.1);
+            //glClear(GL_COLOR_BUFFER_BIT);
             theWnd->onRender();
-#else 
-            glClearColor(0.0, 0.0, 0.0, 0.1);
-            glClear(GL_COLOR_BUFFER_BIT);
-#endif
-        }
-
-        
-
-        // Rendering
-//        int display_w, display_h;
-        //glViewport(0, 0, width, width);
-        //glClearColor(0,0,0,0);
-        //glClear(GL_COLOR_BUFFER_BIT);
-
-        //glfwGetWindowPos(getGLFWWnd(), &xPosition, &yPosition);
 
         if(screenShotRequest) {
             if(screenShotRequest == ScreeShotReq::ScrnSht_CAPTURE_ALL) getMainDlg().renderImGui();
             getScreenShot();
         }
-
         getMainDlg().renderImGui();
 
         glfwMakeContextCurrent(getGLFWWnd());
         glfwSwapBuffers(getGLFWWnd());
-
-/*
-        static int cnt=0;
-        glfwMakeContextCurrent(secondary);
-
-        glClearColor(0.0, 0.0, 0.0, 0.1);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        
-        glfwSwapBuffers(secondary);
-
-        glfwMakeContextCurrent(getGLFWWnd());
-*/
-
-        //if(!(cnt++%10)) 
-
-
+#else
+        newFrame();
+#endif
     }
 
 }
@@ -532,13 +534,24 @@ int main(int argc, char **argv)
 
     
 //Initialize class e self pointer
-    theApp = new mainGLApp;    
+    theApp = new mainGLApp; 
 
-    theApp->onInit();
+#ifdef GLCHAOSP_LIGHTVER
+    if(argc>1 && argc<=3) {        
+        int w = atoi(argv[1]);
+        int h = atoi(argv[2]);
+        theApp->onInit(w<256 ? 256 : (w>3840 ? 3840 : w), h<256 ? 256 : (h>2160 ? 2160 : h));
+    } else
+#endif        
+        theApp->onInit();
 
 // Enter in GL main loop
 /////////////////////////////////////////////////
+#if !defined (__EMSCRIPTEN__)
     theApp->mainLoop();
+#else
+    emscripten_set_main_loop(newFrame,0,true);
+#endif
 
 // Exit procedures called from theApp destructor
 /////////////////////////////////////////////////

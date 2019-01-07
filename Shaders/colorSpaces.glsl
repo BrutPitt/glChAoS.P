@@ -36,8 +36,12 @@
 
 //This is an HEADER/INCLUDE file for RadialBlur2PassFrag.glsl and cmTextureFrag.glsl
 
+#ifdef GL_ES
+#define saturate(v) clamp(v, vec3(0.0), vec3(1.0))
+#else
 #ifndef saturate
-#define saturate(v) clamp(v, 0, 1)
+#define saturate(v) clamp(v, 0.0, 1.0)
+#endif
 #endif
 
 const float epsilon = 1e-10;
@@ -56,7 +60,7 @@ vec3 toneMapping(vec3 c)
 // A > 0,  0 < G < 1
 vec3 toneMapping(vec3 c, float A, float g) 
 { 
-    return A * pow(c, vec3(g)); 
+    return A * pow(clamp(c, vec3(0.0), vec3(1.0)), vec3(g)); 
 }
 
 

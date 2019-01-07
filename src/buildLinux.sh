@@ -20,13 +20,13 @@ echo ""
 echo ""
 
 echo ""
-echo "    start to build Particles..."
+echo "    start to build glChAoSP..."
 echo ""
 echo ""
 
-sh buildParticles.sh
+sh build_glChAoSP.sh
 
 echo ""
-echo "    ... end Particles"
+echo "    ... end glChAoSP"
 echo ""
 echo ""

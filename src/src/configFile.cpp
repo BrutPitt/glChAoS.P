@@ -44,8 +44,10 @@
 #define CONFIGURU_IMPLEMENTATION 
 #include "libs/configuru/configuru.hpp"
 
-#include "libs/tinyFileDialog/tinyfiledialogs.h"
-#include "libs/lodePNG/lodepng.h"
+#if !defined(GLCHAOSP_LIGHTVER)
+    #include "libs/tinyFileDialog/tinyfiledialogs.h"
+    #include "libs/lodePNG/lodepng.h"
+#endif
 
 void toggleFullscreenOnOff(GLFWwindow* window);
 
@@ -194,12 +196,14 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["mixTexture"      ] = glow->getMixTexture();
     c["glowThreshold"   ] = glow->getThreshold();
 
+#if !defined(GLCHAOSP_NO_FXAA)
 //FXAA
     c["fxaaOn"          ] = ptr->getFXAA()->isOn();
     c["fxaaThreshold"   ] = ptr->getFXAA()->getThreshold();
     c["ReductMul"       ] = ptr->getFXAA()->getReductMul();
     c["ReductMin"       ] = ptr->getFXAA()->getReductMin();
     c["Span"            ] = ptr->getFXAA()->getSpan();
+#endif
 //DisplayAdjust
     c["Gamma"           ] = glow->getImgTuning()->getGamma();
     c["Bright"          ] = glow->getImgTuning()->getBright();
@@ -219,9 +223,11 @@ void saveSettings(Config &cfg, particlesSystemClass *pSys)
         auto &c = cfg["Render"] = Config::object();
 
         c["RenderMode"   ] = pSys->getRenderMode();
+#if !defined(GLCHAOSP_LIGHTVER)
         c["motionBlur"   ] = pSys->getMotionBlur()->Active();
         c["blurIntensity"] = pSys->getMotionBlur()->getBlurIntensity();
         c["mixingVal"    ] = pSys->getMergedRendering()->getMixingVal();
+#endif
         c["circBuff"     ] = pSys->getEmitter()->getSizeCircularBuffer();
         c["rstrtCircBuff"] = pSys->getEmitter()->restartCircBuff();
         c["stopCircBuff" ] = pSys->getEmitter()->stopFull();
@@ -255,10 +261,12 @@ void saveSettings(Config &cfg, particlesSystemClass *pSys)
 
 
     }
+#if !defined(GLCHAOSP_LIGHTVER)
     {
         auto &c = cfg["RenderMode0"] = Config::object();
         saveParticlesSettings(c,pSys->shaderBillboardClass::getPtr());
     }
+#endif
     {
         auto &c = cfg["RenderMode1"] = Config::object();
         saveParticlesSettings(c,pSys->shaderPointClass::getPtr());
@@ -285,8 +293,10 @@ void mainGLApp::saveAttractor(const char *name)
 }
 
 void mainGLApp::selectCaptureFolder() {        
+#if !defined(GLCHAOSP_LIGHTVER)
     const char *path = tinyfd_selectFolderDialog("Select folder...", getCapturePath().c_str());
     if(path != NULL) { setCapturePath(path); capturePath += "/"; }
+#endif
 }
 
 
@@ -351,6 +361,10 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
             glow->setGlowState( gSel>0 ? gSel : glow->glowType_Threshold);
         }
     }
+#ifdef GLCHAOSP_LIGHTVER
+    if(glow->isGlowOn()) glow->setGlowState(glow->glowType_Bilateral);
+#endif
+
     glow->setSigma(     c.get_or("sigma"       , glow->getSigma()     ));
     glow->setSigmaRadX( c.get_or("sigmaRadX"   , glow->getSigmaRadX() ));
     glow->setMixTexture(c.get_or("mixTexture"  , glow->getMixTexture()));
@@ -360,12 +374,14 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     glow->getImgTuning()->setBlurComponent(c.get_or("blurInt"  , glow->getImgTuning()->getBlurComponent()));
     glow->getImgTuning()->setBlatComponent(c.get_or("bilatInt" , glow->getImgTuning()->getBlatComponent()));
     glow->getImgTuning()->setMixBilateral (c.get_or("bilatMix" , glow->getImgTuning()->getMixBilateral() ));
+#if !defined(GLCHAOSP_NO_FXAA)
 //FXAA
     ptr->getFXAA()->activate(    c.get_or("fxaaOn"       , ptr->getFXAA()->isOn()));
     ptr->getFXAA()->setThreshold(c.get_or("fxaaThreshold", ptr->getFXAA()->getThreshold()));
     ptr->getFXAA()->setReductMul(c.get_or("ReductMul"    , ptr->getFXAA()->getReductMul()));
     ptr->getFXAA()->setReductMin(c.get_or("ReductMin"    , ptr->getFXAA()->getReductMin()));
     ptr->getFXAA()->setSpan     (c.get_or("Span"         , ptr->getFXAA()->getSpan     ()));
+#endif
 
 //DisplayAdjoust
     glow->getImgTuning()->setGamma(    c.get_or("Gamma"     , glow->getImgTuning()->getGamma()    ));
@@ -399,9 +415,12 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
         auto& c = cfg["Render"];
 
         pSys->setRenderMode(                      c.get_or("RenderMode"   , pSys->getRenderMode()                      ));
+#if !defined(GLCHAOSP_LIGHTVER)
         pSys->getMotionBlur()->Active(            c.get_or("motionBlur"   , pSys->getMotionBlur()->Active()            ));
         pSys->getMotionBlur()->setBlurIntensity(  c.get_or("blurIntensity", pSys->getMotionBlur()->getBlurIntensity()  ));
         pSys->getMergedRendering()->setMixingVal( c.get_or("mixingVal"    , pSys->getMergedRendering()->getMixingVal() ));
+#endif
+
         pSys->getEmitter()->setSizeCircularBuffer(c.get_or("circBuff"     , pSys->getEmitter()->getSizeCircularBuffer()));
         if(pSys->getEmitter()->getSizeCircularBuffer()>pSys->getEmitter()->getSizeAllocatedBuffer())
             pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeAllocatedBuffer());
@@ -422,6 +441,7 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
             pSys->getTMat()->getTrackball().setRotation(*((quat *)v.data()));
         }
     }
+#if !defined(GLCHAOSP_LIGHTVER)
     {
         auto &c = cfg["RenderMode0"];
         particlesBaseClass *ptr = pSys->shaderBillboardClass::getPtr();
@@ -429,6 +449,7 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
 
         if(getVec3_asArray(c, "lightDir")) ptr->getUData().lightDir = vec4(retVal, 0.f);
     }
+#endif
     {
         auto &c = cfg["RenderMode1"];
         particlesBaseClass *ptr = pSys->shaderPointClass::getPtr();
@@ -438,6 +459,60 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
     }
 
 }
+
+
+void mainGLApp::invertSettings() 
+{
+    configuru::Config cfg = Config::object(); 
+    particlesSystemClass *pSys = theWnd->getParticlesSystem();
+
+    vec3 retVal;
+
+    auto getVec3_asArray = [&] (Config& c, const char *name) -> bool
+    {
+        if(c.has_key(name)) {
+            vector<float> v;
+            for (const Config& e : c[name].as_array()) v.push_back(e.as_float());
+            retVal = *((vec3 *)v.data());
+            return true;
+        }
+        return false;
+    };
+
+    //Save Inverted
+#if !defined(GLCHAOSP_LIGHTVER)
+    {
+        auto &c = cfg["RenderMode1"] = Config::object();
+        saveParticlesSettings(c,pSys->shaderBillboardClass::getPtr());
+    }
+#endif
+    {
+        auto &c = cfg["RenderMode0"] = Config::object();
+        saveParticlesSettings(c,pSys->shaderPointClass::getPtr());
+    }
+
+#if !defined(GLCHAOSP_LIGHTVER)
+    {
+        auto &c = cfg["RenderMode0"];
+        particlesBaseClass *ptr = pSys->shaderBillboardClass::getPtr();
+        getRenderMode(c, ptr);
+
+        if(getVec3_asArray(c, "lightDir")) ptr->getUData().lightDir = vec4(retVal, 0.f);
+    }
+#endif
+    {
+        auto &c = cfg["RenderMode1"];
+        particlesBaseClass *ptr = pSys->shaderPointClass::getPtr();
+        getRenderMode(c,ptr);
+
+        if(getVec3_asArray(c, "lightDir")) ptr->getUData().lightDir = vec4(retVal, 0.f);
+    }
+
+
+}
+
+
+
 
 bool mainGLApp::loadSettings(const char *name) 
 {
@@ -478,7 +553,7 @@ std::ostringstream &buildDatatedFilename(std::ostringstream &out)
 
 void mainGLApp::saveScreenShot(unsigned char *data, int w, int h)  
 {        
-
+#if !defined(GLCHAOSP_LIGHTVER)
     std::string filename;
     std::ostringstream out;
 
@@ -497,25 +572,33 @@ void mainGLApp::saveScreenShot(unsigned char *data, int w, int h)
         if(error) std::cerr << "error " << error << ": " << lodepng_error_text(error) << std::endl;
         tinyfd_beep();
     }
-
+#endif
     screenShotRequest = ScreeShotReq::ScrnSht_NO_REQUEST;
 }
 
 char const *mainGLApp::openFile(const char *startDir, char const * patterns[], int numPattern)  
 {
+#if !defined(GLCHAOSP_LIGHTVER)
     if(glfwGetWindowMonitor(getGLFWWnd())) toggleFullscreenOnOff(getGLFWWnd());
 
     //char const * patterns[2] = { "*.chatt", "*.txt" };
     return tinyfd_openFileDialog("Load File...", startDir, numPattern, patterns, NULL, 0);
+#else 
+    return NULL;
+#endif
 }
 
 
 char const *mainGLApp::saveFile(const char *startDir, char const * patterns[], int numPattern)  
 {
+#if !defined(GLCHAOSP_LIGHTVER)
     if(glfwGetWindowMonitor(getGLFWWnd())) toggleFullscreenOnOff(getGLFWWnd());
 
     //char const * patterns[2] = { "*.chatt", "*.txt" };
     return tinyfd_saveFileDialog("Save File...", startDir, numPattern, patterns, NULL);
+#else 
+    return NULL;
+#endif
 }
 
 
@@ -626,6 +709,7 @@ bool mainGLApp::loadProgConfig()
     vSync = cfg.get_or("vSync", vSync);
 
     setMaxAllocatedBuffer(cfg.get_or("maxParticles", getMaxAllocatedBuffer()));
+    if(getMaxAllocatedBuffer()>PARTICLES_MAX) setMaxAllocatedBuffer(PARTICLES_MAX);
 
     capturePath = cfg.get_or("capturePath", capturePath);
 

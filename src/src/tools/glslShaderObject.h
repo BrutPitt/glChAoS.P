@@ -74,8 +74,7 @@ class ShaderObject
 class FragmentShader : public ShaderObject
 {
 	public:
-		FragmentShader() : ShaderObject() { shader = glCreateShader(GL_FRAGMENT_SHADER); }
-        virtual ~FragmentShader() { }
+		FragmentShader() : ShaderObject() { shader = glCreateShader(GL_FRAGMENT_SHADER);  }
 } ;
 
 //  Vertex
@@ -83,8 +82,7 @@ class FragmentShader : public ShaderObject
 class VertexShader : public ShaderObject
 {
 	public:
-		VertexShader() : ShaderObject() { shader = glCreateShader(GL_VERTEX_SHADER); }
-        virtual ~VertexShader() { }
+		VertexShader() : ShaderObject() { shader = glCreateShader(GL_VERTEX_SHADER);  }
 };
 
 #ifndef __EMSCRIPTEN__
@@ -93,8 +91,7 @@ class VertexShader : public ShaderObject
 class GeometryShader : public ShaderObject
 {
 	public:
-		GeometryShader() : ShaderObject() { shader = glCreateShader(GL_GEOMETRY_SHADER); }
-        virtual ~GeometryShader() { }
+		GeometryShader() : ShaderObject() { shader = glCreateShader(GL_GEOMETRY_SHADER);  }
 };
 #endif
 
@@ -111,7 +108,7 @@ inline void CheckErrorsGL( const char* location = NULL,
 #define CHECK_GL_ERROR() {\
     CheckGLError(__FILE__, __LINE__);\
     GLenum err = glGetError();\
-    if(err!=GL_NO_ERROR) cout << "OpenGL Error" << err;\
+    if(err!=GL_NO_ERROR) cout << "OpenGL Error:" << err << endl;\
 }
 #else
 #define CHECK_GL_ERROR()

@@ -60,7 +60,7 @@ public:
         glCreateVertexArrays(1, &vao);
         glCreateBuffers(1,&vbo);
 #else
-        glGenVertexArrays(1, &vao);
+        glGenVertexArrays(1, &vao); 
         glGenBuffers(1,&vbo);
 #endif
         bytesPerVertex = attributesPerVertex * COMPONENTS_PER_ATTRIBUTE * sizeof(float); 
@@ -84,6 +84,7 @@ public:
     void     resetVertexCount()  { uploadedVtx = 0; }
     GLuint   getVBO()            { return vbo; };
     GLenum   getPrimitive() { return primitive; }
+
 
     virtual void initBufferStorage(GLsizeiptr numElements) = 0;
     virtual void buildVertexAttrib() {
@@ -142,16 +143,21 @@ public:
     }
 
     void draw(GLuint maxSize) {
+        //ActivateClientStates();
         glBindVertexArray(vao);
-        glDrawArrays(primitive,0, uploadedVtx<maxSize ? uploadedVtx : maxSize);
+        glDrawArrays(primitive,0,uploadedVtx<maxSize ? uploadedVtx : maxSize);
+        //DeactivateClientStates();
+        CHECK_GL_ERROR();
     }
 
+#if !defined(GLCHAOSP_LIGHTVER)
 //  Feedback functions
 ////////////////////////////////////////////////////////////////////////////
     void BindToFeedback(int index)
     {
         glTransformFeedbackBufferRange(0,index,vbo,0,uploadedVtx*bytesPerVertex);
     }
+#endif
     void uploadData(int numVtx) 
     {
         int bufferSize = numVtx * bytesPerVertex;
@@ -231,11 +237,14 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER,vbo);        
         glBufferData(GL_ARRAY_BUFFER,storageSize,nullptr,GL_DYNAMIC_DRAW);
 #endif
+        CHECK_GL_ERROR();
+
 
         buildVertexAttrib();
     }
 };
 
+#if !defined(GLCHAOSP_LIGHTVER)
 
 class transformFeedbackInterleaved {
   private:
@@ -281,6 +290,7 @@ class transformFeedbackInterleaved {
     }
     void SetDiscard(bool value){ bDiscard = true; }
 };
+#endif
 
 #ifdef PRINT_TIMING
         //glBeginQuery(GL_TIME_ELAPSED, queries[0]);

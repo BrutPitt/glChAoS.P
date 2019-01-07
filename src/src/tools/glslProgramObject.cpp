@@ -49,6 +49,7 @@ ProgramObject::~ProgramObject()
 void ProgramObject::createProgram()
 {
     program = glCreateProgram();
+
 #if !defined(__EMSCRIPTEN__) && !defined(GLAPP_NO_GLSL_PIPELINE)
     #ifdef GLAPP_REQUIRE_OGL45
         glCreateProgramPipelines(1, &pipeline);

@@ -20,21 +20,22 @@ set(OGL41_BUFFER "")
 
 set(SRC "${CMAKE_SOURCE_DIR}/src")
 
-set(CMAKE_CXX_STANDARD 14)
-find_package(OpenGL)
-
-include_directories(${SRC})
-include_directories(${SRC}/tools)
-include_directories(${SRC}/libs)
 
 ###########################################################
 #   EMSCRIPTEN setting
 ###########################################################
 if (EMSCRIPTEN)
-    project(ParticlesEMS)
+    project(wglChAoSP)
     set(OGL_EMITTER_TYPE ${OGL41_BUFFER})
+    
+    set(CMAKE_CXX_STANDARD 14)
+    find_package(OpenGL)
 
-
+    include_directories(${SRC})
+    include_directories(${SRC}/tools)
+    include_directories(${SRC}/libs)
+    
+    
     set(SOURCE_FILES
         ${SRC}/libs/IconsFontAwesome/IconsFontAwesome.h
         ${SRC}/libs/ImGui/imconfig.h
@@ -95,9 +96,13 @@ if (EMSCRIPTEN)
 # -o ${PROJECT_NAME}.html ->  CMAKE_EXECUTABLE_SUFFIX  .html .bc, .js (default), etc
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
-# relative emscripten output files
-    #set(EMSOUT "${CMAKE_SOURCE_DIR}/emsOut")
-    set(EMSOUT "R:/emsOut")
+# relative emscripten output files (EMSOUT_PATH for my RAMDISK, if defined)
+    if(EXISTS $ENV{EMSOUT_PATH})
+        set(EMSOUT "$ENV{EMSOUT_PATH}/emsOut")
+    else()
+        set(EMSOUT "${CMAKE_SOURCE_DIR}/emsOut")
+    endif()
+
     file(MAKE_DIRECTORY ${EMSOUT})
     file(MAKE_DIRECTORY ${EMSOUT}/${CMAKE_BUILD_TYPE})
     set(EMSOUT ${EMSOUT}/${CMAKE_BUILD_TYPE})
@@ -105,7 +110,6 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 # emcc compiler options
     set(M_EMCC_FLAGS "-DGLAPP_NO_OGL_DSA -DGLFW_INCLUDE_ES3")
     set(M_GLOBAL_FLAGS "-DGLCHAOSP_LIGHTVER -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
-
 
 # BUILD TYPE: [Debug|RelWithDebInfo|Release|MinSizeRel]    
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -131,8 +135,8 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 # grouped EMCC_OPTIONS
     set(M_EMCC_EMBED_FILES "--embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/PointSpriteVert.glsl@Shaders/\"\
-     --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/PointSpriteFragWGL.glsl@Shaders/\"\
-     --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/RadialBlur2PassFragWGL.glsl@Shaders/\"\
+     --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/PointSpriteFragLight.glsl@Shaders/\"\
+     --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/RadialBlur2PassFrag.glsl@Shaders/\"\
      --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/mmFBO_all_vert.glsl@Shaders/\"\
      --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/fxaaFrag.glsl@Shaders/\"\
      --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/colorSpaces.glsl@Shaders/\"\
@@ -140,7 +144,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
      --embed-file \"${CMAKE_SOURCE_DIR}/../colorMaps/palettes.json@colorMaps/\"\
      --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts/Cousine-Regular.ttf@Fonts/\"\
      --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts/fontawesome-webfont.ttf@Fonts/\"\
-     --embed-file \"${CMAKE_SOURCE_DIR}/../startDataEMS@startDataEMS/\"")
+     --embed-file \"${CMAKE_SOURCE_DIR}/../startDataWGL@startDataWGL/\"")
      
 #     --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts/Cousine-Regular.ttf@Fonts/\"\
 #     --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts/fontawesome-webfont.ttf@Fonts/\"\
@@ -173,14 +177,18 @@ else()
 
 
     if(APPLE)
-        project(ParticlesOSX)
+        project(glChAoSP_OSX)
     else()
         if(WIN32)
-            project(Particles)
+            project(glChAoSP)
         else()
-            project(ParticlesLinux)
+            project(glChAoSP_Linux)
         endif()
     endif()
+
+    set(CMAKE_CXX_STANDARD 14)
+    find_package(OpenGL)
+    
 
 if(OPENGL_FOUND)
     message(STATUS "OPENGL_INCLUDE_DIRS: ${OPENGL_INCLUDE_DIRS}")
@@ -202,6 +210,10 @@ endif(APPLE)
 
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security ${OGL_EMITTER_TYPE} ${COMMON_DEFINES} -std=c++14 -fpermissive")
+
+include_directories(${SRC})
+include_directories(${SRC}/tools)
+include_directories(${SRC}/libs)
 
 #uncomment for GLFW installed dir
 if(APPLE)

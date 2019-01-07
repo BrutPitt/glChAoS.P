@@ -80,7 +80,7 @@
 #define GLAPP_HELP_MOUSE_KEY\
     "Mouse\n"\
     "   Left button:\n"\
-    "      Double click: toggle fullscreen/windowed\n"\
+    "      Double click: toggle fullscreen/windowed (desktop version)\n"\
     "      Drag        : rotate object\n"\
     "      Shift & Drag: rotate on X\n"\
     "      Ctrl  & Drag: rotate on Y\n"\
@@ -92,11 +92,12 @@
     "      Shift & Drag : Pan camera\n"\
     "Keys\n"\
     "   Esc  : show/hide GUI\n"\
-    "   F11  : toggle fullscreen/windowed\n"\
+    "   F11  : toggle fullscreen/windowed (desktop version)\n"\
     "   Space: Restart attractor (like button)\n"\
     "   SHIFT-PrtSc: Screenshot silently (w/o GUI) \n"\
     "   CTRL-PrtSc: Screenshot with prompt filename (w/o GUI)\n"\
     "   ALT or SUPER-PrtSc: Capture screen with GUI\n"\
+    "       screenshot is available only in desktop version\n"\
     "GUI interface\n"\
     "   The values in many controls can be changed via mouse drag,\n"\
     "   in this case you can associate also key modifier as helper:\n"\

@@ -39,7 +39,6 @@
 #include "../attractorsBase.h"
 #include "../ShadersClasses.h"
 
-#ifdef APP_USE_IMGUI
 #include <imguiControls.h>
 #include <imGuIZMO.h>
 
@@ -92,8 +91,14 @@ void paletteDlgClass::view()
     int id = ID;
     if(!visible()) return;
 
+#ifdef GLCHAOSP_LIGHTVER
+    particlesBaseClass *particles = (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
+    const int hSz = 0;
+#else
     particlesBaseClass *particles = id == 'B' ? (particlesBaseClass *) theWnd->getParticlesSystem()->shaderBillboardClass::getPtr() :
                                                 (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
+    const int hSz = -ImGui::GetFrameHeightWithSpacing();
+#endif
     //static bool colorMapDlg=false;
     //if(ImGui::Button("ColorMaps")) colorMapDlg=true;
 
@@ -101,7 +106,7 @@ void paletteDlgClass::view()
 
     if(ImGui::Begin(getTitle(), (bool *) &isVisible, ImGuiTreeNodeFlags_DefaultOpen)) {
         const int border = DLG_BORDER_SIZE;
-        ImGui::BeginChild("cm",ImVec2(0, -ImGui::GetFrameHeightWithSpacing()) ); { // Leave room for 1 line below us                            
+        ImGui::BeginChild("cm",ImVec2(0, hSz) ); { // Leave room for 1 line below us                            
             const float w = ImGui::GetContentRegionAvailWidth(); //4/3
             ImGui::Columns(2,"pals",false);
             //ImGui::SetColumnOffset(1, w*.25);
@@ -132,7 +137,7 @@ void paletteDlgClass::view()
             }
 
         } ImGui::EndChild();
-
+#if !defined(GLCHAOSP_LIGHTVER)
         const float w = ImGui::GetContentRegionAvailWidth(); //4/3
         const float wButt5 = (w - (border*6)) *.2;
         const float posB5 = border + wButt5 + border;
@@ -180,7 +185,7 @@ void paletteDlgClass::view()
             if(fileName!=nullptr) { writePalette(fileName, -1); }
 
         }
-
+#endif
     } ImGui::End();
 
             //ImGui::OK
@@ -261,8 +266,14 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
         ImGui::PopStyleColor();
 
         if(isOpen) {
+#if !defined(GLCHAOSP_LIGHTVER)
+            const int numItems = 8;
+#else
+            const int numItems = 6;
+#endif
+
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-            ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*8-ImGui::GetStyle().ItemSpacing.y*3), true); 
+            ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*numItems-ImGui::GetStyle().ItemSpacing.y*3), true); 
                 //////////Linea 1//////////
                 ImGui::SetCursorPosX(INDENT(posA)); ImGui::TextDisabled("Blending Src"); 
                 ImGui::SameLine(INDENT(posC4));     ImGui::TextDisabled("Blending Dst");           
@@ -290,7 +301,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 //////////Linea 3//////////        
                 //ImGui::SetCursorPosX(INDENT(posA));
                 //ImGui::TextDisabled("PointSize"); //ImGui::SameLine(posB3);
-
+#if !defined(GLCHAOSP_LIGHTVER)
                 //////////Linea 4//////////        
                 ImGui::PushItemWidth(wButt3);        
                 {
@@ -319,6 +330,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                 }
                 ImGui::PopItemWidth();
+#endif
 
                 ImGui::PushItemWidth(wButt3);
 
@@ -355,7 +367,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     {
                         ImGui::SameLine(posB3);
                         float f = particles->getAlphaAtten();                   
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01,-0.0, 100.0, "%.3f",DRAGFLOAT_POW_3,ImVec2(.93,0.5))) particles->setAlphaAtten(f);
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01,-0.0, 1000.0, "%.3f",DRAGFLOAT_POW_3,ImVec2(.93,0.5))) particles->setAlphaAtten(f);
                     }
                     {
                         ImGui::SameLine(posC3);
@@ -364,6 +376,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     }
                 ImGui::PopItemWidth();
 
+#if !defined(GLCHAOSP_LIGHTVER)
                 ImGui::SetCursorPosX(posA);
                     {
                         bool b = particles->getDotType();
@@ -371,7 +384,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                         sprintf(txt, b ? "solidDot " ICON_FA_CHECK_SQUARE_O "%s" : "solidDot " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
                         if(colCheckButton(b , txt, wButt3)) particles->setDotType(b^1);
                     }
-
+#endif
 
             ImGui::EndChild();
             ImGui::PopStyleVar();
@@ -430,9 +443,14 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ////////////////////////////////////
                 ImGui::SameLine(posB4);
                 //if(ImGui::colormapButton("pippo", ImVec2(w-10,12), 256, particles->getSelectedColorMap_pf3()))
-                if(ImGui::ImageButton(reinterpret_cast<ImTextureID>(cmSet->getOrigTex()), ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale)))
+                if(ImGui::ImageButton(reinterpret_cast<ImTextureID>(cmSet->getOrigTex()), ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
+                //if(ImGui::Button("paletteAAA", ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
+#if !defined(GLCHAOSP_LIGHTVER)
                     if(id=='B') theDlg.bbPaletteDlg.visible( theDlg.bbPaletteDlg.visible()^1);
-                    else        theDlg.psPaletteDlg.visible( theDlg.psPaletteDlg.visible()^1);
+                    else
+#endif
+                        theDlg.psPaletteDlg.visible( theDlg.psPaletteDlg.visible()^1);
+                }
                
 
                 //ImGui::colormapButton("pluto", ImVec2(300,16), 256, particles->getColorMap().getRGB_pf3(1));
@@ -504,7 +522,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PopStyleVar();
         }
     }
-
+#if !defined(GLCHAOSP_LIGHTVER)
     // Light settings
     ////////////////////////////////////
     {
@@ -609,6 +627,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PopStyleVar();
         }
     }
+#endif
     // Glow settings
     ////////////////////////////////////
     {
@@ -637,12 +656,11 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     //if(modCheckBox(b, wButt3, true)) glow->setGlowState(b^1);
 */
                     
-
+#if !defined(GLCHAOSP_LIGHTVER)
                     {    
                         bool b = glow->isGlowOn();
                         if(ImGui::Checkbox(buildID(base, idA++, id), &b)) glow->setGlowOn(b);
                     }
-
                     ImGui::SameLine();
 
                     ImGui::PushItemWidth(wButt2 - (ImGui::GetCursorPosX()-posA));
@@ -656,6 +674,17 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     }
 
                     ImGui::PopItemWidth();
+#else 
+                    {    
+                        bool b = glow->isGlowOn();
+                        if(ImGui::Checkbox(buildID(base, idA++, id), &b)) {
+                            glow->setGlowOn(b);
+                            if(glow->isGlowOn()) glow->setGlowState(BlurBaseClass::glowType_Bilateral);
+                            else                 glow->setGlowState(BlurBaseClass::glowType_ByPass);
+                        }
+                    }
+#endif
+
                 }
 
                 {
@@ -745,6 +774,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PopStyleVar();
         }
     }
+#if !defined(GLCHAOSP_NO_FXAA)
     // FXAA settings
     ////////////////////////////////////
     {
@@ -825,7 +855,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PopStyleVar();
         }
     }
-
+#endif
     // Display Adjoust
     ////////////////////////////////////
     {
@@ -937,12 +967,17 @@ void particlesDlgClass::view()
     bool bbSelected = theWnd->getParticlesSystem()->whichRenderMode==RENDER_USE_BILLBOARD || theWnd->getParticlesSystem()->getRenderMode() == RENDER_USE_BOTH;
     bool psSelected = theWnd->getParticlesSystem()->whichRenderMode==RENDER_USE_POINTS    || theWnd->getParticlesSystem()->getRenderMode() == RENDER_USE_BOTH;
 
+#if !defined(GLCHAOSP_LIGHTVER)
+    const int wSZ = 300, hSZ = 900;
+#else
+    const int wSZ = 270, hSZ = 680;
+#endif
 
     
     const float border = DLG_BORDER_SIZE;    
     particlesSystemClass *pSys = theWnd->getParticlesSystem();
 
-    ImGui::SetNextWindowSize(ImVec2(300, 900), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(wSZ, hSZ), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
         
     const char *particlesWndName = getTitle();
@@ -954,6 +989,7 @@ void particlesDlgClass::view()
         ImGui::BeginGroup(); 
             ImGui::BeginChild("Settings", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()*5-border)); 
                 //static bool bBB=false, bPS=false;
+#if !defined(GLCHAOSP_LIGHTVER)
                 ImGui::SetNextTreeNodeOpen(psSelected || psTreeVisible);
                 if(psTreeVisible = ImGui::CollapsingHeader(ICON_FA_SLIDERS " Pointsprite", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
                     viewSettings(pSys->shaderPointClass::getPtr(), 'P');   
@@ -962,6 +998,13 @@ void particlesDlgClass::view()
                 if(bbTreeVisible = ImGui::CollapsingHeader(ICON_FA_SLIDERS " Billboard", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
                     viewSettings(pSys->shaderBillboardClass::getPtr(),'B');
                 }
+#else
+                ImGui::SetNextTreeNodeOpen(true);
+                if(psTreeVisible = ImGui::CollapsingHeader(ICON_FA_SLIDERS " Pointsprite", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
+                    viewSettings(pSys->shaderPointClass::getPtr(), 'P');   
+                }
+#endif
+
             ImGui::EndChild();  
 
             ImGui::BeginChild("Commons"); 
@@ -979,6 +1022,7 @@ void particlesDlgClass::view()
                 ImGui::Text( ICON_FA_SLIDERS " Common Settings   " ICON_FA_COMMENT_O);
                 ShowHelpOnTitle(GLAPP_HELP_COMMON_TREE);
 
+#if !defined(GLCHAOSP_LIGHTVER)
                 //////////Linea 1//////////
                 // Pointsprite
                 ImGui::SetCursorPosX(border);
@@ -995,7 +1039,9 @@ void particlesDlgClass::view()
                     const bool b = pSys->getMotionBlur()->Active();
                     if(colCheckButton(b, b ? "M.Blur " ICON_FA_TOGGLE_ON : "M.Blur " ICON_FA_TOGGLE_OFF, wButt)) {pSys->getMotionBlur()->Active(b^1); }
                 }
-
+#else
+                ImGui::NewLine();
+#endif
                 { //Emitter
                     ImGui::SameLine(pos3); 
                     const bool b = pSys->getEmitter()->isEmitterOn();
@@ -1004,6 +1050,7 @@ void particlesDlgClass::view()
 
                 //////////Linea 2//////////
                 // Billboard
+#if !defined(GLCHAOSP_LIGHTVER)
                 ImGui::SetCursorPosX(border);
                 {
                     const bool b = pSys->whichRenderMode==RENDER_USE_BILLBOARD;
@@ -1012,7 +1059,6 @@ void particlesDlgClass::view()
                         psTreeVisible = false; //Hide pointSprite
                     }
                 }
-                    
                 ImGui::SameLine(pos2);
                     
                 //Motionblur slider
@@ -1023,6 +1069,7 @@ void particlesDlgClass::view()
                     ImGui::PopItemWidth();
                     ImGui::SameLine(); 
                 }
+#endif                    
 
                 ImGui::SetCursorPosX(pos3); 
                 {
@@ -1034,12 +1081,15 @@ void particlesDlgClass::view()
 
                 //////////Linea 3//////////
                 // Both
+#if !defined(GLCHAOSP_LIGHTVER)
                 {
                     ImGui::SetCursorPosX(border);
                     const bool b = pSys->whichRenderMode==RENDER_USE_BOTH;
                     if(colCheckButton(b, b ? "Both " ICON_FA_CHECK : "Both", wButt)) pSys->setRenderMode(RENDER_USE_BOTH); 
                 }
-                
+#else 
+                ImGui::NewLine();
+#endif                
                 ImGui::SameLine(pos2);
                 ImGui::TextDisabled(ICON_FA_ARROW_DOWN " Buffer "  ICON_FA_ARROW_RIGHT);
                     
@@ -1049,7 +1099,7 @@ void particlesDlgClass::view()
                     if(ImGui::Button(b  ? ICON_FA_REPEAT " Restart" : ICON_FA_CIRCLE_O_NOTCH " Endless", ImVec2(wButt,0))) { pSys->getEmitter()->restartCircBuff(b ? false : true); }
                 }
 
-                             
+#if !defined(GLCHAOSP_LIGHTVER)
                 //////////Linea 4//////////
                 // Mix slider
                 if(pSys->whichRenderMode==RENDER_USE_BOTH) {                        
@@ -1060,6 +1110,7 @@ void particlesDlgClass::view()
                     ImGui::PopItemWidth();
                     ImGui::SameLine(); 
                 }
+#endif                
                     
                 ImGui::AlignTextToFramePadding();
                 //ImGui::SetCursorPosX(pos3-border-9*(ImGui::GetFontSize()*.5+.5)); 
@@ -1128,6 +1179,8 @@ void particlesDlgClass::view()
     //colorMapsSelectDlg(theWnd->getParticlesSystem()->shaderBillboardClass::getPtr(),'B');
     //colorMapsSelectDlg(theWnd->getParticlesSystem()->shaderPointClass::getPtr(),'P');
 }
+
+#if !defined(GLCHAOSP_LIGHTVER)
 
 void comboWindowRes(const float width)
 {
@@ -1347,6 +1400,7 @@ void viewSettingDlgClass::view()
     ImGui::End();
 }
 
+
 void progSettingDlgClass::view()
 {
     ImGui::SetNextWindowSize(ImVec2(300, 440), ImGuiCond_FirstUseEver);
@@ -1533,6 +1587,37 @@ void progSettingDlgClass::view()
     ImGui::End();
 }
 
+void dataDlgClass::view()
+{
+
+    if(!isVisible) return;
+
+    ImGui::SetNextWindowSize(ImVec2(300, 440), ImGuiCond_FirstUseEver);
+
+    if(ImGui::Begin(getTitle(), &isVisible)) {
+    
+        const float w = ImGui::GetContentRegionAvailWidth();
+        const float border = DLG_BORDER_SIZE;
+        const float wButt = ImGui::GetContentRegionAvailWidth()-border*2;
+
+        if(ImGui::Button("Load Data", ImVec2(wButt,0))) loadObjFile();
+
+        if(ImGui::Button("Save CFG", ImVec2(wButt/2,0))) saveSettingsFile();
+        ImGui::SameLine();
+        if(ImGui::Button("Load CFG", ImVec2(wButt/2,0))) loadSettingsFile();
+
+        ImGui::NewLine();
+        ImGui::Text("Work in progress...");
+
+
+    }
+    ImGui::End();
+
+}
+
+
+
+#endif
 
 void imGuIZMODlgClass::view()
 {
@@ -1579,18 +1664,24 @@ void imGuIZMODlgClass::view()
         if(ImGui::DragFloat("##u3",(float *)&qt.w,0.01f, -1.0, 1.0, "%.2f",1.f)) quatChanged=true;
         ImGui::PopItemWidth();
 
+#if !defined(GLCHAOSP_LIGHTVER)
         vec3 &ligh = theWnd->getParticlesSystem()->getRenderMode()==RENDER_USE_POINTS ? theWnd->getParticlesSystem()->shaderPointClass::getUData().lightDir : theWnd->getParticlesSystem()->shaderBillboardClass::getUData().lightDir;
         glm::vec3 lL(-ligh);
         if(ImGui::gizmo3D("##aaa", qt, lL, sz))  { 
             ligh = -lL;
             theWnd->getParticlesSystem()->getTMat()->getTrackball().setRotation(qt);
         }
-
         ImGui::PushItemWidth(sz);
         style.Colors[ImGuiCol_Text].x = style.Colors[ImGuiCol_Text].y = 1.0, style.Colors[ImGuiCol_Text].z =0.f;
         ImGui::DragFloat3("##uL3",glm::value_ptr(ligh),0.01f);
         style.Colors[ImGuiCol_Text] = oldTex;
         ImGui::PopItemWidth();
+#else
+        if(ImGui::gizmo3D("##aaa", qt, sz))  { 
+            theWnd->getParticlesSystem()->getTMat()->getTrackball().setRotation(qt);
+        }
+#endif
+
 
     }
     ImGui::End();
@@ -1602,40 +1693,12 @@ void imGuIZMODlgClass::view()
 
 }
 
-void dataDlgClass::view()
-{
-
-    if(!isVisible) return;
-
-    ImGui::SetNextWindowSize(ImVec2(300, 440), ImGuiCond_FirstUseEver);
-
-    if(ImGui::Begin(getTitle(), &isVisible)) {
-    
-        const float w = ImGui::GetContentRegionAvailWidth();
-        const float border = DLG_BORDER_SIZE;
-        const float wButt = ImGui::GetContentRegionAvailWidth()-border*2;
-
-        if(ImGui::Button("Load Data", ImVec2(wButt,0))) loadObjFile();
-
-        if(ImGui::Button("Save CFG", ImVec2(wButt/2,0))) saveSettingsFile();
-        ImGui::SameLine();
-        if(ImGui::Button("Load CFG", ImVec2(wButt/2,0))) loadSettingsFile();
-
-        ImGui::NewLine();
-        ImGui::Text("Work in progress...");
-
-
-    }
-    ImGui::End();
-
-}
-
 void aboutDlgClass::view()
 {
 
     if(!isVisible) return;
 
-    ImGui::SetNextWindowSize(ImVec2(300, 440), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(350, 440), ImGuiCond_FirstUseEver);
 
     if(ImGui::Begin(getTitle(), &isVisible)) {
     
@@ -1680,13 +1743,15 @@ void infoDlgClass::view()
 {
 
     if(!isVisible) return;
+#if !defined(GLCHAOSP_LIGHTVER)
+    const int hSz = 15;
+#else
+    const int hSz = 9;
+#endif
+    ImGui::SetNextWindowSize(ImVec2(400, ImGui::GetFrameHeightWithSpacing()*hSz), ImGuiCond_FirstUseEver);
 
-    ImGui::SetNextWindowSize(ImVec2(400, ImGui::GetFrameHeightWithSpacing()*15), ImGuiCond_FirstUseEver);
-
-    //char s[64];
-    //sprintf(s, "Info: %.1f FPS##zza", ImGui::GetIO().Framerate);
-    bool visible = isVisible && theDlg.baseDlgClass::visible();
-    if(ImGui::Begin(getTitle(), &visible)) { 
+    //bool visible = isVisible && theDlg.baseDlgClass::visible();
+    if(ImGui::Begin(getTitle(), &isVisible)) { 
 
         //isVisible = visible;
     
@@ -1713,6 +1778,7 @@ void infoDlgClass::view()
         ImGui::TextDisabled("glslVer: "); ImGui::SameLine();
         ImGui::TextUnformatted((const char *)glslVer);
 
+#if !defined(GLCHAOSP_LIGHTVER)
 
         ImGui::NewLine();
         ImGui::TextDisabled("Memory info");
@@ -1756,7 +1822,6 @@ void infoDlgClass::view()
             ImGui::TextUnformatted(str);
         }
 
-
         ImGui::TextDisabled("PointSize");
         {
             GLfloat retVal[4];
@@ -1769,7 +1834,7 @@ void infoDlgClass::view()
 
                 ImGui::TextUnformatted(str);
         }
-
+#endif
         ImGui::NewLine();
         if(ImGui::Button(" - show metrics - ")) metricW ^=1;   ImGui::SameLine();
 
@@ -1789,9 +1854,19 @@ void mainImGuiDlgClass::view()
     ImGuiStyle& style = ImGui::GetStyle();
 
     const float wndSizeX = fontSize * fontZoom * 12.f; // 26 char * .5 (fontsize/2);
+#if !defined(GLCHAOSP_LIGHTVER)
+    const int posH = 225;
+    const int numItems = 9;
+#else
+    const int posH = 207;
+    const int numItems = 6;
+#endif
 
-    ImGui::SetNextWindowSize(ImVec2(wndSizeX, ImGui::GetFrameHeightWithSpacing()*9), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(300, 0), ImGuiCond_FirstUseEver);
+
+    ImGui::SetNextWindowSize(ImVec2(wndSizeX, ImGui::GetFrameHeightWithSpacing()*numItems), ImGuiCond_Always);
+    int w,h;
+    glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
+    ImGui::SetNextWindowPos(ImVec2(w-wndSizeX, posH), ImGuiCond_FirstUseEver);
 
 
         
@@ -1839,18 +1914,17 @@ void mainImGuiDlgClass::view()
                 imGuIZMODlg.visible(b^true);
             }
         }
-
-        {
-            const bool b = viewSettingDlg.visible();
-            if(colCheckButton(b, b ? ICON_FA_CHECK " View tools (F5)"  : "   View tools (F5)", wButt)) {
-                viewSettingDlg.visible(b^true);
-            }
-        }
-
         {
             const bool b = infoDlg.visible();
-            if(colCheckButton(b, b ? ICON_FA_CHECK "    Info    (F6)"  : "      Info    (F6)", wButt)) {
+            if(colCheckButton(b, b ? ICON_FA_CHECK "    Info    (F5)"  : "      Info    (F5)", wButt)) {
                 infoDlg.visible(b^true);
+            }
+        }
+#if !defined(GLCHAOSP_LIGHTVER)
+        {
+            const bool b = viewSettingDlg.visible();
+            if(colCheckButton(b, b ? ICON_FA_CHECK " View tools (F6)"  : "   View tools (F6)", wButt)) {
+                viewSettingDlg.visible(b^true);
             }
         }
 
@@ -1867,12 +1941,7 @@ void mainImGuiDlgClass::view()
                 progSettingDlg.visible(b^true);
             }
         }
-        //if(ImGui::Button("Attractor(s)",  ImVec2(wButt,0))) attractorDlg.visible(true);
-        //if(ImGui::Button("Particles",     ImVec2(wButt,0))) particlesDlg.visible(true); 
-
-        //static int isViewOpen = 0;
-
-        //if(ImGui::Button("View", ImVec2(wButt,0))) viewWindowSetting.visible(true);
+#endif
     }
 
     ImGui::End();
@@ -1901,13 +1970,16 @@ void mainImGuiDlgClass::switchMode(int x, int y)
     aboutDlg.rePosWndByMode(x, y);
     attractorDlg.rePosWndByMode(x, y);
     particlesDlg.rePosWndByMode(x, y);
-    bbPaletteDlg.rePosWndByMode(x, y);
     psPaletteDlg.rePosWndByMode(x, y);
+    infoDlg.rePosWndByMode(x, y);
+#if !defined(GLCHAOSP_LIGHTVER)
+    bbPaletteDlg.rePosWndByMode(x, y);
     viewSettingDlg.rePosWndByMode(x, y);
     progSettingDlg.rePosWndByMode(x, y);
-    infoDlg.rePosWndByMode(x, y);
     dataDlg.rePosWndByMode(x, y);
     rePosWndByMode(x, y);
+#endif
+
 }
 
 
@@ -1963,14 +2035,18 @@ void mainImGuiDlgClass::renderImGui()
         attractorDlg.view();
         particlesDlg.view();
         if(particlesDlg.visible()) {
+#if !defined(GLCHAOSP_LIGHTVER)
             bbPaletteDlg.view();
+#endif
             psPaletteDlg.view();
         }
         imGuIZMODlg.view();
+        infoDlg.view();
+#if !defined(GLCHAOSP_LIGHTVER)
         viewSettingDlg.view();
         progSettingDlg.view();
-        infoDlg.view();
         dataDlg.view();
+#endif
         view();
     }
 
@@ -1989,4 +2065,3 @@ void mainImGuiDlgClass::renderImGui()
 
 }
 
-#endif

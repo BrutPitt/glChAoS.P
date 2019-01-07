@@ -35,47 +35,27 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 // #version dynamically inserted
-
-#if defined(GL_ES) || defined(TEST_WGL)
 out vec4 color;
-uniform sampler2D paletteTex;
 
-#else
-layout (location = 0) out vec4 color;
-
-LAYUOT_BINDING(0) uniform sampler2D paletteTex;
-#endif
-
+uniform bool whichPalette;
 uniform vec4 vData;   //x: velIntensity, y: offsetPoint, z: lenSegment, w: rotate (bool)
 uniform vec4 hslData; // w: clamp!!! (bool)
 
-
-vec4 pal0() { return texelFetch(paletteTex, ivec2(gl_FragCoord.x,0),0); }
-
-vec4 pal1() 
-{
-    float tCoord = vData.y+gl_FragCoord.x*vData.z/256.0;
-    
-    if(vData.w != 0.0)   tCoord = 1.0-tCoord; //reverse?    
-    if(hslData.w != 0.0) tCoord = clamp(tCoord, 0.0, .99); //clamp?
-
-    vec4 c = texture(paletteTex, vec2(tCoord,0.0),0.0);
-    c.xyz = rgb2hsl(c.xyz) + hslData.xyz;
-
-#if defined(GL_ES)
-    c.yz = clamp(c.yz, vec2(0.0), vec2(1.0));
-#else
-    c.yz = clamp(c.yz, 0.0, 1.0);
-#endif
-    return vec4(hsl2rgb(c.xyz), 1.0);
-}
+uniform sampler2D paletteTex;
 
 void main(void)
 {
+    if(whichPalette) {
+        float tCoord = vData.y+gl_FragCoord.x*vData.z/256.0;
+    
+        if(vData.w != 0.0)   tCoord = 1.0-tCoord; //reverse?    
+        if(hslData.w != 0.0) tCoord = clamp(tCoord, 0.0, .999); //clamp?
 
-    color = pal1();
+        vec4 c = texture(paletteTex, vec2(tCoord,0),0);
+        c.xyz = rgb2hsl(c.xyz) + hslData.xyz;
 
-    //color1 = texelFetch(paletteTex, int(256.0*vData.y)+int(gl_FragCoord.x*vData.z),0);
-    //color = vec4(0.0, 0.8, 1.0, 1.0);
-   
+        color = vec4(hsl2rgb(vec3(c.x, saturate(c.yz))), c.a);
+    } else
+        color = texelFetch(paletteTex, ivec2(gl_FragCoord.x,0),0);
+
 }

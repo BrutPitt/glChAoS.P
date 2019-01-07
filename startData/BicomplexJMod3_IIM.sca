@@ -1,13 +1,13 @@
 {
 	"Attractor":   {
 		"Name":         "BicomplexJMod3_IIM",
-		"maxDepth":     120,
+		"maxDepth":     416,
 		"dim4D":        0.0,
 		"fractDegreeN": 2,
 		"kMax":         0.0,
 		"kMin":         0.0,
-		"vMax":         0.3,
-		"vMin":         -0.3,
+		"vMax":         0.5,
+		"vMin":         -0.5,
 		"vData":        [ 0.0, 0.0, 0.0 ],
 		"kData":        [ 0.0, 0.0, 0.0, 0.0 ]
 	},
@@ -25,7 +25,7 @@
 		"camDolly":       [ 0.0, 0.0, 4.1599975 ],
 		"camPan":         [ 0.0, 0.0, 0.0 ],
 		"camRotCent":     [ 0.0, 0.0, 0.0 ],
-		"camRot":         [ 0.70710677, 0.0, 0.0, -0.70710677 ]
+		"camRot":         [ 0.17705196, 0.96426523, 0.16746119, -0.10435631 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":   32772,
@@ -858,8 +858,8 @@
 		"DepthState":       false,
 		"BlendState":       true,
 		"LightState":       true,
-		"pointSize":        2.42,
-		"pointSizeFactor":  14.51,
+		"pointSize":        3.32,
+		"pointSizeFactor":  28.11,
 		"clippingDist":     0.5,
 		"alphaKFactor":     1.0,
 		"alphaAttenFactor": 0.0,
@@ -889,7 +889,7 @@
 		"bilatInt":         0.786,
 		"bilatMix":         0.60400003,
 		"mixTexture":       1.0,
-		"glowThreshold":    0.043,
+		"glowThreshold":    0.093,
 		"fxaaOn":           false,
 		"fxaaThreshold":    0.5,
 		"ReductMul":        8.0,

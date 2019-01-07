@@ -164,6 +164,7 @@
     <IncludePath>$(IncludePath);$(Include)</IncludePath>
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib32\Debug</LibraryPath>
     <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+    <TargetName>glChAoSP_$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|Win32'">
     <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
@@ -171,6 +172,7 @@
     <IncludePath>$(IncludePath);$(Include)</IncludePath>
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib32\Debug</LibraryPath>
     <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+    <TargetName>glChAoSP_$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug noThread OpenGL 4.1|Win32'">
     <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
@@ -178,6 +180,7 @@
     <IncludePath>$(IncludePath);$(Include)</IncludePath>
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib32\Debug</LibraryPath>
     <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+    <TargetName>glChAoSP_$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
@@ -185,6 +188,7 @@
     <IncludePath>$(IncludePath);$(Include)</IncludePath>
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib\Debug</LibraryPath>
     <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+    <TargetName>glChAoSP</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|x64'">
     <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
@@ -192,6 +196,7 @@
     <IncludePath>$(IncludePath);$(Include)</IncludePath>
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib\Debug</LibraryPath>
     <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+    <TargetName>glChAoSP</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug noThread OpenGL 4.1|x64'">
     <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
@@ -199,6 +204,7 @@
     <IncludePath>$(IncludePath);$(Include)</IncludePath>
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib\Debug</LibraryPath>
     <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+    <TargetName>glChAoSP</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
@@ -207,6 +213,7 @@
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib32\Release</LibraryPath>
     <ExecutablePath>$(ExecutablePath);D:\Lang\DeV\Bin$(PlatformArchitecture)</ExecutablePath>
     <SourcePath>$(SourcePath)</SourcePath>
+    <TargetName>glChAoSP_$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|Win32'">
     <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
@@ -215,6 +222,7 @@
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib32\Release</LibraryPath>
     <ExecutablePath>$(ExecutablePath);D:\Lang\DeV\Bin$(PlatformArchitecture)</ExecutablePath>
     <SourcePath>$(SourcePath)</SourcePath>
+    <TargetName>glChAoSP_$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release singleThread OpenGL 4.1|Win32'">
     <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
@@ -223,6 +231,7 @@
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib32\Release</LibraryPath>
     <ExecutablePath>$(ExecutablePath);D:\Lang\DeV\Bin$(PlatformArchitecture)</ExecutablePath>
     <SourcePath>$(SourcePath)</SourcePath>
+    <TargetName>glChAoSP_$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
@@ -230,6 +239,7 @@
     <IncludePath>$(IncludePath);$(Include);</IncludePath>
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib\Release</LibraryPath>
     <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+    <TargetName>glChAoSP</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|x64'">
     <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
@@ -237,6 +247,7 @@
     <IncludePath>$(IncludePath);$(Include);</IncludePath>
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib\Release</LibraryPath>
     <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+    <TargetName>glChAoSP</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release singleThread OpenGL 4.1|x64'">
     <OutDir>$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\</OutDir>
@@ -244,6 +255,7 @@
     <IncludePath>$(IncludePath);$(Include);</IncludePath>
     <LibraryPath>$(LibraryPath);$(Lib)$(PlatformArchitecture)\GL;$(ProjectDir)..\..\src\libs\glfw\buildWin\lib\Release</LibraryPath>
     <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
+    <TargetName>glChAoSP</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -624,6 +636,7 @@
     <None Include="..\..\..\Shaders\PointSpriteFragLight.glsl" />
     <None Include="..\..\..\Shaders\PointSpriteVert.glsl" />
     <None Include="..\..\..\Shaders\RadialBlur2PassFrag.glsl" />
+    <None Include="..\..\..\Shaders\RadialBlur2PassFragWGL.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\ReadMe.txt" />

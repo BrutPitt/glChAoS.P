@@ -74,7 +74,6 @@ public:
         size = sizeof(vtx);
 #ifdef GLAPP_REQUIRE_OGL45
         glCreateVertexArrays(1, &vao);
-#ifndef SIMPLEX_PROC
         glCreateBuffers(1, &vaoBuffer);
         glNamedBufferStorage(vaoBuffer, size, vtx, 0); 
 
@@ -84,11 +83,9 @@ public:
 
         glEnableVertexArrayAttrib(vao, vPosition);        
         //glEnableVertexAttribArray(vPosition);
-#endif
 
 #else
         glGenVertexArrays(1, &vao); 
-#ifndef SIMPLEX_PROC
         glGenBuffers(1, &vaoBuffer);
         glBindBuffer(GL_ARRAY_BUFFER,vaoBuffer);
         glBufferData(GL_ARRAY_BUFFER,size, vtx, GL_STATIC_READ);
@@ -97,16 +94,12 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, vaoBuffer);
         glVertexAttribPointer(vPosition, 2, GL_FLOAT, GL_FALSE, 0, 0L);
         glEnableVertexAttribArray(vPosition);
-#endif
-       
-         
+        CHECK_GL_ERROR();
 #endif
     }
 
     ~vaoClass() {
-#ifndef SIMPLEX_PROC
         glDeleteBuffers(1, &vaoBuffer);
-#endif
         glDeleteVertexArrays(1, &vao);
     }
 
@@ -306,6 +299,7 @@ public:
  
 };
 
+#if !defined(GLCHAOSP_LIGHTVER)
 class transformedEmitterClass : public mainProgramObj, public emitterBaseClass
 {
 public:      
@@ -404,6 +398,9 @@ protected:
 };
 
 class particlesSystemClass : public shaderPointClass, public shaderBillboardClass
+#else
+class particlesSystemClass : public shaderPointClass
+#endif
 {
 public:
     particlesSystemClass(emitterBaseClass *sh) : emitter(sh) 
@@ -423,11 +420,15 @@ public:
 
         getRenderFBO().reSizeFBO(w, h);
         shaderPointClass::getGlowRender()->getFBO().reSizeFBO(w, h);
+#if !defined(GLCHAOSP_NO_FXAA)
         shaderPointClass::getFXAA()->getFBO().reSizeFBO(w, h);
+#endif
+#if !defined(GLCHAOSP_LIGHTVER)
         shaderBillboardClass::getGlowRender()->getFBO().reSizeFBO(w, h);
         shaderBillboardClass::getFXAA()->getFBO().reSizeFBO(w, h);
         getMotionBlur()->getFBO().reSizeFBO(w, h);
         getMergedRendering()->getFBO().reSizeFBO(w, h);
+#endif
 
         //shaderPointClass::getGlowRender()->isToUpdate(true);
         setFlagUpdate();
@@ -453,17 +454,17 @@ public:
             //                   0,0,getRenderFBO().getSizeX(), getRenderFBO().getSizeY(),
             //                   GL_COLOR_BUFFER_BIT, GL_NEAREST );
 
-        getAxes()->getTransforms()->applyTransforms();
 
         emitter->preRenderEvents();
 
+#if !defined(GLCHAOSP_LIGHTVER)
         auto renderSelection = [&](particlesBaseClass *particles) {
+            getAxes()->getTransforms()->applyTransforms();
             if(showAxes()) {
                 getAxes()->renderOnFB(getRenderFBO().getFB(0));
                 float zoomK = particles->getTMat()->getPOV().z - particles->getTMat()->getTrackball().getDollyPosition().z;
                 getAxes()->setZoomFactor(vec3(vec2(zoomK/10.f), zoomK/7.f) * particles->getTMat()->getPerspAngle()/30.f);
             }
-
             particles->render(getRenderFBO().getFB(0), getEmitter());
             texRendered = getRenderFBO().getTex(0);
 
@@ -488,9 +489,20 @@ public:
             shaderPointClass::getGlowRender()->render(getRenderFBO().getTex(1), shaderPointClass::getGlowRender()->getFBO().getFB(1));  
             texRendered = getMergedRendering()->render(shaderBillboardClass::getGlowRender()->getFBO().getTex(1), shaderPointClass::getGlowRender()->getFBO().getTex(1));  // only if Motionblur
         }
+#else
+        particlesBaseClass *particles = shaderPointClass::getPtr();
+        particles->render(getRenderFBO().getFB(0), getEmitter());
+        //particles->render(0, getEmitter());
+        texRendered = getRenderFBO().getTex(0);
+    #if !defined(GLCHAOSP_NO_FXAA)
+            if(particles->getFXAA()->isOn()) 
+                texRendered = particles->getFXAA()->render(getRenderFBO().getTex(0));                
+    #endif
+        const GLuint fbo = 0;
+        particles->getGlowRender()->render(texRendered, fbo); 
+#endif
 
         emitter->postRenderEvents();
-
         return texRendered;
 
     }

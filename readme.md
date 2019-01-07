@@ -1,7 +1,7 @@
 # [**glChAoS.P**](https://michelemorrone.eu/glchaosp)
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
-A real time 3D strange attractor scout.
+A real time 3D strange attractor and hypercompex fractals (new!) scout.
 
 | Windows | Windows Viewports |
 | ----- | ----|
@@ -87,19 +87,19 @@ On Mac OS X, for a limitation of the OS (from Mojave Apple have deprecated OpenG
 Are provided executable for the followings OS:
 
 - **Windows**\
-`Particles.exe` and `Particles32.exe`: native executable (64 and 32 bit) are provided for OpenGL \>= 4.5: *Preferably use the 64-bit version*.
+`glChAoSP.exe` and `glChAoSP_32.exe`: native executable (64 and 32 bit) are provided for OpenGL \>= 4.5: *Preferably use the 64-bit version*.
 (you can recompile it, with appropriate define, to obtain an OpenGL 4.1 compliant)
 \
-`ParticlesViewports.exe`: beta version of multiple viewports is also provided (floating GUI windows that can go out outside of main Viewport/Window): (only 64 bits).
+`glChAoSP_viewports.exe`: beta version of multiple viewports is also provided (floating GUI windows that can go out outside of main Viewport/Window): (only 64 bits).
 This is a great version, solid beta and full functional, but based on a *under development* version of  [**ImGui**](https://github.com/ocornut/imgui) library.
 \
 *Tested on Windows 7, 8 and 10*
 
 - **Linux**\
-`ParticlesLinux`: native executable (64 bit) is provided for OpenGL \>= 4.5, 
+`glChAoSP_Linux`: native executable (64 bit) is provided for OpenGL \>= 4.5, 
 (you can recompile it, with appropriate define, to obtain an OpenGL 4.1 compliant)
 \
-After clone, copy or decompression, take care that executable bit of the file `ParticlesLinux` is active (chmod +x).
+After clone, copy or decompression, take care that executable bit of the file `glChAoSP_Linux` is active (chmod +x).
 \
 Take care to have installed OpenGL library, whereas `libX11 libXext` should already be installed.
 \
@@ -112,9 +112,9 @@ Read Build/CMake sections for further information.
     The Windows executable, 32/64 bit, works fine also in wine 3.xx with no evident loss of performance
 
 - **OS X**\
-`ParticlesOSX`: native executable (64 bit) is provided for OpenGL 4.1
+`glChAoSP_OSX`: native executable (64 bit) is provided for OpenGL 4.1
 \
-From *“Finder”* click on applescript: `ParticlesOSX.app`, or form command line type directly the command: `./ParticleOSX`
+From *“Finder”* click on applescript: `glChAoSP_OSX.app`, or form command line type directly the command: `./glChAoSP_OSX`
 \
 This was tested on OS X ver 10.14 (Mojave) only, although with subsequent updates and different library versions you may need to rebuild it.
 Read Build/CMake sections for further information.
@@ -188,9 +188,9 @@ To install gcc C/C++:
 You need also to have installed OpenGL library and relative development package:
 `libgl1-mesa libgl1-mesa-dev` (Ubuntu) or `mesa-libGL mesa-libGL-devel` (Fedora), and also of GLFW library 3.3 or higher.
 
-The `buildParticles.sh` script build glChAoSP, with the pre-built GLFW library (included).
+The `build_glChAoSP.sh` script build glChAoSP, with the pre-built GLFW library (included).
 
-The `buildLinux.sh` script is provided as helper, it call `buildGLFW.sh` (to build/erbuild GLFW) and `buildParticles.sh` sequentially.
+The `buildLinux.sh` script is provided as helper, it call `buildGLFW.sh` (to build/erbuild GLFW) and `build_glChAoSP.sh` sequentially.
 
 To build/rebuild GLFW from enclosed sources you must have installed also “development” packages: `libx11-dev libxext-dev` (Ubuntu) or `libX11-devel libXext-devel` (Fedora).
 
@@ -204,9 +204,9 @@ Mac users must have installed Xcode and the Command Line Tools, CMake 3.10 or hi
 
 CMake use the enclosed built version of GLFW (actual development branch v.3.3)
 
-To build glChAoSP on OS X, from `./src` folder, call `sh buildParticles.sh OSX` (recommended use).
+To build glChAoSP on OS X, from `./src` folder, call `sh build_glChAoSP.sh OSX` (recommended use).
 
-If you need to build also GLFW the `buildOSX.sh` script is provided as helper: it call `buildGLFW.sh OSX` (to build/erbuild GLFW) and  `buildParticles.sh OSX` sequentially.
+If you need to build also GLFW the `buildOSX.sh` script is provided as helper: it call `buildGLFW.sh OSX` (to build/erbuild GLFW) and  `build_glChAoSP.sh OSX` sequentially.
 
 Or use `sh buildGLFW.sh OSX` from ./src directory, or build GLFW directly from `./src/src/libs/glfw`
 

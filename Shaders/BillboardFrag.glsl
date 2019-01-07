@@ -78,7 +78,7 @@ out vec4 outColor;
 float getAlpha(float alpha)
 {
 
-    CONST float alphaAtten = exp(-0.1*pow(ptDist+1.f, u.alphaDistAtten*.1));
+    CONST float alphaAtten = exp(-0.1*sign(ptDist)*pow(abs(ptDist+1.f), u.alphaDistAtten*.1));
     return clamp(alpha*alpha * alphaAtten * u.alphaK, 0.0, 1.0);
 
 }
@@ -135,23 +135,7 @@ LAYUOT_INDEX(1) subroutine(_pixelColor) vec4 pixelColorLight()
                                 vec3(specular) *u.lightSpecInt     + 
                                 (color.rgb+u.lightAmbInt*0.1) * u.lightAmbInt)); /*+ color.rgb * (1.0 - negDiffuse)+ color.rgb * ambient + vec3(specular) * .6*/
 
-//    vec3 delta = fwidth(diffuse);
-//    lColor = mix(lColor, vec3(.0), delta);
 
-    //vec3 lColor = color.rgb * diffuse *.33 + color.rgb * (1.0 - diffuse) * .2 + ambient + vec3(specular) * .6;
-    //color.rgb = mix(lColor, color.rgb, alpha*alpha);
-
-    //outColor = vec4(lColor, 1.0);
-
-//MUST go on vtx
-    //float distAtten = 1.f/(pointDistance*pointDistance);
-    //float maxDistance = distance(vec3( 0.f, 0.f, 3.f),vec3( 0.f, 0.f, -3.f));
-    //float distAtten = (1.f/(maxDistance)) * 1.3; 
-
-    //gl_FragColor = vec4(color.rgb , min(1.f,(specular+color.a)*.7)) ; //*1.f/(pointDistance)
-    
-    //gl_FragColor = vec4(color.rgb , color.a) ;
-    //vec4 col = vec4(lColor.rgb , alpha*alphaK*(clamp(alphaAtten, 0.0, 1.7))); 
 
     vec4 col = vec4(lColor.rgb , alpha * diffuse *u.lightDiffInt);
 
@@ -166,12 +150,8 @@ LAYUOT_INDEX(1) subroutine(_pixelColor) vec4 pixelColorLight()
 LAYUOT_INDEX(0) subroutine(_pixelColor) vec4 pixelColorOnly()
 {
     vec4 color = geomParticleColor * texture(tex, texCoord).r;
-    //color = color + mix(vec4(0.0, 0.0, 0.0, alpha), vec4(.7, .7, .7, alpha), alpha);
-    //color.rgb = color.rgb + mix(vec3(0.0, 0.0, 0.0), vec3(.5, .5, .5), alpha*alpha);
-    //color.rgb = mix(color.rgb, vec3(1.0, 1.0, 1.0), alpha);
 
     float alpha = getAlpha(color.a);
-    //if(alpha < u.alphaSkip ) discard ;
 
     return vec4(color.rgb , alpha); 
 

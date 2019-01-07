@@ -36,8 +36,12 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtx/vector_angle.hpp>
+#include <glm/gtx/exterior_product.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 
 typedef int vgButtons;
 typedef int vgModifiers;

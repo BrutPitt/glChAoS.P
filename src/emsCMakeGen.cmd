@@ -2,6 +2,8 @@ echo off
 echo.
 echo.
 
+set EMSOUT_PATH=
+
 set argC=0
 for %%x in (%*) do Set /A argC+=1
 

@@ -48,6 +48,11 @@ struct fboBuffers
     GLuint  m_rb;	
     GLuint  m_tex;
 };
+#if !defined(GLCHAOSP_USE_LOWPRECISION)
+    #define DEFAULT_PRECISION GL_RGBA32F
+#else
+    #define DEFAULT_PRECISION GL_RGBA16F
+#endif
 
 class mmFBO 
 {
@@ -56,9 +61,9 @@ public:
     mmFBO();
     ~mmFBO();
 
-    void buildFBO(int num, int sizeX, int sizeY, bool zBuff=false, int levelAA=0, GLuint precision = GL_RGBA32F);
-    void reBuildFBO(int num, int sizeX, int sizeY, bool zBuff=false, int levelAA=0, GLuint precision = GL_RGBA32F);
-    void buildMultiDrawFBO(int num, int sizeX, int sizeY, GLuint precision = GL_RGBA32F);
+    void buildFBO(int num, int sizeX, int sizeY, bool zBuff=false, int levelAA=0, GLuint precision = DEFAULT_PRECISION);
+    void reBuildFBO(int num, int sizeX, int sizeY, bool zBuff=false, int levelAA=0, GLuint precision = DEFAULT_PRECISION);
+    void buildMultiDrawFBO(int num, int sizeX, int sizeY, GLuint precision = DEFAULT_PRECISION);
     void reSizeFBO(int sizeX, int sizeY);
     void deleteFBO();
 
@@ -74,7 +79,6 @@ public:
     static void onReshape() { onReshape(mmFBO::m_winSize.x, mmFBO::m_winSize.y); }
 
     static void onReshape(int w, int h);
-    static void DrawQuads();
     static void Init(int w, int h);
 
     static ivec2 m_winSize;
@@ -90,10 +94,10 @@ static GLuint vbaID;
 private:
     void initFB(GLuint fbuff, GLuint iText);
     void attachRB(GLuint iRB );
-    void CheckFramebufferStatus();
+    void CheckFramebufferStatus(GLenum status);
     void resetData();
 
-    int m_NumFB, aaLevel = 4;
+    int m_NumFB, aaLevel = 0;
     bool isBuilded;
     bool haveRB;
 

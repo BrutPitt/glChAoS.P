@@ -43,8 +43,11 @@
 
 
 // #version dynamically inserted
-
+#ifdef GL_ES
+uniform sampler2D u_colorTexture;
+#else
 LAYUOT_BINDING(0) uniform sampler2D u_colorTexture;
+#endif
 
 uniform vec2 invScrnSize; 
 uniform vec4 fxaaData;

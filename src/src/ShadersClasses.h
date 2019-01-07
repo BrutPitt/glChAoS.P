@@ -39,7 +39,11 @@
 #include <glm/vec3.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#if !defined(GLCHAOSP_LIGHTVER)
 #include "tools/oglAxes.h"
+#else
+#include <transforms.h>
+#endif
 
 #include "palettes.h"
 
@@ -47,7 +51,7 @@
 
 #define PURE_VIRTUAL 0
 
-
+GLuint buildDotTexture(GLuint texID, int size, const vec4 &v, int typeDots);
 
 #include "mmFBO.h"
 
@@ -287,8 +291,23 @@ inline void imgTuningClass::setTextComponent(GLfloat v) { texControls.y = v; glo
 inline void imgTuningClass::setMixBilateral(GLfloat v) { texControls.w = v; glow->setFlagUpdate(); }
 
 
-class BlurBaseClass : public mainProgramObj, public virtual dataBlurClass
+
+class BlurBaseClass : public mainProgramObj, public uniformBlocksClass, public virtual dataBlurClass
 {
+struct uBlurData {
+    vec4 sigma;
+    GLfloat threshold;
+    GLboolean toneMapping;
+    vec2 toneMapVals;
+
+    vec4 texControls;
+    vec4 videoControls;
+
+    GLfloat mixTexture;
+
+    GLint blurCallType;
+} uData;
+
 public:
 
     BlurBaseClass() {
@@ -298,59 +317,50 @@ public:
 
     void glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex);
 
-
-#ifndef GLAPP_REQUIRE_OGL45
-    void updateOrigTexture(GLuint tex)  { glUniform1i(LOCorigTexture, tex);  }
-    void updatePass1Texture(GLuint tex) { glUniform1i(LOCpass1Texture, tex);  }
-#endif
-
-    void updateWSize(vec2& ws){ setUniform2f(LOCwSize, ws.x, ws.y); }
-    void updateInvScrnSize()  { setUniform2f(LOCinvScrnSize, 1.f/glowFBO.getSizeX(), 1.f/glowFBO.getSizeY()); }
-    void updateThreshold()    { setUniform1f(LOCthreshold, threshold); }
-    void updateMixTexture()   { setUniform1f(LOCmixTexture, (1.f + mixTexture)*.5); }
-
-
-    void updateSigma() { 
+    void updateData(GLuint subIndex) {
         const float invSigma = 1.f/sigma.x;
         sigma.z = .5 * invSigma * invSigma;
         sigma.w = glm::one_over_pi<float>() * sigma.z;
-        setUniform4fv(LOCsigma, 1, glm::value_ptr(sigma)); 
-    }
+        getUData().sigma        = sigma;
+        getUData().threshold    = threshold;
 
-    void updateVideoControls() {
+        getUData().toneMapping  = imageTuning->toneMapping;
+        getUData().toneMapVals  = imageTuning->toneMapValsAG;
+
         const float gamma = 1.f/imageTuning->videoControls.x;
         const float exposure = imageTuning->videoControls.y;
         const float bright   = imageTuning->videoControls.z; 
-        const float contrast = imageTuning->videoControls.w; 
-        vec4 v(gamma , exposure, bright, contrast); 
-        setUniform4fv(LOCvideoControls,1,glm::value_ptr(v)); 
-    }
-    void updateTexControls()   { 
-        //imageTuning->texControls.z = imageTuning->getDynEq();
-        setUniform4fv(LOCtexControls,1,glm::value_ptr(imageTuning->texControls));     
+        const float contrast = imageTuning->videoControls.w;        
+        getUData().videoControls = vec4(gamma , exposure, bright, contrast); 
+        getUData().texControls = imageTuning->texControls;
+
+        getUData().mixTexture   = (1.f + mixTexture)*.5;
+
+        getUData().blurCallType = subIndex;
+
+        updateBufferData();
+
     }
 
-    void updateToneMap() {
-        setUniform1i(LOCtoneMap, imageTuning->toneMapping);
-        setUniform2fv(LOCtoneMapVals, 1, glm::value_ptr(imageTuning->toneMapValsAG));
-    }
+    uBlurData &getUData() { return uData; }
 
 
 protected:
+
     bool actualPass;
 
 private:
-    GLuint LOCsigma, LOCthreshold, LOCwSize, LOCmixTexture;
-    GLuint LOCvideoControls, LOCtexControls, LOCinvScrnSize, LOCtoneMap, LOCtoneMapVals;
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint LOCpass1Texture, LOCorigTexture;
     GLuint idxSubGlowType[idxSubroutine_End];
 #endif
 };
 
+class radialBlurClass;
+#if !defined(GLCHAOSP_LIGHTVER)
 class motionBlurClass;
 class mergedRenderingClass;
-class radialBlurClass;
+#endif
 
 class renderBaseClass
 {
@@ -372,9 +382,6 @@ public:
     int getHeight() { return getRenderFBO().getSizeY(); }
 
  
-    mergedRenderingClass *getMergedRendering() { return mergedRendering; }
-    motionBlurClass *getMotionBlur() { return motionBlur; }
-
     cmContainerClass &getColorMapContainer() { return colorMapContainer; }
 
 
@@ -383,10 +390,15 @@ public:
     void clearFlagUpdate() { flagUpdate = false; }
 
     transformsClass *getTMat() { return &tMat; }
+
+#if !defined(GLCHAOSP_LIGHTVER)
+    mergedRenderingClass *getMergedRendering() { return mergedRendering; }
+    motionBlurClass *getMotionBlur() { return motionBlur; }
     oglAxes *getAxes() { return axes; }
 
     void showAxes(int b) { axesShow = b; }
     int showAxes() { return axesShow; }
+#endif
 
     int getWhitchRenderMode() { return whichRenderMode; }
 
@@ -399,25 +411,29 @@ public:
 protected:
     int whichRenderMode;    
 
+#if !defined(GLCHAOSP_LIGHTVER)
     motionBlurClass *motionBlur;
     mergedRenderingClass *mergedRendering;
+
+    oglAxes *axes;
+    int axesShow = noShowAxes;
+
+    GLuint texDotsSolid = 0;
+#endif
 
     cmContainerClass colorMapContainer;
 
     bool flagUpdate;
 
-    oglAxes *axes;
-    int axesShow = noShowAxes;
 
-    mmFBO renderFBO; //, msaaFBO;
+    mmFBO renderFBO;
+//        , msaaFBO;
 
     transformsClass tMat;
 
     std::vector<GLuint> blendArray;
     std::vector<const char *> blendingStrings;
-
-    GLuint texDotsSolid = 0;
-    GLuint buildDotTexture(GLuint texID, int size, const vec4 &v, int typeDots);
+    
     int dotsTexSize = 64;
 
 private:
@@ -429,13 +445,18 @@ public:
     
     radialBlurClass(renderBaseClass *ptrRE) {
         renderEngine = ptrRE;
+#if !defined(GLCHAOSP_LIGHTVER)
         glowFBO.buildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), false);
+#else
+        glowFBO.buildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), false);
+#endif
         BlurBaseClass::create();
     }
 
 
     void render(GLuint sourceTex, GLuint fbOut) {
 
+#if !defined(GLCHAOSP_LIGHTVER)
         if(isGlowOn() && (getGlowState()==glowType_Blur || getGlowState()==glowType_Threshold)) {
             glowPass(sourceTex, glowFBO.getFB(RB_PASS_1), idxSubroutine_BlurCommonPass1);
             glowPass(sourceTex, fbOut, getGlowState()==glowType_Blur ? 
@@ -443,9 +464,72 @@ public:
                                                        idxSubroutine_BlurThresholdPass2);
         } else
             glowPass(sourceTex, fbOut, isGlowOn() && getGlowState()==glowType_Bilateral ? idxSubroutine_Bilateral : idxSubroutine_ByPass);
+#else
+            glowPass(sourceTex, fbOut, isGlowOn() ? idxSubroutine_Bilateral : idxSubroutine_ByPass);
+#endif
+            
     }
 };
 
+#if !defined(GLCHAOSP_NO_FXAA)
+
+class fxaaClass : public mainProgramObj
+{
+public:
+    fxaaClass(renderBaseClass *ptrRE) { 
+        renderEngine = ptrRE;
+        on();
+        create();
+    }
+
+    void create();
+    GLuint render(GLuint texIn);
+
+    bool isOn() { return bIsOn; }
+    void activate(bool b) {
+        if(b==bIsOn) return;
+        if(b) on();
+        else off();
+        bIsOn=b; 
+        renderEngine->setFlagUpdate();
+    }
+
+    void setThreshold(float f) { threshold = f; renderEngine->setFlagUpdate(); }  // fxxaData.x
+    void setReductMul(float f) { reduceMul = f; renderEngine->setFlagUpdate(); }  // 1/fxxaData.y
+    void setReductMin(float f) { reduceMin = f; renderEngine->setFlagUpdate(); }  // 1/fxxaData.z
+    void setSpan     (float f) { span      = f; renderEngine->setFlagUpdate(); }  // fxxaData.w
+
+    float getThreshold() { return threshold; }
+    float getReductMul() { return reduceMul; }
+    float getReductMin() { return reduceMin; }
+    float getSpan     () { return span;      }
+
+    void updateSettings() {
+        const vec4 fxaaData = vec4(threshold, 
+                                   reduceMul>512 ? 0 : 1.f/reduceMul, 
+                                   reduceMin>512 ? 0 : 1.f/reduceMin, 
+                                   span);
+        setUniform4fv(_fxaaData, 1, glm::value_ptr(fxaaData));    
+    }
+
+    mmFBO &getFBO() { return fbo; }
+
+private:
+    void on()  { fbo.reBuildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), false); }
+    void off() { fbo.deleteFBO(); }
+
+    renderBaseClass *renderEngine;
+    mmFBO fbo;
+    bool bIsOn = false;
+
+    GLfloat span = 8.f, reduceMul = 8.f, reduceMin = 128.f, threshold = .5f;
+    //Locations
+    GLuint _fxaaData, _invScrnSize, _u_colorTexture;
+};
+
+#endif
+
+#if !defined(GLCHAOSP_LIGHTVER)
 
 /////////////////////////////////////////
 //
@@ -512,60 +596,6 @@ private:
     GLuint LOCblurIntensity;
 };
 
-class fxaaClass : public mainProgramObj
-{
-public:
-    fxaaClass(renderBaseClass *ptrRE) { 
-        renderEngine = ptrRE;
-        on();
-        create();
-    }
-
-    void create();
-    GLuint render(GLuint texIn);
-
-    bool isOn() { return bIsOn; }
-    void activate(bool b) {
-        if(b==bIsOn) return;
-        if(b) on();
-        else off();
-        bIsOn=b; 
-        renderEngine->setFlagUpdate();
-    }
-
-    void setThreshold(float f) { threshold = f; renderEngine->setFlagUpdate(); }  // fxxaData.x
-    void setReductMul(float f) { reduceMul = f; renderEngine->setFlagUpdate(); }  // 1/fxxaData.y
-    void setReductMin(float f) { reduceMin = f; renderEngine->setFlagUpdate(); }  // 1/fxxaData.z
-    void setSpan     (float f) { span      = f; renderEngine->setFlagUpdate(); }  // fxxaData.w
-
-    float getThreshold() { return threshold; }
-    float getReductMul() { return reduceMul; }
-    float getReductMin() { return reduceMin; }
-    float getSpan     () { return span;      }
-
-    void updateSettings() {
-        const vec4 fxaaData = vec4(threshold, 
-                                   reduceMul>512 ? 0 : 1.f/reduceMul, 
-                                   reduceMin>512 ? 0 : 1.f/reduceMin, 
-                                   span);
-        setUniform4fv(_fxaaData, 1, glm::value_ptr(fxaaData));    
-    }
-
-    mmFBO &getFBO() { return fbo; }
-
-private:
-    void on()  { fbo.reBuildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), false); }
-    void off() { fbo.deleteFBO(); }
-
-    renderBaseClass *renderEngine;
-    mmFBO fbo;
-    bool bIsOn = false;
-
-    GLfloat span = 8.f, reduceMul = 8.f, reduceMin = 128.f, threshold = .5f;
-    //Locations
-    GLuint _fxaaData, _invScrnSize, _u_colorTexture;
-};
-
 
 class mergedRenderingClass : public mainProgramObj
 {
@@ -618,6 +648,7 @@ private:
 
     mmFBO mergedFBO;
 };
+#endif
 
 class particlesDlgClass;
 
@@ -636,19 +667,21 @@ public:
         palRange=1.f;
         reverse = clamp = 0;
 
-        cmTex.buildMultiDrawFBO(2,256,2);
+        //cmTex.buildMultiDrawFBO(1,256,1);
+        cmTex.buildFBO(1,256,2);
+
         create();
     }
 
     void create();
 
-    void render();
+    void render(int tex=0);
 
     void updateVelData() { setUniform4fv(LOCvData, 1, glm::value_ptr(vec4(0.f, offsetPoint, palRange, (float)reverse)));  }
     void updateHslData() { setUniform4fv(LOChslData, 1, glm::value_ptr(vec4(vec3(hslData.x*.5f,hslData.y,hslData.z),(float)clamp))); }
 
-    GLuint getOrigTex() { return cmTex.getTex(ORIG_TEXTURE); }
-    GLuint getModfTex() { return cmTex.getTex(MODF_TEXTURE); }
+    GLuint getOrigTex();
+    GLuint getModfTex() { return cmTex.getTex(0); }
 
     float getOffsetPoint() { return offsetPoint; }
     float getRange() { return palRange; }
@@ -679,6 +712,7 @@ protected:
     vec3 hslData = vec3(0.0f);
 
 private:
+    
     GLuint LOCpaletteTex;
     particlesBaseClass *particles;
     mmFBO cmTex;
@@ -715,6 +749,11 @@ private:
 
 };
 
+
+class particlesBaseClass : public mainProgramObj, public uniformBlocksClass, public virtual renderBaseClass 
+{
+protected:
+
 struct uParticlesData {
     GLfloat lightDiffInt = 3.f;
     GLfloat lightSpecInt = 1.f;
@@ -731,96 +770,32 @@ struct uParticlesData {
     GLfloat clippingDist;
     GLfloat zFar;
     GLfloat velocity;
-};
+} uData;
 
-class uParticlesDataClass {
-#define SZ sizeof(uParticlesData)
-public:
 
-    uParticlesDataClass() {
-		GLint uBufferMinSize(0);
-		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uBufferMinSize);
-		uBlockSize = (GLint(SZ)/ uBufferMinSize) * uBufferMinSize;
-		if(SZ%uBufferMinSize) uBlockSize += uBufferMinSize;
-
-#ifdef GLAPP_REQUIRE_OGL45
-        glCreateBuffers(1, &uBuffer);
-#ifdef USE_PTR_MAPPED
-        glNamedBufferStorage(uBuffer,  uBlockSize, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT ); // GL_MAP_COHERENT_BIT
-        ptrBuff = static_cast<glm::uint8*>(glMapNamedBufferRange(uBuffer, 0, uBlockSize, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT /*| GL_MAP_INVALIDATE_BUFFER_BIT*/)); // | GL_MAP_COHERENT_BIT 
-#else
-        glNamedBufferStorage(uBuffer,  uBlockSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferSubData(uBuffer, 0, SZ, &uData);
-#endif
-#else
-        glGenBuffers(1, &uBuffer);
-        glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
-        glBufferData(GL_UNIFORM_BUFFER,  uBlockSize, nullptr, GL_STATIC_DRAW);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, SZ, &uData); 
-#endif
-
-    }
-    ~uParticlesDataClass() {
-#ifdef USE_PTR_MAPPED
-        glUnmapNamedBuffer(uBuffer);
-#endif
-        glDeleteBuffers(1, &uBuffer);
-    }
-
-#ifdef GLAPP_REQUIRE_OGL45
-#ifdef USE_PTR_MAPPED
-    void updateBufferData() {
-        memcpy(ptrBuff, &uData, SZ);
-        glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
-        glBindBufferBase(GL_UNIFORM_BUFFER, bind::index, uBuffer);
-    }
-#else
-    void updateBufferData() {
-        glNamedBufferSubData(uBuffer, 0, SZ, &uData); 
-        glBindBufferBase(GL_UNIFORM_BUFFER, bind::bindIdx, uBuffer);
-    }
-#endif
-#else
-    void updateBufferData() {
-        glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, SZ, &uData); 
-        glBindBufferBase(GL_UNIFORM_BUFFER, bind::bindIdx, uBuffer);
-    }
-#endif
-    void blockBinding(GLuint prog) {
-        blockIndex = glGetUniformBlockIndex(prog, "_particlesData");
-        glUniformBlockBinding(prog, blockIndex, bind::bindIdx);
-    }
-    bool isOn = false;
-    GLuint uBuffer, uBlockSize;
-
-    uParticlesData &getUData() { return uData; }
-
-private:
-    uParticlesData uData;
-    glm::uint8* ptrBuff;
-    enum bind { bindIdx=2 };
-    GLuint blockIndex;
-#undef SZ
-};
-
-class particlesBaseClass : public mainProgramObj, public uParticlesDataClass, public virtual renderBaseClass 
-{
 public:
     particlesBaseClass ()  { 
-        glowRender = new radialBlurClass(this);
-        colorMap = new ColorMapSettingsClass(this);
-        fxaaFilter = new fxaaClass(this);
 
+        glowRender = new radialBlurClass(this);
+        CHECK_GL_ERROR();
+
+        colorMap = new ColorMapSettingsClass(this);
+#if !defined(GLCHAOSP_NO_FXAA)
+        fxaaFilter = new fxaaClass(this);
+#endif
         texDotsAlpha = buildDotTexture(texDotsAlpha, dotsTexSize, hermiteVals, dotsAlpha);
     }
 
-    ~particlesBaseClass ()  {  delete glowRender; delete colorMap; delete fxaaFilter; }
+    ~particlesBaseClass ()  {  delete glowRender; delete colorMap;
+#if !defined(GLCHAOSP_NO_FXAA)
+    delete fxaaFilter; 
+#endif
+    }
 
     void getCommonLocals() {
 #ifndef GLAPP_REQUIRE_OGL45
         locPaletteTex = getUniformLocation("paletteTex" );
-        locDotsTex = getUniformLocation("tex"); 
+        locDotsTex    = getUniformLocation("tex"); 
 #endif
 
     }
@@ -832,6 +807,8 @@ public:
 #ifndef GLAPP_REQUIRE_OGL45
     void updatePalTex()  { setUniform1i(locPaletteTex, getCMSettings()->getModfTex()); }
 #endif
+
+    uParticlesData &getUData() { return uData; }
 
     virtual void render(GLuint fbOut, emitterBaseClass *em);
 
@@ -888,8 +865,9 @@ public:
     void setLightState(bool b) { lightStateIDX = b ? GLuint(on) : GLuint(off); }
 
     radialBlurClass *getGlowRender()  { return glowRender; }
+#if !defined(GLCHAOSP_NO_FXAA)
     fxaaClass *getFXAA() { return fxaaFilter; } 
-
+#endif
     void dstBlendIdx(int i) { dstIdxBlendAttrib = i; }
     int  dstBlendIdx() { return dstIdxBlendAttrib; }
 
@@ -912,7 +890,10 @@ protected:
     int dotType = 0;
 
     radialBlurClass *glowRender;
+
+#if !defined(GLCHAOSP_NO_FXAA)
     fxaaClass *fxaaFilter;
+#endif
 
     vec4 hermiteVals = vec4(.7f, 0.f, .3f, 0.f);
     
@@ -935,6 +916,8 @@ friend class particlesDlgClass;
 };
 
 inline void ColorMapSettingsClass::setVelIntensity(float f) { velIntensity = f; particles->setFlagUpdate(); }
+inline GLuint colorMapTexturedClass::getOrigTex() { return particles->getPaletteTexID(); }
+
 
 inline void dataBlurClass::setFlagUpdate() { renderEngine->setFlagUpdate(); }
 inline void dataBlurClass::clearFlagUpdate() { renderEngine->clearFlagUpdate(); }
@@ -958,6 +941,7 @@ private:
     void initShader();
 };
 
+#if !defined(GLCHAOSP_LIGHTVER)
 
 /////////////////////////////////////////
 //
@@ -976,5 +960,5 @@ private:
     void initShader();
 };
 
-
+#endif
 

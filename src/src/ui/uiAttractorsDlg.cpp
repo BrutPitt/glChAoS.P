@@ -41,7 +41,6 @@
 
 #include "../ShadersClasses.h"
 
-#ifdef APP_USE_IMGUI
 #include <IconsFontAwesome/IconsFontAwesome.h>
 
 #include <imguiControls.h>
@@ -98,6 +97,8 @@ inline void headerAdditionalDataCtrls(int numControls = 1)
 
 void fractalIIMBase::additionalDataCtrls()
 {
+
+    ImGui::NewLine();
 
     headerAdditionalDataCtrls();
 
@@ -252,9 +253,11 @@ void attractorDlgClass::view()
         
     const float border = DLG_BORDER_SIZE;
     //const float oldWindowPadding = style.WindowPadding.x;
-        
-    ImGui::SetNextWindowSize(ImVec2(700, 300), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(1024-700, 1024-300), ImGuiCond_FirstUseEver);
+    const int szX = 600, szY = 270;    
+    ImGui::SetNextWindowSize(ImVec2(szX, szY), ImGuiCond_FirstUseEver);
+    int w,h;
+    glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
+    ImGui::SetNextWindowPos(ImVec2(w-szX, h-szY), ImGuiCond_FirstUseEver);
     if(ImGui::Begin(getTitle(), &isVisible)) {
 
         ImGui::Columns(2);
@@ -265,8 +268,12 @@ void attractorDlgClass::view()
         // left
         ImGui::BeginGroup(); 
             const float wGrp = ImGui::GetContentRegionAvailWidth();
-            //style.WindowPadding.x = border;
-            ImGui::BeginChild("List", ImVec2(wGrp,-(ImGui::GetFrameHeightWithSpacing()*4+border*5)));            
+#if !defined(GLCHAOSP_LIGHTVER)
+    const int sizeLeft = (ImGui::GetFrameHeightWithSpacing()*4+border*5);
+#else
+    const int sizeLeft = 0;
+#endif
+            ImGui::BeginChild("List", ImVec2(wGrp,-sizeLeft));            
 
                 for (int i = 0; i < attractorsList.getList().size(); i++)   {
                     //ImGui::SetCursorPosX(border);
@@ -278,6 +285,7 @@ void attractorDlgClass::view()
 
             ImGui::EndChild();           
 
+#if !defined(GLCHAOSP_LIGHTVER)
             ImGui::BeginChild("load_save",ImVec2(wGrp,0)); {
                 const float w = ImGui::GetContentRegionAvailWidth();
                 //ImGui::PushItemWidth(w);
@@ -292,6 +300,7 @@ void attractorDlgClass::view()
                 //ImGui::PopItemWidth();
 
             } ImGui::EndChild();
+#endif
 
             //style.WindowPadding.x = oldWindowPadding;
 
@@ -333,10 +342,12 @@ void attractorDlgClass::view()
                     ImGui::DragFloatRange2("##kR", &attractorsList.get()->kMin, &attractorsList.get()->kMax, 
                                                     0.01f, -10.0f, 10.0f, 
                                                     "Min: %.3f", "Max: %.3f");
-                    ImGui::PopItemWidth();
+                    if(!attractorsList.get()->fractalType()) {
+                        ImGui::PopItemWidth();
 
-                    ImGui::SetCursorPosX(wDn-border-buttW);
-                    if(ImGui::Button(ICON_FA_RANDOM " Generate",ImVec2(buttW,0)))  attractorsList.generateNewRandom();
+                        ImGui::SetCursorPosX(wDn-border-buttW);
+                        if(ImGui::Button(ICON_FA_RANDOM " Generate",ImVec2(buttW,0)))  attractorsList.generateNewRandom();
+                    } else { ImGui::AlignTextToFramePadding();  ImGui::NewLine(); }
                 } else {
                     ImGui::AlignTextToFramePadding(); ImGui::NewLine();
                     ImGui::AlignTextToFramePadding(); ImGui::NewLine();
@@ -522,4 +533,3 @@ const float border = 5;
     selIdx = valIdx;
 
 }
-#endif

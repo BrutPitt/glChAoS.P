@@ -41,7 +41,7 @@ bool loadAttractorFile(bool fileImport = false, const char *inFileName = nullptr
 void Magnetic::startData()
 {
     kVal.push_back(vec3(0.005833899, 0.0253584, 0.01462666  ));
-    vVal.push_back(vec3(0.4850307, -0.1643422, 0.6242561    ));
+    vVal.push_back(vec3(0.5850307, -0.1643422, 0.6242561    ));
     kVal.push_back(vec3(0.02646308, 0.01038993, 0.02675405  ));
     vVal.push_back(vec3(0.1452986, -0.1467635, 0.09537029   ));
     kVal.push_back(vec3(0.02040754, 0.01961615, 0.01763512  ));

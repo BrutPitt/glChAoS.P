@@ -156,41 +156,6 @@ void mmFBO::onReshape(int w, int h)
     //mmFBO::m_winAspect = vec2(1.0, 1.0);
    
 }
-/*
-void mmFBO::DrawQuads()
-{
-
-       // glBindBuffer( GL_ARRAY_BUFFER, vboVertexBufferID );
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboTexBufferID);  
-
-        glBindVertexArray(vbaID);
-
-        //glDrawElements(GL_QUADS, 4, GL_UNSIGNED_BYTE, (char*) NULL+0);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
- 
-}
-*/
-void mmFBO::DrawQuads()
-{
-/*
-
-        glBindBuffer( GL_ARRAY_BUFFER, vboVertexBufferID );
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboTexBufferID);  
-
-        glEnableClientState(GL_VERTEX_ARRAY); // enable the vertex array on the client side 
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY); // enable the color array on the client side 
-
-        glVertexPointer( 2, GL_FLOAT, sizeof(Vertex), (char *) NULL+0 );				
-		glTexCoordPointer( 2, GL_FLOAT, sizeof(Vertex), (char *) NULL+2*sizeof(float) );
-
-        //glDrawElements(GL_QUADS, 4, GL_UNSIGNED_BYTE, (char*) NULL+0);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  */
-}
 
 
 
@@ -261,8 +226,8 @@ void mmFBO::initFB(GLuint fbuff, GLuint iText)
     }
     else {
         glTextureStorage2D(iText,1,glPrecision,m_sizeX, m_sizeY);    
-        glTextureParameteri(iText, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTextureParameteri(iText, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(iText, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(iText, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTextureParameteri(iText, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(iText, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glNamedFramebufferTexture(fbuff, GL_COLOR_ATTACHMENT0, iText, 0);
@@ -271,16 +236,16 @@ void mmFBO::initFB(GLuint fbuff, GLuint iText)
     glBindFramebuffer(GL_FRAMEBUFFER, fbuff);
     glActiveTexture(GL_TEXTURE0+iText);
     glBindTexture(GL_TEXTURE_2D, iText);
-    glTexImage2D(GL_TEXTURE_2D, 0,  glPrecision , m_sizeX, m_sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0,  glPrecision , m_sizeX, m_sizeY, 0, GL_RGBA, GL_FLOAT, NULL);
     //glTexStorage2D(GL_TEXTURE_2D,1,glPrecision,m_sizeX, m_sizeY);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glBindTexture(GL_TEXTURE_2D, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, iText, 0);
 #endif
-    CheckFramebufferStatus();
+    CheckFramebufferStatus(glCheckFramebufferStatus(GL_FRAMEBUFFER));
 }
 
 void mmFBO::attachRB(GLuint iRB )
@@ -305,12 +270,14 @@ void mmFBO::attachRB(GLuint iRB )
     glBindRenderbuffer(GL_RENDERBUFFER, iRB);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, m_sizeX, m_sizeY);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, iRB);
-    CheckFramebufferStatus();
+    CheckFramebufferStatus(glCheckFramebufferStatus(GL_FRAMEBUFFER));
     
 }
 
+
 void mmFBO::buildMultiDrawFBO(int num, int sizeX, int sizeY, GLuint precision)
 {
+#if !defined(GLCHAOSP_LIGHTVER)
     glPrecision = precision;
     m_NumFB = num;
     m_sizeX = sizeX;
@@ -363,7 +330,7 @@ void mmFBO::buildMultiDrawFBO(int num, int sizeX, int sizeY, GLuint precision)
     
     delete[] drawBuffers;
     isBuilded = true;
-
+#endif
 }
 
 
@@ -400,6 +367,7 @@ void mmFBO::buildFBO(int num, int sizeX, int sizeY, bool zBuff, int AA, GLuint p
 
     for(int i=0; i<num; i++) {
         initFB( m_fb[i], m_tex[i]);
+
         if(haveRB) {
             //attachRB(m_rb[i]);
 #ifdef GLAPP_REQUIRE_OGL45
@@ -420,13 +388,9 @@ void mmFBO::buildFBO(int num, int sizeX, int sizeY, bool zBuff, int AA, GLuint p
 
         }
 #ifdef GLAPP_REQUIRE_OGL45
-        if(glCheckNamedFramebufferStatus(m_fb[i], GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            return ;
-        }
+        CheckFramebufferStatus(glCheckNamedFramebufferStatus(m_fb[i], GL_FRAMEBUFFER));
 #else
-        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            return ;
-        }
+        CheckFramebufferStatus(glCheckFramebufferStatus(GL_FRAMEBUFFER));
 #endif
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -436,10 +400,8 @@ void mmFBO::buildFBO(int num, int sizeX, int sizeY, bool zBuff, int AA, GLuint p
 }
 
 
-void mmFBO::CheckFramebufferStatus()
+void mmFBO::CheckFramebufferStatus(GLenum status)
 {
-    GLenum status;
-    status = (GLenum) glCheckFramebufferStatus(GL_FRAMEBUFFER);
     switch(status) {
         case GL_FRAMEBUFFER_COMPLETE:
             break;
@@ -451,16 +413,8 @@ void mmFBO::CheckFramebufferStatus()
             printf("Framebuffer incomplete, missing attachment\n");
             fprintf(stderr, "Framebuffer incomplete, missing attachment");
             break;
-/*
-        case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-            printf("Framebuffer incomplete, attached images must have same dimensions\n");
-            fprintf(stderr, "Framebuffer incomplete, attached images must have same dimensions");
-            break;
-        case GL_FRAMEBUFFER_INCOMPLETE_FORMATS:
-            printf("Framebuffer incomplete, attached images must have same format\n");
-            fprintf(stderr, "Framebuffer incomplete, attached images must have same format");
-            break;
-*/
+
+#if !defined(GLCHAOSP_LIGHTVER)
         case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
             printf("Framebuffer incomplete, missing draw buffer\n");
             fprintf(stderr, "Framebuffer incomplete, missing draw buffer");
@@ -469,8 +423,10 @@ void mmFBO::CheckFramebufferStatus()
             printf("Framebuffer incomplete, missing read buffer\n");
             fprintf(stderr, "Framebuffer incomplete, missing read buffer");
             break;
+#endif
         default:
-            printf("Error %x\n", status);
+            printf("Framebuffer Not Complete, error %x\n", status);
+            fprintf(stderr, "Framebuffer Not Complete, error %x\n", status);
 			break;
     }
 }

@@ -198,12 +198,11 @@ protected:
 
     VertexShader    *vertObj = nullptr;
     FragmentShader  *fragObj = nullptr;
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__)
     GeometryShader  *geomObj = nullptr;
 #endif
 } ;
 
-#ifdef __EMSCRIPTEN__
 class mainProgramObj : public ProgramObject
 {
 public:
@@ -211,52 +210,93 @@ public:
     virtual ~mainProgramObj() { deleteAll(); }
 
     void useVertex()   { vertObj = new VertexShader; }
-    void useFragment() { fragObj = new FragmentShader; }
-    void useAll()      { useVertex(); useFragment(); }
-
-    void deleteVertex()   { delete vertObj; }
-    void deleteFragment() { delete fragObj; }
-    void deleteAll()      { deleteVertex(); deleteFragment(); }
-
-    void addVertex()      { addShader(vertObj); }
-    void addFragment()    { addShader(fragObj); }
-
-    //virtual void create() = PURE_VIRTUAL;
-
-    VertexShader   *getVertex()   { return vertObj; }
-    FragmentShader *getFragment() { return fragObj; }
-
-
-};
-
-#else
-class mainProgramObj : public ProgramObject
-{
-public:
-    mainProgramObj() { } 
-    virtual ~mainProgramObj() { deleteAll(); }
-
-    void useVertex()   { vertObj = new VertexShader; }
-    void useGeometry() { geomObj = new GeometryShader; }
     void useFragment() { fragObj = new FragmentShader; }
     void useAll()      { useVertex(); useGeometry(); useFragment(); }
 
-    void deleteVertex()   { delete vertObj; }
-    void deleteGeometry() { delete geomObj; }
-    void deleteFragment() { delete fragObj; }
-    void deleteAll()      { deleteVertex(); deleteGeometry(); deleteFragment(); }
+    void deleteVertex()   { delete vertObj; vertObj = nullptr;}
+    void deleteFragment() { delete fragObj; fragObj = nullptr;}
+    void deleteAll()      { deleteVertex(); deleteFragment(); deleteGeometry(); }
 
     void addVertex()      { addShader(vertObj); }
-    void addGeometry()    { addShader(geomObj); }
     void addFragment()    { addShader(fragObj); }
 
     //virtual void create() = PURE_VIRTUAL;
 
     VertexShader   *getVertex()   { return vertObj; }
-    GeometryShader *getGeometry() { return geomObj; }
     FragmentShader *getFragment() { return fragObj; }
 
+#if !defined(__EMSCRIPTEN__)
+    void useGeometry() { geomObj = new GeometryShader; }
+    void deleteGeometry() { delete geomObj; geomObj = nullptr;}
+    void addGeometry()    { addShader(geomObj); }
+
+    GeometryShader *getGeometry() { return geomObj; }
+#else
+    void useGeometry() {}
+    void deleteGeometry() {}
+#endif
 
 };
 
+
+class uniformBlocksClass {
+public:
+
+     uniformBlocksClass() { glGenBuffers(1,    &uBuffer); }
+    ~uniformBlocksClass() { glDeleteBuffers(1, &uBuffer); }
+
+// getting aligment for min size block allocation
+    void getAlignment() {
+        GLint uBufferMinSize(0);
+		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uBufferMinSize);
+		uBlockSize = (GLint(realDataSize)/ uBufferMinSize) * uBufferMinSize;
+		if(realDataSize%uBufferMinSize) uBlockSize += uBufferMinSize;
+    }
+
+#ifdef GLAPP_REQUIRE_OGL45
+    void create(GLuint size, void *pData)
+#else
+    void create(GLuint size, void *pData, GLuint prog, const char *nameUBlock)
 #endif
+    {
+        realDataSize = size;
+        ptrData = pData;
+
+        getAlignment();
+
+#ifdef GLAPP_REQUIRE_OGL45
+        glCreateBuffers(1, &uBuffer);
+        glNamedBufferStorage(uBuffer,  uBlockSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferSubData(uBuffer, 0, realDataSize, ptrData);
+#else
+        blockIndex = glGetUniformBlockIndex(prog, nameUBlock);
+//get min size block sending
+        glGetActiveUniformBlockiv(prog, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &minBlockSize);
+        glUniformBlockBinding(prog, blockIndex, bind::bindIdx);
+
+        glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
+// now we alloc min size permitted, but copy realDataSize
+        glBufferData(GL_UNIFORM_BUFFER,  uBlockSize < minBlockSize ? minBlockSize : uBlockSize, nullptr, GL_STATIC_DRAW);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, realDataSize, ptrData); 
+#endif
+    }
+
+    void updateBufferData() {
+#ifdef GLAPP_REQUIRE_OGL45
+        glNamedBufferSubData(uBuffer, 0, realDataSize, ptrData); 
+        glBindBufferBase(GL_UNIFORM_BUFFER, bind::bindIdx, uBuffer);
+#else
+        glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, realDataSize, ptrData); 
+        glBindBufferBase(GL_UNIFORM_BUFFER, bind::bindIdx, uBuffer);
+#endif
+    }
+
+private:
+    void *ptrData;
+    enum bind { bindIdx=2 };
+    GLuint blockIndex;
+    GLuint uBuffer;
+    GLint minBlockSize;
+    GLuint realDataSize, uBlockSize; 
+};

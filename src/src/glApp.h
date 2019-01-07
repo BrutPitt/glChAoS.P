@@ -66,9 +66,7 @@ enum ScreeShotReq {
 
 class glWindow;
 
-#ifdef APP_USE_IMGUI
 #include "ui/uiMainDlg.h"
-#endif
 
 bool fileExist(const char *filename);
 
@@ -107,15 +105,22 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 
 
 #ifdef NDEBUG
-    #define EMISSION_STEP 100000
+    #if !defined(GLCHAOSP_LIGHTVER)
+        #define EMISSION_STEP 100000
+    #else
+        #define EMISSION_STEP 25000
+    #endif
 #else
     #define EMISSION_STEP 7777
 #endif
 
-
+#if !defined(GLCHAOSP_LIGHTVER)
 #define ALLOCATED_BUFFER 30000000
 #define CIRCULAR_BUFFER  10000000
-
+#else
+#define ALLOCATED_BUFFER 10000000
+#define CIRCULAR_BUFFER  4000000
+#endif
 
 
 /////////////////////////////////////////////////
@@ -196,7 +201,7 @@ public:
     mainGLApp();
     ~mainGLApp();
 
-    void onInit();
+    void onInit(int w = INIT_WINDOW_W, int h = INIT_WINDOW_H);
     int onExit();
 
     void mainLoop();
@@ -238,6 +243,7 @@ public:
     bool loadAttractor(const char *name);
     void saveProgConfig();
     bool loadProgConfig();
+    void invertSettings();
 
     void setLastFile(const char *s) { lastAttractor = std::string(s); }
     std::string &getLastFile() { return lastAttractor; }
@@ -260,9 +266,7 @@ public:
     void selectCaptureFolder();
 
     
-#ifdef APP_USE_IMGUI
     mainImGuiDlgClass &getMainDlg() { return mainImGuiDlg; }
-#endif    
 
 
 protected:
@@ -281,13 +285,11 @@ protected:
     
     
 private:
-#ifdef APP_USE_IMGUI
 /////////////////////////////////////////////////
 // imGui utils
     void imguiInit();
     int imguiExit();
     mainImGuiDlgClass mainImGuiDlg;
-#endif        
 
 /////////////////////////////////////////////////
 // glfw utils

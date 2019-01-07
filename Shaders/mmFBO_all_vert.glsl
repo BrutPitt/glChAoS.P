@@ -37,12 +37,14 @@
 // #version dynamically inserted
 
 layout (location = 2) in vec2 vPos;
-//layout (location = 7) uniform mat4 mvp;
 
+#ifdef GL_ES
+#else
 out gl_PerVertex
 {
 	vec4 gl_Position;
 };
+#endif
 
 out vec2 vTexCoord;
 

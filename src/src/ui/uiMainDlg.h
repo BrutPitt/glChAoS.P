@@ -156,7 +156,7 @@ private:
     //particlesDataClass billboard, pointsprite;
 };
 
-
+#if !defined(GLCHAOSP_LIGHTVER)
 class viewSettingDlgClass  : public baseDlgClass
 {
 public:
@@ -178,6 +178,18 @@ public:
 private:
 };
 
+class dataDlgClass  : public baseDlgClass
+{
+public:
+    dataDlgClass() : baseDlgClass("Data") {}
+
+    void view();
+
+private:
+};
+#endif
+
+
 class infoDlgClass  : public baseDlgClass
 {
 public:
@@ -189,16 +201,6 @@ public:
 private:
     bool metricW = false;
 
-};
-
-class dataDlgClass  : public baseDlgClass
-{
-public:
-    dataDlgClass() : baseDlgClass("Data") {}
-
-    void view();
-
-private:
 };
 
 class aboutDlgClass  : public baseDlgClass
@@ -259,7 +261,7 @@ public:
 
     
 private:
-    ImVec4 guiThemeBaseColor = ImVec4(0.0f, 0.20f, 0.30f, 1.00f); //Solar; 
+    ImVec4 guiThemeBaseColor = ImVec4(0.0f, 0.30f, 0.55f, 1.00f); //ImVec4(0.0f, 0.20f, 0.30f, 1.00f); //Solar; 
     int selectedGuiTheme = 0;
 
     bool fontChanged = false;
@@ -277,12 +279,13 @@ attractorDlgClass attractorDlg;
 particlesDlgClass particlesDlg;
 imGuIZMODlgClass imGuIZMODlg;
 infoDlgClass infoDlg;
+psPaletteDlgClass psPaletteDlg;
+#if !defined(GLCHAOSP_LIGHTVER)
 dataDlgClass dataDlg;
 viewSettingDlgClass viewSettingDlg;
 progSettingDlgClass progSettingDlg;
 bbPaletteDlgClass bbPaletteDlg;
-psPaletteDlgClass psPaletteDlg;
-
+#endif
 private:
 
 friend void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);

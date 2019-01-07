@@ -46,7 +46,14 @@
 //#define USE_THREAD_TO_FILL
 //#define USE_MAPPED_BUFFER
 
-//#define GLAPP_IMGUI_VIEWPORT
+#define GLAPP_IMGUI_VIEWPORT
+
+//#define GLCHAOSP_LIGHTVER
+
+#ifdef GLCHAOSP_LIGHTVER
+    #define GLCHAOSP_NO_FXAA
+    //#define GLCHAOSP_USE_LOWPRECISION
+#endif
 
 //Attractor, Fractal, OpenGL, 3D, C++, Particles, ImGui, Source, Code, Algorithm, Chaos, caos, hypercomplex, Julia
 
@@ -72,18 +79,23 @@
     #define theDlg theApp->getMainDlg()
 #endif
 
-#define INIT_WINDOW_W 1024
-#define INIT_WINDOW_H 1024
+#if !defined(GLCHAOSP_LIGHTVER)
+    #define INIT_WINDOW_W 1024
+    #define INIT_WINDOW_H 1024
+#else
+    #define INIT_WINDOW_W 1024
+    #define INIT_WINDOW_H 1024
+#endif
 
 #define getBillboard(H) H->shaderBillboardClass
 #define getPointsprite(H) H->shaderPointClass
 
-#define APP_USE_IMGUI
-
-#ifdef APP_USE_GLEW
-    #include <GL/glew.h>
+#ifdef __EMSCRIPTEN__
+    #include <emscripten.h>
+    #include <emscripten/html5.h>
+    #include <GLES3/gl3.h>
 #else
-    #include "libs/glad/glad.h"
+    #include <glad/glad.h>
 #endif
 
 
