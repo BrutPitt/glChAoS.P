@@ -3,20 +3,16 @@
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractor scout... and hypercompex fractals (new!) 
 
-### New Hypercomplex fractals:
+### [New Hypercomplex fractals:](https://michelemorrone.eu/glchaosp/Hypercomplex.html)
 | hypercomplex fractals | hypercomplex fractals |
 | ----- | ----|
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssHyp.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/biComplex1.gif)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
 
+### [New WebGL 2.0 version:](https://michelemorrone.eu/glchaosp/webGL.html)
+New [**wglChAoS.P**](https://michelemorrone.eu/glchaosp/webGL.html) / [**wglChAoSP**](https://michelemorrone.eu/glchaosp/webGL.html): WebGL 2.0, light version via WebAssembly, of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
 
-| Windows | Windows Viewports |
-| ----- | ----|
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS01.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ss001.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
 
-| Linux | Mac OS X |
-| --- | --- |
-| [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS09.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS04.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
-
+### About glChAoS.P
 Yes, another attractor visualizer, but [**glChAoS.P**](https://michelemorrone.eu/glchaosp/screenshots.html#videoSS) allows you to explore interactively any attractor type, modifyng linearly the values and displaying the changes obtained, immediately, in 3D and in realtime.
 
 
@@ -41,6 +37,13 @@ With several options:
 
 For more usage info: [**glChAoS.P info**](https://michelemorrone.eu/glchaosp/info.html)
 
+| Windows | Windows Viewports |
+| ----- | ----|
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS01.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ss001.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
+
+| Linux | Mac OS X |
+| --- | --- |
+| [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS09.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS04.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
 ### Hardware required:
 
 - GPU with OpenGL 4.1 or higher
