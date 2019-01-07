@@ -1,7 +1,13 @@
 # [**glChAoS.P**](https://michelemorrone.eu/glchaosp)
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
-A real time 3D strange attractor and hypercompex fractals (new!) scout.
+A real time 3D strange attractor scout... and hypercompex fractals (new!) 
+
+### New Hypercomplex fractals:
+| hypercomplex fractals | hypercomplex fractals |
+| ----- | ----|
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssHyp.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/biComplex1.gif)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
+
 
 | Windows | Windows Viewports |
 | ----- | ----|
