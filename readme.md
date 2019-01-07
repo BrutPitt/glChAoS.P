@@ -3,13 +3,20 @@
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractor scout... and hypercompex fractals (new!) 
 
-### [New Hypercomplex fractals:](https://michelemorrone.eu/glchaosp/Hypercomplex.html)
+### [New Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html)
 | hypercomplex fractals | hypercomplex fractals |
-| ----- | ----|
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssHyp.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/biComplex1.gif)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
+| :-----: | :----: |
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
 
-### [New WebGL 2.0 version:](https://michelemorrone.eu/glchaosp/webGL.html)
-New [**wglChAoS.P**](https://michelemorrone.eu/glchaosp/webGL.html) / [**wglChAoSP**](https://michelemorrone.eu/glchaosp/webGL.html): WebGL 2.0, light version via WebAssembly, of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
+### [New WebGL 2 version](https://michelemorrone.eu/glchaosp/webGL.html)
+New [**wglChAoS.P**](https://michelemorrone.eu/glchaosp/webGL.html) / [**wglChAoSP**](https://michelemorrone.eu/glchaosp/webGL.html): a WebGL 2 / WebAssembly lightened version of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
+
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssWGLtitle.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
+| :-----: |
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssWGL_half.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
+
+
+
 
 
 ### About glChAoS.P
@@ -38,11 +45,11 @@ With several options:
 For more usage info: [**glChAoS.P info**](https://michelemorrone.eu/glchaosp/info.html)
 
 | Windows | Windows Viewports |
-| ----- | ----|
+| :-----: | :----: |
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS01.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ss001.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
 
 | Linux | Mac OS X |
-| --- | --- |
+| :---: | :---: |
 | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS09.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS04.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
 ### Hardware required:
 
