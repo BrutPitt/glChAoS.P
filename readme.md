@@ -70,7 +70,7 @@ About the GPUs that support the OpenGL 4.5 (with appropriate drivers and OS perm
 - CPU with 2 or more cores
 
 ### About performance
-Glow effects, mostly with sigma \> 5, requires expensive calculations in tems of performance
+Glow effects, mostly with sigma \> 5, requires expensive calculations in terms of performance
 
 If you have slow performance try, in this order:
 - Disable *GlowEffects* and/or *FXAA* 
@@ -229,6 +229,21 @@ Or use `sh buildGLFW.sh OSX` from ./src directory, or build GLFW directly from `
 (documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))
 
 Several warnings are visualized, it is normal: I'm not a mac guru (advice and suggestions are appreciated). I tested it only on OS X 10.14 Mojave (build and binary).
+
+**WebGL via WebAssembly**
+
+The CMake file is able to build also an [**EMSCRIPTEN**](https://kripken.github.io/emscripten-site/index.html) version, obviously you need to have installed EMSCRIPTEN SDK on your computer (1.38.20 or higher).
+Use `emsCMakeGen.cmd` or `emsCMakeGen.sh` from ./src directory, or look inside it, to pass appropriate defines/patameters to CMake command line.
+`emsCMakeGen` need to know the location of EMSDK, and the "build-type" object to create.
+
+For exemple, run:
+
+`emsCMakeGen.sh /opt/emsdk/emscripten/1.38.20 Debug|Release|RelWithDebInfo|MinSizeRel`
+
+
+`emsCMakeGen.cmd C:\emsdk\emscripten\1.38.20 Debug|Release|RelWithDebInfo|MinSizeRel`
+
+To build the EMSCRIPTEN version, in Windows, with CMake, need to have **mingw32-make.exe** in your computer and in the search PATH (only the make utility is enough): it is a condition of EMSDK tool to build with CMake in Windows.
 
 **CMake**
 
