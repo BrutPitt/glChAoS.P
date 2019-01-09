@@ -8,8 +8,8 @@ A real time 3D strange attractor scout... and hypercompex fractals (new!)
 | :-----: | :----: |
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
 
-### [New WebGL 2 version](https://michelemorrone.eu/glchaosp/webGL.html)
-New [**wglChAoS.P**](https://michelemorrone.eu/glchaosp/webGL.html) / [**wglChAoSP**](https://michelemorrone.eu/glchaosp/webGL.html): a WebGL 2 / WebAssembly lightened version of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
+### [New WebGL2 version](https://michelemorrone.eu/glchaosp/webGL.html)
+New [**wglChAoS.P**](https://michelemorrone.eu/glchaosp/webGL.html) / [**wglChAoSP**](https://michelemorrone.eu/glchaosp/webGL.html) WebGL 2 / WebAssembly lightened **LIVE / ONLINE** version of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
 
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssWGLtitle.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
 | :-----: |

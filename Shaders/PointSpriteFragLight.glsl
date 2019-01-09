@@ -143,7 +143,7 @@ LAYUOT_INDEX(1) SUBROUTINE(_pixelColor) vec4 pixelColorLight()
                                 vec3(specular) *u.lightSpecInt     + 
                                 (color.rgb+u.lightAmbInt*0.1) * u.lightAmbInt)); /*+ color.rgb * (1.0 - negDiffuse)+ color.rgb * ambient + vec3(specular) * .6*/
  
-    vec4 col = vec4(lColor.rgb , alpha  * diffuse *u.lightDiffInt);
+    vec4 col = vec4(lColor.rgb , alpha /* * diffuse *u.lightDiffInt*/);
 
     //float alphaAtten = (color.a)/(pow(length(posEye),distAlphaFactor));
     //gl_FragColor = vec4(color.rgb , min(color.a*alphaK,alphaAtten)); 

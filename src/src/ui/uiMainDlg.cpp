@@ -379,10 +379,10 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 #if !defined(GLCHAOSP_LIGHTVER)
                 ImGui::SetCursorPosX(posA);
                     {
-                        bool b = particles->getDotType();
+                        bool b = particles->dotTypeSelected();
                         char txt[32];
                         sprintf(txt, b ? "solidDot " ICON_FA_CHECK_SQUARE_O "%s" : "solidDot " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
-                        if(colCheckButton(b , txt, wButt3)) particles->setDotType(b^1);
+                        if(colCheckButton(b , txt, wButt3)) particles->dotTypeSelected(b^1);
                     }
 #endif
 
@@ -1615,8 +1615,39 @@ void dataDlgClass::view()
 
 }
 
+void particleEditDlgClass::view()
+{
+
+   // if(!isVisible) return;
+
+    ImGui::SetNextWindowSize(ImVec2(350, 440), ImGuiCond_FirstUseEver);
+
+    particlesBaseClass *pSys = theWnd->getParticlesSystem()->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? 
+        (particlesBaseClass *) theWnd->getParticlesSystem()->shaderBillboardClass::getPtr() : 
+        (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
+    
+
+    if(ImGui::Begin(getTitle(), &isVisible)) {
+        const float w = ImGui::GetContentRegionAvailWidth();
+        const float border = DLG_BORDER_SIZE;
+        const float wButt = w-border*2;
+
+        ImGui::PushItemWidth(wButt);
+
+        if(ImGui::DragFloat4("##parED",glm::value_ptr(pSys->getHermiteVals()), .01, 0.0, 1.0)) {
+            pSys->getDotAlphaTex().build();
+        }
 
 
+        ImGui::PopItemWidth();
+
+        ImGui::SetCursorPosX(border);
+        ImGui::Image(reinterpret_cast<ImTextureID>(pSys->getDotAlphaTex().getTexID()), ImVec2(wButt,wButt));
+
+    }
+    ImGui::End();
+
+}
 #endif
 
 void imGuIZMODlgClass::view()
@@ -1726,6 +1757,7 @@ void aboutDlgClass::view()
     ImGui::End();
 
 }
+
 
 
 #define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX          0x9047
@@ -2046,6 +2078,7 @@ void mainImGuiDlgClass::renderImGui()
         viewSettingDlg.view();
         progSettingDlg.view();
         dataDlg.view();
+        particleEditDlg.view();
 #endif
         view();
     }

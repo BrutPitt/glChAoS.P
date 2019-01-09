@@ -133,6 +133,7 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
     //glBindFramebuffer(GL_FRAMEBUFFER, fbOut);
 
     //glEnable(GL_MULTISAMPLE);
+    const GLuint texID = dotTypeSelected() ? dotSolidTex.getTexID() : dotAlphaTex.getTexID();
 
     if(depthBuffActive) {
         glEnable(GL_DEPTH_TEST);
@@ -153,7 +154,6 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
         //glBlendFuncSeparate(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA,GL_ZERO,GL_ONE_MINUS_SRC_ALPHA);
         glBlendFunc(getSrcBlend(), getDstBlend());
     }
-    const GLuint texID = getDotType() ? texDotsSolid : texDotsAlpha;
 #else
     glClearBufferfv(GL_COLOR, 0, glm::value_ptr(glm::vec4(0.0f)));
     glEnable(GL_BLEND);
@@ -163,13 +163,13 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
 
     //getUData().velocity = getCMSettings()->getVelIntensity();
     if(checkFlagUpdate()) updateCommonUniforms();
-    getUData().zFar = .5f/(getTMat()->getPOV().z-getTMat()->getTrackball().getDollyPosition().z); //1((/POV.z-Dolly.z)*2)
+    getUData().zFar = 1.f/(getTMat()->getPOV().z-getTMat()->getTrackball().getDollyPosition().z); //1((/POV.z-Dolly.z)*2)
     tMat.updateBufferData();
     updateBufferData();
        
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, colorMap->getModfTex());
-    glBindTextureUnit(1, getDotType() ? texDotsSolid : texDotsAlpha);
+    glBindTextureUnit(1, texID);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &lightStateIDX);
 #else
     glActiveTexture(GL_TEXTURE0+colorMap->getModfTex());
@@ -504,7 +504,7 @@ renderBaseClass::renderBaseClass()
 
     motionBlur = new motionBlurClass(this);
     mergedRendering = new mergedRenderingClass(this);
-    texDotsSolid = buildDotTexture(texDotsSolid, dotsTexSize, vec4(0.f), dotsSolid);
+    dotSolidTex.build(64, vec4(.7f, 0.f, .3f, 0.f), dotsTextureClass::dotsSolid);
 #else 
     renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), false);
 //    msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true, 4);

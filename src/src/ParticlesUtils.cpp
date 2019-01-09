@@ -39,8 +39,6 @@
 
 #include "appDefines.h"
 
-#include "glslProgramObject.h"
-#include "glslShaderObject.h"
 
 #include "ParticlesUtils.h"
 #include "palettes.h"
@@ -51,6 +49,11 @@
 #else
     #define TEX_INTERNAL GL_RGB16F
 #endif
+
+#define unsesto  .166666666666666666667
+#define unterzo  .333333333333333333333
+#define dueterzi .666666666666666666667
+
 
 
 //-----------------------------------------------------------------------------
@@ -89,142 +92,6 @@ vec3 getRandomVector( void )
 }
 
 
- 
-template <class T> class gaussianMap
-{
-public:
-    
-    gaussianMap(int s, float f = 1.0) 
-    {
-        size = s; totSize = s*s;
-        factor = f;
-        M = new T[totSize];
-    }
-
-    void generateMap(const vec4 & hermVals, int components, int typeSolid)
-    {
-        T *m = M;
-
-        float X,Y,Y2,Dist;
-        float Incr = 2.0f/float(size);
-    
-        Y = -1.0f;
-        //float mmax = 0;
-        for(int y=0; y<size; y++, Y+=Incr) {
-            Y2=Y*Y;
-            X = -1.0f;
-            for(int x=0; x<size; x++, X+=Incr) {
-                Dist = (float)sqrtf(X*X+Y2);
-                //if (Dist>1) Dist=1;
-                *m++ = (Dist>1) ? 0.f : (typeSolid ? 1.f : evalHermite(hermVals,Dist)) * factor;
-            }
-        }
-
-        if(components>1) {
-            T *B = new T[components*totSize];
-            T *b = B;
-                m = M;
-                for(int k=components*totSize; k>0; k--)
-                    *b++ = *m++; //(unsigned char)(M[i] * 255);
-            delete [] M;
-            M = B;
-        };
-    }
-
-    ~gaussianMap() { delete [] M; }
-
-    T* getBuffer() { return M; }
-
-private:
-//------------------------------------------------------------------------------
-//  EvalHermite(float pA, float pB, float vA, float vB, float u)
-//  Evaluates Hermite basis functions for the specified coefficients.
-//------------------------------------------------------------------------------
-    float evalHermite(const vec4 &v, float u)
-    {
-        const float u2=(u*u), u3=u2*u;
-
-        const vec4 b( 2*u3 - 3*u2 + 1,
-                     -2*u3 + 3*u2,
-                        u3 - 2*u2 + u,
-                        u3        - u);
-
-        return dot(b,v);
-    }
-
-    T *M;
-    int size, totSize;
-    T factor;
-
-
-};
-
-#define unsesto  .166666666666666666667
-#define unterzo  .333333333333333333333
-#define dueterzi .666666666666666666667
-
-// 
-//  Particles Texture
-////////////////////////////////////////////////////////////////////////////
-GLuint buildDotTexture(GLuint texID, int size, const vec4 &v, int type)
-{
-
-    gaussianMap<GLfloat> gMap(size);
-
-#if !defined(GLCHAOSP_USE_LOWPRECISION)
-    const GLint texInternal = GL_R32F;
-#else
-    const GLint texInternal = GL_R16F;
-#endif
-    
-    gMap.generateMap(v, 1, type); 
-
-    const int w = size, h = size;
-
-    if(texID) {
-        glDeleteTextures(1,&texID);
-        CHECK_GL_ERROR();
-    }
-
-
-#ifdef GLAPP_REQUIRE_OGL45
-    glCreateTextures(GL_TEXTURE_2D , 1, &texID);
-    glTextureStorage2D(texID, 7, GL_R32F, w, h);
-    glTextureSubImage2D(texID, 0, 0, 0, w, h, GL_RED, GL_FLOAT, gMap.getBuffer());
-    glGenerateTextureMipmap(texID);
-    glTextureParameteri(texID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(texID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(texID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTextureParameteri(texID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-#else
-
-    glGenTextures(1, &texID);					// Generate OpenGL texture IDs
-    glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
-
-    //glTexStorage2D(GL_TEXTURE_2D, 7, GL_R32F, w, h);
-    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RED, GL_FLOAT, buffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, texInternal, w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    //glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    glBindTexture(GL_TEXTURE_2D, 0);
-#endif
-    CHECK_GL_ERROR();
-    
-    return texID;
-
-}
-
-
 vec3 HLStoRGB( vec3 HLS)
 {
 
@@ -254,7 +121,6 @@ vec3 HLStoRGB( vec3 HLS)
                                              v1 + v2_v1*(unterzo-HLS.x));
 
  }
-
 
 
 void textureBaseClass::genTex()

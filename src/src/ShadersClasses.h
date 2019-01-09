@@ -51,7 +51,6 @@
 
 #define PURE_VIRTUAL 0
 
-GLuint buildDotTexture(GLuint texID, int size, const vec4 &v, int typeDots);
 
 #include "mmFBO.h"
 
@@ -368,7 +367,6 @@ public:
     renderBaseClass();
 
     enum { noShowAxes, showAxesToViewCoR, showAxesToSetCoR };
-    enum { dotsAlpha, dotsSolid };
 
     virtual ~renderBaseClass();
 
@@ -408,6 +406,7 @@ public:
     std::vector<const char *> &getBlendArrayStrings() { return blendingStrings; }
 
 
+
 protected:
     int whichRenderMode;    
 
@@ -418,13 +417,13 @@ protected:
     oglAxes *axes;
     int axesShow = noShowAxes;
 
-    GLuint texDotsSolid = 0;
+    dotsTextureClass dotSolidTex;
+
 #endif
 
     cmContainerClass colorMapContainer;
 
     bool flagUpdate;
-
 
     mmFBO renderFBO;
 //        , msaaFBO;
@@ -434,7 +433,6 @@ protected:
     std::vector<GLuint> blendArray;
     std::vector<const char *> blendingStrings;
     
-    int dotsTexSize = 64;
 
 private:
 };
@@ -783,7 +781,7 @@ public:
 #if !defined(GLCHAOSP_NO_FXAA)
         fxaaFilter = new fxaaClass(this);
 #endif
-        texDotsAlpha = buildDotTexture(texDotsAlpha, dotsTexSize, hermiteVals, dotsAlpha);
+        dotAlphaTex.build(128, vec4(.7f, 0.f, .3f, 0.f), dotsTextureClass::dotsAlpha);
     }
 
     ~particlesBaseClass ()  {  delete glowRender; delete colorMap;
@@ -874,11 +872,14 @@ public:
     void srcBlendIdx(int i) { srcIdxBlendAttrib = i; }
     int  srcBlendIdx() { return srcIdxBlendAttrib; }
 
-    void setHermiteVals(vec4 &v) { hermiteVals = v; }
-    vec4& getHermiteVals() { return hermiteVals; }
+    void setHermiteVals(const vec4 &v) { dotAlphaTex.setHermiteVals(v); }
+    vec4& getHermiteVals() { return dotAlphaTex.getHermiteVals(); }
 
-    void setDotType(int type) { dotType = type; }
-    int getDotType() { return dotType; }
+
+    dotsTextureClass& getDotAlphaTex() { return dotAlphaTex; }
+
+    void dotTypeSelected(int type) { dotType = type; }
+    int dotTypeSelected() { return dotType; }
 
 protected:
     GLuint dstBlendAttrib, srcBlendAttrib;
@@ -886,8 +887,7 @@ protected:
 
     ColorMapSettingsClass *colorMap;
 
-    GLuint texDotsAlpha = 0; 
-    int dotType = 0;
+    dotsTextureClass dotAlphaTex;
 
     radialBlurClass *glowRender;
 
@@ -895,13 +895,13 @@ protected:
     fxaaClass *fxaaFilter;
 #endif
 
-    vec4 hermiteVals = vec4(.7f, 0.f, .3f, 0.f);
     
     GLfloat stepInc;  
 
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locDotsTex, locPaletteTex;
 #endif
+    int dotType = dotsTextureClass::dotsAlpha;
 
     enum lightIDX { off, on };
     GLuint lightStateIDX = GLuint(on);

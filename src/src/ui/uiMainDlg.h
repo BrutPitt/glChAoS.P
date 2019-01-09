@@ -187,6 +187,17 @@ public:
 
 private:
 };
+
+class particleEditDlgClass  : public baseDlgClass
+{
+public:
+    particleEditDlgClass() : baseDlgClass("Particle Edit") {}
+
+    void view();
+
+private:
+};
+
 #endif
 
 
@@ -212,6 +223,7 @@ public:
 
 private:
 };
+
 
 class imGuIZMODlgClass  : public baseDlgClass
 {
@@ -285,6 +297,7 @@ dataDlgClass dataDlg;
 viewSettingDlgClass viewSettingDlg;
 progSettingDlgClass progSettingDlg;
 bbPaletteDlgClass bbPaletteDlg;
+particleEditDlgClass particleEditDlg;
 #endif
 private:
 
