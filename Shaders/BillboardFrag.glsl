@@ -58,6 +58,8 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float alphaK;
     float clippingDist;
     float zFar;
+    float dPlane;
+    float ePlane;
     float velIntensity;
 } u;
 
@@ -162,6 +164,8 @@ subroutine uniform _pixelColor pixelColor;
 void main(void)
 {
 
-    gl_FragDepth = -posEye.z*u.zFar;
+    //gl_FragDepth = -posEye.z*u.zFar;
+    gl_FragDepth = u.dPlane - u.ePlane/gl_FragCoord.z;
+
     outColor = pixelColor();
 }

@@ -63,6 +63,8 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float alphaK;
     float clippingDist;
     float zFar;
+    float dPlane;
+    float ePlane;
     float velIntensity;
 } u;
 

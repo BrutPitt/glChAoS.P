@@ -56,6 +56,8 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float alphaK;
     float clippingDist;
     float zFar;
+    float dPlane;
+    float ePlane;
     float velIntensity;
 } u;
 
@@ -163,6 +165,16 @@ LAYUOT_INDEX(0) SUBROUTINE(_pixelColor)  vec4 pixelColorOnly()
 
 }
 
+float LinearizeDepth(float depth) 
+{
+    float near = u.dPlane;
+    float far  = u.ePlane;
+    //float z = depth * 2.0 - 1.0; // back to NDC 
+    float z = depth; // back to NDC 
+    return 1.0 - (2.0 * near * far) / (far + near - z * (far - near));	
+}
+
+
 
 void main()
 {
@@ -170,7 +182,10 @@ void main()
 #ifdef GL_ES
     outColor = pixelColorOnly();
 #else
-    gl_FragDepth = -posEye.z*u.zFar;
+    //gl_FragDepth = -posEye.z*u.zFar;
+    //gl_FragDepth = (u.dPlane - u.ePlane/posEye.z);
+    gl_FragDepth = LinearizeDepth(posEye.z);
+    //outColor = vec4(vec3((1.0+gl_FragDepth)*.5), 1.0);
     outColor = pixelColor();
 #endif
 }
