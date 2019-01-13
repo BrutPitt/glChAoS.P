@@ -65,7 +65,7 @@ layout(std140) uniform;
     #define SUBROUTINE(X) 
 #else
     subroutine vec4 _radialPass();
-subroutine uniform _radialPass imageResult;
+    subroutine uniform _radialPass imageResult;
     #define SUBROUTINE(X) subroutine(X)
 #endif
 
@@ -287,6 +287,9 @@ vec4 qualitySetting(vec4 col)
 
     //Brightness/Contrast 
     col.xyz = rgb2hsl(col.rgb);
+
+    col.yz = contrastHSL( col.yz, videoControls.w);
+    col.z  = brightnessHSL(col.z, videoControls.z);
 
 #ifdef GL_ES
     col.yz = clamp(col.yz,vec2(0.0), vec2(1.0));

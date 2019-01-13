@@ -158,10 +158,16 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["alphaKFactor"    ] = ptr->getAlphaKFactor();
     c["alphaAttenFactor"] = ptr->getAlphaAtten();
     c["alphaSkip"       ] = ptr->getAlphaSkip();   
-    c["dotsType"        ] = ptr->dotTypeSelected();   
-
+    c["dotsSize"        ] = ptr->getDotTex().getIndex();   
+    {
+        vector<float> v(4); 
+        *((vec4 *)v.data()) = ptr->getDotTex().getHermiteVals();
+        c["HermiteVals"     ] = Config::array(v);
+    }
+    c["dotsType"        ] = ptr->getDotTex().getDotType();
 
 //Colors
+    c["ColorInt"        ] = ptr                 ->getColIntensity();
     c["ColorVel"        ] = ptr->getCMSettings()->getVelIntensity();
     c["PalInvert"       ] = ptr->getCMSettings()->getReverse();
     c["PalClamp"        ] = ptr->getCMSettings()->getClamp();
@@ -178,10 +184,13 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["lightAmbInt"     ] = ptr->getUData().lightAmbInt ;
     c["lightStepMin"    ] = ptr->getUData().sstepColorMin;
     c["lightStepMax"    ] = ptr->getUData().sstepColorMax;
-
-    vector<float> v(3); 
-    *((vec3 *)v.data()) = ptr->getUData().lightDir;
-    c["lightDir"        ] = Config::array(v);
+    {
+        vector<float> v(3); 
+        *((vec3 *)v.data()) = ptr->getUData().lightDir;
+        c["lightDir"        ] = Config::array(v);
+        *((vec3 *)v.data()) = ptr->getUData().lightColor;
+        c["lightColor"      ] = Config::array(v);
+    }
 
 //glow
     radialBlurClass *glow = ptr->getGlowRender();
@@ -300,6 +309,17 @@ void mainGLApp::selectCaptureFolder() {
 }
 
 
+template <class T> bool getVec_asArray(Config& c, const char *name, T &outV)
+{
+        if(c.has_key(name)) {
+            vector<float> v;
+            for (const Config& e : c[name].as_array()) v.push_back(e.as_float());
+            outV = *((vec4 *)v.data());
+            return true;
+        }
+        return false;
+
+}
 
 void getRenderMode(Config &c, particlesBaseClass *ptr)
 {
@@ -323,12 +343,17 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     ptr->setAlphaKFactor(   c.get_or("alphaKFactor"    , ptr->getAlphaKFactor()   ));
     ptr->setAlphaAtten(     c.get_or("alphaAttenFactor", ptr->getAlphaAtten()     ));
     ptr->setAlphaSkip(      c.get_or("alphaSkip"       , ptr->getAlphaSkip()      ));
-    ptr->dotTypeSelected(   c.get_or("dotsType"        , ptr->dotTypeSelected()));
+
+    vec4 v4;
+    ptr->getDotTex().rebuild( c.get_or("dotsSize"        , DOT_TEXT_SHFT),
+                              getVec_asArray(c, "HermiteVals", v4) ? v4 : vec4(.7f, 0.f, .3f, 0.f),
+                              c.get_or("dotsType"        , 0));
 
     ptr->dstBlendIdx(getBlendIdx(ptr->getDstBlend()));
     ptr->srcBlendIdx(getBlendIdx(ptr->getSrcBlend()));
 
 //Colors
+    ptr->                 setColIntensity(c.get_or("ColorInt"  , 1.0));
     ptr->getCMSettings()->setVelIntensity(c.get_or("ColorVel"  , ptr->getCMSettings()->getVelIntensity()));
     ptr->getCMSettings()->setReverse(     c.get_or("PalInvert" , ptr->getCMSettings()->getReverse()     ));
     ptr->getCMSettings()->setClamp(       c.get_or("PalClamp"  , ptr->getCMSettings()->getClamp()       ));
@@ -345,6 +370,11 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     ptr->getUData().lightAmbInt   = c.get_or("lightAmbInt"     , ptr->getUData().lightAmbInt  );
     ptr->getUData().sstepColorMin = c.get_or("lightStepMin"    , ptr->getUData().sstepColorMin);
     ptr->getUData().sstepColorMax = c.get_or("lightStepMax"    , ptr->getUData().sstepColorMax);
+
+    vec3 v3;
+    ptr->getUData().lightDir   = (getVec_asArray(c, "lightDir"  , v3) ? v3 : vec3(50.f, 0.f, 15.f));
+    ptr->getUData().lightColor = (getVec_asArray(c, "lightColor", v3) ? v3 : vec3(1.f));
+
 
 //glow    
     radialBlurClass *glow = ptr->getGlowRender();
@@ -398,19 +428,8 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
 
 void loadSettings(Config &cfg, particlesSystemClass *pSys) 
 {
-    vec3 retVal;
 
-    auto getVec3_asArray = [&] (Config& c, const char *name) -> bool
-    {
-        if(c.has_key(name)) {
-            vector<float> v;
-            for (const Config& e : c[name].as_array()) v.push_back(e.as_float());
-            retVal = *((vec3 *)v.data());
-            return true;
-        }
-        return false;
-    };
-
+    vec3 v3;
     {
         auto& c = cfg["Render"];
 
@@ -428,12 +447,13 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
         pSys->getEmitter()->restartCircBuff(      c.get_or("rstrtCircBuff", pSys->getEmitter()->restartCircBuff()      ));        
         pSys->getEmitter()->stopFull(             c.get_or("stopCircBuff" , pSys->getEmitter()->stopFull()             ));
 
-        if(getVec3_asArray(c, "camPOV"))         pSys->getTMat()->setPOV(retVal);
-        if(getVec3_asArray(c, "camTGT"))         pSys->getTMat()->setTGT(retVal);
-        if(getVec3_asArray(c, "camPerspective")) pSys->getTMat()->setPerspective(retVal.x, retVal.y, retVal.z);
-        if(getVec3_asArray(c, "camDolly"))       pSys->getTMat()->getTrackball().setDollyPosition(retVal);
-        if(getVec3_asArray(c, "camPan"))         pSys->getTMat()->getTrackball().setPanPosition(retVal);
-        if(getVec3_asArray(c, "camRotCent"))     pSys->getTMat()->getTrackball().setRotationCenter(retVal);
+
+        if(getVec_asArray(c, "camPOV"        , v3)) pSys->getTMat()->setPOV(v3);
+        if(getVec_asArray(c, "camTGT"        , v3)) pSys->getTMat()->setTGT(v3);
+        if(getVec_asArray(c, "camPerspective", v3)) pSys->getTMat()->setPerspective(v3.x, v3.y, v3.z);
+        if(getVec_asArray(c, "camDolly"      , v3)) pSys->getTMat()->getTrackball().setDollyPosition(v3);
+        if(getVec_asArray(c, "camPan"        , v3)) pSys->getTMat()->getTrackball().setPanPosition(v3);
+        if(getVec_asArray(c, "camRotCent"    , v3)) pSys->getTMat()->getTrackball().setRotationCenter(v3);
 
         if(c.has_key("camRot")) {
             vector<float> v;
@@ -447,7 +467,6 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
         particlesBaseClass *ptr = pSys->shaderBillboardClass::getPtr();
         getRenderMode(c, ptr);
 
-        if(getVec3_asArray(c, "lightDir")) ptr->getUData().lightDir = vec4(retVal, 0.f);
     }
 #endif
     {
@@ -455,7 +474,6 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
         particlesBaseClass *ptr = pSys->shaderPointClass::getPtr();
         getRenderMode(c,ptr);
 
-        if(getVec3_asArray(c, "lightDir")) ptr->getUData().lightDir = vec4(retVal, 0.f);
     }
 
 }
@@ -465,19 +483,6 @@ void mainGLApp::invertSettings()
 {
     configuru::Config cfg = Config::object(); 
     particlesSystemClass *pSys = theWnd->getParticlesSystem();
-
-    vec3 retVal;
-
-    auto getVec3_asArray = [&] (Config& c, const char *name) -> bool
-    {
-        if(c.has_key(name)) {
-            vector<float> v;
-            for (const Config& e : c[name].as_array()) v.push_back(e.as_float());
-            retVal = *((vec3 *)v.data());
-            return true;
-        }
-        return false;
-    };
 
     //Save Inverted
 #if !defined(GLCHAOSP_LIGHTVER)
@@ -496,16 +501,12 @@ void mainGLApp::invertSettings()
         auto &c = cfg["RenderMode0"];
         particlesBaseClass *ptr = pSys->shaderBillboardClass::getPtr();
         getRenderMode(c, ptr);
-
-        if(getVec3_asArray(c, "lightDir")) ptr->getUData().lightDir = vec4(retVal, 0.f);
     }
 #endif
     {
         auto &c = cfg["RenderMode1"];
         particlesBaseClass *ptr = pSys->shaderPointClass::getPtr();
         getRenderMode(c,ptr);
-
-        if(getVec3_asArray(c, "lightDir")) ptr->getUData().lightDir = vec4(retVal, 0.f);
     }
 
 

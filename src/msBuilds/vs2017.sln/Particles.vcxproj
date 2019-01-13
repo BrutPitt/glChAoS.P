@@ -633,10 +633,10 @@
     <None Include="..\..\..\Shaders\MotionBlurFS.glsl" />
     <None Include="..\..\..\Shaders\oglAxesFrag.glsl" />
     <None Include="..\..\..\Shaders\oglAxesVert.glsl" />
+    <None Include="..\..\..\Shaders\ParticlesFrag.glsl" />
     <None Include="..\..\..\Shaders\PointSpriteFragLight.glsl" />
     <None Include="..\..\..\Shaders\PointSpriteVert.glsl" />
     <None Include="..\..\..\Shaders\RadialBlur2PassFrag.glsl" />
-    <None Include="..\..\..\Shaders\RadialBlur2PassFragWGL.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\ReadMe.txt" />

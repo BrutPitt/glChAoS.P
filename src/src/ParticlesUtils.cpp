@@ -82,7 +82,7 @@ vec3 getRandomVector( void )
     float radius = (float)sqrt(1 - vVector.z * vVector.z);
 
     // Pick a random point on a circle.
-    float t = getRandomMinMax( -M_PI, M_PI );
+    float t = getRandomMinMax( -glm::pi<float>(), glm::pi<float>() );
 
     // Compute matching X and Y for our Z.
     vVector.x = (float)cosf(t) * radius;

@@ -243,6 +243,8 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
     const float posC5 = posB5 + wButt5 + border;
     const float posD5 = posC5 + wButt5 + border;
     const float posE5 = posD5 + wButt5 + border;
+    ImGuiIO& io = ImGui::GetIO();                
+    const float fontSize = io.Fonts->Fonts[0]->FontSize;
 
 
     auto modCheckBox = [&] (bool b, float sz, const char *str=nullptr) {
@@ -267,7 +269,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
         if(isOpen) {
 #if !defined(GLCHAOSP_LIGHTVER)
-            const int numItems = 8;
+            const int numItems = 7;
 #else
             const int numItems = 6;
 #endif
@@ -302,34 +304,40 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 //ImGui::SetCursorPosX(INDENT(posA));
                 //ImGui::TextDisabled("PointSize"); //ImGui::SameLine(posB3);
 #if !defined(GLCHAOSP_LIGHTVER)
-                //////////Linea 4//////////        
-                ImGui::PushItemWidth(wButt3);        
+                //////////Linea 4//////////       
+                const float sz = wButt3-(ImGui::GetFrameHeightWithSpacing()+border)*.3333;
+
                 {
+                    char txt[32];
                     ImGui::SetCursorPosX(posA);
                     {
                         bool b = particles->getBlendState();
-                        char txt[32];
                         sprintf(txt, b ? "Blend " ICON_FA_CHECK_SQUARE_O "%s" : "Blend " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
-                        if(colCheckButton(b , txt, wButt3)) particles->setBlendState(b^1);
+                        if(colCheckButton(b , txt, sz)) particles->setBlendState(b^1);
                     }
-                    ImGui::SameLine(posB3);
+                    ImGui::SameLine();
                     {
                         bool b = particles->getDepthState();
-                        char txt[32];
                         sprintf(txt, b ? "Depth " ICON_FA_CHECK_SQUARE_O "%s" : "Depth " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
-                        if(colCheckButton(b , txt, wButt3)) particles->setDepthState(b^1);
+                        if(colCheckButton(b , txt, sz)) particles->setDepthState(b^1);
                     }
 
-                    ImGui::SameLine(posC3);
+                    ImGui::SameLine();
                     {
                         bool b = particles->getLightState();
-                        char txt[32];
                         sprintf(txt, b ? "Light " ICON_FA_CHECK_SQUARE_O "%s" : "Light " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
-                        if(colCheckButton(b , txt, wButt3)) particles->setLightState(b^1);
+                        if(colCheckButton(b , txt, sz)) particles->setLightState(b^1);
                     }
 
+                    ImGui::SameLine();
+                    {
+                        bool b = theDlg.particleEditDlg.visible();
+                        sprintf(txt, b ? ICON_FA_CIRCLE "%s" : ICON_FA_CIRCLE "%s", buildID(base, idA++, id)); 
+                        if(colCheckButton(b , txt, ImGui::GetFrameHeightWithSpacing())) theDlg.particleEditDlg.visible(b^1);
+                    }
                 }
-                ImGui::PopItemWidth();
+
+
 #endif
 
                 ImGui::PushItemWidth(wButt3);
@@ -343,17 +351,17 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     {
                         ImGui::SetCursorPosX(posA);
                         float f = particles->getSize();                    
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.01, 2000.0, "%.3f",DRAGFLOAT_POW_2,ImVec2(.93,0.5))) particles->setSize(f);
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.01, 5000.0, "%.3f",DRAGFLOAT_POW_2,ImVec2(.93,0.5))) particles->setSize(f);
                     }
                     {
                         ImGui::SameLine(posB3);
                         float f = particles->getPointSizeFactor();                    
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.0, 100.0,  "%.3f",DRAGFLOAT_POW_3,ImVec2(.93,0.5))) particles->setPointSizeFactor(f);
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.0, 1000.0,  "%.3f",DRAGFLOAT_POW_3,ImVec2(.93,0.5))) particles->setPointSizeFactor(f);
                     }
                     {
                         ImGui::SameLine(posC3);                    
                         float f = particles->getClippingDist();                   
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.01, 20.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setClippingDist(f);
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.01, 1000.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setClippingDist(f);
                     }
                     ImGui::SetCursorPosX(INDENT(posA)); ImGui::TextDisabled("alphaK");     
                     ImGui::SameLine(INDENT(posB3));     ImGui::TextDisabled("alphaAtten"); //ImGui::SameLine(); ImGui::TextDisabled(" ?");
@@ -362,7 +370,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     {
                         ImGui::SetCursorPosX(posA);
                         float f = particles->getAlphaKFactor();                   
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.01, 10.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAlphaKFactor(f);
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.01, 100.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAlphaKFactor(f);
                     }
                     {
                         ImGui::SameLine(posB3);
@@ -376,16 +384,6 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     }
                 ImGui::PopItemWidth();
 
-#if !defined(GLCHAOSP_LIGHTVER)
-                ImGui::SetCursorPosX(posA);
-                    {
-                        bool b = particles->dotTypeSelected();
-                        char txt[32];
-                        sprintf(txt, b ? "solidDot " ICON_FA_CHECK_SQUARE_O "%s" : "solidDot " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
-                        if(colCheckButton(b , txt, wButt3)) particles->dotTypeSelected(b^1);
-                    }
-#endif
-
             ImGui::EndChild();
             ImGui::PopStyleVar();
         }
@@ -398,9 +396,6 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
         const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_TINT " Colors");
         ImGui::PopStyleColor();
         if(isOpen) {
-            ImGuiIO& io = ImGui::GetIO();                
-            const float fontSize = io.Fonts->Fonts[0]->FontSize;
-
             ImGuiStyle& style = ImGui::GetStyle();
             const float buttY = style.FramePadding.y*2+(fontSize * io.FontGlobalScale);
 
@@ -459,29 +454,35 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                 // Vel / start 
                 ////////////////////////////////////
-                const float wButt3Half = (wButt3-border)*.5;
-                const float pos3H = wButt3Half + border*2;
+                //const float wButt3Half = (wButt4-border)*.5;
+                //const float pos3H = wButt3Half + border*2;
                 
                 ImGui::SetCursorPosX(INDENT(posA )); ImGui::TextDisabled("Range");
-                ImGui::SameLine(     INDENT(posB3)); ImGui::TextDisabled("Offset");
-                ImGui::SameLine(     INDENT(posC3)); ImGui::TextDisabled("Color Vel."); 
+                ImGui::SameLine(     INDENT(posB4)); ImGui::TextDisabled("Offset");
+                ImGui::SameLine(     INDENT(posC4)); ImGui::TextDisabled("Intens.");
+                ImGui::SameLine(     INDENT(posD4)); ImGui::TextDisabled("Col.Vel."); 
                 
-                ImGui::PushItemWidth(wButt3);
+                ImGui::PushItemWidth(wButt4);
                 {
                     ImGui::SetCursorPosX(posA);
                     float f = cmSet->getRange(); 
-                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.0, 20.0, "% .3f",1.0f,ImVec2(.07,0.5))) cmSet->setRange(f);
+                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.0, 20.0, "% .3f",1.0f,ImVec2(.93,0.5))) cmSet->setRange(f);
                 }
                 {
-                    ImGui::SameLine(posB3);
+                    ImGui::SameLine(posB4);
                     float f = cmSet->getOffsetPoint();
-                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, -10.0, 10.0, "% .3f",1.0f,ImVec2(.07,0.5))) cmSet->setOffsetPoint(f);
+                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, -10.0, 10.0, "% .3f",1.0f,ImVec2(.93,0.5))) cmSet->setOffsetPoint(f);
+                }
+                {
+                    ImGui::SameLine(posC4);
+                    float f = particles->getColIntensity();
+                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.0, 10.0, "% .3f",1.0f,ImVec2(.93,0.5))) particles->setColIntensity(f);
                 }
 
                 {
-                    ImGui::SameLine(posC3);
+                    ImGui::SameLine(posD4);
                     float f = cmSet->getVelIntensity();
-                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.001, 100.0, "% .3f",1.0f,ImVec2(.07,0.5))) cmSet->setVelIntensity(f);
+                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.001, 100.0, "% .3f",1.0f,ImVec2(.93,0.5))) cmSet->setVelIntensity(f);
                 }
                 ImGui::PopItemWidth();
                 
@@ -489,7 +490,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 // Image Palette
                 ////////////////////////////////////
                 ImGui::SetCursorPosX(border);
-                ImGui::Image(reinterpret_cast<ImTextureID>(cmSet->getModfTex()), ImVec2(w-border,buttY));
+                ImGui::Image(reinterpret_cast<ImTextureID>(cmSet->getModfTex()), ImVec2(w,buttY));
 
 
                 // HLSL Controls
@@ -550,19 +551,22 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                 ImGui::SetCursorPosX(posA); ImGui::TextDisabled("Diff"); ImGui::SameLine();
                 ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-posA));
-                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightDiffInt,0.01, 0.0, 10.f, "% .3f",1.0f,ImVec2(.07,0.5));
+                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightDiffInt,0.01, 0.0, 10.f, "% .3f",1.0f,ImVec2(.93,0.5));
                 ImGui::PopItemWidth();
 
                 ImGui::SameLine(wLightPos);     ImGui::TextDisabled("Ambt"); ImGui::SameLine();
                 ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-wLightPos));
-                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightAmbInt, 0.01, -1.0, 2.f, "% .3f",1.0f,ImVec2(.07,0.5));
+                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightAmbInt, 0.01, -1.0, 2.f, "% .3f",1.0f,ImVec2(.93,0.5));
                 ImGui::PopItemWidth();
                 
                 ImVec2 pos(ImGui::GetCursorPos());
+                vec3 lCol = particles->getLightColor();
 
                 ImGui::SameLine(wLight);
                 glm::vec3 vL(-particles->getUData().lightDir);
+                imguiGizmo::setDirectionColor(ImVec4(.4f+lCol.x*.6f, .4f+lCol.y*.6f, .4f+lCol.z*.6f, 1.0));
                 if(ImGui::gizmo3D("##Bht", vL ,wGizmo))  particles->getUData().lightDir = -vL;
+                imguiGizmo::restoreDirectionColor();
 
                 ImGui::SetCursorPos(pos);
 
@@ -570,17 +574,20 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 
                 ImGui::SetCursorPosX(posA); ImGui::TextDisabled("Spec");  ImGui::SameLine();
                 ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-posA));
-                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightSpecInt,0.01, 0.0, 10.f, "% .3f",1.0f,ImVec2(.07,0.5));
+                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightSpecInt,0.01, 0.0, 10.f, "% .3f",1.0f,ImVec2(.93,0.5));
                 ImGui::PopItemWidth();
                 
                 ImGui::SameLine(wLightPos);     ImGui::TextDisabled("sExp");  ImGui::SameLine();
                 ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-wLightPos));
-                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightShinExp, 0.01, 1.0, 300.f, "%.3f", DRAGFLOAT_POW_3,ImVec2(.07,0.5));
+                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightShinExp, 0.01, .1, 1000.f, "%.3f", DRAGFLOAT_POW_3,ImVec2(.93,0.5));
                 ImGui::PopItemWidth();
 
                 ImGui::AlignTextToFramePadding();
 
-                ImGui::SetCursorPosX(posA); ImGui::TextDisabled("ccCorr"); ImGui::SameLine();
+                ImGui::SetCursorPosX(posA); 
+                if(ImGui::ColorEdit3(buildID(base, idA++, id),glm::value_ptr(lCol),ImGuiColorEditFlags_NoInputs)) particles->setLightColor(lCol); 
+                
+                ImGui::SameLine(); ImGui::TextDisabled(" Modul."); ImGui::SameLine();
                 ImGui::PushItemWidth((wLightButt+border)*2 - (ImGui::GetCursorPosX()));
                 ImGui::DragFloatRange2(buildID(base, idA++, id), &particles->getUData().sstepColorMin, &particles->getUData().sstepColorMax, .01, -1.0, 2.0);
                 ImGui::PopItemWidth();
@@ -883,13 +890,15 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::PushItemWidth(wButt4);        
                 {
                     float f = imT->getGamma();                    
-                    if(ImGui::DragFloat(buildID(base, idA++, id), &f,.001, 0.001, 20.0, "%.3f",1.0f)) imT->setGamma(f);
+                    if(ImGui::DragFloat(buildID(base, idA++, id), &f,.001, 0.001, 20.0, "%.3f",1.0f)) 
+                        imT->setGamma(f);
                 }
 
                 ImGui::SameLine(posB4);                
                 {
                     float f = imT->getExposure();
-                    if(ImGui::DragFloat(buildID(base, idA++, id), &f,.001, 0.001, 10.0, "%.3f",1.0f)) imT->setExposure(f);
+                    if(ImGui::DragFloat(buildID(base, idA++, id), &f,.001, 0.001, 10.0, "%.3f",1.0f)) 
+                        imT->setExposure(f);
                 
                 }   
                 ImGui::PopItemWidth();                
@@ -897,13 +906,15 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::SameLine(posC4);
                 {
                     float f = imT->getBright();
-                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_L, ImVec2(wButt4-2, buttY),ImVec2(0, 0))) imT->setBright(f);
+                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_L, ImVec2(wButt4-2, buttY),ImVec2(0, 0))) 
+                        imT->setBright(f);
                 }               
 
                 ImGui::SameLine(posD4);
                 {
                     float f = imT->getContrast();
-                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_L, ImVec2(wButt4-2, buttY),ImVec2(0, 0))) imT->setContrast(f);
+                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_L, ImVec2(wButt4-2, buttY),ImVec2(0, 0))) 
+                        imT->setContrast(f);
                 
                 }   
 
@@ -1618,7 +1629,7 @@ void dataDlgClass::view()
 void particleEditDlgClass::view()
 {
 
-   // if(!isVisible) return;
+    if(!isVisible) return;
 
     ImGui::SetNextWindowSize(ImVec2(350, 440), ImGuiCond_FirstUseEver);
 
@@ -1630,19 +1641,44 @@ void particleEditDlgClass::view()
     if(ImGui::Begin(getTitle(), &isVisible)) {
         const float w = ImGui::GetContentRegionAvailWidth();
         const float border = DLG_BORDER_SIZE;
-        const float wButt = w-border*2;
+        const float wButt = w;
+        const float wButt3 = w*.3333;
 
+        ImGui::Text("Hermite coefficients");
         ImGui::PushItemWidth(wButt);
 
         if(ImGui::DragFloat4("##parED",glm::value_ptr(pSys->getHermiteVals()), .01, 0.0, 1.0)) {
-            pSys->getDotAlphaTex().build();
+            pSys->getDotTex().build();
         }
-
-
         ImGui::PopItemWidth();
 
-        ImGui::SetCursorPosX(border);
-        ImGui::Image(reinterpret_cast<ImTextureID>(pSys->getDotAlphaTex().getTexID()), ImVec2(wButt,wButt));
+        dotsTextureClass *dots = &pSys->getDotTex();
+
+        //ImGui::SetCursorPosX(border);
+        ImGui::Image(reinterpret_cast<ImTextureID>(dots->getTexID()), ImVec2(wButt,wButt));
+        char txt[32];
+
+
+        ImGui::PushItemWidth(wButt3);
+        {
+            int idx = dots->getIndex();
+            sprintf(txt, "pixel size##" "%s", theWnd->getParticlesSystem()->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? "B" : "P"); 
+            if (ImGui::Combo(txt, &idx, " 32\0"\
+                                        " 64\0"\
+                                        "128 (default)\0"\
+                                        "256\0"\
+                                        "512\0"))
+                { dots->setIndex(idx); }
+        }
+        ImGui::PopItemWidth();
+
+        ImGui::SameLine(w-(wButt3-DLG_BORDER_SIZE));
+        {
+            bool b = dots->getDotType();
+            sprintf(txt, b ? ICON_FA_CHECK_SQUARE_O " solidDot##" "%s" : ICON_FA_SQUARE_O " solidDot##"  "%s", theWnd->getParticlesSystem()->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? "B" : "P"); 
+            if(colCheckButton(b , txt, wButt3)) dots->setDotType(b^1);
+        }
+
 
     }
     ImGui::End();

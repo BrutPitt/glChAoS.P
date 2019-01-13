@@ -336,12 +336,12 @@ void attractorDlgClass::view()
                     ImGui::PushItemWidth((wDn-border*3)*.5+.5); //wDn*.5-border
                     ImGui::SetCursorPosX(border);
                     ImGui::DragFloatRange2("##vR", &attractorsList.get()->vMin, &attractorsList.get()->vMax, 
-                                                    0.01f, -10.0f, 10.0f, 
-                                                    "Min: %.3f", "Max: %.3f");
+                                                    0.0025f, -10.0f, 10.0f, 
+                                                    "Min: %.4f", "Max: %.4f");
                     ImGui::SameLine();
                     ImGui::DragFloatRange2("##kR", &attractorsList.get()->kMin, &attractorsList.get()->kMax, 
-                                                    0.01f, -10.0f, 10.0f, 
-                                                    "Min: %.3f", "Max: %.3f");
+                                                    0.0025f, -10.0f, 10.0f, 
+                                                    "Min: %.4f", "Max: %.4f");
                     if(!attractorsList.get()->fractalType()) {
                         ImGui::PopItemWidth();
 

@@ -896,11 +896,8 @@ int ShowStyleSelector(const float wB)
     if(style_idx < 3.f) { //Show Color picker
         ImVec4 col = theDlg.getGuiThemeBaseColor();
         if(ImGui::ColorEdit4("##baseCol", (float *) &col,ImGuiColorEditFlags_NoInputs)) {
-            //setMainColorTheme(ImVec4(c.x*kC, c.y*kC, c.z*kC, 1.0f));
-            //ShowStyleSelector();
             theDlg.setGuiThemeBaseColor(col);
             selectTheme(style_idx);
-            //colorTheme3(getMainColorTheme());
 
             setAlpha();
 

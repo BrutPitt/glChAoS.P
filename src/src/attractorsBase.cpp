@@ -313,9 +313,9 @@ INLINE void Hopalong::Step(vec3 &v, vec3 &vp) {
                     _y = a*_r - oldX;
     float z = step;
 
-    vp.x = step*sin(2.f*M_PI*_x)*cos(2.f*M_PI*_y);
-    vp.y = step*sin(2.f*M_PI*_x)*sin(2.f*M_PI*_y);
-    vp.z = step*cos(2.f*M_PI*_x)                ;
+    vp.x = step*sin(2.f*pi<float>()*_x)*cos(2.f*pi<float>()*_y);
+    vp.y = step*sin(2.f*pi<float>()*_x)*sin(2.f*pi<float>()*_y);
+    vp.z = step*cos(2.f*pi<float>()*_x)                ;
 
     _zy = oldZ - sqrt(abs(kVal[4]*_r * v.x - kVal[5]*_r)) * (v.x > 0.f ? 1. : (v.x < 0.f ? -1.: 0)),
 
@@ -884,8 +884,8 @@ INLINE const vec3 Magnetic::tryed(const vec3 &vx, int i)
 {
     switch(i%3) {
         case 0 :  return vx;
-        case 1 :  return vec3(vx.x,sinf(vx.y/M_PI),cosf(vx.z/M_PI));
-        case 2 :  return vec3(vx.x,cosf(vx.y/M_PI),sinf(vx.z/M_PI)); 
+        case 1 :  return vec3(vx.x,sinf(vx.y/pi<float>()),cosf(vx.z/pi<float>()));
+        case 2 :  return vec3(vx.x,cosf(vx.y/pi<float>()),sinf(vx.z/pi<float>())); 
     }
     return vx;
 }

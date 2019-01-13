@@ -134,16 +134,9 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
     endif()
 
 # grouped EMCC_OPTIONS
-    set(M_EMCC_EMBED_FILES "--embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/PointSpriteVert.glsl@Shaders/\"\
-     --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/PointSpriteFragLight.glsl@Shaders/\"\
-     --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/RadialBlur2PassFrag.glsl@Shaders/\"\
-     --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/mmFBO_all_vert.glsl@Shaders/\"\
-     --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/fxaaFrag.glsl@Shaders/\"\
-     --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/colorSpaces.glsl@Shaders/\"\
-     --embed-file \"${CMAKE_SOURCE_DIR}/../Shaders/cmTexturedFrag.glsl@Shaders/\"\
+    set(M_EMCC_EMBED_FILES "--embed-file \"${CMAKE_SOURCE_DIR}/../Shaders@Shaders/\"\
      --embed-file \"${CMAKE_SOURCE_DIR}/../colorMaps/palettes.json@colorMaps/\"\
-     --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts/Cousine-Regular.ttf@Fonts/\"\
-     --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts/fontawesome-webfont.ttf@Fonts/\"\
+     --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts@Fonts/\"\
      --embed-file \"${CMAKE_SOURCE_DIR}/../startDataWGL@startDataWGL/\"")
      
 #     --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts/Cousine-Regular.ttf@Fonts/\"\

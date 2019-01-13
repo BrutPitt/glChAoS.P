@@ -92,7 +92,7 @@ void shaderPointClass::initShader()
     useVertex(); useFragment();
 
 	getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "PointSpriteVert.glsl");
-	getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "PointSpriteFragLight.glsl");
+	getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesFrag.glsl", SHADER_PATH "PointSpriteFragLight.glsl");
 	// The vertex and fragment are added to the program object
     addVertex();
     addFragment();
@@ -133,20 +133,20 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
     //glBindFramebuffer(GL_FRAMEBUFFER, fbOut);
 
     //glEnable(GL_MULTISAMPLE);
-    const GLuint texID = dotTypeSelected() ? dotSolidTex.getTexID() : dotAlphaTex.getTexID();
 
     if(depthBuffActive) {
         glEnable(GL_DEPTH_TEST);
 #if !defined(GLCHAOSP_LIGHTVER)
         glDepthFunc( GL_LESS );
         glDepthMask(GL_TRUE);
-        glDepthRange(.0, 1.0);
+        glDepthRange(-1.0, 1.0);
 #endif
         //glClearDepth(1.0f);
         GLfloat f=1.0f;
         glClearBufferfv(GL_DEPTH, 0, &f);
     }
 
+    const GLuint texID = dotTex.getTexID();
 #if !defined(GLCHAOSP_LIGHTVER)
     if(showAxes() == noShowAxes) glClearBufferfv(GL_COLOR, 0, glm::value_ptr(glm::vec4(0.0f)));
     if(blendActive || showAxes()) {
@@ -158,12 +158,21 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
     glClearBufferfv(GL_COLOR, 0, glm::value_ptr(glm::vec4(0.0f)));
     glEnable(GL_BLEND);
     glBlendFunc(getSrcBlend(), getDstBlend());
-    const GLuint texID = texDotsAlpha;
 #endif
 
     //getUData().velocity = getCMSettings()->getVelIntensity();
     if(checkFlagUpdate()) updateCommonUniforms();
-    getUData().zFar = 1.f/(getTMat()->getPOV().z-getTMat()->getTrackball().getDollyPosition().z); //1((/POV.z-Dolly.z)*2)
+    //const float dist = getTMat()->getPerspFar()-getTMat()->getPerspNear();
+    //const float newFar = getTMat()->getPerspFar() + (getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z) * 2.0;
+    //getUData().zNear = -(newFar+getTMat()->getPerspNear())/dist;
+    //getUData().zFar = -2.f * newFar * getTMat()->getPerspNear() / dist;
+
+    getUData().zNear = getTMat()->getPerspNear();
+    getUData().zFar = getTMat()->getPerspFar() + (getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z) * 2.0;
+
+    //getUData().zFar = .5f/(getTMat()->getPOV().z-getTMat()->getTrackball().getDollyPosition().z); //1((/POV.z-Dolly.z)*2)
+
+    //getUData().zFar = getTMat()->getPerspFar()+getTMat()->getPerspNear()
     tMat.updateBufferData();
     updateBufferData();
        
@@ -238,7 +247,7 @@ void shaderBillboardClass::initShader()
 
 	getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "BillboardVert.glsl");
     getGeometry()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "BillboardGeom.glsl");
-	getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "BillboardFrag.glsl");
+	getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesFrag.glsl", SHADER_PATH "BillboardFrag.glsl");
 
 	// The vertex and fragment are added to the program object
 	addVertex();
@@ -504,9 +513,8 @@ renderBaseClass::renderBaseClass()
 
     motionBlur = new motionBlurClass(this);
     mergedRendering = new mergedRenderingClass(this);
-    dotSolidTex.build(64, vec4(.7f, 0.f, .3f, 0.f), dotsTextureClass::dotsSolid);
 #else 
-    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), false);
+    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true);
 //    msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true, 4);
 #endif
 
@@ -530,6 +538,7 @@ void renderBaseClass::setRenderMode(int which)
     whichRenderMode=which; setFlagUpdate(); 
 }
 
+VertexShader* commonVShader = nullptr;
 
 /////////////////////////////////////////
 //
@@ -540,7 +549,7 @@ void renderBaseClass::setRenderMode(int which)
 void BlurBaseClass::create()    {
 
 
-        useVertex();
+        useVertex();   commonVShader = vertObj;
         useFragment();
 
         vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
@@ -550,7 +559,7 @@ void BlurBaseClass::create()    {
         addShader(fragObj);
 
         link();
-        deleteAll();
+        //deleteAll();
 #ifdef GLAPP_REQUIRE_OGL45
         uniformBlocksClass::create(GLuint(sizeof(uBlurData)), (void *) &uData);
 #else
@@ -616,10 +625,10 @@ void colorMapTexturedClass::create()
 {
 
 
-    useVertex();
+    useVertex(commonVShader);
     useFragment();
 
-    vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
+    //vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
     fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "colorSpaces.glsl", SHADER_PATH "cmTexturedFrag.glsl");
 
 

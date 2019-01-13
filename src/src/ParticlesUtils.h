@@ -36,10 +36,6 @@
 #ifndef PARTICLES_UTILS_H
 #define PARTICLES_UTILS_H
 
-#ifndef M_PI
-    #define M_PI       3.14159265358979323846
-#endif //M_PI
-
 #ifdef __EMSCRIPTEN__
     #include <emscripten.h>
     #include <emscripten/html5.h>
@@ -48,8 +44,10 @@
 #include <glad/glad.h>
 #endif
 
-#include <glm/glm.hpp>
 #include <vector>
+
+#include <glm/glm.hpp>
+#include <glm/ext/scalar_constants.hpp>
 
 #include "glslProgramObject.h"
 #include "glslShaderObject.h"
@@ -58,7 +56,6 @@
 using namespace glm;
 
 
-float* createGaussianMap(int N, const vec4 & hermVals, int components, int solid);
 
 class textureBaseClass 
 {
@@ -191,17 +188,17 @@ public:
         T *m = M;
 
         float X,Y,Y2,Dist;
-        float Incr = 2.0f/float(size-1);
+        float Incr = 2.0f/float(size+1);
     
-        Y = -1.0f;
+        Y = -1.0f+Incr;
         //float mmax = 0;
         for(int y=0; y<size; y++, Y+=Incr) {
             Y2=Y*Y;
-            X = -1.0f;
+            X = -1.0f+Incr;
             for(int x=0; x<size; x++, X+=Incr) {
                 Dist = (float)sqrtf(X*X+Y2);
                 //if (Dist>1) Dist=1;
-                *m++ = (Dist>1) ? 0.f : (typeSolid ? 1.f : evalHermite(hermVals,Dist)) * factor;
+                *m++ = (Dist>=1) ? 0.f : (typeSolid ? 1.f : evalHermite(hermVals,Dist)) * factor;
             }
         }
 
@@ -221,10 +218,9 @@ public:
     T* getBuffer() { return M; }
 
 private:
-//------------------------------------------------------------------------------
 //  EvalHermite(float pA, float pB, float vA, float vB, float u)
 //  Evaluates Hermite basis functions for the specified coefficients.
-//------------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
     float evalHermite(const vec4 &v, float u)
     {
         const float u2=(u*u), u3=u2*u;
@@ -244,6 +240,8 @@ private:
 
 };
 
+//  Particles Texture
+///////////////////////////////////////////////////////////////////////////////
 class dotsTextureClass
 {
 public:
@@ -255,14 +253,22 @@ public:
 
     }
 
-    // 
-    //  Particles Texture
-    ////////////////////////////////////////////////////////////////////////////
-    void build(int size, const vec4 &v, int t)
+    void build(int shift, const vec4 &v, int t)
     {
-        texSize = size; hermiteVals = v; dotType = t;
+        texSize = baseSize << shift; hermiteVals = v; dotType = t;
+        shiftBaseSize = shift;
         build();
     }
+
+    void rebuild(int shift, const vec4 &v, int t)
+    {
+        if(generated) {
+            glDeleteTextures(1, &texID);
+            generated = false;
+        }
+        build(shift, v, t);
+    }
+
 
     void build()
     {
@@ -279,10 +285,14 @@ public:
 
         const int w = texSize, h = texSize;
 
+        int level = 1;
+        int sz = texSize;
+        while(sz>>=1) level++;
+
         if(!generated)
     #ifdef GLAPP_REQUIRE_OGL45
             glCreateTextures(GL_TEXTURE_2D , 1, &texID);
-        glTextureStorage2D(texID, 7, GL_R32F, w, h);
+        glTextureStorage2D(texID, level, GL_R32F, w, h);
         glTextureSubImage2D(texID, 0, 0, 0, w, h, GL_RED, GL_FLOAT, gMap.getBuffer());
         glGenerateTextureMipmap(texID);
         glTextureParameteri(texID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -312,21 +322,27 @@ public:
     #endif
         CHECK_GL_ERROR();
     
+        generated = true;
     }
 
     int getDotsTexSize() { return texSize; }
     GLuint getTexID() { return texID; }
 
-    void setDotType(int type) { dotType = type; }
+    void setDotType(int type) { if(dotType != type) rebuild(shiftBaseSize, hermiteVals, type); }
     int getDotType() { return dotType; }
 
     void setHermiteVals(const vec4 &v) { hermiteVals = v; }
     vec4& getHermiteVals() { return hermiteVals; }
 
+    int getIndex() { return shiftBaseSize; }
+    void setIndex(int shift) { if(shift!=shiftBaseSize) rebuild(shift, hermiteVals, dotType); } 
+
 protected:
     bool generated = false;
     GLuint texID;
-    int texSize = 64;
+    int texSize = 32;
+    const int baseSize = 32;
+    int shiftBaseSize = 0;
     vec4 hermiteVals = vec4(.7f, 0.f, .3f, 0.f);
     int dotType;
 

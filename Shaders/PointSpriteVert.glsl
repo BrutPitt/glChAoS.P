@@ -49,11 +49,12 @@ layout(std140) uniform;
 uniform float velIntensity;
 
 LAYUOT_BINDING(2) uniform _particlesData {
+    vec3 lightDir;
     float lightDiffInt;
+    vec3 lightColor; 
     float lightSpecInt;
     float lightAmbInt ;
     float lightShinExp;
-    vec3 lightDir;
     float sstepColorMin;
     float sstepColorMax;
     float pointSize;
@@ -61,10 +62,10 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float alphaDistAtten;
     float alphaSkip;
     float alphaK;
+    float colIntensity;
     float clippingDist;
+    float zNear;
     float zFar;
-    float dPlane;
-    float ePlane;
     float velIntensity;
 } u;
 
@@ -74,10 +75,16 @@ LAYUOT_BINDING(4) uniform _tMat { //shared?
     mat4 mvpMatrix;
 } m;
 
+#ifndef GL_ES
+out gl_PerVertex
+{
+	vec4 gl_Position;
+    float gl_PointSize;
+};
+#endif
 
 
 out vec3 posEye;
-out vec4 LightRay;
 out float pointSZ;
 
 out float pointDistance;
@@ -87,13 +94,6 @@ LAYUOT_BINDING(0) uniform sampler2D paletteTex;
 
 layout (location = 0) in vec4 a_ActualPoint;
 
-#ifndef GL_ES
-out gl_PerVertex
-{
-	vec4 gl_Position;
-    float gl_PointSize;
-};
-#endif
 
 void main()                                                 
 {              
@@ -111,7 +111,7 @@ void main()
         
         //gl_PointSize = dist<clippingDist ? 0.0 : pointSize / max(.01,pow(dist,distSizeFactor)); 
         float ptAtten = exp(-0.01*sign(dist)*pow(abs(dist+1.f), u.pointDistAtten*.1));
-        gl_PointSize = dist<u.clippingDist ? 0.0 : u.pointSize * ptAtten ; 
+        gl_PointSize = u.pointSize * ptAtten ; 
 
         if(gl_PointSize<1.0) gl_PointSize = 1.0;
 
@@ -130,7 +130,6 @@ void main()
     //float vel = distance(vtxPos.xyz,oldVtxPos.xyz)*velIntensity;
 
     
-    LightRay = normalize(vec4(u.lightDir, 1.f)) ;
     
     gl_Position = (m.pMatrix * vtxPos);
     particleColor = cOut;  

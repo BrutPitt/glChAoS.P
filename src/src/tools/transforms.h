@@ -152,8 +152,8 @@ public:
                                   vec3(0.0f, 1.0f, 0.0f));
     }
 
-    void setPerspective(float angle, float aspect, float _near, float _far) {
-        pAngle = angle; pAspect = aspect; pNear = _near; pFar = _far;
+    void setPerspective(float angle, float aspect, float _near, float _far) {        
+        pAngle = angle; pAspect = aspect; pNear = _near <= 0.0 ? FLT_EPSILON : _near; pFar = _far;
         tM.pMatrix  = glm::perspective(glm::radians(angle),aspect,_near, _far); //the projection matrix
     }
     void setPerspective(float aspect) {
@@ -161,7 +161,7 @@ public:
         tM.pMatrix  = glm::perspective(glm::radians(pAngle),pAspect,pNear, pFar); //the projection matrix
     }
     void setPerspective(float angle, float _near, float _far) {
-        pAngle = angle; pNear = _near; pFar = _far;
+        pAngle = angle; pNear = _near <= 0.0 ? FLT_EPSILON : _near; pFar = _far;
         tM.pMatrix  = glm::perspective(glm::radians(pAngle),pAspect,pNear, pFar); //the projection matrix
     }
 

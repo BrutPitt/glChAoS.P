@@ -51,6 +51,11 @@
 
 #define PURE_VIRTUAL 0
 
+#if !defined(GLCHAOSP_USE_LOWPRECISION)
+    #define DOT_TEXT_SHFT  2
+#else
+    #define DOT_TEXT_SHFT 0
+#endif
 
 #include "mmFBO.h"
 
@@ -294,13 +299,13 @@ inline void imgTuningClass::setMixBilateral(GLfloat v) { texControls.w = v; glow
 class BlurBaseClass : public mainProgramObj, public uniformBlocksClass, public virtual dataBlurClass
 {
 struct uBlurData {
-    vec4 sigma;
+    vec4 sigma;             // align 0
     GLfloat threshold;
     GLboolean toneMapping;
-    vec2 toneMapVals;
+    vec2 toneMapVals;       // align 16+2N 24
 
-    vec4 texControls;
-    vec4 videoControls;
+    vec4 texControls;       // align 32
+    vec4 videoControls;     // align 48
 
     GLfloat mixTexture;
 
@@ -396,6 +401,7 @@ public:
 
     void showAxes(int b) { axesShow = b; }
     int showAxes() { return axesShow; }
+
 #endif
 
     int getWhitchRenderMode() { return whichRenderMode; }
@@ -404,8 +410,6 @@ public:
     int getBlendArrayElements() { return blendArray.size(); }
     std::vector<GLuint> &getBlendArray() { return blendArray; }
     std::vector<const char *> &getBlendArrayStrings() { return blendingStrings; }
-
-
 
 protected:
     int whichRenderMode;    
@@ -417,7 +421,6 @@ protected:
     oglAxes *axes;
     int axesShow = noShowAxes;
 
-    dotsTextureClass dotSolidTex;
 
 #endif
 
@@ -753,11 +756,12 @@ class particlesBaseClass : public mainProgramObj, public uniformBlocksClass, pub
 protected:
 
 struct uParticlesData {
+    vec3 lightDir = vec3(50.f, 0.f, 15.f); // align 0
     GLfloat lightDiffInt = 3.f;
+    vec3 lightColor = vec3(1.f);           // align 16
     GLfloat lightSpecInt = 1.f;
     GLfloat lightAmbInt = .1f;
     GLfloat lightShinExp = 50.f;
-    vec3 lightDir = vec3(50.f, 0.f, 15.f);
     GLfloat sstepColorMin = .1;
     GLfloat sstepColorMax = 1.1;
     GLfloat pointSize;
@@ -765,7 +769,9 @@ struct uParticlesData {
     GLfloat alphaDistAtten;
     GLfloat alphaSkip = .15f;
     GLfloat alphaK;
+    GLfloat colIntensity = 1.0;
     GLfloat clippingDist;
+    GLfloat zNear;
     GLfloat zFar;
     GLfloat velocity;
 } uData;
@@ -781,7 +787,7 @@ public:
 #if !defined(GLCHAOSP_NO_FXAA)
         fxaaFilter = new fxaaClass(this);
 #endif
-        dotAlphaTex.build(128, vec4(.7f, 0.f, .3f, 0.f), dotsTextureClass::dotsAlpha);
+        dotTex.build(DOT_TEXT_SHFT, vec4(.7f, 0.f, .3f, 0.f), dotsTextureClass::dotsAlpha);
     }
 
     ~particlesBaseClass ()  {  delete glowRender; delete colorMap;
@@ -831,6 +837,10 @@ public:
     float getClippingDist() { return getUData().clippingDist; }
     void setAlphaSkip(float f) { getUData().alphaSkip = f;  setFlagUpdate();}
     float getAlphaSkip() { return getUData().alphaSkip; }
+    void setColIntensity(float f) { getUData().colIntensity = f;  setFlagUpdate();}
+    float getColIntensity() { return getUData().colIntensity; }
+    void setLightColor(const vec3 &v) { getUData().lightColor = v;  setFlagUpdate();}
+    vec3& getLightColor() { return getUData().lightColor; }
 
     virtual particlesBaseClass *getPtr() = 0;
 
@@ -872,14 +882,11 @@ public:
     void srcBlendIdx(int i) { srcIdxBlendAttrib = i; }
     int  srcBlendIdx() { return srcIdxBlendAttrib; }
 
-    void setHermiteVals(const vec4 &v) { dotAlphaTex.setHermiteVals(v); }
-    vec4& getHermiteVals() { return dotAlphaTex.getHermiteVals(); }
+    void setHermiteVals(const vec4 &v) { dotTex.setHermiteVals(v); }
+    vec4& getHermiteVals() { return dotTex.getHermiteVals(); }
 
+    dotsTextureClass& getDotTex() { return dotTex; }
 
-    dotsTextureClass& getDotAlphaTex() { return dotAlphaTex; }
-
-    void dotTypeSelected(int type) { dotType = type; }
-    int dotTypeSelected() { return dotType; }
 
 protected:
     GLuint dstBlendAttrib, srcBlendAttrib;
@@ -887,7 +894,7 @@ protected:
 
     ColorMapSettingsClass *colorMap;
 
-    dotsTextureClass dotAlphaTex;
+    dotsTextureClass dotTex;
 
     radialBlurClass *glowRender;
 
@@ -901,7 +908,6 @@ protected:
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locDotsTex, locPaletteTex;
 #endif
-    int dotType = dotsTextureClass::dotsAlpha;
 
     enum lightIDX { off, on };
     GLuint lightStateIDX = GLuint(on);

@@ -41,14 +41,14 @@ layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
 in vec3 posEyeVS[];
-in vec4 particleColor[];
-in float pointDistance[];
+in vec4 vertParticleColor[];
+in float pointDist[];
 
 out vec3 posEye;
 out float pointSZ;
 out vec2 texCoord;
-out vec4 geomParticleColor;
-out float ptDist;
+out vec4 particleColor;
+out float pointDistance;
 
 LAYUOT_BINDING(4) uniform _tMat {
     mat4 pMatrix;
@@ -78,14 +78,14 @@ void main(void){
   
   posEye  = posEyeVS[0];
   float sz  = gl_in[0].gl_PointSize;
-  ptDist = pointDistance[0];
+  pointDistance = pointDist[0];
 
   pointSZ = sz;
 
 
   RotationMatrix[0] = vec2(1.0, 0.0); //vec2(cos(InfoIn[0].x),-sin(InfoIn[0].x));
   RotationMatrix[1] = vec2(0.0, 1.0); //vec2(sin(InfoIn[0].x), cos(InfoIn[0].x));  
-  geomParticleColor = particleColor[0];
+  particleColor = vertParticleColor[0];
 
   
   //Vertex 1

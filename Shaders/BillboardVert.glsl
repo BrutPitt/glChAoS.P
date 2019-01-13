@@ -44,11 +44,12 @@ layout (location = 0) in vec4 a_ActualPoint;
 LAYUOT_BINDING(0) uniform sampler2D paletteTex;
 
 LAYUOT_BINDING(2) uniform _particlesData {
+    vec3 lightDir;
     float lightDiffInt;
+    vec3 lightColor; 
     float lightSpecInt;
     float lightAmbInt ;
     float lightShinExp;
-    vec3 lightDir;
     float sstepColorMin;
     float sstepColorMax;
     float pointSize;
@@ -56,10 +57,10 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float alphaDistAtten;
     float alphaSkip;
     float alphaK;
+    float colIntensity;
     float clippingDist;
+    float zNear;
     float zFar;
-    float dPlane;
-    float ePlane;
     float velIntensity;
 } u;
 
@@ -78,8 +79,8 @@ out gl_PerVertex
 };
 
 
-out float pointDistance;
-out vec4 particleColor;
+out float pointDist;
+out vec4 vertParticleColor;
 out vec3 posEyeVS;
 
 
@@ -165,17 +166,17 @@ void main(void)
     posEyeVS = vtxPos.xyz;
 
     float dist = length(posEyeVS); 
-    pointDistance = dist;
+    pointDist = dist;
 
     //gl_PointSize = dist<u.clippingDist ? 0.0 : u.pointSize*.003 / max(0.01,pow(dist,u.pointDistAtten));
 
     float ptAtten = exp(-0.01*sign(dist)*pow(abs(dist+1.f), u.pointDistAtten*.1));
-    gl_PointSize = dist<u.clippingDist ? 0.0 : u.pointSize*.001 * ptAtten ;
+    gl_PointSize = u.pointSize*.001 * ptAtten ;
    
     //LightDir = normalize(m.mvMatrix *vec4(u.lightDir, 1.f)) ;
     //LightDir = normalize(vec4(u.lightDir, 1.f)) ;
 
-    particleColor = cOut;
+    vertParticleColor = cOut;
 
 // Load OBJ
 /*

@@ -46,12 +46,13 @@
 //#define USE_THREAD_TO_FILL
 //#define USE_MAPPED_BUFFER
 
-#define GLAPP_IMGUI_VIEWPORT
+//#define GLAPP_IMGUI_VIEWPORT
 
 //#define GLCHAOSP_LIGHTVER
 
 #ifdef GLCHAOSP_LIGHTVER
     #define GLCHAOSP_NO_FXAA
+    #define GLCHAOSP_NO_DeL
     //#define GLCHAOSP_USE_LOWPRECISION
 #endif
 
