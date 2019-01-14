@@ -245,7 +245,8 @@ public:
     bool loadProgConfig();
     void invertSettings();
 
-    void setLastFile(const char *s) { lastAttractor = std::string(s); }
+    void setLastFile(const char *s) { lastAttractor = s; }
+    void setLastFile(const std::string &s) { lastAttractor = s; }
     std::string &getLastFile() { return lastAttractor; }
 
     std::string &get_glslVer() {return glslVersion; }
@@ -268,6 +269,9 @@ public:
     
     mainImGuiDlgClass &getMainDlg() { return mainImGuiDlg; }
 
+    std::vector<std::string> & getlistFilesSCA() { return listFilesSCA; }
+    void getDirList();
+
 
 protected:
 
@@ -282,6 +286,8 @@ protected:
 		std::string windowTitle;
 		std::string glslVersion;
         std::string glslDefines;
+
+        std::vector<std::string> listFilesSCA;
     
     
 private:

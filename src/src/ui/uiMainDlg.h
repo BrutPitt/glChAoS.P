@@ -51,7 +51,6 @@ class particlesBaseClass;
 bool loadAttractorFile(bool fileImport = false, const char *file = nullptr);
 void saveAttractorFile(bool fileExport = false);
 
-
 class baseDlgClass
 {
 public:
@@ -67,6 +66,7 @@ public:
     const char *getTitle() { return wndTitle.c_str(); }
 
     void rePosWndByMode(int x, int y);
+
 
 protected:
     bool isVisible;
@@ -156,7 +156,6 @@ private:
     //particlesDataClass billboard, pointsprite;
 };
 
-#if !defined(GLCHAOSP_LIGHTVER)
 class viewSettingDlgClass  : public baseDlgClass
 {
 public:
@@ -164,9 +163,10 @@ public:
 
     void view();
 
-
 private:
 };
+
+#if !defined(GLCHAOSP_LIGHTVER)
 
 class progSettingDlgClass  : public baseDlgClass
 {
@@ -224,6 +224,15 @@ public:
 private:
 };
 
+class fastViewDlgClass  : public baseDlgClass
+{
+public:
+    fastViewDlgClass() : baseDlgClass("ChaoticAttractors/") {}
+
+    void view();
+
+private:
+};
 
 class imGuIZMODlgClass  : public baseDlgClass
 {
@@ -271,7 +280,13 @@ public:
     void setFontSize(float f) { fontSize = f; }
     void setFontZoom(float f) { fontZoom = f; }
 
-    
+    fastViewDlgClass & getfastViewDlg() { return fastViewDlg; }
+
+#ifdef GLCHAOSP_LIGHTVER
+    bool getInvertSettings() { return invertSettings; }
+    void setInvertSettings(bool b) { invertSettings = b; }
+#endif
+
 private:
     ImVec4 guiThemeBaseColor = ImVec4(0.0f, 0.30f, 0.55f, 1.00f); //ImVec4(0.0f, 0.20f, 0.30f, 1.00f); //Solar; 
     int selectedGuiTheme = 0;
@@ -292,12 +307,15 @@ particlesDlgClass particlesDlg;
 imGuIZMODlgClass imGuIZMODlg;
 infoDlgClass infoDlg;
 psPaletteDlgClass psPaletteDlg;
+viewSettingDlgClass viewSettingDlg;
+fastViewDlgClass fastViewDlg;
 #if !defined(GLCHAOSP_LIGHTVER)
 dataDlgClass dataDlg;
-viewSettingDlgClass viewSettingDlg;
 progSettingDlgClass progSettingDlg;
 bbPaletteDlgClass bbPaletteDlg;
 particleEditDlgClass particleEditDlg;
+#else
+    bool invertSettings = false;
 #endif
 private:
 

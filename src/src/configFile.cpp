@@ -37,6 +37,7 @@
 #include <array>
 #include <vector>
 #include <ostream>
+#include <dirent.h>
                 
 #include "glApp.h"
 #include "glWindow.h"
@@ -301,6 +302,35 @@ void mainGLApp::saveAttractor(const char *name)
     dump_file(name, cfg, JSON);  
 }
 
+void mainGLApp::getDirList()
+{
+/*
+
+    std::string path = "ChaoticAttractors";
+    for (const auto & entry : std::filesystem::directory_iterator(path))
+        std::cout << entry.path().filename() << std::endl;
+*/
+
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir ("ChaoticAttractors")) != NULL) {
+        while ((ent = readdir (dir)) != NULL) {
+            const int len = strlen(ent->d_name);
+            if(len>4 && !strcmp(&ent->d_name[len-4], ".sca") 
+#ifdef __EMSCRIPTEN__
+               && strncmp(ent->d_name, "test", 4)
+#endif
+            ) {
+                getlistFilesSCA().push_back(ent->d_name);
+                //printf ("%s\n", ent->d_name);
+            }
+        }
+        closedir (dir);
+    } 
+
+}
+
+
 void mainGLApp::selectCaptureFolder() {        
 #if !defined(GLCHAOSP_LIGHTVER)
     const char *path = tinyfd_selectFolderDialog("Select folder...", getCapturePath().c_str());
@@ -461,18 +491,19 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
             pSys->getTMat()->getTrackball().setRotation(*((quat *)v.data()));
         }
     }
-#if !defined(GLCHAOSP_LIGHTVER)
-    {
-        auto &c = cfg["RenderMode0"];
-        particlesBaseClass *ptr = pSys->shaderBillboardClass::getPtr();
-        getRenderMode(c, ptr);
 
-    }
-#endif
     {
-        auto &c = cfg["RenderMode1"];
-        particlesBaseClass *ptr = pSys->shaderPointClass::getPtr();
-        getRenderMode(c,ptr);
+#if !defined(GLCHAOSP_LIGHTVER)
+        auto &c0 = cfg["RenderMode0"];
+        particlesBaseClass *ptr0 = pSys->shaderBillboardClass::getPtr();
+        getRenderMode(c0, ptr0);
+
+        auto &c1 = cfg["RenderMode1"];
+#else
+        auto &c1 = cfg[!theDlg.getInvertSettings() ? "RenderMode1" : "RenderMode0"];
+#endif
+        particlesBaseClass *ptr1 = pSys->shaderPointClass::getPtr();
+        getRenderMode(c1,ptr1);
 
     }
 

@@ -36,19 +36,12 @@
 #ifndef PARTICLES_UTILS_H
 #define PARTICLES_UTILS_H
 
-#ifdef __EMSCRIPTEN__
-    #include <emscripten.h>
-    #include <emscripten/html5.h>
-    #include <GLES3/gl3.h>
-#else
-#include <glad/glad.h>
-#endif
-
 #include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/ext/scalar_constants.hpp>
 
+#include "appDefines.h"
 #include "glslProgramObject.h"
 #include "glslShaderObject.h"
 
@@ -255,18 +248,25 @@ public:
 
     void build(int shift, const vec4 &v, int t)
     {
-        texSize = baseSize << shift; hermiteVals = v; dotType = t;
+#if !defined(GLCHAOSP_LIGHTVER)
         shiftBaseSize = shift;
+#else
+        shiftBaseSize = DOT_TEXT_SHFT;
+#endif
+        texSize = baseSize << shiftBaseSize; hermiteVals = v; dotType = t;
         build();
     }
 
     void rebuild(int shift, const vec4 &v, int t)
     {
+#if !defined(GLCHAOSP_LIGHTVER)
         if(generated) {
             glDeleteTextures(1, &texID);
             generated = false;
         }
+#endif
         build(shift, v, t);
+
     }
 
 

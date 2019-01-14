@@ -722,8 +722,6 @@ public:
 
     void additionalDataCtrls();
 
-    void saveVals(const char *name);
-    void loadVals(const char *name);
     
 
     //  SetOrder
@@ -1445,10 +1443,6 @@ public:
     const vec3 fullPermutated(const vec3 &vx, int i);
     const vec3 tryed(const vec3 &vx, int i);
 
-    //  Load/Save funcs
-    ///////////////////////////////////////
-    void saveVals(const char *name);
-    void loadVals(const char *name);
     
     //  Additional save vals
     ///////////////////////////////////////

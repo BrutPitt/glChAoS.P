@@ -245,6 +245,9 @@ int Magnetic::additionalDataDlg()
 
 }
 
+bool colCheckButton(bool b, const char *s, const float sz);
+
+
 void attractorDlgClass::view() 
 {
     if(!visible()) return;
@@ -255,9 +258,10 @@ void attractorDlgClass::view()
     //const float oldWindowPadding = style.WindowPadding.x;
     const int szX = 600, szY = 270;    
     ImGui::SetNextWindowSize(ImVec2(szX, szY), ImGuiCond_FirstUseEver);
-    int w,h;
-    glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
-    ImGui::SetNextWindowPos(ImVec2(w-szX, h-szY), ImGuiCond_FirstUseEver);
+    {
+        int w,h; glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
+        ImGui::SetNextWindowPos(ImVec2(w-szX, h-szY), ImGuiCond_FirstUseEver);
+    }
     if(ImGui::Begin(getTitle(), &isVisible)) {
 
         ImGui::Columns(2);
@@ -269,9 +273,9 @@ void attractorDlgClass::view()
         ImGui::BeginGroup(); 
             const float wGrp = ImGui::GetContentRegionAvailWidth();
 #if !defined(GLCHAOSP_LIGHTVER)
-    const int sizeLeft = (ImGui::GetFrameHeightWithSpacing()*4+border*5);
+    const int sizeLeft = (ImGui::GetFrameHeightWithSpacing()*3+border*6);
 #else
-    const int sizeLeft = 0;
+    const int sizeLeft = ImGui::GetFrameHeightWithSpacing()+border;
 #endif
             ImGui::BeginChild("List", ImVec2(wGrp,-sizeLeft));            
 
@@ -285,22 +289,31 @@ void attractorDlgClass::view()
 
             ImGui::EndChild();           
 
-#if !defined(GLCHAOSP_LIGHTVER)
             ImGui::BeginChild("load_save",ImVec2(wGrp,0)); {
-                const float w = ImGui::GetContentRegionAvailWidth();
+               
+#if !defined(GLCHAOSP_LIGHTVER)
+                const float butt = wGrp * .5 - 1;
                 //ImGui::PushItemWidth(w);
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY()+border);
-                if(ImGui::Button(ICON_FA_FOLDER_OPEN_O " Import",ImVec2(w,0))) { loadAttractorFile(true); }
-                if(ImGui::Button(ICON_FA_FLOPPY_O " Export" ,ImVec2(w,0))) { saveAttractorFile(true); }
+                if(ImGui::Button(ICON_FA_LEVEL_DOWN " Imprt",ImVec2(butt,0))) { loadAttractorFile(true); }
+                ImGui::SameLine();
+                if(ImGui::Button( "Exprt " ICON_FA_LEVEL_UP,ImVec2(butt,0))) { saveAttractorFile(true); }
                 
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+border*3);
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+border*2);
 
-                if(ImGui::Button(ICON_FA_FOLDER_OPEN_O "  Load ",ImVec2(w,0))) { loadAttractorFile(); }
-                if(ImGui::Button(ICON_FA_FLOPPY_O "  Save " ,ImVec2(w,0))) { saveAttractorFile(); }
+                if(ImGui::Button(ICON_FA_FOLDER_OPEN_O " Load ", ImVec2(butt,0))) { loadAttractorFile(); }
+                ImGui::SameLine();
+                if(ImGui::Button( " Save " ICON_FA_FLOPPY_O, ImVec2(butt,0))) { saveAttractorFile(); }
+
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+border*2);
+#endif
+                const bool b = theDlg.getfastViewDlg().visible();
+                if(colCheckButton(b, b ? ICON_FA_CHECK " QuickView Dir"  : "   QuickView Dir", wGrp)) 
+                    { theDlg.getfastViewDlg().visible(b^1); }
+
                 //ImGui::PopItemWidth();
 
             } ImGui::EndChild();
-#endif
 
             //style.WindowPadding.x = oldWindowPadding;
 

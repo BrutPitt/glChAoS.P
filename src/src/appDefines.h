@@ -48,11 +48,18 @@
 
 //#define GLAPP_IMGUI_VIEWPORT
 
+#ifdef __EMSCRIPTEN__
+    #define DOT_TEXT_SHFT 1
+#else
+    #define DOT_TEXT_SHFT 2
+#endif
+
+//#define GLCHAOSP_USE_QUICKVIEW
 //#define GLCHAOSP_LIGHTVER
 
 #ifdef GLCHAOSP_LIGHTVER
     #define GLCHAOSP_NO_FXAA
-    #define GLCHAOSP_NO_DeL
+    //#define GLCHAOSP_NO_DeL
     //#define GLCHAOSP_USE_LOWPRECISION
 #endif
 

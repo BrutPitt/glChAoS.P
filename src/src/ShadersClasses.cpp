@@ -41,6 +41,10 @@
 #include "ParticlesUtils.h"
 
 
+//
+//  imgTuning
+//
+////////////////////////////////////////////////////////////////////////////////
 imgTuningClass::imgTuningClass(dataBlurClass *ptrGlow) {
     glow = ptrGlow;
     videoControls.x = 2.3; //setGamma(2.5);
@@ -62,11 +66,10 @@ dataBlurClass::dataBlurClass()
 
 }
 
-/////////////////////////////////////////
 //
-// PointSprite
+// PointSprite 
 //
-/////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 shaderPointClass::shaderPointClass() 
 { 
     setSize(6.f, 0.001);
@@ -123,8 +126,10 @@ void shaderPointClass::initShader()
 
 }
 
-const GLfloat black[] = {0.f, 0.f, 0.f, 1.f};
-const GLfloat white[] = {1.f, 1.f, 1.f, 1.f};
+//
+//  particlesBase 
+//
+////////////////////////////////////////////////////////////////////////////////
 void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
 
     bindPipeline();
@@ -136,9 +141,9 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
 
     if(depthBuffActive) {
         glEnable(GL_DEPTH_TEST);
-#if !defined(GLCHAOSP_LIGHTVER)
         glDepthFunc( GL_LESS );
         glDepthMask(GL_TRUE);
+#if !defined(GLCHAOSP_LIGHTVER)
         glDepthRange(-1.0, 1.0);
 #endif
         //glClearDepth(1.0f);
@@ -150,15 +155,15 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
 #if !defined(GLCHAOSP_LIGHTVER)
     if(showAxes() == noShowAxes) glClearBufferfv(GL_COLOR, 0, glm::value_ptr(glm::vec4(0.0f)));
     if(blendActive || showAxes()) {
+#else
+    getUData().lightActive = lightStateIDX; 
+    glClearBufferfv(GL_COLOR, 0, glm::value_ptr(glm::vec4(0.0f)));
+    if(blendActive) {
+#endif
         glEnable(GL_BLEND);
         //glBlendFuncSeparate(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA,GL_ZERO,GL_ONE_MINUS_SRC_ALPHA);
         glBlendFunc(getSrcBlend(), getDstBlend());
     }
-#else
-    glClearBufferfv(GL_COLOR, 0, glm::value_ptr(glm::vec4(0.0f)));
-    glEnable(GL_BLEND);
-    glBlendFunc(getSrcBlend(), getDstBlend());
-#endif
 
     //getUData().velocity = getCMSettings()->getVelIntensity();
     if(checkFlagUpdate()) updateCommonUniforms();
@@ -215,13 +220,11 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
 }
 
 #if !defined(GLCHAOSP_LIGHTVER)
-/////////////////////////////////////////
-//
-// Billboard
-//
-/////////////////////////////////////////
 
-
+//
+//  Billboard
+//
+////////////////////////////////////////////////////////////////////////////////
 shaderBillboardClass::shaderBillboardClass() 
 { 
     setSize(4., 0.0001);
@@ -276,7 +279,10 @@ void shaderBillboardClass::initShader()
 }
 
 
-
+//
+//  mergedRendering
+//
+////////////////////////////////////////////////////////////////////////////////
 GLuint mergedRenderingClass::render(GLuint texA, GLuint texB) 
 {
 
@@ -338,6 +344,10 @@ void mergedRenderingClass::create()
 
 }
 
+//
+//  motionBlur
+//
+////////////////////////////////////////////////////////////////////////////////
 void motionBlurClass::create() 
 {
     useVertex();
@@ -403,6 +413,11 @@ GLuint motionBlurClass::render(GLuint renderedTex)
 
 }
 
+
+//
+//  transformedEmitter
+//
+////////////////////////////////////////////////////////////////////////////////
 bool transformFeedbackInterleaved::FeedbackActive = false;
 
 void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
@@ -460,16 +475,12 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
 
 #endif
 
-/////////////////////////////////////////
 //
 // RenderBase
 //
-/////////////////////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////
 renderBaseClass::renderBaseClass()
 {
-    //particlesToDraw = (GLsizeiptr) 50000000L;
-    //maxParticles = (GLsizeiptr) PARTICLES_MAX;
 
 #define PB(ID,NAME) blendArray.push_back(ID); blendingStrings.push_back(NAME);
     PB(GL_ZERO                     ,"Zero"                    )
@@ -499,8 +510,9 @@ renderBaseClass::renderBaseClass()
 
 
 
-#if !defined(GLCHAOSP_LIGHTVER)
     renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true);
+
+#if !defined(GLCHAOSP_LIGHTVER)
     //msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true, 4);
 
     axes = new oglAxes;
@@ -513,9 +525,6 @@ renderBaseClass::renderBaseClass()
 
     motionBlur = new motionBlurClass(this);
     mergedRendering = new mergedRenderingClass(this);
-#else 
-    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true);
-//    msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true, 4);
 #endif
 
 }
@@ -540,12 +549,10 @@ void renderBaseClass::setRenderMode(int which)
 
 VertexShader* commonVShader = nullptr;
 
-/////////////////////////////////////////
 //
-// BlurBase (Glow)
+//  BlurBase (Glow)
 //
-/////////////////////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////
 void BlurBaseClass::create()    {
 
 
@@ -619,12 +626,12 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
 }
 
 
-
-
+//
+//  colorMapTextured
+//
+////////////////////////////////////////////////////////////////////////////////
 void colorMapTexturedClass::create()
 {
-
-
     useVertex(commonVShader);
     useFragment();
 
@@ -638,9 +645,14 @@ void colorMapTexturedClass::create()
     link();
     deleteAll();
 
+#ifdef GLAPP_REQUIRE_OGL45
+    uniformBlocksClass::create(GLuint(sizeof(uCMapData)), (void *) &uData);
+#else
+    uniformBlocksClass::create(GLuint(sizeof(uCMapData)), (void *) &uData, getProgram(), "_cmData");
+
+#endif
+
     LOCpaletteTex = getUniformLocation("paletteTex");
-    LOCvData      = getUniformLocation("vData");
-    LOChslData    = getUniformLocation("hslData");
 
 
 
@@ -667,8 +679,7 @@ void colorMapTexturedClass::render(int tex)
 
     glUniform1i(LOCpaletteTex, particles->getPaletteTexID());
 #endif
-    updateVelData();
-    updateHslData();
+    updateBufferData();
 
     clearFlagUpdate();
 
@@ -680,6 +691,10 @@ void colorMapTexturedClass::render(int tex)
 }
 
 #if !defined(GLCHAOSP_NO_FXAA)
+//
+//  fxaa
+//
+////////////////////////////////////////////////////////////////////////////////
 void fxaaClass::create() {
     useVertex();
     useFragment();

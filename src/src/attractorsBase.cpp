@@ -216,14 +216,18 @@ void AttractorBase::searchLyapunov()
             //if(!(i%1000)) cout << "i: " <<  i << " - LExp: " << lyapunov/nL << " - L: " <<  nL << endl;
 
             if( i>1500 && nL> 1350 && ((lyapunov)/nL < 1.0 && lyapunov/nL > 0.015)) {
+#if !defined(NDEBUG)
                 cout << "berak: " << lyapunov/nL << " - L: " <<  nL << " - i: " <<  i << endl;
+#endif
                 canExit = true;
                 break;
             }
         }
         //lyapunov/=nL;
         //cout << "LyapExp: " << lyapunov << endl;
+#if !defined(NDEBUG)
          cout << counted << " - " << maxIter - iter << endl;
+#endif
     } while(!canExit && iter-->0);
 }
 
@@ -947,6 +951,9 @@ void AttractorsClass::newSelection(int i) {
     selection(i);
     theApp->getMainDlg().getParticlesDlgClass().resetTreeParticlesFlags();
     theApp->loadAttractor(getFileName().c_str());
+#ifdef GLCHAOSP_LIGHTVER
+    theApp->setLastFile(getFileName()); //to reload invert settings
+#endif
     getThreadStep()->restartEmitter();
     get()->initStep();
     getThreadStep()->startThread();

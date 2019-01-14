@@ -33,47 +33,50 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
+//layout (depth_less) out float gl_FragDepth;
 
-// #include ParticlesFrag.glsl
+out vec4 color;
+uniform vec3 zoomF;
+
 
 #ifdef GL_ES
-    #define SUBROUTINE(X) 
+in vec4 vsColor;
+in vec3 vsNormal;
+in vec3 vsWorldPos;
+in vec3 vsPos;
 #else
-    subroutine vec4 _pixelColor();
-    subroutine uniform _pixelColor pixelColor;
-    #define SUBROUTINE(X) subroutine(X)
+in vsOut {
+    vec4 vsColor;
+    vec3 vsNormal;
+    vec3 vsWorldPos;
+    vec3 vsPos;
+};
 #endif
 
-out vec4 outColor;
+const float ambientInt   = 0.3;
+const float specularInt  = 0.5; // vec4(1.0, 1.0, 1.0, 1.0);\n"
+const float shininessExp = 10.f;
+vec3 light_position = vec3(10.0f, 10.0f, 5.0f);
+float far = 10.0;
+float near = .0001;
 
-LAYUOT_INDEX(1) SUBROUTINE(_pixelColor) vec4 pixelColorLight()
+float LinearizeDepth(float depth) 
 {
-
-    return getLightedColor(gl_PointCoord);
-
+    float z = -depth * 2.0 - (far - near);                          // back to NDC -depth/(far - near) * 2.0 - 1.0
+    return (2.0 * near * far) / ((far + near) - z * (far - near));	
 }
-
-LAYUOT_INDEX(0) SUBROUTINE(_pixelColor)  vec4 pixelColorOnly()
-{
-
-    return getColorOnly(gl_PointCoord);
-
-}
-
-
 
 void main()
 {
+ 
+    vec3 lightDir = normalize(light_position + vsWorldPos);
+    vec3 halfVec = normalize(lightDir + normalize(vsWorldPos));
+    float diffuse = max(0.0, dot(vsNormal, lightDir));
+    float specular = pow(max(0.0, dot(vsNormal, halfVec)), shininessExp);
+    
+    // draw in [-1, 1] 
+    gl_FragDepth = LinearizeDepth(vsPos.z);
 
-    //gl_FragDepth = -posEye.z*u.zFar;
-    //gl_FragDepth = (u.zNear - u.zFar/posEye.z);
-    //outColor = vec4(vec3((1.0+gl_FragDepth)*.5), 1.0);
+    color = vsColor * ambientInt + vsColor * diffuse + vec4(specular * specularInt) /*- distAtten*/;
 
-    gl_FragDepth = LinearizeDepth(posEye.z, u.zNear, u.zFar);
-
-#ifdef GL_ES
-    outColor = u.lightActive ? pixelColorLight() : pixelColorOnly();
-#else
-    outColor = pixelColor();
-#endif
-}
+} 

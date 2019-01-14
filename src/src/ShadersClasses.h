@@ -51,12 +51,6 @@
 
 #define PURE_VIRTUAL 0
 
-#if !defined(GLCHAOSP_USE_LOWPRECISION)
-    #define DOT_TEXT_SHFT  2
-#else
-    #define DOT_TEXT_SHFT 0
-#endif
-
 #include "mmFBO.h"
 
 using namespace glm;
@@ -116,57 +110,13 @@ struct uTuningData {
     GLfloat sigma;
 
 };
-
-class uTuningDataClass {
-#define SZ sizeof(uTuningData)
-public:
-
-    uParticlesDataClass() {
-		GLint uBufferMinSize(0);
-		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uBufferMinSize);
-		uBlockSize = (GLint(SZ*3)/ uBufferMinSize) * uBufferMinSize + uBufferMinSize;
-
-        glCreateBuffers(1, &uBuffer);
-#ifdef USE_PTR_MAPPED
-        glNamedBufferStorage(uBuffer,  uBlockSize, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT ); // GL_MAP_COHERENT_BIT
-        ptrBuff = static_cast<glm::uint8*>(glMapNamedBufferRange(uBuffer, 0, uBlockSize, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT //| GL_MAP_INVALIDATE_BUFFER_BIT)); // | GL_MAP_COHERENT_BIT 
-#else
-        glNamedBufferStorage(uBuffer,  uBlockSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferSubData(uBuffer, 0, SZ, &uData); 
-#endif
-    }
-    ~uParticlesDataClass() {
-        glUnmapNamedBuffer(uBuffer);
-        glDeleteBuffers(1, &uBuffer);
-    }
-
-#ifdef USE_PTR_MAPPED
-    void updateBufferData() {
-        memcpy(ptrBuff, &uData, SZ);
-        glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
-        glBindBufferBase(GL_UNIFORM_BUFFER, bind::index, uBuffer);
-    }
-#else
-    void updateBufferData() {
-        glNamedBufferSubData(uBuffer, 0, SZ, &uData); 
-        glBindBufferBase(GL_UNIFORM_BUFFER, bind::index, uBuffer);
-    }
-#endif
-
-    bool isOn = false;
-    GLuint uBuffer, uBlockSize;
-
-    uParticlesData &getUData() { return uData; }
-
-private:
-    uParticlesData uData;
-    glm::uint8* ptrBuff;
-    enum bind { index=2 };
-#undef SZ
-};
-
 */
 
+
+//
+//  imgTuning
+//
+////////////////////////////////////////////////////////////////////////////////
 class imgTuningClass
 {
 
@@ -221,6 +171,10 @@ friend BlurBaseClass;
 };
 
 
+//
+//  dataBlur
+//
+////////////////////////////////////////////////////////////////////////////////
 class dataBlurClass 
 {
 public:
@@ -295,13 +249,16 @@ inline void imgTuningClass::setTextComponent(GLfloat v) { texControls.y = v; glo
 inline void imgTuningClass::setMixBilateral(GLfloat v) { texControls.w = v; glow->setFlagUpdate(); }
 
 
-
+//
+//  blurBase
+//
+////////////////////////////////////////////////////////////////////////////////
 class BlurBaseClass : public mainProgramObj, public uniformBlocksClass, public virtual dataBlurClass
 {
 struct uBlurData {
     vec4 sigma;             // align 0
     GLfloat threshold;
-    GLboolean toneMapping;
+    GLuint toneMapping;     //bool, but need to align 4 byte
     vec2 toneMapVals;       // align 16+2N 24
 
     vec4 texControls;       // align 32
@@ -366,6 +323,10 @@ class motionBlurClass;
 class mergedRenderingClass;
 #endif
 
+//
+//  renderBase
+//
+////////////////////////////////////////////////////////////////////////////////
 class renderBaseClass
 {
 public:
@@ -440,6 +401,10 @@ protected:
 private:
 };
 
+//
+//  radialBlur
+//
+////////////////////////////////////////////////////////////////////////////////
 class radialBlurClass : public BlurBaseClass
 {
 public:
@@ -474,6 +439,10 @@ public:
 
 #if !defined(GLCHAOSP_NO_FXAA)
 
+//
+//  fxaa
+//
+////////////////////////////////////////////////////////////////////////////////
 class fxaaClass : public mainProgramObj
 {
 public:
@@ -532,11 +501,10 @@ private:
 
 #if !defined(GLCHAOSP_LIGHTVER)
 
-/////////////////////////////////////////
 //
-// Motion Blur
+//  motionBlur
 //
-/////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 class motionBlurClass : public mainProgramObj
 {
 public:
@@ -598,6 +566,10 @@ private:
 };
 
 
+//
+// mergedRendering
+//
+////////////////////////////////////////////////////////////////////////////////
 class mergedRenderingClass : public mainProgramObj
 {
 public:
@@ -613,13 +585,11 @@ public:
 
     void Activate()   { 
         renderEngine->getRenderFBO().reBuildFBO(2,renderEngine->getWidth(),renderEngine->getHeight(), true);
-        //renderEngine->getGlowRender()->getFBO().reBuildFBO(3,renderEngine->getWidth(),renderEngine->getHeight());
         mergedFBO.reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight()); 
         renderEngine->setFlagUpdate();
     }
     void Deactivate() { 
         renderEngine->getRenderFBO().reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), true);
-        //renderEngine->getGlowRender()->getFBO().reBuildFBO(2,renderEngine->getWidth(),renderEngine->getHeight());
         mergedFBO.deleteFBO(); 
         renderEngine->setFlagUpdate();
     }
@@ -653,8 +623,20 @@ private:
 
 class particlesDlgClass;
 
-class colorMapTexturedClass : public mainProgramObj
+//
+// colorMapTextured
+//
+////////////////////////////////////////////////////////////////////////////////
+class colorMapTexturedClass : public mainProgramObj, public uniformBlocksClass
 {
+struct uCMapData {
+    vec3 hslData;
+    GLfloat offsetPoint = 0.f;
+    GLfloat palRange = 1.f;
+    GLuint clamp = false;     //bool, but need to align 4 byte
+    GLuint reverse = false;   //bool
+} uData;
+
 public:
     enum {
         ORIG_TEXTURE ,
@@ -664,9 +646,6 @@ public:
     colorMapTexturedClass(particlesBaseClass *p) {
         particles = p;
         flagUpdate = true;
-        offsetPoint=0.f;
-        palRange=1.f;
-        reverse = clamp = 0;
 
         //cmTex.buildMultiDrawFBO(1,256,1);
         cmTex.buildFBO(1,256,2);
@@ -676,41 +655,38 @@ public:
 
     void create();
 
-    void render(int tex=0);
+    uCMapData &getUData() { return uData; }
 
-    void updateVelData() { setUniform4fv(LOCvData, 1, glm::value_ptr(vec4(0.f, offsetPoint, palRange, (float)reverse)));  }
-    void updateHslData() { setUniform4fv(LOChslData, 1, glm::value_ptr(vec4(vec3(hslData.x*.5f,hslData.y,hslData.z),(float)clamp))); }
+
+    void render(int tex=0);
 
     GLuint getOrigTex();
     GLuint getModfTex() { return cmTex.getTex(0); }
 
-    float getOffsetPoint() { return offsetPoint; }
-    float getRange() { return palRange; }
-    void setOffsetPoint(float f)  { offsetPoint = f;  setFlagUpdate(); }
-    void setRange(float f)   { palRange = f;   setFlagUpdate(); }
+    float getOffsetPoint() { return getUData().offsetPoint; }
+    float getRange() { return getUData().palRange; }
+    void setOffsetPoint(float f)  { getUData().offsetPoint = f;  setFlagUpdate(); }
+    void setRange(float f)   { getUData().palRange = f;   setFlagUpdate(); }
 
 
-    bool getReverse() { return reverse; }
-    void setReverse(bool b) { reverse = b; setFlagUpdate(); }
+    bool getReverse() { return getUData().reverse; }
+    void setReverse(bool b) { getUData().reverse = b; setFlagUpdate(); }
 
-    bool getClamp() { return clamp; }
-    void setClamp(bool b) { clamp = b;  setFlagUpdate(); }
+    bool getClamp() { return getUData().clamp; }
+    void setClamp(bool b) { getUData().clamp = b;  setFlagUpdate(); }
 
-    float getH() { return hslData.x; }
-    float getS() { return hslData.y; }
-    float getL() { return hslData.z; }
-    void setH(float f) { hslData.x = f;   setFlagUpdate(); }
-    void setS(float f) { hslData.y = f;   setFlagUpdate(); }
-    void setL(float f) { hslData.z = f;   setFlagUpdate(); }
+    float getH() { return getUData().hslData.x; }
+    float getS() { return getUData().hslData.y; }
+    float getL() { return getUData().hslData.z; }
+    void setH(float f) { getUData().hslData.x = f;   setFlagUpdate(); }
+    void setS(float f) { getUData().hslData.y = f;   setFlagUpdate(); }
+    void setL(float f) { getUData().hslData.z = f;   setFlagUpdate(); }
 
     bool checkFlagUpdate() { return flagUpdate; }
     void setFlagUpdate()   { flagUpdate = true; }
     void clearFlagUpdate() { flagUpdate = false; }
 
     mmFBO &getFBO() { return cmTex; }
-
-protected:
-    vec3 hslData = vec3(0.0f);
 
 private:
     
@@ -719,13 +695,12 @@ private:
     mmFBO cmTex;
     bool flagUpdate;
 
-    GLuint LOCvData, LOChslData;
-    GLuint LOCreverse;
-
-    float offsetPoint, palRange; 
-    bool reverse, clamp;
 };
 
+//
+// ColorMapSettings
+//
+////////////////////////////////////////////////////////////////////////////////
 class ColorMapSettingsClass : public paletteTexClass, public colorMapTexturedClass
 {
 public:
@@ -751,6 +726,10 @@ private:
 };
 
 
+//
+// ParticlesBase
+//
+////////////////////////////////////////////////////////////////////////////////
 class particlesBaseClass : public mainProgramObj, public uniformBlocksClass, public virtual renderBaseClass 
 {
 protected:
@@ -774,6 +753,7 @@ struct uParticlesData {
     GLfloat zNear;
     GLfloat zFar;
     GLfloat velocity;
+    GLuint lightActive;
 } uData;
 
 
@@ -930,12 +910,11 @@ inline void dataBlurClass::clearFlagUpdate() { renderEngine->clearFlagUpdate(); 
 inline void dataBlurClass::flagUpdate(bool b) { b ? renderEngine->setFlagUpdate() : renderEngine->clearFlagUpdate(); }
 
 class emitterBaseClass;
-/////////////////////////////////////////
+
 //
 // PointSprite
 //
-/////////////////////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////
 class shaderPointClass : public particlesBaseClass 
 {
 public:
@@ -949,12 +928,10 @@ private:
 
 #if !defined(GLCHAOSP_LIGHTVER)
 
-/////////////////////////////////////////
 //
 // Billboard
 //
-/////////////////////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////
 class shaderBillboardClass : public particlesBaseClass 
 {
 public:

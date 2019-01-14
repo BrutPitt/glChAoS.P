@@ -265,6 +265,10 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
       <BrowseInformation>false</BrowseInformation>
+      <LanguageStandard>
+      </LanguageStandard>
+      <EnableModules>
+      </EnableModules>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -287,6 +291,10 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
       <BrowseInformation>false</BrowseInformation>
+      <LanguageStandard>
+      </LanguageStandard>
+      <EnableModules>
+      </EnableModules>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -310,6 +318,10 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
       <BrowseInformation>false</BrowseInformation>
+      <LanguageStandard>
+      </LanguageStandard>
+      <EnableModules>
+      </EnableModules>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -335,6 +347,8 @@
       <FloatingPointModel>Precise</FloatingPointModel>
       <FloatingPointExceptions>
       </FloatingPointExceptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <EnableModules>true</EnableModules>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -399,6 +413,10 @@
       <DebugInformationFormat>None</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
       <BrowseInformation>false</BrowseInformation>
+      <LanguageStandard>
+      </LanguageStandard>
+      <EnableModules>
+      </EnableModules>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -426,6 +444,10 @@
       <DebugInformationFormat>None</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
       <BrowseInformation>false</BrowseInformation>
+      <LanguageStandard>
+      </LanguageStandard>
+      <EnableModules>
+      </EnableModules>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -454,6 +476,10 @@
       <DebugInformationFormat>None</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
       <BrowseInformation>false</BrowseInformation>
+      <LanguageStandard>
+      </LanguageStandard>
+      <EnableModules>
+      </EnableModules>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>

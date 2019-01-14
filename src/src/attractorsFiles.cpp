@@ -71,9 +71,10 @@ bool loadObjFile()
 
         ifs >> pt.x >> pt.y >> pt.z >>  col.r >> col.g >> col.b;
 
+#if !defined(NDEBUG)
         if(!(i%100000))
             cout << i << endl;
-
+#endif
         *ptr++ = pt.x;
         *ptr++ = pt.y;
         *ptr++ = pt.z;
@@ -204,7 +205,6 @@ void attractorScalarK::loadKVals(Config &cfg)
 {
     kVal.clear();
     for (const Config& e : cfg["kData"].as_array()) kVal.push_back(e.as_float());
-    std::cout << kVal.size() << endl;
 }
 
 void attractorScalarK::saveKVals(Config &cfg) 
@@ -277,45 +277,6 @@ void PowerN3D::loadAdditionalData(Config &cfg)
 */
 }
 
-void PowerN3D::saveVals(const char *name) 
-{
-    ofstream ofs(name);
-    ofs.precision(15);
-
-    const int nMagnets = kVal.size();
-
-    ofs << order << endl;
-    ofs << nMagnets << endl;
-
-    ofs <<  vVal[0].x << " " << vVal[0].y << " " << vVal[0].z << endl;
-        
-    for(int i=0; i<nMagnets; i++) {
-        ofs <<  kVal[i].x << " " << kVal[i].y << " " << kVal[i].z << endl;
-    }
-    cout << endl;
-}
-void PowerN3D::loadVals(const char *name) 
-{
-    ifstream ifs(name);
-    ifs.precision(15);
-        
-    ifs >> order;
-    //nCoeff = getNumCoeff();
-    ifs >> nCoeff;
-
-    resetData();
-    resetQueue();
-
-
-    ifs >>  vVal[0].x >> vVal[0].y >> vVal[0].z;
-        
-    for(int i=0; i<nCoeff; i++) {
-        ifs >>  kVal[i].x >> kVal[i].y >> kVal[i].z;
-    }  
-
-    
-}
-
 
 void attractorDtType::saveAdditionalData(Config &cfg)
 {
@@ -346,46 +307,6 @@ void Magnetic::loadAdditionalData(Config &cfg)
 
 void loadAdditionalData(Config &cfg) {};
 
-void Magnetic::saveVals(const char *name) 
-{
-    ofstream ofs(name);
-    ofs.precision(15);
-
-    const int nMagnets = vVal.size();
-
-    ofs << nMagnets << endl;
-        
-    for(int i=0; i<nMagnets; i++) {
-        ofs <<  kVal[i].x << " " << kVal[i].y << " " << kVal[i].z << endl;
-        ofs <<  vVal[i].x << " " << vVal[i].y << " " << vVal[i].z << endl;
-    }
-    cout << endl;
-}
-
-
-void Magnetic::loadVals(const char *name) 
-{  
-    //string line;         
-
-    ifstream ifs(name);
-    ifs.precision(15);
-        
-    int nMagnets;;
-    ifs >> nMagnets;
-
-    resetQueue();
-    //ResizeVectors();        
-    kVal.resize(nMagnets);
-    vVal.resize(nMagnets);       
-
-        
-    for(int i=0; i<nMagnets; i++) {
-        ifs >>  kVal[i].x >> kVal[i].y >> kVal[i].z;
-        ifs >>  vVal[i].x >> vVal[i].y >> vVal[i].z;
-    }  
-
-    
-}
 
 //  Attractor Continer Class
 ////////////////////////////////////////////////////////////////////////////

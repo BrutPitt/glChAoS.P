@@ -83,9 +83,9 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
             case GLFW_KEY_F2 : theDlg.attractorDlg.toggleVisible();   break;
             case GLFW_KEY_F3 : theDlg.particlesDlg.toggleVisible();   break;
             case GLFW_KEY_F4 : theDlg.imGuIZMODlg.toggleVisible();    break;
-            case GLFW_KEY_F5 : theDlg.infoDlg.toggleVisible();        break;
+            case GLFW_KEY_F5 : theDlg.viewSettingDlg.toggleVisible(); break;
+            case GLFW_KEY_F6 : theDlg.infoDlg.toggleVisible();        break;
 #if !defined(GLCHAOSP_LIGHTVER)
-            case GLFW_KEY_F6 : theDlg.viewSettingDlg.toggleVisible(); break;
             case GLFW_KEY_F7 : theDlg.dataDlg.toggleVisible();        break;
             case GLFW_KEY_F8 : theDlg.progSettingDlg.toggleVisible(); break;
 #endif
@@ -433,6 +433,7 @@ mainGLApp::mainGLApp()
     mainGLApp::theMainApp = this;
     glEngineWnd = new glWindow; 
     screenShotRequest = false;
+    getDirList();
 
 }
 
@@ -535,6 +536,7 @@ int main(int argc, char **argv)
     
 //Initialize class e self pointer
     theApp = new mainGLApp; 
+
 
 #ifdef GLCHAOSP_LIGHTVER
     if(argc>1 && argc<=3) {        

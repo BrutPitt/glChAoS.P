@@ -402,6 +402,7 @@ void mmFBO::buildFBO(int num, int sizeX, int sizeY, bool zBuff, int AA, GLuint p
 
 void mmFBO::CheckFramebufferStatus(GLenum status)
 {
+#if !defined(NDEBUG)
     switch(status) {
         case GL_FRAMEBUFFER_COMPLETE:
             break;
@@ -429,5 +430,5 @@ void mmFBO::CheckFramebufferStatus(GLenum status)
             fprintf(stderr, "Framebuffer Not Complete, error %x\n", status);
 			break;
     }
+#endif
 }
-

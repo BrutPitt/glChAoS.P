@@ -67,6 +67,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float zNear;
     float zFar;
     float velIntensity;
+    bool lightActive;
 } u;
 
 LAYUOT_BINDING(4) uniform _tMat { //shared?

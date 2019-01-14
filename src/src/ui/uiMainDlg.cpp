@@ -271,7 +271,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 #if !defined(GLCHAOSP_LIGHTVER)
             const int numItems = 7;
 #else
-            const int numItems = 6;
+            const int numItems = 7;
 #endif
 
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
@@ -303,10 +303,13 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 //////////Linea 3//////////        
                 //ImGui::SetCursorPosX(INDENT(posA));
                 //ImGui::TextDisabled("PointSize"); //ImGui::SameLine(posB3);
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_DeL)
                 //////////Linea 4//////////       
+#if !defined(GLCHAOSP_LIGHTVER)
                 const float sz = wButt3-(ImGui::GetFrameHeightWithSpacing()+border)*.3333;
-
+#else
+                const float sz = wButt3;
+#endif
                 {
                     char txt[32];
                     ImGui::SetCursorPosX(posA);
@@ -329,12 +332,14 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                         if(colCheckButton(b , txt, sz)) particles->setLightState(b^1);
                     }
 
+#if !defined(GLCHAOSP_LIGHTVER)
                     ImGui::SameLine();
                     {
                         bool b = theDlg.particleEditDlg.visible();
                         sprintf(txt, b ? ICON_FA_CIRCLE "%s" : ICON_FA_CIRCLE "%s", buildID(base, idA++, id)); 
                         if(colCheckButton(b , txt, ImGui::GetFrameHeightWithSpacing())) theDlg.particleEditDlg.visible(b^1);
                     }
+#endif
                 }
 
 
@@ -429,7 +434,8 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     bool b = cmSet->getReverse();
                     char s[32];
                     sprintf(s,"%s%s", "Invert", buildID(base, idA++, id));
-                    if(ImGui::Checkbox(s, &b)) cmSet->setReverse(b);
+                    if(ImGui::Checkbox(s, &b)) 
+                        cmSet->setReverse(b);
                 }
 
                 //////////Linea 2 //////////
@@ -523,7 +529,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PopStyleVar();
         }
     }
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_DeL)
     // Light settings
     ////////////////////////////////////
     {
@@ -981,7 +987,7 @@ void particlesDlgClass::view()
 #if !defined(GLCHAOSP_LIGHTVER)
     const int wSZ = 300, hSZ = 900;
 #else
-    const int wSZ = 270, hSZ = 680;
+    const int wSZ = 270, hSZ = 800;
 #endif
 
     
@@ -1051,6 +1057,7 @@ void particlesDlgClass::view()
                     if(colCheckButton(b, b ? "M.Blur " ICON_FA_TOGGLE_ON : "M.Blur " ICON_FA_TOGGLE_OFF, wButt)) {pSys->getMotionBlur()->Active(b^1); }
                 }
 #else
+
                 ImGui::NewLine();
 #endif
                 { //Emitter
@@ -1080,6 +1087,14 @@ void particlesDlgClass::view()
                     ImGui::PopItemWidth();
                     ImGui::SameLine(); 
                 }
+#else
+                bool b = theDlg.getInvertSettings();
+                if(colCheckButton(b, b ? ICON_FA_CHECK " Alternative settings"  : "   Alternative settings", (wButt+border)*2)) {
+                    theDlg.setInvertSettings(b^1);
+                    if(theApp->getLastFile().size()>0) loadAttractorFile(false, theApp->getLastFile().c_str());
+                }
+                ImGui::SameLine();
+
 #endif                    
 
                 ImGui::SetCursorPosX(pos3); 
@@ -1191,6 +1206,8 @@ void particlesDlgClass::view()
     //colorMapsSelectDlg(theWnd->getParticlesSystem()->shaderPointClass::getPtr(),'P');
 }
 
+
+
 #if !defined(GLCHAOSP_LIGHTVER)
 
 void comboWindowRes(const float width)
@@ -1216,200 +1233,6 @@ void comboWindowRes(const float width)
     }
 }
         
-void viewSettingDlgClass::view()
-{
-    ImGui::SetNextWindowSize(ImVec2(300, 440), ImGuiCond_FirstUseEver);
-
-    if(!isVisible) return;
-
-    //bool wndVisible;
-    if(ImGui::Begin(getTitle(), &isVisible)) { 
-        
-        particlesSystemClass *pSys = theWnd->getParticlesSystem();
-        vfGizmo3DClass &tBall = pSys->getTMat()->getTrackball();
-
-        const float w = ImGui::GetContentRegionAvailWidth();
-        const float wHalf = w*.5;
-        const float wButt2 = (wHalf-DLG_BORDER_SIZE*1.5);
-
-        comboWindowRes(w);
-
-        //  Gizmo
-        ///////////////////////////////////////////////////////////////////////
-        ImGui::NewLine();
-        ImGui::Text(" Camera parameters");
-        vec3 persp(pSys->getTMat()->getPerspAngle(),
-                   pSys->getTMat()->getPerspNear() ,
-                   pSys->getTMat()->getPerspFar() ); 
-        if(ImGui::DragFloat3("Angle/Near/Far",value_ptr(persp),.01,0.0,0.0)) 
-            pSys->getTMat()->setPerspective(persp.x, persp.y, persp.z);
-        {
-            vec3 v = pSys->getTMat()->getPOV();
-            if(ImGui::DragFloat3("PointOfView",value_ptr(v),.01,0.0,0.0)) pSys->getTMat()->setPOV(v);
-        }
-        {
-            vec3 v = pSys->getTMat()->getTGT();
-            if(ImGui::DragFloat3("TargetView",value_ptr(v),.01,0.0,0.0)) pSys->getTMat()->setTGT(v);
-        }
-        {
-            vec3 v(tBall.getPanPosition().x, tBall.getPanPosition().y, tBall.getDollyPosition().z);
-            if(ImGui::DragFloat3("Pan/Dolly",value_ptr(v),.01,0.0,0.0)) {
-                tBall.setPanPosition(vec3(v.x, v.y, 0.f));
-                tBall.setDollyPosition(vec3(0.f, 0.f, v.z));
-            }
-        }
-
-        //  Gizmo
-        ///////////////////////////////////////////////////////////////////////
-        ImGui::NewLine();
-        ImGui::Text(" Object/Light Transformations");
-        {
-            //pSys->shaderPointClass::getPtr() whichRenderMode==RENDER_USE_BILLBOARD
-
-            quat q(tBall.getRotation());
-            vec3 l(pSys->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? 
-                   -pSys->shaderBillboardClass::getPtr()->getUData().lightDir :
-                   -pSys->shaderPointClass::getPtr()->getUData().lightDir);
-
-            //imguiGizmo::resizeSolidOf(.75); // sphere resize
-            if(ImGui::gizmo3D("##RotB1", q, wButt2, imguiGizmo::sphereAtOrigin))  { tBall.setRotation(q); } 
-            //imguiGizmo::restoreSolidSize(); // restore at default
-            ImGui::SameLine();
-            imguiGizmo::resizeAxesOf(vec3(.75));
-            if( ImGui::gizmo3D("##RotA", l,wButt2,0)) { 
-                if(pSys->getWhitchRenderMode()==RENDER_USE_BILLBOARD)
-                     pSys->shaderBillboardClass::getPtr()->getUData().lightDir = -l;
-                else
-                     pSys->shaderPointClass::getPtr()->getUData().lightDir = -l;                
-            }   
-            imguiGizmo::restoreAxesSize();
-
-            ImGui::TextDisabled(" Rotation");
-            ImGui::SameLine(wHalf+DLG_BORDER_SIZE);
-            ImGui::TextDisabled(" Light Pos");
-
-            ImGui::PushItemWidth(wButt2);
-            ImGui::DragFloat4("##Rot",value_ptr(q),.01,0.0,0.0);
-            ImGui::SameLine();
-            if(ImGui::DragFloat3("##Lux",value_ptr(l),.01,0.0,0.0)) {
-                if(pSys->getWhitchRenderMode()==RENDER_USE_BILLBOARD)
-                     pSys->shaderBillboardClass::getPtr()->getUData().lightDir = l;
-                else
-                     pSys->shaderPointClass::getPtr()->getUData().lightDir = l;                
-            }
-            ImGui::PopItemWidth();
-            //if(ImGui::DragFloat4("Rot",value_ptr(q),.01,0.0,0.0)) tBall.setRotation(q);
-        }
-
-        //  Axes
-        ///////////////////////////////////////////////////////////////////////
-        ImGui::NewLine(); ImGui::Text(" Center of Rotation");
-        ImGui::SameLine();
-        ShowHelpMarker(GLAPP_HELP_AXES_COR);
-
-        int axes = pSys->showAxes();
-        //if() {pSys->getMotionBlur()->Active(b^1); }       
-        //ImGui::Button("Show CoR",ImVec2(wButt2,0))
-
-        {
-            bool b = pSys->showAxes() == renderBaseClass::showAxesToViewCoR;
-            if(colCheckButton(b , b ? ICON_FA_CHECK_SQUARE_O " Show CoR" : ICON_FA_SQUARE_O " Show CoR" , wButt2)) {
-                pSys->showAxes(pSys->showAxes() == renderBaseClass::showAxesToViewCoR ? renderBaseClass::noShowAxes : renderBaseClass::showAxesToViewCoR);
-            }
-        }
-        ImGui::SameLine();
-        {
-            bool b = pSys->showAxes() == renderBaseClass::showAxesToSetCoR;
-            if(colCheckButton(b , b ? ICON_FA_CHECK_SQUARE_O " Modify CoR" : ICON_FA_SQUARE_O " Modify CoR", wButt2)) {
-                pSys->showAxes(pSys->showAxes() == renderBaseClass::showAxesToSetCoR ? renderBaseClass::noShowAxes : renderBaseClass::showAxesToSetCoR);
-            }
-        }
-        if(pSys->showAxes() != renderBaseClass::noShowAxes) {
-            ImGui::AlignTextToFramePadding();
-
-            if(pSys->showAxes() == renderBaseClass::showAxesToSetCoR) ImGui::TextDisabled("Modify CoR:");
-            else                                                      ImGui::TextDisabled("Show CoR:  ");
-
-            ImGui::GetStyleColorVec4(ImGuiCol_Text);
-
-            const ImU32 alphaBG = 0x80000000, alphaHoverBG = 0xa0000000, alphaActiveBG = 0xff000000;
-            const ImU32 red = 0x80, green = 0xa000, blue = 0x800000; 
-
-            auto pushDragColor = [=] (ImU32 col) {
-                if(pSys->showAxes() == renderBaseClass::showAxesToSetCoR) {
-                    ImGui::PushStyleColor(ImGuiCol_FrameBg       , col + alphaBG);
-                    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, col + alphaHoverBG);
-                    ImGui::PushStyleColor(ImGuiCol_FrameBgActive , col + alphaActiveBG);
-                }
-            };
-
-            auto popDragColor = [=] () {
-                if(pSys->showAxes() == renderBaseClass::showAxesToSetCoR) {
-                    ImGui::PopStyleColor();
-                    ImGui::PopStyleColor();
-                    ImGui::PopStyleColor();
-                }
-            };
-
-
-            ImGui::SameLine();
-            ImGui::PushItemWidth((w-ImGui::GetCursorPosX()-DLG_BORDER_SIZE)*.333);
-
-            //ImGui::PushItemWidth(wButt2);
-            //ImGui::SameLine(wHalf+DLG_BORDER_SIZE);
-
-            ImGui::PushStyleColor(ImGuiCol_Text, 0xffffffff);
-
-            vec3 v = tBall.getRotationCenter();
-
-            pushDragColor(red);            
-            if(ImGui::DragFloat("##RtC_X",&v.x,.01) && pSys->showAxes() == renderBaseClass::showAxesToSetCoR) 
-                tBall.setRotationCenter(v);
-            popDragColor();
-
-            ImGui::SameLine();
-            pushDragColor(green);
-            if(ImGui::DragFloat("##RtC_Y",&v.y,.01) && pSys->showAxes() == renderBaseClass::showAxesToSetCoR) 
-                tBall.setRotationCenter(v);
-            popDragColor();
-
-            ImGui::SameLine();
-            pushDragColor(blue);
-            if(ImGui::DragFloat("##RtC_Z",&v.z,.01) && pSys->showAxes() == renderBaseClass::showAxesToSetCoR) 
-                tBall.setRotationCenter(v);
-            popDragColor();
-
-            ImGui::PopStyleColor();
-
-            ImGui::PopItemWidth();
-
-            {
-                vec3 v = pSys->getAxes()->getZoom();
-
-                ImGui::NewLine();                
-                ImGui::Text(" Axes size:");
-
-                ImGui::AlignTextToFramePadding();
-
-                ImGui::TextDisabled("Thick.");
-                ImGui::SameLine();
-                ImGui::PushItemWidth(wHalf-ImGui::GetCursorPosX()-DLG_BORDER_SIZE);
-                if(ImGui::DragFloat("##ax_xy",&v.x,.01, 0.0f, 30.0f)) pSys->getAxes()->setZoom(vec3(v.x, v.x, v.z));
-                ImGui::PopItemWidth();
-
-                ImGui::SameLine(wHalf + DLG_BORDER_SIZE);
-
-                ImGui::TextDisabled("Len.");
-                ImGui::SameLine();
-                ImGui::PushItemWidth(w-ImGui::GetCursorPosX()-DLG_BORDER_SIZE);
-                if(ImGui::DragFloat("##ax_z" ,&v.z,.01, 0.0f, 50.0f)) pSys->getAxes()->setZoom(v);
-                ImGui::PopItemWidth();
-            }
-
-        }
-    }
-    ImGui::End();
-}
 
 
 void progSettingDlgClass::view()
@@ -1686,6 +1509,224 @@ void particleEditDlgClass::view()
 }
 #endif
 
+
+void viewSettingDlgClass::view()
+{
+
+    if(!isVisible) return;
+#if !defined(GLCHAOSP_LIGHTVER)
+    const int posH = 0;
+    const int szH = 365+7*ImGui::GetFrameHeightWithSpacing();
+    const int posW = 190;
+#else
+    const int posH = 385;
+    const int szH = 365;
+    const int posW = 0;
+#endif
+    const int szW = 300;
+    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-szW-posW,posH ), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(szW, szH), ImGuiCond_FirstUseEver);
+
+    //bool wndVisible;
+    if(ImGui::Begin(getTitle(), &isVisible)) { 
+        
+        particlesSystemClass *pSys = theWnd->getParticlesSystem();
+        vfGizmo3DClass &tBall = pSys->getTMat()->getTrackball();
+
+        const float w = ImGui::GetContentRegionAvailWidth();
+        const float wHalf = w*.5;
+        const float wButt2 = (wHalf-DLG_BORDER_SIZE*1.5);
+
+#if !defined(GLCHAOSP_LIGHTVER)
+        comboWindowRes(w);
+#endif
+        //  Gizmo
+        ///////////////////////////////////////////////////////////////////////
+        ImGui::NewLine();
+        ImGui::Text(" Camera parameters");
+        vec3 persp(pSys->getTMat()->getPerspAngle(),
+                   pSys->getTMat()->getPerspNear() ,
+                   pSys->getTMat()->getPerspFar() ); 
+        if(ImGui::DragFloat3("Angle/Near/Far",value_ptr(persp),.01,0.0,0.0)) 
+            pSys->getTMat()->setPerspective(persp.x, persp.y, persp.z);
+        {
+            vec3 v = pSys->getTMat()->getPOV();
+            if(ImGui::DragFloat3("PointOfView",value_ptr(v),.01,0.0,0.0)) pSys->getTMat()->setPOV(v);
+        }
+        {
+            vec3 v = pSys->getTMat()->getTGT();
+            if(ImGui::DragFloat3("TargetView",value_ptr(v),.01,0.0,0.0)) pSys->getTMat()->setTGT(v);
+        }
+        {
+            vec3 v(tBall.getPanPosition().x, tBall.getPanPosition().y, tBall.getDollyPosition().z);
+            if(ImGui::DragFloat3("Pan/Dolly",value_ptr(v),.01,0.0,0.0)) {
+                tBall.setPanPosition(vec3(v.x, v.y, 0.f));
+                tBall.setDollyPosition(vec3(0.f, 0.f, v.z));
+            }
+        }
+
+        //  Gizmo
+        ///////////////////////////////////////////////////////////////////////
+        ImGui::NewLine();
+        ImGui::Text(" Object/Light Transformations");
+        {
+            //pSys->shaderPointClass::getPtr() whichRenderMode==RENDER_USE_BILLBOARD
+
+            quat q(tBall.getRotation());
+#if !defined(GLCHAOSP_LIGHTVER)
+            vec3 l(pSys->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? 
+                   -pSys->shaderBillboardClass::getPtr()->getUData().lightDir :
+                   -pSys->shaderPointClass::getPtr()->getUData().lightDir);
+#else
+            vec3 l(-pSys->shaderPointClass::getPtr()->getUData().lightDir);
+#endif
+            //imguiGizmo::resizeSolidOf(.75); // sphere resize
+            if(ImGui::gizmo3D("##RotB1", q, wButt2, imguiGizmo::sphereAtOrigin))  { tBall.setRotation(q); } 
+            //imguiGizmo::restoreSolidSize(); // restore at default
+            ImGui::SameLine();
+            imguiGizmo::resizeAxesOf(vec3(.75));
+            if( ImGui::gizmo3D("##RotA", l,wButt2,0)) { 
+#if !defined(GLCHAOSP_LIGHTVER)
+                if(pSys->getWhitchRenderMode()==RENDER_USE_BILLBOARD)
+                     pSys->shaderBillboardClass::getPtr()->getUData().lightDir = -l;
+                else
+#endif
+                     pSys->shaderPointClass::getPtr()->getUData().lightDir = -l;                
+            }   
+            imguiGizmo::restoreAxesSize();
+
+            ImGui::TextDisabled(" Rotation");
+            ImGui::SameLine(wHalf+DLG_BORDER_SIZE);
+            ImGui::TextDisabled(" Light Pos");
+
+            ImGui::PushItemWidth(wButt2);
+            ImGui::DragFloat4("##Rot",value_ptr(q),.01,0.0,0.0);
+            ImGui::SameLine();
+            if(ImGui::DragFloat3("##Lux",value_ptr(l),.01,0.0,0.0)) {
+#if !defined(GLCHAOSP_LIGHTVER)
+                if(pSys->getWhitchRenderMode()==RENDER_USE_BILLBOARD)
+                     pSys->shaderBillboardClass::getPtr()->getUData().lightDir = l;
+                else
+#endif
+                     pSys->shaderPointClass::getPtr()->getUData().lightDir = l;                
+            }
+            ImGui::PopItemWidth();
+            //if(ImGui::DragFloat4("Rot",value_ptr(q),.01,0.0,0.0)) tBall.setRotation(q);
+        }
+#if !defined(GLCHAOSP_LIGHTVER)
+
+        //  Axes
+        ///////////////////////////////////////////////////////////////////////
+        ImGui::NewLine(); ImGui::Text(" Center of Rotation");
+        ImGui::SameLine();
+        ShowHelpMarker(GLAPP_HELP_AXES_COR);
+
+        int axes = pSys->showAxes();
+        //if() {pSys->getMotionBlur()->Active(b^1); }       
+        //ImGui::Button("Show CoR",ImVec2(wButt2,0))
+
+        {
+            bool b = pSys->showAxes() == renderBaseClass::showAxesToViewCoR;
+            if(colCheckButton(b , b ? ICON_FA_CHECK_SQUARE_O " Show CoR" : ICON_FA_SQUARE_O " Show CoR" , wButt2)) {
+                pSys->showAxes(pSys->showAxes() == renderBaseClass::showAxesToViewCoR ? renderBaseClass::noShowAxes : renderBaseClass::showAxesToViewCoR);
+            }
+        }
+        ImGui::SameLine();
+        {
+            bool b = pSys->showAxes() == renderBaseClass::showAxesToSetCoR;
+            if(colCheckButton(b , b ? ICON_FA_CHECK_SQUARE_O " Modify CoR" : ICON_FA_SQUARE_O " Modify CoR", wButt2)) {
+                pSys->showAxes(pSys->showAxes() == renderBaseClass::showAxesToSetCoR ? renderBaseClass::noShowAxes : renderBaseClass::showAxesToSetCoR);
+            }
+        }
+
+        if(pSys->showAxes() != renderBaseClass::noShowAxes) {
+            ImGui::AlignTextToFramePadding();
+
+            if(pSys->showAxes() == renderBaseClass::showAxesToSetCoR) ImGui::TextDisabled("Modify CoR:");
+            else                                                      ImGui::TextDisabled("Show CoR:  ");
+
+            ImGui::GetStyleColorVec4(ImGuiCol_Text);
+
+            const ImU32 alphaBG = 0x80000000, alphaHoverBG = 0xa0000000, alphaActiveBG = 0xff000000;
+            const ImU32 red = 0x80, green = 0xa000, blue = 0x800000; 
+
+            auto pushDragColor = [=] (ImU32 col) {
+                if(pSys->showAxes() == renderBaseClass::showAxesToSetCoR) {
+                    ImGui::PushStyleColor(ImGuiCol_FrameBg       , col + alphaBG);
+                    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, col + alphaHoverBG);
+                    ImGui::PushStyleColor(ImGuiCol_FrameBgActive , col + alphaActiveBG);
+                }
+            };
+
+            auto popDragColor = [=] () {
+                if(pSys->showAxes() == renderBaseClass::showAxesToSetCoR) {
+                    ImGui::PopStyleColor();
+                    ImGui::PopStyleColor();
+                    ImGui::PopStyleColor();
+                }
+            };
+
+
+            ImGui::SameLine();
+            ImGui::PushItemWidth((w-ImGui::GetCursorPosX()-DLG_BORDER_SIZE)*.333);
+
+            //ImGui::PushItemWidth(wButt2);
+            //ImGui::SameLine(wHalf+DLG_BORDER_SIZE);
+
+            ImGui::PushStyleColor(ImGuiCol_Text, 0xffffffff);
+
+            vec3 v = tBall.getRotationCenter();
+
+            pushDragColor(red);            
+            if(ImGui::DragFloat("##RtC_X",&v.x,.01) && pSys->showAxes() == renderBaseClass::showAxesToSetCoR) 
+                tBall.setRotationCenter(v);
+            popDragColor();
+
+            ImGui::SameLine();
+            pushDragColor(green);
+            if(ImGui::DragFloat("##RtC_Y",&v.y,.01) && pSys->showAxes() == renderBaseClass::showAxesToSetCoR) 
+                tBall.setRotationCenter(v);
+            popDragColor();
+
+            ImGui::SameLine();
+            pushDragColor(blue);
+            if(ImGui::DragFloat("##RtC_Z",&v.z,.01) && pSys->showAxes() == renderBaseClass::showAxesToSetCoR) 
+                tBall.setRotationCenter(v);
+            popDragColor();
+
+            ImGui::PopStyleColor();
+
+            ImGui::PopItemWidth();
+
+            {
+                vec3 v = pSys->getAxes()->getZoom();
+
+                ImGui::NewLine();                
+                ImGui::Text(" Axes size:");
+
+                ImGui::AlignTextToFramePadding();
+
+                ImGui::TextDisabled("Thick.");
+                ImGui::SameLine();
+                ImGui::PushItemWidth(wHalf-ImGui::GetCursorPosX()-DLG_BORDER_SIZE);
+                if(ImGui::DragFloat("##ax_xy",&v.x,.01, 0.0f, 30.0f)) pSys->getAxes()->setZoom(vec3(v.x, v.x, v.z));
+                ImGui::PopItemWidth();
+
+                ImGui::SameLine(wHalf + DLG_BORDER_SIZE);
+
+                ImGui::TextDisabled("Len.");
+                ImGui::SameLine();
+                ImGui::PushItemWidth(w-ImGui::GetCursorPosX()-DLG_BORDER_SIZE);
+                if(ImGui::DragFloat("##ax_z" ,&v.z,.01, 0.0f, 50.0f)) pSys->getAxes()->setZoom(v);
+                ImGui::PopItemWidth();
+            }
+
+        }
+#endif
+    }
+    ImGui::End();
+}
+
 void imGuIZMODlgClass::view()
 {
     if(!isVisible) return;
@@ -1733,6 +1774,9 @@ void imGuIZMODlgClass::view()
 
 #if !defined(GLCHAOSP_LIGHTVER)
         vec3 &ligh = theWnd->getParticlesSystem()->getRenderMode()==RENDER_USE_POINTS ? theWnd->getParticlesSystem()->shaderPointClass::getUData().lightDir : theWnd->getParticlesSystem()->shaderBillboardClass::getUData().lightDir;
+#else
+        vec3 &ligh = theWnd->getParticlesSystem()->shaderPointClass::getUData().lightDir;
+#endif
         glm::vec3 lL(-ligh);
         if(ImGui::gizmo3D("##aaa", qt, lL, sz))  { 
             ligh = -lL;
@@ -1743,11 +1787,6 @@ void imGuIZMODlgClass::view()
         ImGui::DragFloat3("##uL3",glm::value_ptr(ligh),0.01f);
         style.Colors[ImGuiCol_Text] = oldTex;
         ImGui::PopItemWidth();
-#else
-        if(ImGui::gizmo3D("##aaa", qt, sz))  { 
-            theWnd->getParticlesSystem()->getTMat()->getTrackball().setRotation(qt);
-        }
-#endif
 
 
     }
@@ -1764,8 +1803,8 @@ void aboutDlgClass::view()
 {
 
     if(!isVisible) return;
-
-    ImGui::SetNextWindowSize(ImVec2(350, 440), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(320, 190), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(390, 560), ImGuiCond_FirstUseEver);
 
     if(ImGui::Begin(getTitle(), &isVisible)) {
     
@@ -1806,6 +1845,55 @@ void aboutDlgClass::view()
 #define TEXTURE_FREE_MEMORY_ATI                 0x87FC
 #define RENDERBUFFER_FREE_MEMORY_ATI            0x87FD
 
+//void loadActualSelection()
+
+void fastViewDlgClass::view()
+{
+    if(!isVisible) return;
+
+#if !defined(GLCHAOSP_LIGHTVER)
+    const int posH = 0;
+    const int szH = 365+7*ImGui::GetFrameHeightWithSpacing();
+    const int posW = 190;
+#else
+    const int posH = 385;
+    const int szH = 365;
+    const int posW = 0;
+#endif
+    const int szW = 160;
+    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-szW-posW,posH ), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(szW, szH), ImGuiCond_FirstUseEver);
+
+    //ImGui::SetNextWindowSize(ImVec2(150, 400), ImGuiCond_FirstUseEver);
+    //ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-330,0), ImGuiCond_FirstUseEver);
+
+    if(ImGui::Begin(getTitle(), &isVisible)) {
+            static int selector = 0;
+
+            auto loadSelection = [=] () {
+                std::string s = STRATT_PATH; s+=theApp->getlistFilesSCA().at(selector);
+                attractorsList.getThreadStep()->stopThread();
+                theDlg.getParticlesDlgClass().resetTreeParticlesFlags();
+                theApp->loadAttractor(s.c_str());
+                theApp->setLastFile(s);
+                attractorsList.getThreadStep()->restartEmitter();
+                attractorsList.get()->initStep();
+                attractorsList.getThreadStep()->startThread();
+            };
+
+            ImGui::BeginChild("chaoticA");  //,ImVec2(ImGui::GetContentRegionAvailWidth(), -ImGui::GetFrameHeightWithSpacing())
+                for (int i = 0; i < theApp->getlistFilesSCA().size(); i++)   {
+                    if (ImGui::Selectable(theApp->getlistFilesSCA().at(i).c_str(), selector == i)) {
+                        selector = i;
+                        loadSelection();
+                    }
+                }
+
+            ImGui::EndChild();            
+
+    } ImGui::End();
+
+}
 
 void infoDlgClass::view()
 {
@@ -1814,8 +1902,9 @@ void infoDlgClass::view()
 #if !defined(GLCHAOSP_LIGHTVER)
     const int hSz = 15;
 #else
-    const int hSz = 9;
+    const int hSz = 8;
 #endif
+    ImGui::SetNextWindowPos(ImVec2(270, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(400, ImGui::GetFrameHeightWithSpacing()*hSz), ImGuiCond_FirstUseEver);
 
     //bool visible = isVisible && theDlg.baseDlgClass::visible();
@@ -1922,12 +2011,11 @@ void mainImGuiDlgClass::view()
     ImGuiStyle& style = ImGui::GetStyle();
 
     const float wndSizeX = fontSize * fontZoom * 12.f; // 26 char * .5 (fontsize/2);
-#if !defined(GLCHAOSP_LIGHTVER)
     const int posH = 225;
+#if !defined(GLCHAOSP_LIGHTVER)
     const int numItems = 9;
 #else
-    const int posH = 207;
-    const int numItems = 6;
+    const int numItems = 7;
 #endif
 
 
@@ -1983,18 +2071,18 @@ void mainImGuiDlgClass::view()
             }
         }
         {
+            const bool b = viewSettingDlg.visible();
+            if(colCheckButton(b, b ? ICON_FA_CHECK " View tools (F5)"  : "   View tools (F5)", wButt)) {
+                viewSettingDlg.visible(b^true);
+            }
+        }
+        {
             const bool b = infoDlg.visible();
-            if(colCheckButton(b, b ? ICON_FA_CHECK "    Info    (F5)"  : "      Info    (F5)", wButt)) {
+            if(colCheckButton(b, b ? ICON_FA_CHECK "    Info    (F6)"  : "      Info    (F6)", wButt)) {
                 infoDlg.visible(b^true);
             }
         }
 #if !defined(GLCHAOSP_LIGHTVER)
-        {
-            const bool b = viewSettingDlg.visible();
-            if(colCheckButton(b, b ? ICON_FA_CHECK " View tools (F6)"  : "   View tools (F6)", wButt)) {
-                viewSettingDlg.visible(b^true);
-            }
-        }
 
         {
             const bool b = dataDlg.visible();
@@ -2040,9 +2128,9 @@ void mainImGuiDlgClass::switchMode(int x, int y)
     particlesDlg.rePosWndByMode(x, y);
     psPaletteDlg.rePosWndByMode(x, y);
     infoDlg.rePosWndByMode(x, y);
+    viewSettingDlg.rePosWndByMode(x, y);
 #if !defined(GLCHAOSP_LIGHTVER)
     bbPaletteDlg.rePosWndByMode(x, y);
-    viewSettingDlg.rePosWndByMode(x, y);
     progSettingDlg.rePosWndByMode(x, y);
     dataDlg.rePosWndByMode(x, y);
     rePosWndByMode(x, y);
@@ -2109,9 +2197,10 @@ void mainImGuiDlgClass::renderImGui()
             psPaletteDlg.view();
         }
         imGuIZMODlg.view();
-        infoDlg.view();
-#if !defined(GLCHAOSP_LIGHTVER)
         viewSettingDlg.view();
+        infoDlg.view();
+        fastViewDlg.view();
+#if !defined(GLCHAOSP_LIGHTVER)
         progSettingDlg.view();
         dataDlg.view();
         particleEditDlg.view();
