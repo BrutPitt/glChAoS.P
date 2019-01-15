@@ -79,10 +79,9 @@ public:
 
         glVertexArrayAttribBinding(vao,vPosition, 0);
         glVertexArrayAttribFormat(vao, vPosition, 2, GL_FLOAT, GL_FALSE, 0);
-        glVertexArrayVertexBuffer(vao, 0, vaoBuffer, 0, 8);
-
         glEnableVertexArrayAttrib(vao, vPosition);        
-        //glEnableVertexAttribArray(vPosition);
+
+        glVertexArrayVertexBuffer(vao, 0, vaoBuffer, 0, 8);
 
 #else
         glGenVertexArrays(1, &vao); 

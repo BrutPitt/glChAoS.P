@@ -47,15 +47,11 @@ out gl_PerVertex
 #endif
 
 out vec2 vTexCoord;
+vec2 texCoord[4] = vec2[4](vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(1.0, 1.0), vec2(0.0, 1.0));
 
 void main(void)
 {
-    vec2 texCoord[4] = vec2[4](vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(1.0, 1.0), vec2(0.0, 1.0));
     vTexCoord = texCoord[gl_VertexID];
-    //gl_Position = vPos[gl_VertexID];
     gl_Position = vec4(vPos.xy,.0f,1.f);
 
-
-//SIMPLEX_PROC
-    //gl_Position = vec4(vertices[gl_VertexID],.0f,1.f);
 }

@@ -61,9 +61,6 @@ void glWindow::onInit()
     //ilutRenderer(ILUT_OPENGL);
 #endif
 
-
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);				// Black Background
-    
 #if !defined(__EMSCRIPTEN__)
     glEnable( GL_PROGRAM_POINT_SIZE );
     glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
