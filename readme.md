@@ -3,12 +3,14 @@
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractor scout... and hypercompex fractals (new!) 
 
+Please read release note **ver. 1.1 beta2**: [**Release Note**](https://github.com/BrutPitt/glChAoS.P/releases/tag/1.1.beta2)
+
 ### [New Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html)
 | hypercomplex fractals | hypercomplex fractals |
 | :-----: | :----: |
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
 
-### [New WebGL2 version](https://michelemorrone.eu/glchaosp/webGL.html)
+### [New WebGL2 online version](https://michelemorrone.eu/glchaosp/webGL.html)
 New [**wglChAoS.P**](https://michelemorrone.eu/glchaosp/webGL.html) / [**wglChAoSP**](https://michelemorrone.eu/glchaosp/webGL.html) WebGL 2 / WebAssembly lightened **LIVE / ONLINE** version of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
 
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssWGLtitle.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
