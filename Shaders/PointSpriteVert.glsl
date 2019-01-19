@@ -53,6 +53,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float lightDiffInt;
     vec3 lightColor; 
     float lightSpecInt;
+    vec2 scrnRes;
     float lightAmbInt ;
     float lightShinExp;
     float sstepColorMin;
@@ -67,6 +68,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float zNear;
     float zFar;
     float velIntensity;
+    float pointSizeRatio;
     bool lightActive;
 } u;
 
@@ -100,41 +102,26 @@ void main()
 {              
 
     vec4 vtxPos = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
+    gl_Position = m.pMatrix * vtxPos;
+
     float vel = a_ActualPoint.w*u.velIntensity;
+    particleColor = vec4(texture(paletteTex, vec2(vel,0.f)).rgb,1.0);
 
-    vec4 cOut = vec4(texture(paletteTex, vec2(vel,0.f)).rgb,1.0);
-    
-        
-        posEye = vtxPos.xyz;
+    posEye = vtxPos.xyz;
 
-        float dist = length(posEye);
-        pointDistance = dist;
-        
-        //gl_PointSize = dist<clippingDist ? 0.0 : pointSize / max(.01,pow(dist,distSizeFactor)); 
-        float ptAtten = exp(-0.01*sign(dist)*pow(abs(dist+1.f), u.pointDistAtten*.1));
-        gl_PointSize = u.pointSize * ptAtten ; 
+    float dist = length(posEye);
+    pointDistance = dist;
 
-        if(gl_PointSize<1.0) gl_PointSize = 1.0;
-
-        //1.0 / max(.01,pow(dist,u.pointDistAtten)); 
-
-
-        
-        //float ps = pointSize / max(.01,pow(dist,distSizeFactor));
-        //dropPoint = ps < gl_Point.sizeMin ? 0.0 : 1.0;
-        //gl_PointSize =  ps;
-
-/////////////////////////////////////////////////////////////
-// on glColor ci sono le coordinate del punto precedente
-// per il calcolo del colore in base alla velociita' di fuga
-    //vec4 oldVtxPos = vec4(a_PrevPoint.xyz,1.f);
-    //float vel = distance(vtxPos.xyz,oldVtxPos.xyz)*velIntensity;
+    float ptAtten = exp(-0.01*sign(dist)*pow(abs(dist+1.f), u.pointDistAtten*.1));
+    float size = u.pointSize * ptAtten * u.pointSizeRatio;
 
     
-    
-    gl_Position = (m.pMatrix * vtxPos);
-    particleColor = cOut;  
-    
+    vec4 pt  = m.pMatrix * vec4(vtxPos.xy + vec2(size), vtxPos.zw);
+
+    gl_PointSize = distance(gl_Position, pt)/gl_Position.w;
+    pointSZ = gl_PointSize;
+
+    if(gl_PointSize<1.0) gl_PointSize = 1.0;
     
 }                                                           
 

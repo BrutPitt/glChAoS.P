@@ -44,10 +44,11 @@ layout (location = 0) in vec4 a_ActualPoint;
 LAYUOT_BINDING(0) uniform sampler2D paletteTex;
 
 LAYUOT_BINDING(2) uniform _particlesData {
-    vec3 lightDir;
+    vec3  lightDir;
     float lightDiffInt;
-    vec3 lightColor; 
+    vec3  lightColor; 
     float lightSpecInt;
+    vec2  scrnRes;
     float lightAmbInt ;
     float lightShinExp;
     float sstepColorMin;
@@ -62,7 +63,8 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float zNear;
     float zFar;
     float velIntensity;
-    bool lightActive;
+    float pointSizeRatio;
+    bool  lightActive;
 } u;
 
  
@@ -172,7 +174,7 @@ void main(void)
     //gl_PointSize = dist<u.clippingDist ? 0.0 : u.pointSize*.003 / max(0.01,pow(dist,u.pointDistAtten));
 
     float ptAtten = exp(-0.01*sign(dist)*pow(abs(dist+1.f), u.pointDistAtten*.1));
-    gl_PointSize = u.pointSize*.001 * ptAtten ;
+    gl_PointSize = u.pointSize/u.scrnRes.y * ptAtten * u.pointSizeRatio ;
    
     //LightDir = normalize(m.mvMatrix *vec4(u.lightDir, 1.f)) ;
     //LightDir = normalize(vec4(u.lightDir, 1.f)) ;

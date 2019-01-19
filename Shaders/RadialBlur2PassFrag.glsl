@@ -88,7 +88,7 @@ LAYUOT_BINDING(0) uniform sampler2D origTexture;
 LAYUOT_BINDING(1) uniform sampler2D pass1Texture;
 
 
-in vec2 vTexCoord;
+//in vec2 vTexCoord;
 out vec4 outColor;
 
 CONST vec2 aspect = vec2(1.0, 1.0);
@@ -360,7 +360,7 @@ LAYUOT_INDEX(0) SUBROUTINE(_radialPass) vec4 byPass()
 
 void main ()
 {
-#ifdef GL_ES
+#if defined(GL_ES) || defined(TEST_WGL)
     if(blurCallType==0) outColor = byPass();
     else                outColor = bilateralSmooth();
 #else

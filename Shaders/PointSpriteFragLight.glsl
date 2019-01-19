@@ -57,7 +57,6 @@ LAYUOT_INDEX(0) SUBROUTINE(_pixelColor)  vec4 pixelColorOnly()
 {
 
     return getColorOnly(gl_PointCoord);
-
 }
 
 
@@ -71,7 +70,7 @@ void main()
 
     gl_FragDepth = LinearizeDepth(posEye.z, u.zNear, u.zFar);
 
-#ifdef GL_ES
+#if defined(GL_ES) || defined(TEST_WGL)
     outColor = u.lightActive ? pixelColorLight() : pixelColorOnly();
 #else
     outColor = pixelColor();

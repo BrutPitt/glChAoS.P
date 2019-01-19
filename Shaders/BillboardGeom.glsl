@@ -72,47 +72,33 @@ out gl_PerVertex
 
 void main(void){
   vec4 position;
-  mat2 RotationMatrix;
 
-//Get elapsed time in texcoord.y to zoom particle in 5 sec.
-  
   posEye  = posEyeVS[0];
-  float sz  = gl_in[0].gl_PointSize;
   pointDistance = pointDist[0];
 
-  pointSZ = sz;
+  float sz = gl_in[0].gl_PointSize;
+  pointSZ  = sz;
 
-
-  RotationMatrix[0] = vec2(1.0, 0.0); //vec2(cos(InfoIn[0].x),-sin(InfoIn[0].x));
-  RotationMatrix[1] = vec2(0.0, 1.0); //vec2(sin(InfoIn[0].x), cos(InfoIn[0].x));  
   particleColor = vertParticleColor[0];
-
+  position = gl_in[0].gl_Position;
   
   //Vertex 1
-  position = gl_in[0].gl_Position;
-  position.xy += RotationMatrix * (vec2(-sz,-sz));
-  gl_Position = m.pMatrix * position;
+  gl_Position = m.pMatrix * vec4(position.xy+vec2(-sz,-sz),position.zw);
   texCoord = vec2(0.0,0.0);
   EmitVertex();
 
   //Vertex 2
-  position = gl_in[0].gl_Position;
-  position.xy += RotationMatrix * (vec2(-sz, sz));
-  gl_Position = m.pMatrix * position;
+  gl_Position = m.pMatrix * vec4(position.xy+vec2(-sz, sz),position.zw);
   texCoord = vec2(0.0,1.0);
   EmitVertex();
   
   //Vertex 3
-  position = gl_in[0].gl_Position;
-  position.xy += RotationMatrix * (vec2( sz,-sz));
-  gl_Position = m.pMatrix * position;
+  gl_Position = m.pMatrix * vec4(position.xy+vec2( sz,-sz),position.zw);
   texCoord = vec2(1.0,0.0);
   EmitVertex();
 
   //Vertex 4
-  position = gl_in[0].gl_Position;
-  position.xy += RotationMatrix * (vec2( sz, sz));
-  gl_Position = m.pMatrix * position;
+  gl_Position = m.pMatrix * vec4(position.xy+vec2( sz, sz),position.zw);
   texCoord = vec2(1.0,1.0);
   EmitVertex();
 

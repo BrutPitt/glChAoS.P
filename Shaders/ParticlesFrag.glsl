@@ -47,6 +47,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float lightDiffInt;
     vec3 lightColor;        // align 16
     float lightSpecInt;
+    vec2 scrnRes;
     float lightAmbInt ;
     float lightShinExp;
     float sstepColorMin;
@@ -61,6 +62,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float zNear;
     float zFar;
     float velIntensity;
+    float pointSizeRatio;
     bool lightActive;
 } u;
 
