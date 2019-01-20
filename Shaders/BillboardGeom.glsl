@@ -58,51 +58,52 @@ LAYUOT_BINDING(4) uniform _tMat {
 
 in gl_PerVertex
 {
-  vec4 gl_Position;
-  float gl_PointSize;
+    vec4 gl_Position;
+    float gl_PointSize;
 
 } gl_in[];
 
 out gl_PerVertex
 {
-  vec4 gl_Position;
-   float gl_PointSize;
+    vec4 gl_Position;
+    float gl_PointSize;
 };
 
 
-void main(void){
-  vec4 position;
+void main(void)
+{
+    vec4 position;
 
-  posEye  = posEyeVS[0];
-  pointDistance = pointDist[0];
+    posEye  = posEyeVS[0];
+    pointDistance = pointDist[0];
 
-  float sz = gl_in[0].gl_PointSize;
-  pointSZ  = sz;
+    float sz = gl_in[0].gl_PointSize;
+    pointSZ  = sz;
 
-  particleColor = vertParticleColor[0];
-  position = gl_in[0].gl_Position;
+    particleColor = vertParticleColor[0];
+    position = gl_in[0].gl_Position;
   
-  //Vertex 1
-  gl_Position = m.pMatrix * vec4(position.xy+vec2(-sz,-sz),position.zw);
-  texCoord = vec2(0.0,0.0);
-  EmitVertex();
+    //Vertex 1
+    gl_Position = m.pMatrix * vec4(position.xy+vec2(-sz,-sz),position.zw);
+    texCoord = vec2(0.0,0.0);
+    EmitVertex();
 
-  //Vertex 2
-  gl_Position = m.pMatrix * vec4(position.xy+vec2(-sz, sz),position.zw);
-  texCoord = vec2(0.0,1.0);
-  EmitVertex();
+    //Vertex 2
+    gl_Position = m.pMatrix * vec4(position.xy+vec2(-sz, sz),position.zw);
+    texCoord = vec2(0.0,1.0);
+    EmitVertex();
   
-  //Vertex 3
-  gl_Position = m.pMatrix * vec4(position.xy+vec2( sz,-sz),position.zw);
-  texCoord = vec2(1.0,0.0);
-  EmitVertex();
+    //Vertex 3
+    gl_Position = m.pMatrix * vec4(position.xy+vec2( sz,-sz),position.zw);
+    texCoord = vec2(1.0,0.0);
+    EmitVertex();
 
-  //Vertex 4
-  gl_Position = m.pMatrix * vec4(position.xy+vec2( sz, sz),position.zw);
-  texCoord = vec2(1.0,1.0);
-  EmitVertex();
+    //Vertex 4
+    gl_Position = m.pMatrix * vec4(position.xy+vec2( sz, sz),position.zw);
+    texCoord = vec2(1.0,1.0);
+    EmitVertex();
 
-  EndPrimitive();
+    EndPrimitive();
 
 }
 

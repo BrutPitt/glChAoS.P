@@ -94,11 +94,15 @@ float getAlpha(float alpha)
 float getSpecular(vec3 L, vec3 N)
 {
 // point on surface of sphere in eye space
-    vec3 spherePosEye = (normalize(posEye) + N)*pointSZ;
+    vec3 viewDir = normalize(-posEye);
+    vec3 halfDir = normalize(L + viewDir);
+    //vec3 halfDir = normalize(u.lightDir - posEye);
+    float specAngle = max(dot(halfDir, N), 0.0);
+    return pow(specAngle, u.lightShinExp);
 
-	//vec3 v = normalize();
-    vec3 h = normalize(L + spherePosEye);
-    return pow(max(0.0, dot(N, h)), u.lightShinExp);
+    //vec3 spherePosEye = (normalize(posEye) + N)*pointSZ;
+    //vec3 h = normalize(L + spherePosEye);
+    // return pow(max(0.0, dot(N, h)), u.lightShinExp);
 }
 
 float get_Specular(vec3 L, vec3 N)
@@ -141,9 +145,9 @@ vec4 getLightedColor(vec2 coord)
     N.z = sqrt(1.0-mag);
     N = normalize(N);
 
-    vec3 light = normalize(vec4(u.lightDir, 1.f)).xyz;  // 
+    vec3 light = normalize(u.lightDir+posEye);  // 
     
-    float diffuse = max(0.0, dot(light, N)); 
+    float lambertian = max(0.0, dot(light, N)); 
 
 /*
     float NdL = clamp( dot(light, N), 0.0, 1.0);
@@ -157,8 +161,8 @@ vec4 getLightedColor(vec2 coord)
 
 
     vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,
-                                color.rgb + 
-                                color.rgb * diffuse * u.lightDiffInt +
+                                /*color.rgb + */
+                                color.rgb * lambertian * u.lightDiffInt +  //diffuse component
                                 u.lightColor * specular * u.lightSpecInt + 
                                 (color.rgb+u.lightAmbInt*0.1) * u.lightAmbInt); 
 

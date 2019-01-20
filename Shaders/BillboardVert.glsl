@@ -171,13 +171,10 @@ void main(void)
     float dist = length(posEyeVS); 
     pointDist = dist;
 
-    //gl_PointSize = dist<u.clippingDist ? 0.0 : u.pointSize*.003 / max(0.01,pow(dist,u.pointDistAtten));
 
     float ptAtten = exp(-0.01*sign(dist)*pow(abs(dist+1.f), u.pointDistAtten*.1));
     gl_PointSize = u.pointSize/u.scrnRes.y * ptAtten * u.pointSizeRatio ;
    
-    //LightDir = normalize(m.mvMatrix *vec4(u.lightDir, 1.f)) ;
-    //LightDir = normalize(vec4(u.lightDir, 1.f)) ;
 
     vertParticleColor = cOut;
 
