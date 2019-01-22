@@ -63,7 +63,8 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float zNear;
     float zFar;
     float velIntensity;
-    float pointSizeRatio;
+    float ySizeRatio;
+    float ptSizeRatio;
     bool  lightActive;
 } u;
 
@@ -84,7 +85,6 @@ out gl_PerVertex
 
 out float pointDist;
 out vec4 vertParticleColor;
-out vec3 posEyeVS;
 
 
 //#define USE_HLS_INTERNAL
@@ -145,11 +145,8 @@ vec4 HLStoRGB( vec4 HLS)
 void main(void)
 {
 
-    vec4 vtxPos = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
+    gl_Position = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
     float vel = a_ActualPoint.w*u.velIntensity;
-
-
-
 
 /////////////////////////////////////////////////////////////
 // on glColor ci sono le coordinate del punto precedente
@@ -163,17 +160,10 @@ void main(void)
     vec4 cOut = vec4(texture(paletteTex, vec2(vel,0.f)).rgb,1.0);
 
 #endif
+    pointDist = length(gl_Position.xyz); 
 
-    gl_Position = vtxPos;
-
-    posEyeVS = vtxPos.xyz;
-
-    float dist = length(posEyeVS); 
-    pointDist = dist;
-
-
-    float ptAtten = exp(-0.01*sign(dist)*pow(abs(dist+1.f), u.pointDistAtten*.1));
-    gl_PointSize = u.pointSize/u.scrnRes.y * ptAtten * u.pointSizeRatio ;
+    float ptAtten = exp(-0.01*sign(pointDist)*pow(abs(pointDist+1.f), u.pointDistAtten*.1));
+    gl_PointSize = u.pointSize/u.scrnRes.y * ptAtten * u.ySizeRatio ;
    
 
     vertParticleColor = cOut;

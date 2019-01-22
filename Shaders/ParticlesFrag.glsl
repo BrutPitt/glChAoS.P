@@ -62,15 +62,15 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float zNear;
     float zFar;
     float velIntensity;
-    float pointSizeRatio;
+    float ySizeRatio;
+    float ptSizeRatio;
     bool lightActive;
 } u;
 
 //vec3 lightColor = vec3(.5,.9,0.0);
 
 //uniform vec3 light;
-in vec3 posEye;
-in float pointSZ;
+in vec3 mvVtxPos;
 
 
 in float pointDistance;
@@ -91,31 +91,44 @@ float getAlpha(float alpha)
 
 }
 
-float getSpecular(vec3 L, vec3 N)
+float getSpecularPhong(vec3 L, vec3 N)
+{
+    vec3 viewDir = normalize(-mvVtxPos);
+    vec3 reflectDir = reflect(-L, N);
+    float specAngle = max(dot(reflectDir, viewDir), 0.0);
+
+    return pow(specAngle, u.lightShinExp * .25);
+}
+
+float getSpecularBlinnPhong(vec3 L, vec3 N)
 {
 // point on surface of sphere in eye space
-    vec3 viewDir = normalize(-posEye);
+    vec3 viewDir = normalize(-mvVtxPos);
     vec3 halfDir = normalize(L + viewDir);
-    //vec3 halfDir = normalize(u.lightDir - posEye);
     float specAngle = max(dot(halfDir, N), 0.0);
+
     return pow(specAngle, u.lightShinExp);
 
-    //vec3 spherePosEye = (normalize(posEye) + N)*pointSZ;
-    //vec3 h = normalize(L + spherePosEye);
-    // return pow(max(0.0, dot(N, h)), u.lightShinExp);
 }
 
-float get_Specular(vec3 L, vec3 N)
+float ggx (vec3 N, vec3 V, vec3 L, float roughness, float F0) 
 {
-// point on surface of sphere in eye space
-    vec3 spherePosEye = N*pointSZ;
-
-	vec3 v = normalize(spherePosEye);
-    vec3 h = normalize(L + v);
-    return pow(max(0.0, dot(N, h)), u.lightShinExp);
+    float alpha = roughness*roughness;
+    vec3 H = normalize(L - V);
+    float dotLH = max(0.0, dot(L,H));
+    float dotNH = max(0.0, dot(N,H));
+    float dotNL = max(0.0, dot(N,L));
+    float alphaSqr = alpha * alpha;
+    float denom = dotNH * dotNH * (alphaSqr - 1.0) + 1.0;
+    float D = alphaSqr / (3.141592653589793 * denom * denom);
+    float F = F0 + (1.0 - F0) * pow(1.0 - dotLH, 5.0);
+    float k = 0.5 * alpha;
+    float k2 = k * k;
+    return dotNL * D * F / (dotLH*dotLH*(1.0-k2)+k2);
 }
 
-float LinearizeDepth(float depth, float near, float far) 
+
+float linearizeDepth(float depth, float near, float far) 
 {
     float z = -depth * 2.0 - (far - near);                          // back to NDC -depth/(far - near) * 2.0 - 1.0
     return (2.0 * near * far) / ((far + near) - z * (far - near));	
@@ -145,26 +158,21 @@ vec4 getLightedColor(vec2 coord)
     N.z = sqrt(1.0-mag);
     N = normalize(N);
 
-    vec3 light = normalize(u.lightDir+posEye);  // 
+    vec3 light = normalize(u.lightDir+mvVtxPos);  // 
     
     float lambertian = max(0.0, dot(light, N)); 
 
-/*
-    float NdL = clamp( dot(light, N), 0.0, 1.0);
-    vec3 r_l = reflect(light,N);
-    float s = clamp(100.0 * dot(r_l, normalize(posEye)) - 97.0, 0.0, 1.0);
-    vec3 lit = mix(vec3(0.0), vec3(2.0), s);
-    vec3 diffColor = color.rgb + NdL * lit * u.lightDiffInt ;
-*/
-
-    float specular = getSpecular(light, N);
+    float specular = getSpecularBlinnPhong(light, N);
+    //specular = ggx(N, normalize(mvVtxPos), normalize(u.lightDir),  u.lightShinExp * .1, .12);
+    //float lightDist = distance(u.lightDir, mvVtxPos);
+    //float lightAtten = 1.0 / (lightDist * lightDist);
 
 
     vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,
                                 /*color.rgb + */
-                                color.rgb * lambertian * u.lightDiffInt +  //diffuse component
-                                u.lightColor * specular * u.lightSpecInt + 
-                                (color.rgb+u.lightAmbInt*0.1) * u.lightAmbInt); 
+                                color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
+                                u.lightColor * specular * u.lightSpecInt  + 
+                                (color.rgb*u.lightAmbInt*0.5 + u.lightAmbInt) * .666667); /* (color.rgb+u.lightAmbInt*0.1) * */
 
 
  

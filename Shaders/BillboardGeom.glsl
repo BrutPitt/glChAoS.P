@@ -40,12 +40,10 @@ layout(std140) uniform;
 layout (points) in;
 layout (triangle_strip, max_vertices = 4) out;
 
-in vec3 posEyeVS[];
 in vec4 vertParticleColor[];
 in float pointDist[];
 
-out vec3 posEye;
-out float pointSZ;
+out vec3 mvVtxPos;
 out vec2 texCoord;
 out vec4 particleColor;
 out float pointDistance;
@@ -72,16 +70,13 @@ out gl_PerVertex
 
 void main(void)
 {
-    vec4 position;
-
-    posEye  = posEyeVS[0];
     pointDistance = pointDist[0];
+    particleColor = vertParticleColor[0];
 
     float sz = gl_in[0].gl_PointSize;
-    pointSZ  = sz;
 
-    particleColor = vertParticleColor[0];
-    position = gl_in[0].gl_Position;
+    vec4 position = gl_in[0].gl_Position;
+    mvVtxPos = position.xyz;
   
     //Vertex 1
     gl_Position = m.pMatrix * vec4(position.xy+vec2(-sz,-sz),position.zw);

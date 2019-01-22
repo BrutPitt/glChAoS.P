@@ -61,8 +61,7 @@ LAYUOT_INDEX(0) subroutine(_pixelColor)  vec4 pixelColorOnly()
 void main(void)
 {
 
-    gl_FragDepth = LinearizeDepth(posEye.z, u.zNear, u.zFar);
-    //gl_FragDepth = u.dPlane - u.ePlane/gl_FragCoord.z;
+    gl_FragDepth = linearizeDepth(mvVtxPos.z, u.zNear, u.zFar);
 
     outColor = pixelColor();
 }

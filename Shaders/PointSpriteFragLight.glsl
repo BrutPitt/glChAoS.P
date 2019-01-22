@@ -68,7 +68,7 @@ void main()
     //gl_FragDepth = (u.zNear - u.zFar/posEye.z);
     //outColor = vec4(vec3((1.0+gl_FragDepth)*.5), 1.0);
 
-    gl_FragDepth = LinearizeDepth(posEye.z, u.zNear, u.zFar);
+    gl_FragDepth = linearizeDepth(mvVtxPos.z, u.zNear, u.zFar);
 
 #if defined(GL_ES) || defined(TEST_WGL)
     outColor = u.lightActive ? pixelColorLight() : pixelColorOnly();
