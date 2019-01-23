@@ -217,7 +217,7 @@
 		"camDolly":       [ 0.0, 0.0, 0.42 ],
 		"camPan":         [ 0.0, 0.0, 0.0 ],
 		"camRotCent":     [ 0.0, 0.0, 0.0 ],
-		"camRot":         [ -0.023194605, 0.0059719887, -0.0057711648, -1.0000529 ]
+		"camRot":         [ -0.0099405795, -0.0016686241, -0.03425391, -0.9997198 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":   32772,
@@ -225,8 +225,8 @@
 		"DepthState":       false,
 		"BlendState":       true,
 		"LightState":       false,
-		"pointSize":        1.222,
-		"pointSizeFactor":  37.232,
+		"pointSize":        2.282,
+		"pointSizeFactor":  40.082,
 		"clippingDist":     0.24000001,
 		"alphaKFactor":     1.0,
 		"alphaAttenFactor": 0.0,
@@ -1054,8 +1054,8 @@
 		"DepthState":       false,
 		"BlendState":       true,
 		"LightState":       false,
-		"pointSize":        8.774,
-		"pointSizeFactor":  46.552,
+		"pointSize":        4.504,
+		"pointSizeFactor":  41.812,
 		"clippingDist":     0.5,
 		"alphaKFactor":     1.0,
 		"alphaAttenFactor": 0.0,

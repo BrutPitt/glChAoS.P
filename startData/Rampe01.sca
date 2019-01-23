@@ -6,7 +6,7 @@
 		"vMax":  0.0,
 		"vMin":  0.0,
 		"vData": [ 0.0, 0.0, 0.0 ],
-		"kData": [ 0.32225871, 0.67537248, 0.59930754, 0.1862441, -0.38634369, 0.47209942 ]
+		"kData": [ 0.36195871, 0.66207248, 0.59930754, 0.1862441, -0.38634369, 0.47209942 ]
 	},
 	"Render":      {
 		"RenderMode":     1,
@@ -15,12 +15,12 @@
 		"mixingVal":      0.0,
 		"circBuff":       10000000,
 		"rstrtCircBuff":  false,
-		"stopCircBuff":   true,
+		"stopCircBuff":   false,
 		"camPOV":         [ 0.0, 0.0, 9.26 ],
 		"camTGT":         [ 0.0, 0.0, 0.0 ],
 		"camPerspective": [ 30.0, 1.1920929e-07, 100.0 ],
 		"camDolly":       [ 0.0, 0.0, -4.5699997 ],
-		"camPan":         [ -2.9299998, -3.599999, 0.0 ],
+		"camPan":         [ -2.8899999, -4.0699987, 0.0 ],
 		"camRotCent":     [ -2.8700001, -2.97, -2.5400002 ],
 		"camRot":         [ 0.74560767, -0.44431522, 0.49993521, -0.031158812 ]
 	},
@@ -865,8 +865,8 @@
 		"DepthState":       false,
 		"BlendState":       true,
 		"LightState":       false,
-		"pointSize":        1.853,
-		"pointSizeFactor":  31.715,
+		"pointSize":        5.783,
+		"pointSizeFactor":  17.545,
 		"clippingDist":     0.5,
 		"alphaKFactor":     1.06,
 		"alphaAttenFactor": 0.0,

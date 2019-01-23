@@ -866,7 +866,7 @@
 		"BlendState":       true,
 		"LightState":       false,
 		"pointSize":        9.5440006,
-		"pointSizeFactor":  44.362003,
+		"pointSizeFactor":  28.242,
 		"clippingDist":     0.5,
 		"alphaKFactor":     1.0,
 		"alphaAttenFactor": 0.0,
