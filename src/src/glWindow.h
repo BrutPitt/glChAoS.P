@@ -102,11 +102,6 @@ public:
         glDeleteVertexArrays(1, &vao);
     }
 
-    void enable() {        
-      
-
-    }
-
     void draw() {
         glBindVertexArray(vao);        
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);

@@ -64,6 +64,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float velIntensity;
     float ySizeRatio;
     float ptSizeRatio;
+    float pointspriteMinSize;
     bool lightActive;
 } u;
 
@@ -172,7 +173,7 @@ vec4 getLightedColor(vec2 coord)
                                 /*color.rgb + */
                                 color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
                                 u.lightColor * specular * u.lightSpecInt  + 
-                                (color.rgb*u.lightAmbInt*0.5 + u.lightAmbInt) * .666667); /* (color.rgb+u.lightAmbInt*0.1) * */
+                                (color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5); /* (color.rgb+u.lightAmbInt*0.1) * */
 
 
  

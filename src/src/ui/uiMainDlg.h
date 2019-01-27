@@ -188,6 +188,9 @@ public:
 private:
 };
 
+
+#endif
+
 class particleEditDlgClass  : public baseDlgClass
 {
 public:
@@ -197,9 +200,6 @@ public:
 
 private:
 };
-
-#endif
-
 
 class infoDlgClass  : public baseDlgClass
 {
@@ -309,11 +309,11 @@ infoDlgClass infoDlg;
 psPaletteDlgClass psPaletteDlg;
 viewSettingDlgClass viewSettingDlg;
 fastViewDlgClass fastViewDlg;
+particleEditDlgClass particleEditDlg;
 #if !defined(GLCHAOSP_LIGHTVER)
 dataDlgClass dataDlg;
 progSettingDlgClass progSettingDlg;
 bbPaletteDlgClass bbPaletteDlg;
-particleEditDlgClass particleEditDlg;
 #else
     bool invertSettings = false;
 #endif

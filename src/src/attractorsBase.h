@@ -1606,7 +1606,7 @@ private:
 #if !defined(GLCHAOSP_LIGHTVER)
 #define ATT_PATH "startData/"
 #else
-#define ATT_PATH "startDataWGL/"
+#define ATT_PATH "startData/"
 #endif
 #define ATT_EXT ".sca"
 
@@ -1665,7 +1665,7 @@ public:
         PB(NoseHoover         , u8"\uf192" " NoseHoover"         )
         PB(RayleighBenard     , u8"\uf192" " RayleighBenard"     )
         PB(Sakarya            , u8"\uf192" " Sakarya"            )
-        PB(Robinson           , u8"\uf192" " Robinson"           )
+//        PB(Robinson           , u8"\uf192" " Robinson"           )
         PB(Rossler            , u8"\uf192" " Rossler"            )
         PB(Rucklidge          , u8"\uf192" " Rucklidge"          )
         PB(juliaBulb_IIM      , u8"\uf2dc" " JuliaBulb"          )
@@ -1686,6 +1686,9 @@ public:
 //        PB(Hopalong        , "Hopalong"         )
 
         selected = -1;
+
+        //std::sort(ptr.begin(), ptr.end());
+
 
         loadStartData();
     }

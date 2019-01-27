@@ -546,3 +546,40 @@ const float border = 5;
     selIdx = valIdx;
 
 }
+
+
+void fastViewDlgClass::view()
+{
+    if(!isVisible) return;
+
+#if !defined(GLCHAOSP_LIGHTVER)
+    const int posH = 0;
+    const int szH = 365+7*ImGui::GetFrameHeightWithSpacing();
+    const int posW = 190;
+#else
+    const int posH = 385;
+    const int szH = 365;
+    const int posW = 0;
+#endif
+    const int szW = 160;
+    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-szW-posW,posH ), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(szW, szH), ImGuiCond_FirstUseEver);
+
+    //ImGui::SetNextWindowSize(ImVec2(150, 400), ImGuiCond_FirstUseEver);
+    //ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-330,0), ImGuiCond_FirstUseEver);
+
+    if(ImGui::Begin(getTitle(), &isVisible)) {
+            int idx = theApp->selectedListQuickView();
+
+            ImGui::BeginChild("chaoticA");  //,ImVec2(ImGui::GetContentRegionAvailWidth(), -ImGui::GetFrameHeightWithSpacing())
+                for (int i = 0; i < theApp->getListQuickView().size(); i++)   {
+                    if (ImGui::Selectable(theApp->getListQuickView().at(i).c_str(), idx == i)) {
+                        theApp->loadQuikViewSelection(i);
+                    }
+                }
+
+            ImGui::EndChild();            
+
+    } ImGui::End();
+
+}

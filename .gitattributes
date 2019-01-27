@@ -11,4 +11,4 @@
 ParticlesLinux binary
 ParticlesOSX binary
 .suo binary
-src/ export-ignore
+# src/ export-ignore

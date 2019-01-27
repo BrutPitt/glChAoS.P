@@ -65,6 +65,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float velIntensity;
     float ySizeRatio;
     float ptSizeRatio;
+    float pointspriteMinSize;
     bool  lightActive;
 } u;
 
@@ -148,12 +149,6 @@ void main(void)
     gl_Position = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
     float vel = a_ActualPoint.w*u.velIntensity;
 
-/////////////////////////////////////////////////////////////
-// on glColor ci sono le coordinate del punto precedente
-// per il calcolo del colore in base alla velociita' di fuga
-//    vec4 oldVtxPos = vec4(a_PrevPoint.xyz,1.f);
-//    float vel = distance(vtxPos.xyz,oldVtxPos.xyz)*velIntensity;
-
 #ifdef USE_HLS_INTERNAL
     vec4 cOut = HLStoRGB(vec4(vel,.5f,.99f, 1.0));
 #else
@@ -162,9 +157,8 @@ void main(void)
 #endif
     pointDist = length(gl_Position.xyz); 
 
-    float ptAtten = exp(-0.01*sign(pointDist)*pow(abs(pointDist+1.f), u.pointDistAtten*.1));
-    gl_PointSize = u.pointSize/u.scrnRes.y * ptAtten * u.ySizeRatio ;
-   
+    float ptAtten = exp(-0.01*sign(pointDist)*pow(abs(pointDist)+1.f, u.pointDistAtten*.1));
+    gl_PointSize = u.pointSize/u.scrnRes.y * ptAtten * u.ySizeRatio;
 
     vertParticleColor = cOut;
 

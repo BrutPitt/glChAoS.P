@@ -46,7 +46,7 @@
 //#define USE_THREAD_TO_FILL
 //#define USE_MAPPED_BUFFER
 
-//#define GLAPP_IMGUI_VIEWPORT
+#define GLAPP_IMGUI_VIEWPORT
 
 #ifdef __EMSCRIPTEN__
     #define DOT_TEXT_SHFT 1
@@ -54,7 +54,6 @@
     #define DOT_TEXT_SHFT 2
 #endif
 
-//#define GLCHAOSP_USE_QUICKVIEW
 //#define GLCHAOSP_LIGHTVER
 
 #ifdef GLCHAOSP_LIGHTVER

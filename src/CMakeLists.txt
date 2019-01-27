@@ -123,7 +123,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
         else()
             if(${CMAKE_BUILD_TYPE} MATCHES "MinSizeRel")
                 # one file no memory option: -s SINGLE_FILE=1 --memory-init-file 0 
-                set(M_EMCC_BINARYEN "--closure 1 -s WASM=1  -s \"BINARYEN_METHOD='native-wasm'\" ")
+                set(M_EMCC_BINARYEN "--no-heap-copy --closure 1 -s WASM=1  -s \"BINARYEN_METHOD='native-wasm'\" ")
                 set(M_EMCC_SHELL_FILE "--shell-file \"${CMAKE_SOURCE_DIR}/mVeryMinimal.html\"")
             else() # Release 
                 # -s SINGLE_FILE=1 --memory-init-file 0 -s \"BINARYEN_METHOD='interpret-asm2wasm'\"
@@ -140,7 +140,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
      --preload-file \"${CMAKE_SOURCE_DIR}/../ChaoticAttractors@ChaoticAttractors/\"\
      --preload-file  \"${CMAKE_SOURCE_DIR}/../colorMaps/palettes.json@colorMaps/\"\
      --preload-file \"${CMAKE_SOURCE_DIR}/../Fonts@Fonts/\"\
-     --preload-file \"${CMAKE_SOURCE_DIR}/../startDataWGL@startDataWGL/\"")
+     --preload-file \"${CMAKE_SOURCE_DIR}/../startData@startData/\"")
      
 #     --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts/Cousine-Regular.ttf@Fonts/\"\
 #     --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts/fontawesome-webfont.ttf@Fonts/\"\

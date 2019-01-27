@@ -132,58 +132,26 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 /////////////////////////////////////////////////
 
 class particlesBaseClass;
-//////////////////////////
-// Points settings
-
-struct particlesSettings {
-    float pointSize;
-    float alphaAttenFactor, alphaKFactor;
-    float clippingDist, pointSizeFactor;
-    unsigned int dstBlendAttrib, srcBlendAttrib;
-    int dstIdxBlendAttrib, srcIdxBlendAttrib;
-
-//////////////////////////
-// Glow parameters
-    float gamma;
-    float bright;
-    float contrast;
-    float texInt;
-    float blurInt;
-    float mixBlurTex;
-    float sigma;
-
-//////////////////////////
-// ColorMap/color
-    std::string paletteName;
-    std::vector<float> palData;
-    
-    void getData(particlesBaseClass *ptr); 
 
 
-};
+class timerClass
+{
+public:
+    timerClass() {  }
 
+    void init() { last = prev = startAVG = glfwGetTime(); }
 
-struct renderSettings {
-//////////////////////////
-// Render Base
-    int whichRenderMode;            // Billboard point or merged
+    void tick() { prev = last;  last = glfwGetTime();  count++; }
 
-//////////////////////////
-// Motion Blur
-    bool  motionBlur;               //Active?
-    float blurIntensity;            // blur effect
+    void resetAVG() { startAVG = glfwGetTime(); count = 0; }
 
+    float fps() { return static_cast<float>(1.0/(last-prev)); }
 
-//////////////////////////
-// Merged rendering
-    float mixingVal;                // Mixing val
+    float fpsAVG() { return static_cast<float>(count/(last-startAVG)); }
 
-    particlesSettings render1, render2; //PS e BB
-    
-
-    void getData();
-
-
+private:
+    double last = 0.0, prev = 0.0, startAVG = 0.0;
+    long count = 0;
 };
 
 
@@ -255,6 +223,9 @@ public:
     int getMaxAllocatedBuffer() { return maxAllocatedBuffer; }
     void setMaxAllocatedBuffer(int v) { maxAllocatedBuffer = v; }
 
+    bool isParticlesSizeConstant() { return particlesSizeConstant; }
+    void isParticlesSizeConstant(bool b) { particlesSizeConstant = b; }
+
     void setVSync(int v) { vSync = v; }
     int getVSync() { return vSync; }
 
@@ -269,25 +240,33 @@ public:
     
     mainImGuiDlgClass &getMainDlg() { return mainImGuiDlg; }
 
-    std::vector<std::string> & getlistFilesSCA() { return listFilesSCA; }
-    void getDirList();
+    std::vector<std::string> & getListQuickView() { return listQuickView; }
+    void getQuickViewDirList();
+    void loadQuikViewSelection(int idx);
+
+    void selectedListQuickView(int i) { idxListQuickView = i; }
+    int selectedListQuickView() { return idxListQuickView; }
+
+    timerClass& getTimer() { return timer; }
 
 
 protected:
 
-		// The Position of the window
-		int xPosition, yPosition;
-		int width, height;
-		/** The title of the window */
+	// The Position of the window
+	int xPosition, yPosition;
+	int width, height;
+	/** The title of the window */
 
-        bool exitFullScreen;
+    bool exitFullScreen;
+    bool particlesSizeConstant = false;
 
-		// The title of the window
-		std::string windowTitle;
-		std::string glslVersion;
-        std::string glslDefines;
+	// The title of the window
+	std::string windowTitle;
+	std::string glslVersion;
+    std::string glslDefines;
 
-        std::vector<std::string> listFilesSCA;
+    std::vector<std::string> listQuickView;
+    int idxListQuickView = 0;
     
     
 private:
@@ -315,6 +294,8 @@ private:
     
     GLFWwindow* mainGLFWwnd = nullptr;
     glWindow *glEngineWnd = nullptr;
+
+    timerClass timer;
     
 
 friend class glWindow;

@@ -173,7 +173,7 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
     //getUData().zFar = -2.f * newFar * getTMat()->getPerspNear() / dist;
 
     getUData().zNear = getTMat()->getPerspNear();
-    getUData().zFar = getTMat()->getPerspFar() + (getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z) * 2.0;
+    getUData().zFar = (getTMat()->getPerspFar() + (getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z)) * 2.0;
 
     //getUData().zFar = .5f/(getTMat()->getPOV().z-getTMat()->getTrackball().getDollyPosition().z); //1((/POV.z-Dolly.z)*2)
 
@@ -335,7 +335,6 @@ void mergedRenderingClass::create()
 
 	link();
  
-    theWnd->getVAO()->enable();
 #if !defined(GLAPP_REQUIRE_OGL45)
     LOCbillboardTex = getUniformLocation("billboardTex");
     LOCpointsTex =    getUniformLocation("pointTex");
@@ -362,7 +361,6 @@ void motionBlurClass::create()
 	link();
 
 
-    theWnd->getVAO()->enable();
 #ifndef GLAPP_REQUIRE_OGL45
     bindPipeline();
     useProgram();

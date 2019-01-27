@@ -35,6 +35,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <chrono>
 #include <array>
+#include <algorithm>
 #include <vector>
 #include <ostream>
 #include <dirent.h>
@@ -302,7 +303,9 @@ void mainGLApp::saveAttractor(const char *name)
     dump_file(name, cfg, JSON);  
 }
 
-void mainGLApp::getDirList()
+
+// QuickView Dir List
+void mainGLApp::getQuickViewDirList()
 {
 /*
 
@@ -321,13 +324,27 @@ void mainGLApp::getDirList()
                && strncmp(ent->d_name, "test", 4)
 #endif
             ) {
-                getlistFilesSCA().push_back(ent->d_name);
+                getListQuickView().push_back(ent->d_name);
                 //printf ("%s\n", ent->d_name);
             }
         }
         closedir (dir);
     } 
 
+    std::sort(getListQuickView().begin(), getListQuickView().end());
+}
+
+void mainGLApp::loadQuikViewSelection(int idx)
+{
+    selectedListQuickView(idx);
+    std::string s = STRATT_PATH; s+=getListQuickView().at(idx);
+    attractorsList.getThreadStep()->stopThread();
+    theDlg.getParticlesDlgClass().resetTreeParticlesFlags();
+    loadAttractor(s.c_str());
+    setLastFile(s);
+    attractorsList.getThreadStep()->restartEmitter();
+    attractorsList.get()->initStep();
+    attractorsList.getThreadStep()->startThread();
 }
 
 
@@ -471,6 +488,9 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
 #endif
 
         pSys->getEmitter()->setSizeCircularBuffer(c.get_or("circBuff"     , pSys->getEmitter()->getSizeCircularBuffer()));
+#ifdef GLCHAOSP_LIGHTVER
+        pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeCircularBuffer()>>1);
+#endif
         if(pSys->getEmitter()->getSizeCircularBuffer()>pSys->getEmitter()->getSizeAllocatedBuffer())
             pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeAllocatedBuffer());
 
@@ -500,7 +520,7 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
 
         auto &c1 = cfg["RenderMode1"];
 #else
-        auto &c1 = cfg[!theDlg.getInvertSettings() ? "RenderMode1" : "RenderMode0"];
+        auto &c1 = cfg[(!theDlg.getInvertSettings())^(pSys->getRenderMode()==RENDER_USE_BILLBOARD) ? "RenderMode1" : "RenderMode0"];
 #endif
         particlesBaseClass *ptr1 = pSys->shaderPointClass::getPtr();
         getRenderMode(c1,ptr1);
@@ -539,8 +559,6 @@ void mainGLApp::invertSettings()
         particlesBaseClass *ptr = pSys->shaderPointClass::getPtr();
         getRenderMode(c,ptr);
     }
-
-
 }
 
 
@@ -690,6 +708,8 @@ void mainGLApp::saveProgConfig()
     cfg["vSync" ] = theApp->getVSync();
 
     cfg["maxParticles" ] = getMaxAllocatedBuffer();
+    cfg["partSizeConst"] =  theApp->isParticlesSizeConstant();
+
     cfg["capturePath" ] = capturePath;
 
     dump_file(filename, cfg, JSON);
@@ -742,6 +762,8 @@ bool mainGLApp::loadProgConfig()
 
     setMaxAllocatedBuffer(cfg.get_or("maxParticles", getMaxAllocatedBuffer()));
     if(getMaxAllocatedBuffer()>PARTICLES_MAX) setMaxAllocatedBuffer(PARTICLES_MAX);
+    
+    theApp->isParticlesSizeConstant(cfg.get_or("partSizeConst", false));
 
     capturePath = cfg.get_or("capturePath", capturePath);
 

@@ -62,24 +62,17 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
 {
     ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
     if(ImGui::GetIO().WantCaptureKeyboard) return;
-    //if ((key == GLFW_KEY_LEFT_CONTROL || key == GLFW_KEY_RIGHT_CONTROL) && action == GLFW_PRESS)
-    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        theDlg.visible(theDlg.visible()^1);
-    } //glfwSetWindowShouldClose(window,GLFW_TRUE);
-     
-    if(key == GLFW_KEY_PRINT_SCREEN && action == GLFW_PRESS) {
-        if(mods & GLFW_MOD_CONTROL) // CTRL+PrtScr -> request FileName
-            theApp->setScreenShotRequest(ScreeShotReq::ScrnSht_FILE_NAME);
-        if(mods & GLFW_MOD_SHIFT) // SHIFT+PrtScr -> silent capture
-            theApp->setScreenShotRequest(ScreeShotReq::ScrnSht_SILENT_MODE);
-        if((mods & GLFW_MOD_ALT) || (mods & GLFW_MOD_SUPER)) // ALT+PrtScr -> capture also GUI
-            theApp->setScreenShotRequest(ScreeShotReq::ScrnSht_CAPTURE_ALL);
-    }
-    else if(key >= GLFW_KEY_F1 && key <= GLFW_KEY_F12 && action == GLFW_PRESS) {
+
+    if(action == GLFW_PRESS) {
+
         theWnd->onSpecialKeyDown(key, 0, 0);
         //if(key == GLFW_KEY_F11) toggleFullscreenOnOff(window);
 
         switch(key) {
+            case GLFW_KEY_ESCAPE : theDlg.visible(theDlg.visible()^1); break;
+            case GLFW_KEY_SPACE  : attractorsList.restart();           break;
+
+            case GLFW_KEY_F1 : theDlg.aboutDlg.toggleVisible();       break;
             case GLFW_KEY_F2 : theDlg.attractorDlg.toggleVisible();   break;
             case GLFW_KEY_F3 : theDlg.particlesDlg.toggleVisible();   break;
             case GLFW_KEY_F4 : theDlg.imGuIZMODlg.toggleVisible();    break;
@@ -88,24 +81,48 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
 #if !defined(GLCHAOSP_LIGHTVER)
             case GLFW_KEY_F7 : theDlg.dataDlg.toggleVisible();        break;
             case GLFW_KEY_F8 : theDlg.progSettingDlg.toggleVisible(); break;
+            case GLFW_KEY_I  : theApp->invertSettings();              break;  
+#else 
+            case GLFW_KEY_I  : 
+                theDlg.setInvertSettings(theDlg.getInvertSettings()^1);
+                if(theApp->getLastFile().size()>0) loadAttractorFile(false, theApp->getLastFile().c_str());
+            break;  
 #endif
 #if !defined (__EMSCRIPTEN__)
             case GLFW_KEY_F11: toggleFullscreenOnOff(window);         break;
 #endif
-            default:                                                  break;
+            case GLFW_KEY_DOWN :  
+            case GLFW_KEY_D    :  {
+                int idx = attractorsList.getSelection();
+                attractorsList.setSelection((idx >= attractorsList.getList().size()-1) ? 0 : ++idx);
+                } break;
+            case GLFW_KEY_UP :  
+            case GLFW_KEY_U  :  {
+                int idx = attractorsList.getSelection();
+                attractorsList.setSelection((idx <= 0) ? attractorsList.getList().size()-1 : --idx);
+                } break;
+            case GLFW_KEY_RIGHT :  
+            case GLFW_KEY_R     :  {
+                int idx = theApp->selectedListQuickView();
+                theApp->loadQuikViewSelection((idx >= theApp->getListQuickView().size()-1) ? 0 : ++idx);
+                } break;
+            case GLFW_KEY_LEFT :  
+            case GLFW_KEY_L    :  {
+                int idx = theApp->selectedListQuickView();
+                theApp->loadQuikViewSelection((idx <= 0) ? theApp->getListQuickView().size()-1 : --idx);
+                } break;
+            case GLFW_KEY_PRINT_SCREEN :  
+                if(mods & GLFW_MOD_CONTROL) // CTRL+PrtScr -> request FileName
+                    theApp->setScreenShotRequest(ScreeShotReq::ScrnSht_FILE_NAME);
+                if(mods & GLFW_MOD_SHIFT) // SHIFT+PrtScr -> silent capture
+                    theApp->setScreenShotRequest(ScreeShotReq::ScrnSht_SILENT_MODE);
+                if((mods & GLFW_MOD_ALT) || (mods & GLFW_MOD_SUPER)) // ALT+PrtScr -> capture also GUI
+                    theApp->setScreenShotRequest(ScreeShotReq::ScrnSht_CAPTURE_ALL);
+                break;
+            default:                                                  
+                break;
 
         }
-
-    } else if( key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-        attractorsList.restart(); //theWnd->getParticlesSystem()->restartEmitter();    
-    }
-#if !defined(GLCHAOSP_LIGHTVER)
-    else if( key == GLFW_KEY_I && action == GLFW_PRESS) {
-        theApp->invertSettings(); //theWnd->getParticlesSystem()->restartEmitter();    
-    }
-#endif
-    else if(action == GLFW_PRESS) {            
-        theWnd->onKeyDown(key==GLFW_KEY_ENTER ? 13 : key, 0, 0);           
     }
 }
 
@@ -403,6 +420,8 @@ void mainGLApp::glfwInit()
     glfwSwapInterval(vSync);
 #endif
 
+    // init glfwTimer
+    timer.init();
 }
 
 int mainGLApp::glfwExit()
@@ -433,7 +452,7 @@ mainGLApp::mainGLApp()
     mainGLApp::theMainApp = this;
     glEngineWnd = new glWindow; 
     screenShotRequest = false;
-    getDirList();
+    getQuickViewDirList();
 
 }
 
@@ -484,14 +503,8 @@ void newFrame()
     theWnd->onRender();
 
     theApp->getMainDlg().renderImGui();
-/*
-    static int j = 0;
-    if(j++>100) {
-        theWnd->getParticlesSystem()->selectColorMap(3);
-        j=0;
-    }
-*/
-    glfwMakeContextCurrent(theApp->getGLFWWnd());
+
+    //glfwMakeContextCurrent(theApp->getGLFWWnd());
     glfwSwapBuffers(theApp->getGLFWWnd());
 
 }
@@ -504,6 +517,7 @@ void mainGLApp::mainLoop()
         glfwGetFramebufferSize(getGLFWWnd(), &width, &height);
 
         if (!glfwGetWindowAttrib(getGLFWWnd(), GLFW_ICONIFIED)) 
+            timer.tick();
 
 #if !defined(GLCHAOSP_LIGHTVER)
             theWnd->onIdle();
@@ -513,16 +527,16 @@ void mainGLApp::mainLoop()
             //glClear(GL_COLOR_BUFFER_BIT);
             theWnd->onRender();
 
-        if(screenShotRequest) {
-            if(screenShotRequest == ScreeShotReq::ScrnSht_CAPTURE_ALL) getMainDlg().renderImGui();
-            getScreenShot();
-        }
-        getMainDlg().renderImGui();
+            if(screenShotRequest) {
+                if(screenShotRequest == ScreeShotReq::ScrnSht_CAPTURE_ALL) getMainDlg().renderImGui();
+                getScreenShot();
+            }
+            getMainDlg().renderImGui();
 
-        glfwMakeContextCurrent(getGLFWWnd());
-        glfwSwapBuffers(getGLFWWnd());
+            glfwMakeContextCurrent(getGLFWWnd());
+            glfwSwapBuffers(getGLFWWnd());
 #else
-        newFrame();
+            newFrame();
 #endif
     }
 

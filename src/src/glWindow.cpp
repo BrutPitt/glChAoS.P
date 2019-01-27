@@ -33,12 +33,6 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
-#define BUILD_PARTICLE_TEXTURE //Build gaussian tezxtures
-#ifndef BUILD_PARTICLE_TEXTURE   // else... use DevIL to load texture
-    #include<IL/il.h>
-#endif
-
-
 #include <glm/glm.hpp>
 
 
@@ -54,17 +48,6 @@ HLSTexture hlsTexture;
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onInit()
 {
-#ifndef BUILD_PARTICLE_TEXTURE
-    ilInit();
-    ilEnable(IL_ORIGIN_SET);
-    ilSetInteger(IL_ORIGIN_MODE, IL_ORIGIN_UPPER_LEFT);    
-    //ilutRenderer(ILUT_OPENGL);
-#endif
-
-#if !defined(__EMSCRIPTEN__)
-    glEnable( GL_PROGRAM_POINT_SIZE );
-    glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
-#endif
 
     glViewport(0,0,theApp->GetWidth(), theApp->GetHeight());
     vao = new vaoClass;
@@ -77,6 +60,14 @@ void glWindow::onInit()
     //particlesSystem = new particlesSystemClass(new transformedEmitterClass(1,mVB_COLOR));
     particlesSystem = new particlesSystemClass(new singleEmitterClass);
     //shaderMotionBlur.create();
+
+#if !defined(__EMSCRIPTEN__)
+    glEnable( GL_PROGRAM_POINT_SIZE );
+    glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
+    GLfloat retVal[4];
+    glGetFloatv(GL_POINT_SIZE_RANGE, &retVal[0]);
+    particlesSystem->shaderPointClass::getUData().pointspriteMinSize = retVal[0];
+#endif
 
     attractorsList.newStepThread(particlesSystem->getEmitter());
     attractorsList.setSelection(0);

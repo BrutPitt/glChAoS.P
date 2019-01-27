@@ -372,6 +372,7 @@ public:
     std::vector<GLuint> &getBlendArray() { return blendArray; }
     std::vector<const char *> &getBlendArrayStrings() { return blendingStrings; }
 
+
 protected:
     int whichRenderMode;    
 
@@ -381,8 +382,6 @@ protected:
 
     oglAxes *axes;
     int axesShow = noShowAxes;
-
-
 #endif
 
     cmContainerClass colorMapContainer;
@@ -735,10 +734,11 @@ class particlesBaseClass : public mainProgramObj, public uniformBlocksClass, pub
 protected:
 
 struct uParticlesData {
-    vec3 lightDir = vec3(50.f, 0.f, 15.f); // align 0
+    vec3    lightDir = vec3(50.f, 0.f, 15.f); // align 0
     GLfloat lightDiffInt = 3.f;
-    vec3 lightColor = vec3(1.f);           // align 16
+    vec3    lightColor = vec3(1.f);           // align 16
     GLfloat lightSpecInt = 1.f;
+    vec2    scrnRes;
     GLfloat lightAmbInt = .1f;
     GLfloat lightShinExp = 50.f;
     GLfloat sstepColorMin = .1;
@@ -753,6 +753,9 @@ struct uParticlesData {
     GLfloat zNear;
     GLfloat zFar;
     GLfloat velocity;
+    GLfloat ySizeRatio = 1.0;
+    GLfloat ptSizeRatio = 1.0;
+    GLfloat pointspriteMinSize = 1.0;
     GLuint lightActive;
 } uData;
 
@@ -785,6 +788,10 @@ public:
     }
 
     void updateCommonUniforms() {
+        getUData().scrnRes.x = getRenderFBO().getSizeX();
+        getUData().scrnRes.y = getRenderFBO().getSizeY();
+        getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getRenderFBO().getSizeY()/1024.0);
+        getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
         getUData().velocity = getCMSettings()->getVelIntensity();
     }
 
@@ -866,7 +873,6 @@ public:
     vec4& getHermiteVals() { return dotTex.getHermiteVals(); }
 
     dotsTextureClass& getDotTex() { return dotTex; }
-
 
 protected:
     GLuint dstBlendAttrib, srcBlendAttrib;

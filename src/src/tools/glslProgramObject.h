@@ -247,7 +247,7 @@ public:
 class uniformBlocksClass {
 public:
 
-     uniformBlocksClass() { glGenBuffers(1,    &uBuffer); }
+     uniformBlocksClass() { }
     ~uniformBlocksClass() { glDeleteBuffers(1, &uBuffer); }
 
 // getting aligment for min size block allocation
@@ -264,6 +264,8 @@ public:
     void create(GLuint size, void *pData, GLuint prog, const char *nameUBlock)
 #endif
     {
+        glGenBuffers(1,    &uBuffer);
+
         realDataSize = size;
         ptrData = pData;
 

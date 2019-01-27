@@ -303,13 +303,9 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 //////////Linea 3//////////        
                 //ImGui::SetCursorPosX(INDENT(posA));
                 //ImGui::TextDisabled("PointSize"); //ImGui::SameLine(posB3);
-#if !defined(GLCHAOSP_NO_DeL)
                 //////////Linea 4//////////       
-#if !defined(GLCHAOSP_LIGHTVER)
                 const float sz = wButt3-(ImGui::GetFrameHeightWithSpacing()+border)*.3333;
-#else
-                const float sz = wButt3;
-#endif
+
                 {
                     char txt[32];
                     ImGui::SetCursorPosX(posA);
@@ -331,19 +327,13 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                         sprintf(txt, b ? "Light " ICON_FA_CHECK_SQUARE_O "%s" : "Light " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
                         if(colCheckButton(b , txt, sz)) particles->setLightState(b^1);
                     }
-
-#if !defined(GLCHAOSP_LIGHTVER)
                     ImGui::SameLine();
                     {
                         bool b = theDlg.particleEditDlg.visible();
                         sprintf(txt, b ? ICON_FA_CIRCLE "%s" : ICON_FA_CIRCLE "%s", buildID(base, idA++, id)); 
                         if(colCheckButton(b , txt, ImGui::GetFrameHeightWithSpacing())) theDlg.particleEditDlg.visible(b^1);
                     }
-#endif
                 }
-
-
-#endif
 
                 ImGui::PushItemWidth(wButt3);
 
@@ -557,7 +547,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                 ImGui::SetCursorPosX(posA); ImGui::TextDisabled("Diff"); ImGui::SameLine();
                 ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-posA));
-                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightDiffInt,0.01, 0.0, 10.f, "% .3f",1.0f,ImVec2(.93,0.5));
+                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightDiffInt,0.01, 0.0, 1000.f, "% .3f",1.0f,ImVec2(.93,0.5));
                 ImGui::PopItemWidth();
 
                 ImGui::SameLine(wLightPos);     ImGui::TextDisabled("Ambt"); ImGui::SameLine();
@@ -580,7 +570,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 
                 ImGui::SetCursorPosX(posA); ImGui::TextDisabled("Spec");  ImGui::SameLine();
                 ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-posA));
-                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightSpecInt,0.01, 0.0, 10.f, "% .3f",1.0f,ImVec2(.93,0.5));
+                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightSpecInt,0.01, 0.0, 1000.f, "% .3f",1.0f,ImVec2(.93,0.5));
                 ImGui::PopItemWidth();
                 
                 ImGui::SameLine(wLightPos);     ImGui::TextDisabled("sExp");  ImGui::SameLine();
@@ -1220,9 +1210,9 @@ void comboWindowRes(const float width)
 
     const char *items[20] = { "", "1024x1024", "1280x720", "1920x1080", "1920x1200", "2048x2048", "2560x1440", "3440x1440" };
     int w, h;
-    glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
+    // glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
     char s[30];
-    sprintf(s, "%dx%d (current)", w, h);
+    sprintf(s, "%dx%d (current)", theApp->GetWidth(), theApp->GetHeight());
     items[0]=s;
             
     static int i;
@@ -1265,11 +1255,12 @@ void progSettingDlgClass::view()
         glfwGetWindowPos(theApp->getGLFWWnd(),&x,&y);
         ImGui::Text("[ %4d, %4d ]", x, y);
 
-
-        bool b = bool(theApp->getVSync());
-        if(ImGui::Checkbox("vSync", &b)) {
-            theApp->setVSync(b ? 1 : 0);
-            glfwSwapInterval(theApp->getVSync());
+        {
+            bool b = bool(theApp->getVSync());
+            if(ImGui::Checkbox("vSync", &b)) {
+                theApp->setVSync(b ? 1 : 0);
+                glfwSwapInterval(theApp->getVSync());
+            }
         }
 /*
         ImGui::NewLine();
@@ -1378,9 +1369,30 @@ void progSettingDlgClass::view()
 
         ImGui::PopItemWidth();
 
+        {
+            ImGui::AlignTextToFramePadding();
+            bool b = bool(theApp->isParticlesSizeConstant());
+            if(ImGui::Checkbox(" Particles size constant", &b)) {
+                theApp->isParticlesSizeConstant(b);
+                theWnd->getParticlesSystem()->setFlagUpdate();
 
+            }
+            ImGui::SameLine();
+            ShowHelpMarker(GLAPP_HELP_PART_SZ_CONST);
+        }
+/*
+        {
+            ImGui::AlignTextToFramePadding();
+            bool b = bool(theApp->isParticlesSizeConstant());
+            if(ImGui::Checkbox(" Force min PointSprite size to 1.0", &b)) {
+                theApp->isParticlesSizeConstant(b);
+                theWnd->getParticlesSystem()->setFlagUpdate();
 
-
+            }
+            ImGui::SameLine();
+            ShowHelpMarker(GLAPP_HELP_FORCE_PNTSPRT_SZ);
+        }
+*/
         ImGui::NewLine();
 
         ImGui::Text(" Images capture");
@@ -1449,17 +1461,25 @@ void dataDlgClass::view()
 
 }
 
+#endif
+
 void particleEditDlgClass::view()
 {
 
     if(!isVisible) return;
 
+#if !defined(GLCHAOSP_LIGHTVER)
     ImGui::SetNextWindowSize(ImVec2(350, 440), ImGuiCond_FirstUseEver);
 
     particlesBaseClass *pSys = theWnd->getParticlesSystem()->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? 
         (particlesBaseClass *) theWnd->getParticlesSystem()->shaderBillboardClass::getPtr() : 
         (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
-    
+#else
+    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-385,0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(200, 280), ImGuiCond_FirstUseEver);
+    particlesBaseClass *pSys = (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
+#endif
+
 
     if(ImGui::Begin(getTitle(), &isVisible)) {
         const float w = ImGui::GetContentRegionAvailWidth();
@@ -1470,7 +1490,7 @@ void particleEditDlgClass::view()
         ImGui::Text("Hermite coefficients");
         ImGui::PushItemWidth(wButt);
 
-        if(ImGui::DragFloat4("##parED",glm::value_ptr(pSys->getHermiteVals()), .01, 0.0, 1.0)) {
+        if(ImGui::DragFloat4("##parED",glm::value_ptr(pSys->getHermiteVals()), .01, 0.0, 1.0,"%.2f")) {
             pSys->getDotTex().build();
         }
         ImGui::PopItemWidth();
@@ -1482,6 +1502,7 @@ void particleEditDlgClass::view()
         char txt[32];
 
 
+#if !defined(GLCHAOSP_LIGHTVER)
         ImGui::PushItemWidth(wButt3);
         {
             int idx = dots->getIndex();
@@ -1496,10 +1517,14 @@ void particleEditDlgClass::view()
         ImGui::PopItemWidth();
 
         ImGui::SameLine(w-(wButt3-DLG_BORDER_SIZE));
+        const float wSZ = wButt3;
+#else
+        const float wSZ = w;
+#endif
         {
             bool b = dots->getDotType();
             sprintf(txt, b ? ICON_FA_CHECK_SQUARE_O " solidDot##" "%s" : ICON_FA_SQUARE_O " solidDot##"  "%s", theWnd->getParticlesSystem()->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? "B" : "P"); 
-            if(colCheckButton(b , txt, wButt3)) dots->setDotType(b^1);
+            if(colCheckButton(b , txt, wSZ)) dots->setDotType(b^1);
         }
 
 
@@ -1507,8 +1532,6 @@ void particleEditDlgClass::view()
     ImGui::End();
 
 }
-#endif
-
 
 void viewSettingDlgClass::view()
 {
@@ -1847,53 +1870,6 @@ void aboutDlgClass::view()
 
 //void loadActualSelection()
 
-void fastViewDlgClass::view()
-{
-    if(!isVisible) return;
-
-#if !defined(GLCHAOSP_LIGHTVER)
-    const int posH = 0;
-    const int szH = 365+7*ImGui::GetFrameHeightWithSpacing();
-    const int posW = 190;
-#else
-    const int posH = 385;
-    const int szH = 365;
-    const int posW = 0;
-#endif
-    const int szW = 160;
-    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-szW-posW,posH ), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(szW, szH), ImGuiCond_FirstUseEver);
-
-    //ImGui::SetNextWindowSize(ImVec2(150, 400), ImGuiCond_FirstUseEver);
-    //ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-330,0), ImGuiCond_FirstUseEver);
-
-    if(ImGui::Begin(getTitle(), &isVisible)) {
-            static int selector = 0;
-
-            auto loadSelection = [=] () {
-                std::string s = STRATT_PATH; s+=theApp->getlistFilesSCA().at(selector);
-                attractorsList.getThreadStep()->stopThread();
-                theDlg.getParticlesDlgClass().resetTreeParticlesFlags();
-                theApp->loadAttractor(s.c_str());
-                theApp->setLastFile(s);
-                attractorsList.getThreadStep()->restartEmitter();
-                attractorsList.get()->initStep();
-                attractorsList.getThreadStep()->startThread();
-            };
-
-            ImGui::BeginChild("chaoticA");  //,ImVec2(ImGui::GetContentRegionAvailWidth(), -ImGui::GetFrameHeightWithSpacing())
-                for (int i = 0; i < theApp->getlistFilesSCA().size(); i++)   {
-                    if (ImGui::Selectable(theApp->getlistFilesSCA().at(i).c_str(), selector == i)) {
-                        selector = i;
-                        loadSelection();
-                    }
-                }
-
-            ImGui::EndChild();            
-
-    } ImGui::End();
-
-}
 
 void infoDlgClass::view()
 {
@@ -1919,7 +1895,10 @@ void infoDlgClass::view()
         const GLubyte *glslVer= glGetString(GL_SHADING_LANGUAGE_VERSION);
 
         ImGui::TextDisabled("Timings");
-        ImGui::Text("Avg %.3f ms/f (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Inst %6.1f fps, Avg %.1f fps  ", theApp->getTimer().fps(), theApp->getTimer().fpsAVG()); ImGui::SameLine(); 
+        if(ImGui::Button("Reset AVG")) theApp->getTimer().resetAVG();
+        ImGui::Text("ImGui Avg %.3f ms/f (%.1f fps)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
         ImGui::NewLine();
 
@@ -1979,7 +1958,7 @@ void infoDlgClass::view()
             ImGui::TextUnformatted(str);
         }
 
-        ImGui::TextDisabled("PointSize");
+        ImGui::TextDisabled("PointSprite size");
         {
             GLfloat retVal[4];
             glGetFloatv(GL_POINT_SIZE_RANGE, &retVal[0]);
@@ -2003,9 +1982,6 @@ void infoDlgClass::view()
 
 }
 
-
-//void colorTheme5c(const ImVec4 &color);
-//void colorTheme3(const ImVec4 &color);
 void mainImGuiDlgClass::view()
 {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -2020,21 +1996,8 @@ void mainImGuiDlgClass::view()
 
 
     ImGui::SetNextWindowSize(ImVec2(wndSizeX, ImGui::GetFrameHeightWithSpacing()*numItems), ImGuiCond_Always);
-    int w,h;
-    glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
-    ImGui::SetNextWindowPos(ImVec2(w-wndSizeX, posH), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-wndSizeX, posH), ImGuiCond_FirstUseEver);
 
-
-        
-/*
-    static ImGuiID ID = 0;
-    if(theApp->fullScreen()) {
-        ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
-    } 
-    else {
-        //ImGui::SetNextWindowViewport(ImGui::GetMainViewport()->ID);
-    }
-*/
 
     if(ImGui::Begin(getTitle(),  NULL ,ImGuiWindowFlags_NoResize)) {
 
@@ -2164,27 +2127,7 @@ void mainImGuiDlgClass::renderImGui()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
 
-    //if(theApp->fullScreen()) ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_ViewportsEnable; 
-    //else                     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; 
-
-
     ImGui::NewFrame();
-
-
-#ifdef GLAPP_IMGUI_VIEWPORT
-
-/*
-    static bool prevMode = false;
-    bool switchedFullScreen = prevMode != theApp->fullScreen();
-
-    prevMode=theApp->fullScreen();
-
-    if(switchedFullScreen) {
-        if(theApp->fullScreen()) switchFullscreen();
-        else                     switchWindow();
-    }
-*/
-#endif
 
     if(visible()) {
         aboutDlg.view();
@@ -2200,10 +2143,10 @@ void mainImGuiDlgClass::renderImGui()
         viewSettingDlg.view();
         infoDlg.view();
         fastViewDlg.view();
+        particleEditDlg.view();
 #if !defined(GLCHAOSP_LIGHTVER)
         progSettingDlg.view();
         dataDlg.view();
-        particleEditDlg.view();
 #endif
         view();
     }

@@ -70,6 +70,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float velIntensity;
     float ySizeRatio;
     float ptSizeRatio;
+    float pointspriteMinSize;
     bool lightActive;
 } u;
 
@@ -111,12 +112,14 @@ void main()
     pointDistance = gl_Position.w; //length(vtxPos.w);
 
 
-    float ptAtten = exp(-0.01*sign(pointDistance)*pow(abs(pointDistance+1.f), u.pointDistAtten*.1));
+    float ptAtten = exp(-0.01*sign(pointDistance)*pow(abs(pointDistance)+1.f, u.pointDistAtten*.1));
     float size = u.pointSize * ptAtten * u.ySizeRatio;
 
     vec4 pt  = m.pMatrix * vec4(vtxPos.xy + vec2(size) * u.ptSizeRatio , vtxPos.zw);
     gl_PointSize = abs(gl_Position.w)>0.00001 ? distance(gl_Position.xy, pt.xy)/gl_Position.w  : 0.0;
 
-    //if(gl_PointSize<1.0) gl_PointSize = 1.0;
+    // NVidia & Intel do not supports gl_PointSize<1.0 -> point disappear
+    // Look in Info dialog: point Range and Granularity
+    if(gl_PointSize<u.pointspriteMinSize) gl_PointSize = u.pointspriteMinSize;
 }                                                           
 
