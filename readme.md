@@ -1,9 +1,9 @@
-# [**glChAoS.P**](https://michelemorrone.eu/glchaosp)
+# [**glChAoS.P / wglChAoS.P - ver 1.1.0**](https://michelemorrone.eu/glchaosp)
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractor scout... and hypercompex fractals (new!) 
 
-Please read release note **ver. 1.1 beta2**: [**Release Note**](https://github.com/BrutPitt/glChAoS.P/releases/tag/1.1.beta2)
+Please read the release notes **ver. 1.1.0**: [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases/tag/v1.1.0)
 
 ### [New Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html)
 | hypercomplex fractals | hypercomplex fractals |
