@@ -470,13 +470,13 @@ void mainGLApp::onInit(int w, int h)
     width = w, height = h;
     windowTitle = GLAPP_PROG_NAME;
 
-//Init OpenGL
-   loadProgConfig();
+#if !defined(GLCHAOSP_LIGHTVER)
+    loadProgConfig();
+#endif
 
-// Imitialize both FrameWorks
     glfwInit();
 
-// Imitialize both GL engine
+//Init OpenGL & engine
     glEngineWnd->onInit();
 
     imguiInit();
@@ -504,7 +504,7 @@ void newFrame()
 
     theApp->getMainDlg().renderImGui();
 
-    //glfwMakeContextCurrent(theApp->getGLFWWnd());
+    glfwMakeContextCurrent(theApp->getGLFWWnd());
     glfwSwapBuffers(theApp->getGLFWWnd());
 
 }
@@ -533,7 +533,7 @@ void mainGLApp::mainLoop()
             }
             getMainDlg().renderImGui();
 
-            glfwMakeContextCurrent(getGLFWWnd());
+            //glfwMakeContextCurrent(getGLFWWnd());
             glfwSwapBuffers(getGLFWWnd());
 #else
             newFrame();
@@ -541,6 +541,7 @@ void mainGLApp::mainLoop()
     }
 
 }
+
 
 // classic entry point
 /////////////////////////////////////////////////
@@ -551,11 +552,15 @@ int main(int argc, char **argv)
 //Initialize class e self pointer
     theApp = new mainGLApp; 
 
-
 #ifdef GLCHAOSP_LIGHTVER
-    if(argc>1 && argc<=3) {        
+    if(argc>1 && argc<=4) {        
         int w = atoi(argv[1]);
         int h = atoi(argv[2]);
+        if(argc == 4) {
+            int sz = atoi(argv[3]);
+            if(sz>30) sz = 30;
+            theApp->setMaxAllocatedBuffer(sz * 1000 * 1000);
+        }       
         theApp->onInit(w<256 ? 256 : (w>3840 ? 3840 : w), h<256 ? 256 : (h>2160 ? 2160 : h));
     } else
 #endif        

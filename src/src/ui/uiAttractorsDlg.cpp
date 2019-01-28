@@ -475,8 +475,11 @@ const float border = 5;
                     }
                         
                     float f = att->getValue(i,j,typeVal);
-                    if(ImGui::DragFloatEx(s, (float *) &f, .0001, 0.0, 0.0, "%.7f",1.0f,ImVec2(.93,0.5))) 
-                        { att->setValue(i, j, typeVal, f); valIdx=idx; }
+                    if(ImGui::DragFloatEx(s, (float *) &f, .0001, 0.0, 0.0, "%.7f",1.0f,ImVec2(.93,0.5))) {
+                         att->setValue(i, j, typeVal, f); valIdx=idx; 
+                         if(!theWnd->getParticlesSystem()->getEmitter()->isEmitterOn()) 
+                             theWnd->getParticlesSystem()->getEmitter()->setEmitterOn(); 
+                    }
                     ImGui::SameLine(0, style.ItemInnerSpacing.x);
 
                     if(idx==selIdx) { 
@@ -499,6 +502,8 @@ const float border = 5;
                     if(test4D) att->setDim4D(f);
                     else       att->setValue(i, typeVal, f); 
                     valIdx=idx; 
+                    if(!theWnd->getParticlesSystem()->getEmitter()->isEmitterOn()) 
+                        theWnd->getParticlesSystem()->getEmitter()->setEmitterOn(); 
                 }
                 if(idx==selIdx) ImGui::PopStyleColor();
                 idx++;

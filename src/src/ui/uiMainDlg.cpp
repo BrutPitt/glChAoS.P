@@ -1133,13 +1133,16 @@ void particlesDlgClass::view()
                 
                 ImGui::SetCursorPosX(pos2);
                 { //max particles
+                    emitterBaseClass *emit = pSys->getEmitter();
                     ImGui::PushItemWidth(wButt);
-                    float f = float(pSys->getEmitter()->getSizeCircularBuffer())*.000001f;
+                    float f = float(emit->getSizeCircularBuffer())*.000001f;
                     if(ImGui::DragFloat("##max", &f, .01f, .1, 
-                                                     pSys->getEmitter()->getSizeAllocatedBuffer()*.000001f,"%.3f M")) {
+                                                     emit->getSizeAllocatedBuffer()*.000001f,"%.3f M")) {
                         int maxBuff = int(f*1000000.f);
-                        pSys->getEmitter()->setSizeCircularBuffer(maxBuff>pSys->getEmitter()->getSizeAllocatedBuffer() ? pSys->getEmitter()->getSizeAllocatedBuffer() : maxBuff);
-                        pSys->getEmitter()->getVBO()->resetVertexCount();
+                        emit->setSizeCircularBuffer(maxBuff>emit->getSizeAllocatedBuffer() ? emit->getSizeAllocatedBuffer() : maxBuff);
+                        emit->getVBO()->resetVertexCount();
+                        if(!emit->isEmitterOn()) emit->setEmitterOn();
+
                     }
                     ImGui::PopItemWidth();
                 }

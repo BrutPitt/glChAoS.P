@@ -70,9 +70,10 @@
     var url = new URL(url_string);
     var width = url.searchParams.get("width");
     var height = url.searchParams.get("height");
+    var maxbuffer = url.searchParams.get("maxbuffer");
 
     var Module = {
-        arguments: [width == null ? '1024' : width, height == null ? '1024' : height],
+        arguments: [width == null ? '1024' : width, height == null ? '1024' : height, maxbuffer == null ? '' : maxbuffer],
         preRun: [],
         postRun: [],
         print: (function() {
