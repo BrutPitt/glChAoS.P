@@ -26,7 +26,7 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
 ###########################################################
 if (EMSCRIPTEN)
     project(wglChAoSP)
-    set(OGL_EMITTER_TYPE ${OGL41_BUFFER})
+    set(OGL_EMITTER_TYPE ${OGL41_THREAD})
     
     set(CMAKE_CXX_STANDARD 14)
     find_package(OpenGL)

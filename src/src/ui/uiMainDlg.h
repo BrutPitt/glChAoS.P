@@ -77,7 +77,7 @@ protected:
 class attractorDlgClass : public baseDlgClass
 {
 public:
-    attractorDlgClass()  : baseDlgClass(" " ICON_FA_SUPERSCRIPT " - Attractors", true) {}
+    attractorDlgClass()  : baseDlgClass(" " ICON_FA_SUPERSCRIPT " - Attractors / Fractals", true) {}
 
 
 /*
