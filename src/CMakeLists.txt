@@ -26,7 +26,7 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
 ###########################################################
 if (EMSCRIPTEN)
     project(wglChAoSP)
-    set(OGL_EMITTER_TYPE ${OGL41_THREAD})
+    set(OGL_EMITTER_TYPE ${OGL41_BUFFER})
     
     set(CMAKE_CXX_STANDARD 14)
     find_package(OpenGL)
@@ -109,7 +109,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 # emcc compiler options
     set(M_EMCC_FLAGS "-DGLAPP_NO_OGL_DSA -DGLFW_INCLUDE_ES3")
-    set(M_GLOBAL_FLAGS "-DGLCHAOSP_LIGHTVER -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
+    set(M_GLOBAL_FLAGS "-DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
 
 # BUILD TYPE: [Debug|RelWithDebInfo|Release|MinSizeRel]    
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")

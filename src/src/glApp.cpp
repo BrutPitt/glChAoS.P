@@ -558,7 +558,7 @@ int main(int argc, char **argv)
         int h = atoi(argv[2]);
         if(argc == 4) {
             int sz = atoi(argv[3]);
-            if(sz>30) sz = 30;
+            //if(sz>50) sz = 50;
             theApp->setMaxAllocatedBuffer(sz * 1000 * 1000);
         }       
         theApp->onInit(w<256 ? 256 : (w>3840 ? 3840 : w), h<256 ? 256 : (h>2160 ? 2160 : h));

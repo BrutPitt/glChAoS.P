@@ -508,10 +508,10 @@ renderBaseClass::renderBaseClass()
 
 
 
-    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true);
+    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision(), true);
 
 #if !defined(GLCHAOSP_LIGHTVER)
-    //msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), true, 4);
+    //msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision(), true, 4);
 
     axes = new oglAxes;
 

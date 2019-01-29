@@ -411,9 +411,9 @@ public:
     radialBlurClass(renderBaseClass *ptrRE) {
         renderEngine = ptrRE;
 #if !defined(GLCHAOSP_LIGHTVER)
-        glowFBO.buildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), false);
+        glowFBO.buildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false);
 #else
-        glowFBO.buildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), false);
+        glowFBO.buildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false);
 #endif
         BlurBaseClass::create();
     }
@@ -484,7 +484,7 @@ public:
     mmFBO &getFBO() { return fbo; }
 
 private:
-    void on()  { fbo.reBuildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), false); }
+    void on()  { fbo.reBuildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false); }
     void off() { fbo.deleteFBO(); }
 
     renderBaseClass *renderEngine;
@@ -535,7 +535,7 @@ public:
     void Active(bool b) { 
         if(b==isActive) return;
         if(b) {
-            mBlurFBO.reBuildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), false);            
+            mBlurFBO.reBuildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false);            
         } else {
             mBlurFBO.deleteFBO();
         }
@@ -583,12 +583,12 @@ public:
     void create();
 
     void Activate()   { 
-        renderEngine->getRenderFBO().reBuildFBO(2,renderEngine->getWidth(),renderEngine->getHeight(), true);
-        mergedFBO.reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight()); 
+        renderEngine->getRenderFBO().reBuildFBO(2,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), true);
+        mergedFBO.reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false); 
         renderEngine->setFlagUpdate();
     }
     void Deactivate() { 
-        renderEngine->getRenderFBO().reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), true);
+        renderEngine->getRenderFBO().reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), true);
         mergedFBO.deleteFBO(); 
         renderEngine->setFlagUpdate();
     }
@@ -647,7 +647,7 @@ public:
         flagUpdate = true;
 
         //cmTex.buildMultiDrawFBO(1,256,1);
-        cmTex.buildFBO(1,256,2);
+        cmTex.buildFBO(1,256,2, theApp->getFBOInternalPrecision(), false);
 
         create();
     }

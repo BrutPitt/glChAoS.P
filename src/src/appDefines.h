@@ -55,6 +55,7 @@
 #endif
 
 //#define GLCHAOSP_LIGHTVER
+//#define GLCHAOSP_USE_LOWPRECISION
 
 #ifdef GLCHAOSP_LIGHTVER
     #define GLCHAOSP_NO_FXAA

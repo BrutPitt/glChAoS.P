@@ -96,7 +96,7 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 #if INTPTR_MAX == INT32_MAX
     #define PARTICLES_MAX 67000000
 #elif INTPTR_MAX == INT64_MAX
-    #define PARTICLES_MAX 100000000
+    #define PARTICLES_MAX 105000000
 #else
     #error "Environment not 32 or 64-bit."
 #endif
@@ -108,7 +108,7 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
     #if !defined(GLCHAOSP_LIGHTVER)
         #define EMISSION_STEP 100000
     #else
-        #define EMISSION_STEP 25000
+        #define EMISSION_STEP 50000
     #endif
 #else
     #define EMISSION_STEP 7777
@@ -235,6 +235,16 @@ public:
     std::string &getCapturePath() { return capturePath; }
     void setCapturePath(const char * const s) { capturePath = s; }
 
+    void setPalInternalPrecision(GLenum e) { palInternalPrecision = e; }
+    GLenum getPalInternalPrecision() { return palInternalPrecision; }
+    void setTexInternalPrecision(GLenum e) { texInternalPrecision = e; }
+    GLenum getTexInternalPrecision() { return texInternalPrecision; }
+    void setFBOInternalPrecision(GLenum e) { fboInternalPrecision = e; }
+    GLenum getFBOInternalPrecision() { return fboInternalPrecision; }
+
+    bool useLowPrecision() { return lowPrecision; }
+    void useLowPrecision(bool b) { lowPrecision = b; }
+
     void selectCaptureFolder();
 
     
@@ -288,6 +298,17 @@ private:
     int vSync = 0;
     bool isFullScreen = false;
 
+#if !defined(GLCHAOSP_USE_LOWPRECISION)
+    bool lowPrecision = false;
+    GLenum fboInternalPrecision = GL_RGBA32F;
+    GLenum palInternalPrecision = GL_RGB32F;
+    GLenum texInternalPrecision = GL_R32F;
+#else
+    bool lowPrecision = true;
+    GLenum fboInternalPrecision = GL_RGBA16F;
+    GLenum palInternalPrecision = GL_RGB16F;
+    GLenum texInternalPrecision = GL_R16F;
+#endif
 
     std::string lastAttractor = std::string("");
     std::string capturePath = std::string(CAPTURE_PATH);

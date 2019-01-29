@@ -710,6 +710,8 @@ void mainGLApp::saveProgConfig()
     cfg["maxParticles" ] = getMaxAllocatedBuffer();
     cfg["partSizeConst"] =  theApp->isParticlesSizeConstant();
 
+    cfg["useLowPrecision"] =  theApp->useLowPrecision();
+
     cfg["capturePath" ] = capturePath;
 
     dump_file(filename, cfg, JSON);
@@ -764,6 +766,18 @@ bool mainGLApp::loadProgConfig()
     if(getMaxAllocatedBuffer()>PARTICLES_MAX) setMaxAllocatedBuffer(PARTICLES_MAX);
     
     theApp->isParticlesSizeConstant(cfg.get_or("partSizeConst", false));
+
+    theApp->useLowPrecision(cfg.get_or("useLowPrecision", false));
+
+    if(theApp->useLowPrecision()) {
+        theApp->setTexInternalPrecision(GL_R16F);
+        theApp->setPalInternalPrecision(GL_RGB16F);
+        theApp->setFBOInternalPrecision(GL_RGBA16F);
+    } else {
+        theApp->setTexInternalPrecision(GL_R32F);
+        theApp->setPalInternalPrecision(GL_RGB32F);
+        theApp->setFBOInternalPrecision(GL_RGBA32F);
+    }
 
     capturePath = cfg.get_or("capturePath", capturePath);
 

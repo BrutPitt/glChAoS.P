@@ -41,7 +41,7 @@
 #include <glm/glm.hpp>
 #include <glm/ext/scalar_constants.hpp>
 
-#include "appDefines.h"
+#include "glApp.h"
 #include "glslProgramObject.h"
 #include "glslShaderObject.h"
 
@@ -191,7 +191,8 @@ public:
             for(int x=0; x<size; x++, X+=Incr) {
                 Dist = (float)sqrtf(X*X+Y2);
                 //if (Dist>1) Dist=1;
-                *m++ = (Dist>=1) ? 0.f : (typeSolid ? 1.f : evalHermite(hermVals,Dist)) * factor;
+                const float ev = evalHermite(hermVals,Dist); 
+                *m++ = (Dist>=1) ? 0.f : typeSolid ? 1.f :  ev <= 0.0 ? 0.0 : ev * factor;
             }
         }
 
@@ -275,12 +276,6 @@ public:
 
         gaussianMap<GLfloat> gMap(texSize);
 
-    #if !defined(GLCHAOSP_USE_LOWPRECISION)
-        const GLint texInternal = GL_R32F;
-    #else
-        const GLint texInternal = GL_R16F;
-    #endif
-    
         gMap.generateMap(hermiteVals, 1, dotType); 
 
         const int w = texSize, h = texSize;
@@ -292,7 +287,7 @@ public:
         if(!generated)
     #ifdef GLAPP_REQUIRE_OGL45
             glCreateTextures(GL_TEXTURE_2D , 1, &texID);
-        glTextureStorage2D(texID, level, GL_R32F, w, h);
+        glTextureStorage2D(texID, level, theApp->getTexInternalPrecision(), w, h);
         glTextureSubImage2D(texID, 0, 0, 0, w, h, GL_RED, GL_FLOAT, gMap.getBuffer());
         glGenerateTextureMipmap(texID);
         glTextureParameteri(texID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -305,7 +300,7 @@ public:
 
         //glTexStorage2D(GL_TEXTURE_2D, 7, GL_R32F, w, h);
         //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RED, GL_FLOAT, buffer);
-        glTexImage2D(GL_TEXTURE_2D, 0, texInternal, w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
+        glTexImage2D(GL_TEXTURE_2D, 0, theApp->getTexInternalPrecision(), w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
         glGenerateMipmap(GL_TEXTURE_2D);
 
         //glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);

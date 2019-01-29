@@ -48,11 +48,6 @@ struct fboBuffers
     GLuint  m_rb;	
     GLuint  m_tex;
 };
-#if !defined(GLCHAOSP_USE_LOWPRECISION)
-    #define DEFAULT_PRECISION GL_RGBA32F
-#else
-    #define DEFAULT_PRECISION GL_RGBA16F
-#endif
 
 class mmFBO 
 {
@@ -61,9 +56,9 @@ public:
     mmFBO();
     ~mmFBO();
 
-    void buildFBO(int num, int sizeX, int sizeY, bool zBuff=false, int levelAA=0, GLuint precision = DEFAULT_PRECISION);
-    void reBuildFBO(int num, int sizeX, int sizeY, bool zBuff=false, int levelAA=0, GLuint precision = DEFAULT_PRECISION);
-    void buildMultiDrawFBO(int num, int sizeX, int sizeY, GLuint precision = DEFAULT_PRECISION);
+    void buildFBO(int num, int sizeX, int sizeY, GLenum precision, bool zBuff, int levelAA=0);
+    void reBuildFBO(int num, int sizeX, int sizeY, GLenum precision, bool zBuff, int levelAA=0);
+    void buildMultiDrawFBO(int num, int sizeX, int sizeY, GLenum precision);
     void reSizeFBO(int sizeX, int sizeY);
     void deleteFBO();
 

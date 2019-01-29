@@ -1383,6 +1383,19 @@ void progSettingDlgClass::view()
             ImGui::SameLine();
             ShowHelpMarker(GLAPP_HELP_PART_SZ_CONST);
         }
+
+        ImGui::NewLine();
+
+        {
+            ImGui::AlignTextToFramePadding();
+            bool b = bool(theApp->useLowPrecision());
+            if(ImGui::Checkbox(" Use LOW precision", &b)) {
+                theApp->useLowPrecision(b);
+            }
+            ImGui::SameLine();
+            ShowHelpMarker(GLAPP_HELP_PRECISION);
+        }
+
 /*
         {
             ImGui::AlignTextToFramePadding();
@@ -1897,10 +1910,12 @@ void infoDlgClass::view()
         const GLubyte *glVer  = glGetString(GL_VERSION);
         const GLubyte *glslVer= glGetString(GL_SHADING_LANGUAGE_VERSION);
 
+#if !defined(GLCHAOSP_LIGHTVER)
         ImGui::TextDisabled("Timings");
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Inst %6.1f fps, Avg %.1f fps  ", theApp->getTimer().fps(), theApp->getTimer().fpsAVG()); ImGui::SameLine(); 
         if(ImGui::Button("Reset AVG")) theApp->getTimer().resetAVG();
+#endif
         ImGui::Text("ImGui Avg %.3f ms/f (%.1f fps)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
         ImGui::NewLine();

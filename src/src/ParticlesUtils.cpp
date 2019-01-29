@@ -37,18 +37,11 @@
 #include <time.h>
 #include <math.h>
 
-#include "appDefines.h"
-
 
 #include "ParticlesUtils.h"
 #include "palettes.h"
 
 
-#if !defined(GLCHAOSP_USE_LOWPRECISION)
-    #define TEX_INTERNAL GL_RGB32F
-#else
-    #define TEX_INTERNAL GL_RGB16F
-#endif
 
 #define unsesto  .166666666666666666667
 #define unterzo  .333333333333333333333
@@ -187,12 +180,12 @@ void HLSTexture::buildTex(int size)
 
     for(int i=0;i<size; i++) buffer[i] = HLStoRGB(vec3((float)i/(float)size,.5f,.99f));
 #ifdef GLAPP_REQUIRE_OGL45
-    glTextureStorage2D(texID, 1, GL_RGB32F, size, 1);
+    glTextureStorage2D(texID, 1, theApp->getPalInternalPrecision(), size, 1);
     glTextureSubImage2D(texID, 0, 0, 0, size, 1, GL_RGB, GL_FLOAT, buffer);
 #else    
     glActiveTexture(GL_TEXTURE0 + texID);
     glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
-    glTexImage2D(GL_TEXTURE_2D, 0, TEX_INTERNAL, size, 1, 0, GL_RGB, GL_FLOAT, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_FLOAT, buffer);
 #endif
     assignAttribs(GL_LINEAR, GL_LINEAR, GL_REPEAT);
     CHECK_GL_ERROR();
@@ -230,7 +223,7 @@ void RandomTexture::buildTex(int size)
 #else
     glActiveTexture(GL_TEXTURE0 + texID);
     glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
-    glTexImage2D(GL_TEXTURE_2D, 0, TEX_INTERNAL, size, 1, 0, GL_RGB, GL_FLOAT, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_FLOAT, buffer);
 #endif
     assignAttribs(GL_LINEAR, GL_LINEAR, GL_REPEAT);
     CHECK_GL_ERROR();
@@ -260,12 +253,12 @@ void paletteTexClass::buildTex(unsigned char *buffer, int size)
 {
     genTex();
 #ifdef GLAPP_REQUIRE_OGL45
-    glTextureStorage2D(texID, 1, GL_RGB32F, size, 1);
+    glTextureStorage2D(texID, 1, theApp->getPalInternalPrecision(), size, 1);
     glTextureSubImage2D(texID, 0, 0, 0, size, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 #else
     glActiveTexture(GL_TEXTURE0 + texID);
     glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
-    glTexImage2D(GL_TEXTURE_2D, 0, TEX_INTERNAL, size, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 #endif
     assignAttribs(GL_LINEAR, GL_LINEAR, GL_REPEAT);
     
@@ -278,18 +271,12 @@ void paletteTexClass::buildTex(float *buffer, int size)
 {
     genTex();
 #ifdef GLAPP_REQUIRE_OGL45
-    glTextureStorage2D(texID, 1, GL_RGB32F, size, 1);
+    glTextureStorage2D(texID, 1, theApp->getPalInternalPrecision(), size, 1);
     glTextureSubImage2D(texID, 0, 0, 0, size, 1, GL_RGB, GL_FLOAT, buffer);
 #else
-
-#if !defined(GLCHAOSP_USE_LOWPRECISION)
-    const GLint texInternal = GL_RGB32F;
-#else
-    const GLint texInternal = GL_RGB16F;
-#endif 
     glActiveTexture(GL_TEXTURE0 + texID);
     glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
-    glTexImage2D(GL_TEXTURE_2D, 0, texInternal, size, 1, 0, GL_RGB, GL_FLOAT, buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_FLOAT, buffer);
 
 #endif
     assignAttribs(GL_NEAREST, GL_NEAREST, GL_REPEAT);

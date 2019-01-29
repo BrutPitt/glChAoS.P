@@ -177,10 +177,10 @@ void mmFBO::deleteFBO()
     resetData();
 }
 
-void mmFBO::reBuildFBO(int num, int sizeX, int sizeY, bool rb, int AA, GLuint precision)
+void mmFBO::reBuildFBO(int num, int sizeX, int sizeY, GLenum precision, bool rb, int AA)
 {
     deleteFBO();
-    buildFBO(num, sizeX, sizeY, rb, AA, precision);
+    buildFBO(num, sizeX, sizeY, precision, rb, AA);
 }
 
 void mmFBO::reSizeFBO(int sizeX, int sizeY)
@@ -190,11 +190,11 @@ void mmFBO::reSizeFBO(int sizeX, int sizeY)
 
     int tmpNumFB = m_NumFB;
     bool tmpHaveRB = haveRB;
-    GLuint tmpPrecision = glPrecision;
+    GLenum tmpPrecision = glPrecision;
     int tmpAA = aaLevel;
 
     deleteFBO();
-    buildFBO(tmpNumFB, sizeX, sizeY, tmpHaveRB, tmpAA, tmpPrecision);
+    buildFBO(tmpNumFB, sizeX, sizeY, tmpPrecision, tmpHaveRB, tmpAA);
 }
 
 void mmFBO::initFB(GLuint fbuff, GLuint iText)
@@ -334,7 +334,7 @@ void mmFBO::buildMultiDrawFBO(int num, int sizeX, int sizeY, GLuint precision)
 }
 
 
-void mmFBO::buildFBO(int num, int sizeX, int sizeY, bool zBuff, int AA, GLuint precision)
+void mmFBO::buildFBO(int num, int sizeX, int sizeY, GLenum precision, bool zBuff, int AA)
 {
 
     glPrecision = precision;

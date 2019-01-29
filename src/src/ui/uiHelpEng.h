@@ -115,7 +115,7 @@
     "After resizing particles buffer, need to restart the program for validate new buffer dimension"
 #define GLAPP_HELP_PART_SZ_CONST\
     "Particles size behavior changing window size:\n"\
-    "     Checked - Particles have constant size when resizing window\n"\
+    "     Checked - Particles have fixed size when resizing window\n"\
     "   unChecked - Particles are proportional to window height\n"
 #define GLAPP_HELP_FORCE_PNTSPRT_SZ\
     "Force minimum PointSprite size to 1.0\n"\
@@ -127,6 +127,12 @@
      " dimension, restart the program for a clear font appearance.\n"\
      "Prefer always \"FontSize\" that is the real dimension of the characters.\n"\
      "\"FontScale\" is an antialiased zoom of \"FontSize\"."
+
+#define GLAPP_HELP_PRECISION\
+    "Internal precision of FBO, palettes, textures: NEED RESTART\n"\
+    "     Checked - use 16bit floating point\n"\
+    "   unChecked - use 32bit floating point (default)\n"\
+    
 
 
 #define GLAPP_HELP_ABOUT\
