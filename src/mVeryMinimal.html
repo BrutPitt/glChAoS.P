@@ -71,9 +71,10 @@
     var width = url.searchParams.get("width");
     var height = url.searchParams.get("height");
     var maxbuffer = url.searchParams.get("maxbuffer");
+    var lowprec = url.searchParams.get("lowprec");
 
     var Module = {
-        arguments: [width == null ? '1024' : width, height == null ? '1024' : height, maxbuffer == null ? '' : maxbuffer],
+        arguments: [width == null ? '1024' : width, height == null ? '1024' : height, maxbuffer == null ? '10' : maxbuffer, lowprec == null ? '1' : lowprec],
         preRun: [],
         postRun: [],
         print: (function() {

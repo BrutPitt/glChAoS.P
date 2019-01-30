@@ -496,6 +496,9 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
 
         pSys->getEmitter()->restartCircBuff(      c.get_or("rstrtCircBuff", pSys->getEmitter()->restartCircBuff()      ));        
         pSys->getEmitter()->stopFull(             c.get_or("stopCircBuff" , pSys->getEmitter()->stopFull()             ));
+#ifdef GLCHAOSP_LIGHTVER
+        pSys->getEmitter()->stopFull(true);
+#endif
 
 
         if(getVec_asArray(c, "camPOV"        , v3)) pSys->getTMat()->setPOV(v3);
@@ -769,15 +772,8 @@ bool mainGLApp::loadProgConfig()
 
     theApp->useLowPrecision(cfg.get_or("useLowPrecision", false));
 
-    if(theApp->useLowPrecision()) {
-        theApp->setTexInternalPrecision(GL_R16F);
-        theApp->setPalInternalPrecision(GL_RGB16F);
-        theApp->setFBOInternalPrecision(GL_RGBA16F);
-    } else {
-        theApp->setTexInternalPrecision(GL_R32F);
-        theApp->setPalInternalPrecision(GL_RGB32F);
-        theApp->setFBOInternalPrecision(GL_RGBA32F);
-    }
+    if(theApp->useLowPrecision()) theApp->setLowPrecision();
+    else                          theApp->setHighPrecision();
 
     capturePath = cfg.get_or("capturePath", capturePath);
 

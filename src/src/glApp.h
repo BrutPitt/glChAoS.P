@@ -108,7 +108,7 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
     #if !defined(GLCHAOSP_LIGHTVER)
         #define EMISSION_STEP 100000
     #else
-        #define EMISSION_STEP 50000
+        #define EMISSION_STEP 20000
     #endif
 #else
     #define EMISSION_STEP 7777
@@ -119,7 +119,7 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 #define CIRCULAR_BUFFER  10000000
 #else
 #define ALLOCATED_BUFFER 10000000
-#define CIRCULAR_BUFFER  4000000
+#define CIRCULAR_BUFFER  5000000
 #endif
 
 
@@ -244,6 +244,21 @@ public:
 
     bool useLowPrecision() { return lowPrecision; }
     void useLowPrecision(bool b) { lowPrecision = b; }
+
+    void setLowPrecision() {
+        useLowPrecision(true);
+        theApp->setTexInternalPrecision(GL_R16F);
+        theApp->setPalInternalPrecision(GL_RGB16F);
+        theApp->setFBOInternalPrecision(GL_RGBA16F);
+    }
+    void setHighPrecision() {
+        useLowPrecision(false);
+        theApp->setTexInternalPrecision(GL_R32F);
+        theApp->setPalInternalPrecision(GL_RGB32F);
+        theApp->setFBOInternalPrecision(GL_RGBA32F);
+    }
+
+
 
     void selectCaptureFolder();
 

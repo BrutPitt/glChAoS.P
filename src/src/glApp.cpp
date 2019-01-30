@@ -367,8 +367,9 @@ void mainGLApp::glfwInit()
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
         glslVersion = "#version 300 es\n";
-        glslDefines = "precision highp float;\n"
-                      "#define LAYUOT_BINDING(X)\n"
+        if(useLowPrecision()) glslDefines = "precision lowp float;\n";
+        else                  glslDefines = "precision highp float;\n";
+        glslDefines+= "#define LAYUOT_BINDING(X)\n"
                       "#define LAYUOT_INDEX(X)\n"
                       "#define CONST\n";
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -553,14 +554,18 @@ int main(int argc, char **argv)
     theApp = new mainGLApp; 
 
 #ifdef GLCHAOSP_LIGHTVER
-    if(argc>1 && argc<=4) {        
+    if(argc>1 && argc<=5) {        
         int w = atoi(argv[1]);
         int h = atoi(argv[2]);
-        if(argc == 4) {
+        if(argc >= 4) {
             int sz = atoi(argv[3]);
-            //if(sz>50) sz = 50;
+            if(sz>50) sz = 50;
             theApp->setMaxAllocatedBuffer(sz * 1000 * 1000);
         }       
+        if(argc >= 5) {
+            if(atoi(argv[4])==1) theApp->setLowPrecision();
+            else                 theApp->setHighPrecision();
+        }
         theApp->onInit(w<256 ? 256 : (w>3840 ? 3840 : w), h<256 ? 256 : (h>2160 ? 2160 : h));
     } else
 #endif        
