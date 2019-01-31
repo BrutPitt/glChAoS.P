@@ -135,7 +135,7 @@ void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mod
     if(ImGui::GetIO().WantCaptureMouse) return;
 
     double x,y;
-    glfwGetCursorPos(window, &x, &y);
+    glfwGetCursorPos(window, &x, &y);    
 
     if (action == GLFW_PRESS) {
 #if !defined (__EMSCRIPTEN__)
@@ -269,6 +269,53 @@ GLFWmonitor* getCurrentMonitor(GLFWwindow *window)
     }
     return bestmonitor;
 }
+#else
+
+    #include <emscripten/html5.h>
+    static bool touched = false;
+
+    static EM_BOOL touchStart(int eventType, const EmscriptenTouchEvent *e, void *userData)
+    {
+/*
+        ImGui::GetIO().MouseDown[0] = true;
+        ImGui::GetIO().MouseClickedPos[0].x = e->touches[0].canvasX;
+        ImGui::GetIO().MouseClickedPos[0].y = e->touches[0].canvasY;
+*/
+        glfwMouseButtonCallback(theApp->getGLFWWnd(), 0, GLFW_PRESS, 0);
+        ImGui::GetIO().MouseDown[0] = true;
+/*
+        ImGui::GetIO().MousePos.x = e->touches[0].canvasX;
+        ImGui::GetIO().MousePos.y = e->touches[0].canvasY;
+        if(ImGui::GetIO().WantCaptureMouse) return true;
+*/        
+        theWnd->onMouseButton(0, APP_MOUSE_BUTTON_DOWN, e->touches[0].canvasX, e->touches[0].canvasY); 
+        touched = true;
+        return true;
+    }
+    static EM_BOOL touchEnd(int eventType, const EmscriptenTouchEvent *e, void *userData)
+    {
+/*
+        ImGui::GetIO().MouseDown[0] = false;
+        ImGui::GetIO().MouseClickedPos[0].x = e->touches[0].canvasX;
+        ImGui::GetIO().MouseClickedPos[0].y = e->touches[0].canvasY;
+*/
+        glfwMouseButtonCallback(theApp->getGLFWWnd(), 0, GLFW_RELEASE, 0);
+        ImGui::GetIO().MouseDown[0] = false;
+/*
+        ImGui::GetIO().MousePos.x = e->touches[0].canvasX;
+        ImGui::GetIO().MousePos.y = e->touches[0].canvasY;
+        if(ImGui::GetIO().WantCaptureMouse) return true;
+*/
+        theWnd->onMouseButton(0, APP_MOUSE_BUTTON_UP, e->touches[0].canvasX, e->touches[0].canvasY); 
+        touched = true;
+        return true;
+    }
+    static EM_BOOL touchMove(int eventType, const EmscriptenTouchEvent *e, void *userData)
+    {
+        if(touched) theWnd->onMotion(e->touches[0].canvasX, e->touches[0].canvasY);
+        return true;
+    }
+
 #endif
 
 // Interface
@@ -402,12 +449,31 @@ void mainGLApp::glfwInit()
 #if !defined (__EMSCRIPTEN__)
     //Init OpenGL
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+#else
+
+#ifdef GLCHAOSP_USE_TOUCHSCREEN
+    emscripten_set_mousedown_callback("#canvas", nullptr, true, 
+        [](int, const EmscriptenMouseEvent* e, void*)->EMSCRIPTEN_RESULT {
+            glfwMouseButtonCallback(theApp->getGLFWWnd(), e->button, GLFW_PRESS, 0);
+            return true;
+        });
+    emscripten_set_mouseup_callback("#canvas", nullptr, true, 
+        [](int, const EmscriptenMouseEvent* e, void*)->EMSCRIPTEN_RESULT {
+            glfwMouseButtonCallback(theApp->getGLFWWnd(), e->button, GLFW_RELEASE, 0);          
+            return true;
+        });
+
+    emscripten_set_touchstart_callback("#canvas", nullptr, true, touchStart);
+    emscripten_set_touchend_callback("#canvas", nullptr, true, touchEnd);
+    emscripten_set_touchmove_callback("#canvas", nullptr, true, touchMove);
 #endif
 
+#endif
+
+    glfwSetMouseButtonCallback(getGLFWWnd(), glfwMouseButtonCallback);
     glfwSetKeyCallback(getGLFWWnd(), glfwKeyCallback);
     glfwSetCharCallback(getGLFWWnd(), glfwCharCallback);
     glfwSetCursorPosCallback(getGLFWWnd(), glfwMousePosCallback);
-    glfwSetMouseButtonCallback(getGLFWWnd(), glfwMouseButtonCallback);
     glfwSetWindowSizeCallback(getGLFWWnd(), glfwWindowSizeCallback);
     glfwSetScrollCallback(getGLFWWnd(), glfwScrollCallback);
 
@@ -554,17 +620,20 @@ int main(int argc, char **argv)
     theApp = new mainGLApp; 
 
 #ifdef GLCHAOSP_LIGHTVER
-    if(argc>1 && argc<=5) {        
+    if(argc>1 && argc<=6) {
         int w = atoi(argv[1]);
         int h = atoi(argv[2]);
         if(argc >= 4) {
             int sz = atoi(argv[3]);
-            if(sz>50) sz = 50;
-            theApp->setMaxAllocatedBuffer(sz * 1000 * 1000);
+            theApp->setMaxAllocatedBuffer((sz<0 ? 10 : (sz>50) ? 50 : sz) * 1000 * 1000);
         }       
         if(argc >= 5) {
             if(atoi(argv[4])==1) theApp->setLowPrecision();
             else                 theApp->setHighPrecision();
+        }
+        if(argc >= 6) {
+            int sz = atoi(argv[5]);
+            theApp->setEmissionStepBuffer((sz<0 ? 20 : (sz>200) ? 200 : sz) * 1000);
         }
         theApp->onInit(w<256 ? 256 : (w>3840 ? 3840 : w), h<256 ? 256 : (h>2160 ? 2160 : h));
     } else

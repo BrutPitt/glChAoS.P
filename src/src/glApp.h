@@ -220,8 +220,10 @@ public:
     std::string &get_glslVer() {return glslVersion; }
     std::string &get_glslDef() {return glslDefines; }
 
-    int getMaxAllocatedBuffer() { return maxAllocatedBuffer; }
-    void setMaxAllocatedBuffer(int v) { maxAllocatedBuffer = v; }
+    unsigned getMaxAllocatedBuffer() { return maxAllocatedBuffer; }
+    void setMaxAllocatedBuffer(unsigned v) { maxAllocatedBuffer = v; }
+    unsigned getEmissionStepBuffer() { return emissionStepBuffer; }
+    void setEmissionStepBuffer(unsigned v) { emissionStepBuffer = v; }
 
     bool isParticlesSizeConstant() { return particlesSizeConstant; }
     void isParticlesSizeConstant(bool b) { particlesSizeConstant = b; }
@@ -307,7 +309,8 @@ private:
     int glfwExit();
     int getModifier();
 
-    int maxAllocatedBuffer = ALLOCATED_BUFFER;
+    unsigned maxAllocatedBuffer = ALLOCATED_BUFFER;
+    unsigned emissionStepBuffer = EMISSION_STEP;
 
     int screenShotRequest;
     int vSync = 0;

@@ -129,7 +129,7 @@ public:
         setSizeCircularBuffer(CIRCULAR_BUFFER);
         szAllocatedBuffer = theApp->getMaxAllocatedBuffer();
         //setParticlesCount(0L);
-        setSizeStepBuffer(EMISSION_STEP);    
+        setSizeStepBuffer(theApp->getEmissionStepBuffer());    
         setEmitterOff();
     }
 
