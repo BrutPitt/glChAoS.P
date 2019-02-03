@@ -73,9 +73,15 @@
     var maxbuffer = url.searchParams.get("maxbuffer");
     var lowprec = url.searchParams.get("lowprec");
     var intbuffer = url.searchParams.get("intbuffer");
+    var tabletmode = url.searchParams.get("tabletmode");
 
     var Module = {
-        arguments: [width == null ? '1024' : width, height == null ? '1024' : height, maxbuffer == null ? '10' : maxbuffer, lowprec == null ? '1' : lowprec, intbuffer == null ? '20' : intbuffer],
+        arguments: [width == null ? '1024' : width,
+                    height == null ? '1024' : height,
+                    maxbuffer == null ? '10' : maxbuffer,
+                    lowprec == null ? '1' : lowprec,
+                    intbuffer == null ? '20' : intbuffer,
+                    tabletmode == null ? '0' : tabletmode],
         preRun: [],
         postRun: [],
         print: (function() {

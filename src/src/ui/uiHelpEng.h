@@ -109,14 +109,61 @@
     "   in this case you can associate also key modifier as helper:\n"\
     "       ALT   & Drag : value increment/decrement slower\n"\
     "       Shift & Drag : value increment/decrement faster\n"\
-    "       Ctrl + Click or Double Click: enter to edit value\n"
+    "       Ctrl + Click or Double Click: enter to edit value\n"\
+
+#ifdef GLCHAOSP_USE_MARKDOWN
+#define GLAPP_HELP_MOUSE_KEY_MD\
+    "  Left mouse button:\n"\
+    "      * Double click: toggle fullscreen/windowed (desktop version)\n"\
+    "      * Drag        : rotate object\n"\
+    "      * Shift & Drag: rotate on X\n"\
+    "      * Ctrl  & Drag: rotate on Y\n"\
+    "      * Alt   & Drag: rotate on Z\n"\
+    "      * Super & Drag: rotate on Z\n"\
+    "  Right mouse button:\n"\
+    "    Drag vertical: Dolly camera (zoom)\n"\
+    "    Ctrl  & Drag : Pan camera\n"\
+    "    Shift & Drag : Pan camera\n\n"\
+    "  Keys\n"\
+    "    Esc  : show/hide GUI\n"\
+    "    F11  : toggle fullscreen/windowed (desktop version)\n"\
+    "    Space: Restart attractor (like button)\n"\
+    "    I|i            : invert parameters Billboard/Pointsprite\n"\
+    "                     (WGL: toggle alternative settings)\n"\
+    "    D|d|DownArrow  : next attractor\n"\
+    "    U|u|UpArrow    : previous attractor\n"\
+    "    R|r|RightArrow : next attractor from QuickViewDir\n"\
+    "    L|l|LeftArrow  : previous attractor from QuickViewDir\n"\
+    "    SHIFT+PrtSc    : Screenshot silently (w/o GUI) \n"\
+    "    CTRL+PrtSc     : Screenshot with prompt filename (w/o GUI)\n"\
+    "    ALT|SUPER+PrtSc: Capture screen with GUI\n"\
+    "        screenshot is available only in desktop version\n\n"\
+    "  GUI interface\n"\
+    "    The values in many controls can be changed via mouse drag,\n"\
+    "    in this case you can associate also key modifier as helper:\n"\
+    "        ALT   & Drag : value increment/decrement slower\n"\
+    "        Shift & Drag : value increment/decrement faster\n"\
+    "        Ctrl + Click or Double Click: enter to edit value\n"
+
+#define GLAPP_HELP_FONTS_MD\
+     "In settings fase the fonts can appear slightly 'blurred', after you have selected and saved a preferred"\
+     " dimension, restart the program for a clear font appearance:\n"\
+     "  *  Prefer always \"FontSize\" that is the real dimension of the characters\n"\
+     "  *  FontScale is an antialiased zoom of FontSize"\
+
+#define GLAPP_HELP_PRECISION_MD\
+    "Internal precision of FBO, palettes, textures: NEED RESTART\n"\
+    "    *    Checked - use 16bit floating point\n"\
+    "    *  unChecked - use 32bit floating point (default)"
+#endif
 
 #define GLAPP_HELP_MAX_PART\
     "After resizing particles buffer, need to restart the program for validate new buffer dimension"
 #define GLAPP_HELP_PART_SZ_CONST\
     "Particles size behavior changing window size:\n"\
     "     Checked - Particles have fixed size when resizing window\n"\
-    "   unChecked - Particles are proportional to window height\n"
+    "   unChecked - Particles are proportional to window height\n"\
+
 #define GLAPP_HELP_FORCE_PNTSPRT_SZ\
     "Force minimum PointSprite size to 1.0\n"\
     "Currently NVidia and Intel supports PoininSprite with values >= 1.0, below this size the point disappear\n"\
@@ -124,16 +171,14 @@
 
 #define GLAPP_HELP_FONTS\
      "In settings fase the fonts can appear slightly 'blurred', after you have selected and saved a preferred"\
-     " dimension, restart the program for a clear font appearance.\n"\
-     "Prefer always \"FontSize\" that is the real dimension of the characters.\n"\
-     "\"FontScale\" is an antialiased zoom of \"FontSize\"."
+     " dimension, restart the program for a clear font appearance:\n"\
+     " - Prefer always \"FontSize\" that is the real dimension of the characters\n"\
+     " - FontScale is an antialiased zoom of FontSize"\
 
 #define GLAPP_HELP_PRECISION\
     "Internal precision of FBO, palettes, textures: NEED RESTART\n"\
-    "     Checked - use 16bit floating point\n"\
-    "   unChecked - use 32bit floating point (default)\n"\
-    
-
+    "      Checked - use 16bit floating point\n"\
+    "    unChecked - use 32bit floating point (default)"\
 
 #define GLAPP_HELP_ABOUT\
     "   glChAoS.P - glChAoSP / wglChAoS.P - wglChAoSP\n"\

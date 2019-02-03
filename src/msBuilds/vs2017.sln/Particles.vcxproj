@@ -610,6 +610,7 @@
     <ClCompile Include="..\..\src\vertexbuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\libs\imgui_markdown\imgui_markdown.h" />
     <ClInclude Include="..\..\src\libs\lodePNG\lodepng.h" />
     <ClInclude Include="..\..\src\tools\fastRandom.h" />
     <ClInclude Include="..\..\src\tools\glslProgramObject.h" />

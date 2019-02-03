@@ -226,7 +226,7 @@ public:
     void setEmissionStepBuffer(unsigned v) { emissionStepBuffer = v; }
 
     bool isParticlesSizeConstant() { return particlesSizeConstant; }
-    void isParticlesSizeConstant(bool b) { particlesSizeConstant = b; }
+    void setParticlesSizeConstant(bool b) { particlesSizeConstant = b; }
 
     void setVSync(int v) { vSync = v; }
     int getVSync() { return vSync; }
@@ -244,6 +244,8 @@ public:
     void setFBOInternalPrecision(GLenum e) { fboInternalPrecision = e; }
     GLenum getFBOInternalPrecision() { return fboInternalPrecision; }
 
+    bool isTabletMode() { return tabletMode; }
+    void setTabletMode(bool b) { tabletMode=b; }
     bool useLowPrecision() { return lowPrecision; }
     void useLowPrecision(bool b) { lowPrecision = b; }
 
@@ -311,6 +313,7 @@ private:
 
     unsigned maxAllocatedBuffer = ALLOCATED_BUFFER;
     unsigned emissionStepBuffer = EMISSION_STEP;
+    bool tabletMode = false;
 
     int screenShotRequest;
     int vSync = 0;

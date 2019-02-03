@@ -34,9 +34,9 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 #include "../glApp.h"
-#include "../libs/IconsFontAwesome/IconsFontAwesome.h"
+#include <IconsFontAwesome/IconsFontAwesome.h>
 
-#include "../libs/ImGui/imgui.h"
+#include <ImGui/imgui.h>
 
 
 void darkCyanYellow()
@@ -322,12 +322,18 @@ void darkDefaultTheme(const ImVec4 &color)
     act.z *= diff;
 
     ImVec4 txt;
+
     ImGui::ColorConvertRGBtoHSV(wBG.x, wBG.y, wBG.z, HSV.x, HSV.y, HSV.z);
     if(HSV.y>.25) HSV.y=.25; 
     HSV.z=.85;
     static float baseH = HSV.x;
     float tmpH = HSV.x;
-    ImGui::ColorConvertHSVtoRGB(HSV.x, HSV.y, HSV.z, txt.x, txt.y, txt.z);
+    
+
+    if(theApp->isTabletMode())  // high contrast on tablet & smartphones
+        txt = ImVec4(1.f, 1.f, 1.f, 1.f);
+    else
+        ImGui::ColorConvertHSVtoRGB(HSV.x, HSV.y, HSV.z, txt.x, txt.y, txt.z);
 
     ImVec4 lin;
     ImGui::ColorConvertRGBtoHSV(1.0f, 1.0f, .75f, HSV.x, HSV.y, HSV.z);
@@ -347,12 +353,14 @@ void darkDefaultTheme(const ImVec4 &color)
     chk.y *= lumK;
     chk.z *= lumK;
 
-    const ImVec4 ch1(chk.x*.60, chk.y*.60, chk.z*.60, 1.00f);
-    const ImVec4 ch2(chk.x*.80, chk.y*.80, chk.z*.80, 1.00f);
+    const float l1 = theApp->isTabletMode() ? .80f : .60f;
+    const float l2 = theApp->isTabletMode() ? .93f : .80f;
+    const ImVec4 ch1(chk.x*l1, chk.y*l1, chk.z*l1, 1.00f);
+    const ImVec4 ch2(chk.x*l2, chk.y*l2, chk.z*l2, 1.00f);
 
 
     style.Colors[ImGuiCol_Text]                 = ImVec4(txt.x, txt.y, txt.z, 1.00f);
-	style.Colors[ImGuiCol_TextDisabled]         = ImVec4(txt.x, txt.y, txt.z, 0.45f);
+	style.Colors[ImGuiCol_TextDisabled]         = ImVec4(txt.x, txt.y, txt.z, theApp->isTabletMode() ? 0.60f : 0.45f);
 	style.Colors[ImGuiCol_WindowBg]             = ImVec4(wBG.x, wBG.y, wBG.z, 1.00f);
 	style.Colors[ImGuiCol_ChildBg]              = ImVec4(clB.x, clB.y, clB.z, 0.30f);
     style.Colors[ImGuiCol_PopupBg]              = ImVec4(wBG.x, wBG.y, wBG.z, 1.00f);
@@ -365,8 +373,8 @@ void darkDefaultTheme(const ImVec4 &color)
 	style.Colors[ImGuiCol_TitleBgCollapsed]     = ImVec4(wBG.x, wBG.y, wBG.z, 0.66f);
 	style.Colors[ImGuiCol_TitleBgActive]        = ImVec4(act.x, act.y, act.z, 0.85f);
 	style.Colors[ImGuiCol_MenuBarBg]            = ImVec4(clB.x, clB.y, clB.z, 0.47f);
-	style.Colors[ImGuiCol_ScrollbarBg]          = ImVec4(clB.x, clB.y, clB.z, 0.25f);
-	style.Colors[ImGuiCol_ScrollbarGrab]        = ImVec4(clA.x, clA.y, clA.z, 0.50f);
+	style.Colors[ImGuiCol_ScrollbarBg]          = ImVec4(clB.x, clB.y, clB.z, theApp->isTabletMode() ? 0.40f : 0.25f);
+	style.Colors[ImGuiCol_ScrollbarGrab]        = ImVec4(clA.x, clA.y, clA.z, theApp->isTabletMode() ? 0.75f : 0.50f);
 	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ch1;
 	style.Colors[ImGuiCol_ScrollbarGrabActive]  = ch2;
 	style.Colors[ImGuiCol_CheckMark]            = ImVec4(chk.x, chk.y, chk.z, 1.00f);
@@ -749,11 +757,14 @@ void SetupImGuiStyle2()
     imgui_easy_theming(color_for_text, color_for_head, color_for_area, color_for_body);
 }
 
-
 void selectTheme(int style_idx);
 
 void setGUIStyle()
 {
+#ifdef __EMSCRIPTEN__
+    if(theApp->isTabletMode()) theDlg.setFontSize(15);
+#endif
+
     ImGuiStyle& style = ImGui::GetStyle();
 
     //SetupImGuiStyle2();
@@ -770,7 +781,7 @@ void setGUIStyle()
 
     style.FrameRounding = 3;
     style.WindowRounding = 5;
-    style.ScrollbarSize = 11;
+    style.ScrollbarSize = theApp->isTabletMode() ? 16 : 11;
     style.GrabRounding = 3;
     style.WindowPadding = ImVec2(3,3);
     style.ChildRounding = 3;
@@ -804,8 +815,8 @@ void setGUIStyle()
 
     ImGuiIO& io = ImGui::GetIO();
     //io.FontAllowUserScaling = true;
+    io.Fonts->Clear();
     theDlg.mainFont = io.Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", theDlg.getFontSize(), &cfg);
-    
 
     static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
     ImFontConfig icons_config; 
@@ -820,6 +831,11 @@ void setGUIStyle()
 
     theDlg.iconFont = io.Fonts->AddFontFromFileTTF( "Fonts/fontawesome-webfont.ttf", theDlg.getFontSize()+1, &icons_config, icons_ranges );
 
+#ifdef GLCHAOSP_USE_MARKDOWN
+    theDlg.mdConfig.headingFormats[ 0 ].font = io.Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", theDlg.getFontSize() * 2.0);
+    theDlg.mdConfig.headingFormats[ 1 ].font = io.Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", theDlg.getFontSize() * 1.5);
+    theDlg.mdConfig.headingFormats[ 2 ].font = io.Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", theDlg.getFontSize() * 1.2);
+#endif
     //theDlg.testFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", theDlg.getFontSize(), &theDlg.fontCFG);
 
 

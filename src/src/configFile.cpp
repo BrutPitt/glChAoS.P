@@ -435,10 +435,11 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
         } else {                  //second version
             int gSel = c.get_or("glowSelect" , glow->getGlowState() );
             glow->setGlowOn(gSel>0);
-            glow->setGlowState( gSel>0 ? gSel : glow->glowType_Threshold);
+            glow->setGlowState( gSel>0 ? gSel : glow->glowType_Threshold);            
         }
     }
 #ifdef GLCHAOSP_LIGHTVER
+    if(theApp->isTabletMode()) glow->setGlowOn(false);    
     if(glow->isGlowOn()) glow->setGlowState(glow->glowType_Bilateral);
 #endif
 
@@ -768,7 +769,7 @@ bool mainGLApp::loadProgConfig()
     setMaxAllocatedBuffer(cfg.get_or("maxParticles", getMaxAllocatedBuffer()));
     if(getMaxAllocatedBuffer()>PARTICLES_MAX) setMaxAllocatedBuffer(PARTICLES_MAX);
     
-    theApp->isParticlesSizeConstant(cfg.get_or("partSizeConst", false));
+    theApp->setParticlesSizeConstant(cfg.get_or("partSizeConst", false));
 
     theApp->useLowPrecision(cfg.get_or("useLowPrecision", false));
 

@@ -267,7 +267,7 @@ void attractorDlgClass::view()
         ImGui::Columns(2);
 
         static bool firstTime = true;
-        if(firstTime) { ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth()*.225); firstTime = false; }
+        if(firstTime) { ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth()*(theApp->isTabletMode()?.3:.25)); firstTime = false; }
 
         // left
         ImGui::BeginGroup(); 
@@ -566,7 +566,7 @@ void fastViewDlgClass::view()
     const int szH = 365;
     const int posW = 0;
 #endif
-    const int szW = 160;
+    const int szW = 180;
     ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-szW-posW,posH ), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(szW, szH), ImGuiCond_FirstUseEver);
 

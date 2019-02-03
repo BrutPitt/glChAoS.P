@@ -69,6 +69,7 @@ static GLFWscrollfun        g_PrevUserCallbackScroll = NULL;
 static GLFWkeyfun           g_PrevUserCallbackKey = NULL;
 static GLFWcharfun          g_PrevUserCallbackChar = NULL;
 
+
 // Forward Declarations
 static void ImGui_ImplGlfw_InitPlatformInterface();
 static void ImGui_ImplGlfw_ShutdownPlatformInterface();
@@ -265,9 +266,10 @@ static void ImGui_ImplGlfw_UpdateMousePosAndButtons()
                 double mouse_x, mouse_y;
                 glfwGetCursorPos(window, &mouse_x, &mouse_y);
                 io.MousePos = ImVec2((float)mouse_x + viewport->Pos.x, (float)mouse_y + viewport->Pos.y);
-            }
-            for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
+            }            
+            for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) {
                 io.MouseDown[i] |= glfwGetMouseButton(window, i) != 0;
+            }
         }
 
 #if GLFW_HAS_GLFW_HOVERED

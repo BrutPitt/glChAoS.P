@@ -45,7 +45,6 @@
 #include "ui/uiSettings.h"
 
 
-
 #if !defined (__EMSCRIPTEN__)
     GLFWmonitor* getCurrentMonitor(GLFWwindow *window);
     void toggleFullscreenOnOff(GLFWwindow* window);
@@ -271,50 +270,233 @@ GLFWmonitor* getCurrentMonitor(GLFWwindow *window)
 }
 #else
 
-    #include <emscripten/html5.h>
-    static bool touched = false;
+
+enum touchAct {
+    tCancel, tStart, tEnd, tMove
+};
+
+static touchAct actualTouchEvent = touchAct::tCancel;
+
+bool pinchStart = false;
+bool dblTouch = false;
+float prevDist;
+
+bool g_JustTouched[5] = { false, false, false, false, false };
+float g_touch_x = -FLT_MAX, g_touch_y = -FLT_MAX;
+float oldTouchX = -FLT_MAX, oldTouchY = -FLT_MAX;
+bool touched = false;
+
+
+
+glm::vec2 pinchPoints[2]; 
+/*
+EM_JS(int, screent_width, (), {
+  return screen.width;
+});
+EM_JS(int, screent_height, (), {
+  return screen.height;
+});
+*/
+
+EM_JS(int, get_orientation, (), {
+    var orientation = screen.msOrientation || (screen.orientation || screen.mozOrientation || {}).type;
+    if      (orientation === "portrait-primary"   ) return  1;
+    else if (orientation === "portrait-secondary" ) return  2;
+    else if (orientation === "landscape-primary"  ) return  4;
+    else if (orientation === "landscape-secondary") return  8;
+    else return -1;
+});
+
+
+bool isDoubleTap(float x, float y, double ms)
+{
+    static auto before = std::chrono::system_clock::now();
+    static touchAct oldEvent = touchAct::tCancel;
+    static float oldx=-1, oldy=-1;
+    const float R = 20.f;
+
+    auto now = std::chrono::system_clock::now();
+    double diff_ms = std::chrono::duration <double, std::milli> (now - before).count();
+
+    bool retval = (diff_ms<ms && (oldx-R<x && oldx+R>x && oldy-R<y && oldy+R>y));
+    before = now ;
+        
+    //if(action==GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) before = now ;    
+    //oldButton = button;
+    oldx=x, oldy=y;
+
+    return retval;
+}
 
     static EM_BOOL touchStart(int eventType, const EmscriptenTouchEvent *e, void *userData)
     {
-/*
-        ImGui::GetIO().MouseDown[0] = true;
-        ImGui::GetIO().MouseClickedPos[0].x = e->touches[0].canvasX;
-        ImGui::GetIO().MouseClickedPos[0].y = e->touches[0].canvasY;
-*/
-        glfwMouseButtonCallback(theApp->getGLFWWnd(), 0, GLFW_PRESS, 0);
-        ImGui::GetIO().MouseDown[0] = true;
-/*
-        ImGui::GetIO().MousePos.x = e->touches[0].canvasX;
-        ImGui::GetIO().MousePos.y = e->touches[0].canvasY;
-        if(ImGui::GetIO().WantCaptureMouse) return true;
-*/        
-        theWnd->onMouseButton(0, APP_MOUSE_BUTTON_DOWN, e->touches[0].canvasX, e->touches[0].canvasY); 
+        g_JustTouched[0] = true;
+        actualTouchEvent = touchAct::tStart;
+
+        oldTouchX = g_touch_x;
+        oldTouchY = g_touch_y;
+        g_touch_x = e->touches[0].canvasX; 
+        g_touch_y = e->touches[0].canvasY;
+
         touched = true;
+
+        if(e->numTouches==1 && isDoubleTap(g_touch_x, g_touch_y, 300)) {
+            const float sz = 150.f;
+            if(g_touch_x<sz || g_touch_y<sz || g_touch_x>theApp->GetWidth()-sz || g_touch_y>theApp->GetHeight()-sz) {
+                theDlg.visible(theDlg.visible()^1);
+            }
+            else {
+                dblTouch = true;
+            }
+            return true;
+        }
+
+        if(e->numTouches==2) {
+            prevDist = glm::distance(glm::vec2(e->touches[0].canvasX, e->touches[0].canvasY),
+                                     glm::vec2(e->touches[1].canvasX, e->touches[1].canvasY));
+            
+            pinchStart = true;
+            return true;
+        }
+
+        //cout << "Canvas: " << e->touches[0].canvasX << " " << e->touches[0].canvasY << endl;
+        //glfwMouseButtonCallback(theApp->getGLFWWnd(), 0, GLFW_PRESS, 0);
+
+        if(ImGui::GetIO().WantCaptureMouse) return true;
+        
+        theWnd->onMouseButton(0, APP_MOUSE_BUTTON_DOWN, e->touches[0].canvasX, e->touches[0].canvasY); 
+
+
         return true;
     }
     static EM_BOOL touchEnd(int eventType, const EmscriptenTouchEvent *e, void *userData)
     {
-/*
-        ImGui::GetIO().MouseDown[0] = false;
-        ImGui::GetIO().MouseClickedPos[0].x = e->touches[0].canvasX;
-        ImGui::GetIO().MouseClickedPos[0].y = e->touches[0].canvasY;
-*/
-        glfwMouseButtonCallback(theApp->getGLFWWnd(), 0, GLFW_RELEASE, 0);
-        ImGui::GetIO().MouseDown[0] = false;
-/*
-        ImGui::GetIO().MousePos.x = e->touches[0].canvasX;
-        ImGui::GetIO().MousePos.y = e->touches[0].canvasY;
+        g_JustTouched[0] = false;
+        dblTouch = false;
+        actualTouchEvent = touchAct::tEnd;
+
+        g_touch_x = e->touches[0].canvasX; 
+        g_touch_y = e->touches[0].canvasY;
+
+        if(e->numTouches!=2) pinchStart = false;
+
+
         if(ImGui::GetIO().WantCaptureMouse) return true;
-*/
+        //glfwMouseButtonCallback(theApp->getGLFWWnd(), 0, GLFW_RELEASE, 0);
+        
         theWnd->onMouseButton(0, APP_MOUSE_BUTTON_UP, e->touches[0].canvasX, e->touches[0].canvasY); 
-        touched = true;
+        touched = false;
         return true;
     }
+
     static EM_BOOL touchMove(int eventType, const EmscriptenTouchEvent *e, void *userData)
     {
-        if(touched) theWnd->onMotion(e->touches[0].canvasX, e->touches[0].canvasY);
+        actualTouchEvent = touchAct::tMove;
+        if(touched) {
+            g_touch_x = e->touches[0].canvasX; 
+            g_touch_y = e->touches[0].canvasY;
+
+            if(dblTouch) {
+                const float scl = .25;
+                vfGizmo3DClass &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
+                //T.mouse(T.getPanControlButton(),T.getPanControlModifier(), true, g_touch_x, g_touch_y);
+
+                glm::vec3 pan = T.getPanPosition();
+                pan.x += (g_touch_x-oldTouchX) * T.getPanScale() * scl;
+                pan.y -= (g_touch_y-oldTouchY) * T.getPanScale() * scl;
+                T.setPanPosition(pan);
+                oldTouchX = g_touch_x; oldTouchY = g_touch_y;
+
+                return true;
+            }
+            
+            if(e->numTouches==1) {
+                if(ImGui::GetIO().WantCaptureMouse) return true;
+                theWnd->onMotion(e->touches[0].canvasX, e->touches[0].canvasY);
+            } else if(pinchStart && e->numTouches==2) { // pinch
+
+                float d = glm::distance(glm::vec2(e->touches[0].canvasX, e->touches[0].canvasY), 
+                                        glm::vec2(e->touches[1].canvasX, e->touches[1].canvasY));
+
+                vfGizmo3DClass &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
+                if(abs(prevDist-d)>4) {
+                    T.setDollyPosition(T.getDollyPosition().z + T.getDollyScale() * (d-prevDist));
+                    prevDist = d;
+                }
+
+            } 
+            //cout << "Move : "<< e->touches[0].canvasX<< " " << e->touches[0].canvasY << endl;
+        }
         return true;
     }
+
+    static EM_BOOL touchCancel(int eventType, const EmscriptenTouchEvent *e, void *userData)
+    {
+        actualTouchEvent = touchAct::tCancel;
+        return true;
+    }
+
+    static EM_BOOL devOrientation(int eventType, const EmscriptenDeviceOrientationEvent *e, void *userData) 
+    {
+        return true;
+    }
+
+    static EM_BOOL devOrientChange(int eventType, const EmscriptenOrientationChangeEvent *e, void *userData) 
+    {
+        cout << "change" << endl;
+        return true;
+    }
+
+    static EM_BOOL devMotion(int eventType, const EmscriptenDeviceMotionEvent *e, void *userData) 
+    {
+        const float tollerance = 3.5;
+        vfGizmo3DClass &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
+
+        auto getAccel = [&] (double accel, float sign) -> double {
+            return pow((abs(accel)-tollerance)*1.5, 2.0) * sign * (accel>0 ? -T.getPanScale() : T.getPanScale());
+        };
+
+        int orient = get_orientation();
+        float signX = 1.0, signY = 1.0;
+        double accX = e->accelerationIncludingGravityX, accY = e->accelerationIncludingGravityY;
+
+        
+        if((orient & EMSCRIPTEN_ORIENTATION_LANDSCAPE_PRIMARY) || (orient & EMSCRIPTEN_ORIENTATION_LANDSCAPE_SECONDARY)) {
+            accX = e->accelerationIncludingGravityY;
+            accY = e->accelerationIncludingGravityX;
+/*
+            if(orient == orientType::landscape_I) signY = -1.f;
+            else                                  { 
+                signY = -1.f;
+                accX = -accX;
+                accY = -accY;
+            }
+*/
+            cout << "land : " << orient << "  "  << accX << "  " << accY << endl;
+
+        } else { //portrait
+            accX = e->accelerationIncludingGravityX;
+            accY = e->accelerationIncludingGravityY;
+/*
+            if(orient == orientType::portrait_II) { 
+                signX = -1.f; signY = -1.f; 
+                accX = -accX;
+                accY = -accY;
+            }
+*/
+            cout << "port : " << orient << " - " << accX << " - " << accY << endl;
+        }
+
+        glm::vec3 pan = T.getPanPosition();
+
+        if(abs(accX)>tollerance) pan.x += getAccel(accX, signX);        
+        if(abs(accY)>tollerance) pan.y += getAccel(accY, signY);
+
+        T.setPanPosition(pan);
+        return true;
+    }
+
+
 
 #endif
 
@@ -462,13 +644,20 @@ void mainGLApp::glfwInit()
             glfwMouseButtonCallback(theApp->getGLFWWnd(), e->button, GLFW_RELEASE, 0);          
             return true;
         });
+#endif
+
 
     emscripten_set_touchstart_callback("#canvas", nullptr, true, touchStart);
     emscripten_set_touchend_callback("#canvas", nullptr, true, touchEnd);
     emscripten_set_touchmove_callback("#canvas", nullptr, true, touchMove);
-#endif
+    emscripten_set_touchcancel_callback("#canvas", nullptr, true, touchCancel);
+    //emscripten_set_deviceorientation_callback(nullptr, true, devOrientation);
+    //emscripten_set_orientationchange_callback(nullptr, true, devOrientChange);
+    //emscripten_set_devicemotion_callback(nullptr, true, devMotion);
 
 #endif
+
+    
 
     glfwSetMouseButtonCallback(getGLFWWnd(), glfwMouseButtonCallback);
     glfwSetKeyCallback(getGLFWWnd(), glfwKeyCallback);
@@ -620,7 +809,7 @@ int main(int argc, char **argv)
     theApp = new mainGLApp; 
 
 #ifdef GLCHAOSP_LIGHTVER
-    if(argc>1 && argc<=6) {
+    if(argc>1 && argc<=7) {
         int w = atoi(argv[1]);
         int h = atoi(argv[2]);
         if(argc >= 4) {
@@ -634,6 +823,9 @@ int main(int argc, char **argv)
         if(argc >= 6) {
             int sz = atoi(argv[5]);
             theApp->setEmissionStepBuffer((sz<0 ? 20 : (sz>200) ? 200 : sz) * 1000);
+        }
+        if(argc >= 7) {
+            theApp->setTabletMode(atoi(argv[6])==1 ? true : false);
         }
         theApp->onInit(w<256 ? 256 : (w>3840 ? 3840 : w), h<256 ? 256 : (h>2160 ? 2160 : h));
     } else

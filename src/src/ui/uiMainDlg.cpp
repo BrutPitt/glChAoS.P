@@ -85,6 +85,35 @@ static void ShowHelpOnTitle(const char* desc)
     }
 }
 
+#ifdef GLCHAOSP_USE_MARKDOWN
+void showTooltipHelpMarkdown( const char *desc ) {
+    ImGui::TextDisabled("  " ICON_FA_COMMENT_O);
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 35.0f, -1));
+
+        ImGui::BeginTooltip();
+        ImGui::Markdown( desc, strlen(desc), theDlg.getMarkDownConfig() );
+        ImGui::EndTooltip();
+    }
+}
+
+void showTooltipHelpMarkdown( std::string desc ) {
+    ImGui::TextDisabled("  " ICON_FA_COMMENT_O);
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 35.0f, -1));
+        ImGui::BeginTooltip();
+        ImGui::Markdown( desc.c_str(), desc.length(), theDlg.getMarkDownConfig() );
+        ImGui::EndTooltip();
+    }
+}
+void showHelpMarkdown( const char *desc ) {
+
+    ImGui::Markdown( desc, strlen(desc), theDlg.getMarkDownConfig() );
+
+}
+#endif
 
 void paletteDlgClass::view() 
 {
@@ -977,7 +1006,7 @@ void particlesDlgClass::view()
 #if !defined(GLCHAOSP_LIGHTVER)
     const int wSZ = 300, hSZ = 900;
 #else
-    const int wSZ = 270, hSZ = 800;
+    const int wSZ = theApp->isTabletMode() ? 300 : 270, hSZ = theApp->isTabletMode() ? 860 : 800;
 #endif
 
     
@@ -1376,7 +1405,7 @@ void progSettingDlgClass::view()
             ImGui::AlignTextToFramePadding();
             bool b = bool(theApp->isParticlesSizeConstant());
             if(ImGui::Checkbox(" Particles size constant", &b)) {
-                theApp->isParticlesSizeConstant(b);
+                theApp->setParticlesSizeConstant(b);
                 theWnd->getParticlesSystem()->setFlagUpdate();
 
             }
@@ -1851,14 +1880,16 @@ void aboutDlgClass::view()
         const float border = DLG_BORDER_SIZE;
         const float wButt = ImGui::GetContentRegionAvailWidth()-border*2;
 
-        ImGui::SetCursorPosX(4*theDlg.getFontSize()*theDlg.getFontZoom()*.5);
+        //ImGui::SetCursorPosX(4*theDlg.getFontSize()*theDlg.getFontZoom()*.5);
         ImGui::TextUnformatted(GLAPP_HELP_ABOUT);
+        //showHelpMarkdown(GLAPP_HELP_ABOUT);
+        
 
         ImGui::NewLine();
 
         ImGui::Text("Mouse controls and shortcut keys");
         
-        ImGui::SetCursorPosX(4*theDlg.getFontSize()*theDlg.getFontZoom()*.5);
+        //ImGui::SetCursorPosX(4*theDlg.getFontSize()*theDlg.getFontZoom()*.5);
         ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
         ImGui::TextUnformatted(GLAPP_HELP_MOUSE_KEY);
         ImGui::PopStyleColor();
@@ -2119,6 +2150,45 @@ void mainImGuiDlgClass::switchMode(int x, int y)
 
 }
 
+#ifdef __EMSCRIPTEN__
+
+extern bool g_JustTouched[5];
+extern float g_touch_x, g_touch_y;
+
+static void UpdateTouch()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    const ImVec2 mouse_pos_backup = io.MousePos;
+    io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+    io.MouseHoveredViewport = 0;
+
+    // Update buttons
+    for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
+    {
+        // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
+        io.MouseDown[i] = g_JustTouched[i];
+    }
+
+    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+    for (int n = 0; n < platform_io.Viewports.Size; n++)
+    {
+        ImGuiViewport* viewport = platform_io.Viewports[n];
+        GLFWwindow* window = (GLFWwindow*)viewport->PlatformHandle;
+        IM_ASSERT(window != NULL);
+        const bool focused = true;
+        IM_ASSERT(platform_io.Viewports.Size == 1);
+
+        if (focused)
+        {
+            io.MousePos = ImVec2((float)g_touch_x + viewport->Pos.x, (float)g_touch_y + viewport->Pos.y);
+
+            for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) {
+                io.MouseDown[i] |=  g_JustTouched[i];
+            }
+        }
+    }
+}
+#endif
 
 void mainImGuiDlgClass::renderImGui()
 {
@@ -2144,6 +2214,9 @@ void mainImGuiDlgClass::renderImGui()
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
+#ifdef __EMSCRIPTEN__
+    if(theApp->isTabletMode()) UpdateTouch();
+#endif
 
     ImGui::NewFrame();
 

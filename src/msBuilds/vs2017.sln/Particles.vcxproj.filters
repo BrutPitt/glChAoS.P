@@ -42,6 +42,9 @@
     <Filter Include="3th party Libs\lodePNG">
       <UniqueIdentifier>{f49a71cc-0a4d-412c-8da2-1c1007ce2eaf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3th party Libs\imgui_markdown">
+      <UniqueIdentifier>{9e69864a-90a7-4701-8c3e-00e95f7112e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\colorMaps.cpp">
@@ -240,6 +243,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\tools\fastRandom.h">
       <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\imgui_markdown\imgui_markdown.h">
+      <Filter>3th party Libs\imgui_markdown</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

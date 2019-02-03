@@ -38,7 +38,9 @@
 #include <ImGui/imgui_impl_glfw.h>
 #include <ImGui/imgui_impl_opengl3.h>
 #include <IconsFontAwesome/IconsFontAwesome.h>
-
+#ifdef GLCHAOSP_USE_MARKDOWN
+#include <imgui_markdown/imgui_markdown.h>
+#endif
 
 void fillAttractorData();
 void writePalette(const char *filename, int idx);
@@ -248,9 +250,7 @@ private:
 class mainImGuiDlgClass  : public baseDlgClass
 {
 public:
-    mainImGuiDlgClass() : baseDlgClass(" glChAoS.P", true) { }
-
-
+    mainImGuiDlgClass() : baseDlgClass(" glChAoS.P", true)  {  }
     ~mainImGuiDlgClass() { }
 
     particlesDlgClass &getParticlesDlgClass() { return particlesDlg; } 
@@ -282,6 +282,10 @@ public:
 
     fastViewDlgClass & getfastViewDlg() { return fastViewDlg; }
 
+#ifdef GLCHAOSP_USE_MARKDOWN
+    ImGui::MarkdownConfig & getMarkDownConfig() { return mdConfig; }
+#endif
+
 #ifdef GLCHAOSP_LIGHTVER
     bool getInvertSettings() { return invertSettings; }
     void setInvertSettings(bool b) { invertSettings = b; }
@@ -295,6 +299,11 @@ private:
     float RasterizerMultiply = 1.0;
        
     float fontSize = 13.f, fontZoom = 1.f;
+
+#ifdef GLCHAOSP_USE_MARKDOWN
+    ImGui::MarkdownConfig mdConfig = { NULL, ICON_FA_LINK, { NULL, true, NULL, false, NULL, false } };
+#endif
+
 
 
     ImFont *mainFont = nullptr, *iconFont = nullptr;
