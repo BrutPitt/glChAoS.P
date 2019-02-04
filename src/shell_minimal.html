@@ -81,6 +81,8 @@
         var lowprec = url.searchParams.get("lowprec");
         var intbuffer = url.searchParams.get("intbuffer");
         var tabletmode = url.searchParams.get("tabletmode");
+        var glowOFF = url.searchParams.get("glowOFF");
+        var lightGUI = url.searchParams.get("lightGUI");
 
         var Module = {
             arguments: [width == null ? '1024' : width,
@@ -88,7 +90,9 @@
             maxbuffer == null ? '10' : maxbuffer,
             lowprec == null ? '1' : lowprec,
             intbuffer == null ? '20' : intbuffer,
-            tabletmode == null ? '0' : tabletmode],
+            tabletmode == null ? '0' : tabletmode,
+            glowOFF == null ? '0' : glowOFF,
+            lightGUI == null ? '0' : lightGUI],
         preRun: [],
         postRun: [],
         print: (function() {

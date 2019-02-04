@@ -848,6 +848,11 @@ void setGUIStyle()
 
 void selectTheme(int style_idx)
 {
+
+#ifdef __EMSCRIPTEN__
+        if(theApp->useLightGUI()) lightGrayScale();
+        else                      darkDefaultTheme(theDlg.getGuiThemeBaseColor());
+#else
         switch (style_idx)
         {
             case  0: darkDefaultTheme(theDlg.getGuiThemeBaseColor()); break;
@@ -866,7 +871,7 @@ void selectTheme(int style_idx)
             case 10: ImGui::StyleColorsDark(); break;
             case 11: ImGui::StyleColorsLight(); break;
         }
-
+#endif
 }
 
 

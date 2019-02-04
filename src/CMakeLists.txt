@@ -78,6 +78,8 @@ if (EMSCRIPTEN)
         ${SRC}/attractorsStartVals.h
         ${SRC}/configFile.cpp
         ${SRC}/colorMaps.cpp
+        ${SRC}/emsTouch.cpp
+        ${SRC}/emsTouch.h
         ${SRC}/glApp.cpp
         ${SRC}/glApp.h
         ${SRC}/glWindow.cpp

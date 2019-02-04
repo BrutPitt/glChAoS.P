@@ -67,6 +67,9 @@ enum ScreeShotReq {
 class glWindow;
 
 #include "ui/uiMainDlg.h"
+#ifdef __EMSCRIPTEN__
+    #include "emsTouch.h"
+#endif
 
 bool fileExist(const char *filename);
 
@@ -244,11 +247,6 @@ public:
     void setFBOInternalPrecision(GLenum e) { fboInternalPrecision = e; }
     GLenum getFBOInternalPrecision() { return fboInternalPrecision; }
 
-    bool isTabletMode() { return tabletMode; }
-    void setTabletMode(bool b) { tabletMode=b; }
-    bool useLowPrecision() { return lowPrecision; }
-    void useLowPrecision(bool b) { lowPrecision = b; }
-
     void setLowPrecision() {
         useLowPrecision(true);
         theApp->setTexInternalPrecision(GL_R16F);
@@ -262,6 +260,15 @@ public:
         theApp->setFBOInternalPrecision(GL_RGBA32F);
     }
 
+    // wgl command line settings
+    bool isTabletMode() { return tabletMode; }
+    void setTabletMode(bool b) { tabletMode=b; }
+    bool useLowPrecision() { return lowPrecision; }
+    void useLowPrecision(bool b) { lowPrecision = b; }
+    bool useLightGUI() { return lightGUI; }
+    void useLightGUI(bool b) {  lightGUI = b; }
+    bool startWithGlowOFF() { return initialGlowOFF; }
+    void startWithGlowOFF(bool b) {  initialGlowOFF = b; }
 
 
     void selectCaptureFolder();
@@ -314,6 +321,8 @@ private:
     unsigned maxAllocatedBuffer = ALLOCATED_BUFFER;
     unsigned emissionStepBuffer = EMISSION_STEP;
     bool tabletMode = false;
+    bool lightGUI = false;
+    bool initialGlowOFF = false;
 
     int screenShotRequest;
     int vSync = 0;
@@ -338,6 +347,13 @@ private:
     glWindow *glEngineWnd = nullptr;
 
     timerClass timer;
+
+#ifdef __EMSCRIPTEN__
+public:
+    emsMDeviceClass &getEmsDevice() { return emsDevice; }
+private:
+    emsMDeviceClass emsDevice;
+#endif
     
 
 friend class glWindow;

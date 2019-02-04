@@ -2155,39 +2155,6 @@ void mainImGuiDlgClass::switchMode(int x, int y)
 extern bool g_JustTouched[5];
 extern float g_touch_x, g_touch_y;
 
-static void UpdateTouch()
-{
-    ImGuiIO& io = ImGui::GetIO();
-    const ImVec2 mouse_pos_backup = io.MousePos;
-    io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
-    io.MouseHoveredViewport = 0;
-
-    // Update buttons
-    for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
-    {
-        // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
-        io.MouseDown[i] = g_JustTouched[i];
-    }
-
-    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
-    for (int n = 0; n < platform_io.Viewports.Size; n++)
-    {
-        ImGuiViewport* viewport = platform_io.Viewports[n];
-        GLFWwindow* window = (GLFWwindow*)viewport->PlatformHandle;
-        IM_ASSERT(window != NULL);
-        const bool focused = true;
-        IM_ASSERT(platform_io.Viewports.Size == 1);
-
-        if (focused)
-        {
-            io.MousePos = ImVec2((float)g_touch_x + viewport->Pos.x, (float)g_touch_y + viewport->Pos.y);
-
-            for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) {
-                io.MouseDown[i] |=  g_JustTouched[i];
-            }
-        }
-    }
-}
 #endif
 
 void mainImGuiDlgClass::renderImGui()
@@ -2215,7 +2182,7 @@ void mainImGuiDlgClass::renderImGui()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
 #ifdef __EMSCRIPTEN__
-    if(theApp->isTabletMode()) UpdateTouch();
+    if(theApp->isTabletMode()) theApp->getEmsDevice().imGuiUpdateTouch();
 #endif
 
     ImGui::NewFrame();

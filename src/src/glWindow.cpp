@@ -55,11 +55,8 @@ void glWindow::onInit()
     //rndTexture.buildTex(1024);
     //hlsTexture.buildTex(1024);
 
-    //modelMatrix = projectionMatrix = viewMatrix = mvpMatrix = mvMatrix = glm::mat4(1.0f);
-
     //particlesSystem = new particlesSystemClass(new transformedEmitterClass(1,mVB_COLOR));
     particlesSystem = new particlesSystemClass(new singleEmitterClass);
-    //shaderMotionBlur.create();
 
 #if !defined(__EMSCRIPTEN__)
     glEnable( GL_PROGRAM_POINT_SIZE );
@@ -73,38 +70,27 @@ void glWindow::onInit()
     attractorsList.setSelection(0);
     attractorsList.getThreadStep()->startThread();
 
-    //if(loadAttractorFile(false, ATTRACTOR_PATH "mainMagnetic" ATTRACTOR_EXT)) return;
 
-
+    vfGizmo3DClass &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
 
     particlesSystem->getTMat()->setPerspective(30.f, float(theApp->GetWidth())/float(theApp->GetHeight()), 0.f, 100.f);
     particlesSystem->getTMat()->setView(attractorsList.get()->getPOV(), attractorsList.get()->getTGT());
 
-    particlesSystem->getTMat()->getTrackball().setGizmoRotControl( (vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) 0 /* evNoModifier */ );
+    T.setGizmoRotControl( (vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) 0 /* evNoModifier */ );
 
-    particlesSystem->getTMat()->getTrackball().setGizmoRotXControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_SHIFT);
-    particlesSystem->getTMat()->getTrackball().setGizmoRotYControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_CONTROL);
-    particlesSystem->getTMat()->getTrackball().setGizmoRotZControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_ALT | GLFW_MOD_SUPER);
+    T.setGizmoRotXControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_SHIFT);
+    T.setGizmoRotYControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_CONTROL);
+    T.setGizmoRotZControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_ALT | GLFW_MOD_SUPER);
 
-    particlesSystem->getTMat()->getTrackball().setDollyControl((vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) 0);
-    particlesSystem->getTMat()->getTrackball().setPanControl(  (vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) GLFW_MOD_CONTROL|GLFW_MOD_SHIFT);
-
-
-    //particlesSystem->getTMat()->getTrackball().setDollyControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_CONTROL);
-    //particlesSystem->getTMat()->getTrackball().setPanControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers)GLFW_MOD_SHIFT);
-
-    //trackball.setDollyPosition(5.0f);
-    particlesSystem->getTMat()->getTrackball().setRotationCenter(attractorsList.get()->getTGT());
-
-    particlesSystem->getTMat()->getTrackball().viewportSize(theApp->GetWidth(), theApp->GetHeight());
-    //applyRotation(modelMatrix, quaternionf(0.f,0.f,0.f,1.f));
-    //applyRotation(modelMatrix, glm::quat(0.f,0.f,0.f,1.f));
+    T.setDollyControl((vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) 0);
+    T.setPanControl(  (vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) GLFW_MOD_CONTROL|GLFW_MOD_SHIFT);
 
 
+    T.setRotationCenter(attractorsList.get()->getTGT());
+
+    T.viewportSize(theApp->GetWidth(), theApp->GetHeight());
 
     mmFBO::Init(theApp->GetWidth(), theApp->GetHeight()); 
-
-
 }
 
 
@@ -213,20 +199,8 @@ void glWindow::onRender()
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind both FRAMEBUFFERS to default
 #endif
 
-    //
-
     particlesSystem->clearFlagUpdate();
-
 }
-
-
-
-void glWindow::DrawOnTexture()
-{
-
-    
-}
-
 
 
 ////////////////////////////////////////////////////////////////////////////

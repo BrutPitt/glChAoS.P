@@ -134,6 +134,9 @@
     <ClCompile Include="..\..\src\tools\fastRandom.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\emsTouch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\glApp.h">
@@ -246,6 +249,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\libs\imgui_markdown\imgui_markdown.h">
       <Filter>3th party Libs\imgui_markdown</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\emsTouch.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

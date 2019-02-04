@@ -509,18 +509,9 @@ private:
     emitterBaseClass* emitter;
 };
 
-
-
-
-class glWindow /*: public glApp*/
+class glWindow 
 {
-    //mainGLApp *GetApp()    { return mainGLApp::theMainApp; } 
-    mainGLApp *GetFrame()  { return theApp; }
-    mainGLApp *GetCanvas() { return theApp; }   
-
-
 public:		
-
     glWindow() {}
     virtual ~glWindow() {}
 
@@ -531,9 +522,6 @@ public:
     // Called when Window engine is closed.
 	virtual void onExit();
 
-	// The onIdle and onDisplay methods should also be overloaded.
-	// Within the onIdle method put the logic of the application.
-	// The onDisplay method is for any drawing code.
 	virtual void onIdle();
 	virtual void onRender();
 	virtual void onReshape(GLint w, GLint h);
@@ -543,39 +531,25 @@ public:
 	virtual void onMotion(int x, int y);
 	virtual void onPassiveMotion(int x, int y);
 
-	// The onKeyDown method handles keyboard input that are standard ASCII keys
 	virtual void onKeyDown(unsigned char key, int x, int y);
     virtual void onKeyUp(unsigned char key, int x, int y);
 	virtual void onSpecialKeyUp(int key, int x, int y);
 	virtual void onSpecialKeyDown(int key, int x, int y);
 
-
-    int GetWidth()  { return GetCanvas()->GetWidth();  }
-    int GetHeight() { return GetCanvas()->GetHeight(); }
-
+    int GetWidth()  { return theApp->GetWidth();  }
+    int GetHeight() { return theApp->GetHeight(); }
 
     particlesSystemClass *getParticlesSystem() { return particlesSystem; }
 
-
     vaoClass *getVAO() { return vao; }
     
-    
 private:
-    void DrawOnTexture();
-
-
-private:
-
-    
     vaoClass *vao;
 
     bool isInitialized;
 
     friend class particlesSystemClass;
-
     particlesSystemClass *particlesSystem = nullptr;
-
-
 };
 
 

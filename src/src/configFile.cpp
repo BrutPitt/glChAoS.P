@@ -439,7 +439,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
         }
     }
 #ifdef GLCHAOSP_LIGHTVER
-    if(theApp->isTabletMode()) glow->setGlowOn(false);    
+    if(theApp->startWithGlowOFF()) glow->setGlowOn(false);    
     if(glow->isGlowOn()) glow->setGlowState(glow->glowType_Bilateral);
 #endif
 
