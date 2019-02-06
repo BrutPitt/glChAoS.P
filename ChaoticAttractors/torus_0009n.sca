@@ -28,7 +28,7 @@
 			0.74471313,
 			-1.5629492,
 			-2.89571,
-			0.3682574,
+			0.36865741,
 			0.60708278,
 			2.9263637
 		],
@@ -64,7 +64,7 @@
 		"motionBlur":     false,
 		"blurIntensity":  0.5,
 		"mixingVal":      0.0,
-		"circBuff":       9100000,
+		"circBuff":       12100000,
 		"rstrtCircBuff":  false,
 		"stopCircBuff":   false,
 		"camPOV":         [ 0.0, 0.0, 3.0 ],
@@ -73,7 +73,7 @@
 		"camDolly":       [ 0.0, 0.0, -5.0899987 ],
 		"camPan":         [ 0.24, 0.05999995, 0.0 ],
 		"camRotCent":     [ 0.0, 0.0, 0.0 ],
-		"camRot":         [ 0.45125, 0.8289094, -0.0038252007, -0.35285819 ]
+		"camRot":         [ 0.89493549, -0.015503968, -0.031645119, 0.46200174 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":   1,
@@ -915,9 +915,9 @@
 		"clippingDist":     0.5,
 		"alphaKFactor":     1.0,
 		"alphaAttenFactor": 0.0,
-		"alphaSkip":        0.04,
+		"alphaSkip":        0.065,
 		"dotsSize":         2,
-		"HermiteVals":      [ 0.5, 0.0, 0.0, 1.0 ],
+		"HermiteVals":      [ 0.5, 0.0, 1.0, 1.0 ],
 		"dotsType":         0,
 		"ColorInt":         1.49,
 		"ColorVel":         0.346,
