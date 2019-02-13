@@ -1,9 +1,11 @@
-# [**glChAoS.P / wglChAoS.P - ver 1.1.0**](https://michelemorrone.eu/glchaosp)
+# [**glChAoS.P / wglChAoS.P - ver 1.1.1**](https://michelemorrone.eu/glchaosp)
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractor scout... and hypercompex fractals (new!) 
 
-Please read the release notes **ver. 1.1.0**: [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases/tag/v1.1.0)
+Please read the release notes for changes and new features of **ver. 1.1.1**: [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases/tag/v1.1.1)
+
+
 
 ### [New Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html)
 | hypercomplex fractals | hypercomplex fractals |
@@ -12,6 +14,9 @@ Please read the release notes **ver. 1.1.0**: [**Release Notes**](https://github
 
 ### [New WebGL2 online version](https://michelemorrone.eu/glchaosp/webGL.html)
 New [**wglChAoS.P**](https://michelemorrone.eu/glchaosp/webGL.html) / [**wglChAoSP**](https://michelemorrone.eu/glchaosp/webGL.html) WebGL 2 / WebAssembly lightened **LIVE / ONLINE** version of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
+
+### Now supports touch screen for mobile devices, smartphones and tablets
+
 
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssWGLtitle.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
 | :-----: |
@@ -284,6 +289,9 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
 - libs/configuru → Configuru, an experimental JSON config library for C++
 [https://github.com/emilk/Configuru](https://github.com/emilk/Configuru)
 
+- libs/tinyPLY → C++11 ply 3d mesh format importer & exporter 
+[https://github.com/ddiakopoulos/tinyply](https://github.com/ddiakopoulos/tinyply)
+
 - libs/lodePNG → LodePNG a PNG saver
 [https://github.com/lvandeve/lodepng](https://github.com/lvandeve/lodepng)
 
@@ -308,6 +316,7 @@ window and input
 colorMaps/jjg\_step.json → J.J. Green palettes (creative commons noncommercial license)
 [http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html](http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html)
 Conversion from gpf format to json 256 variations.
+(these are optional separate files to load for have more color maps)
 
 
 ## License

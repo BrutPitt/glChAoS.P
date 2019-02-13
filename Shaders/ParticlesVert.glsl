@@ -34,37 +34,78 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-// #include "ParticlesVert.glsl" 
+// #version dynamically inserted
 
+layout(std140) uniform;
 
-out vec3 mvVtxPos;
+layout (location = 0) in vec4 a_ActualPoint;
 
-out float pointDistance;
-out vec4 particleColor;
+LAYUOT_BINDING(0) uniform sampler2D paletteTex;
 
-void main()                                                 
-{              
+LAYUOT_BINDING(2) uniform _particlesData {
+    vec3 lightDir;
+    float lightDiffInt;
+    vec3 lightColor; 
+    float lightSpecInt;
+    vec2 scrnRes;
+    float lightAmbInt ;
+    float lightShinExp;
+    float sstepColorMin;
+    float sstepColorMax;
+    float pointSize;
+    float pointDistAtten;
+    float alphaDistAtten;
+    float alphaSkip;
+    float alphaK;
+    float colIntensity;
+    float clippingDist;
+    float zNear;
+    float zFar;
+    float velIntensity;
+    float ySizeRatio;
+    float ptSizeRatio;
+    float pointspriteMinSize;
+    bool lightActive;
+} u;
 
-    vec4 vtxPos = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
-    gl_Position = m.pMatrix * vtxPos;
-    mvVtxPos = vtxPos.xyz;
+LAYUOT_BINDING(4) uniform _tMat { //shared?
+    mat4 pMatrix;
+    mat4 mvMatrix;
+    mat4 mvpMatrix;
+} m;
 
-#if defined(GL_ES) || defined(TEST_WGL)
-    particleColor = velColor();
-#else
-    particleColor = colorResult();
+#ifndef GL_ES
+out gl_PerVertex
+{
+	vec4 gl_Position;
+    float gl_PointSize;
+};
 #endif
 
-    pointDistance = gl_Position.w; //length(vtxPos.w);
 
-    float ptAtten = exp(-0.01*sign(pointDistance)*pow(abs(pointDistance)+1.f, u.pointDistAtten*.1));
-    float size = u.pointSize * ptAtten * u.ySizeRatio;
+#ifdef GL_ES
+    #define SUBROUTINE(X) 
+#else
+    subroutine vec4 _colorResult();
+    subroutine uniform _colorResult colorResult;
+    #define SUBROUTINE(X) subroutine(X)
+#endif
 
-    vec4 pt  = m.pMatrix * vec4(vtxPos.xy + vec2(size) * u.ptSizeRatio , vtxPos.zw);
-    gl_PointSize = abs(gl_Position.w)>0.00001 ? distance(gl_Position.xy, pt.xy)/gl_Position.w  : 0.0;
+//#define USE_HLS_INTERNAL
 
-    // NVidia & Intel do not supports gl_PointSize<1.0 -> point disappear
-    // Look in Info dialog: point Range and Granularity
-    if(gl_PointSize<u.pointspriteMinSize) gl_PointSize = u.pointspriteMinSize;
-}                                                           
+
+// Load OBJ
+LAYUOT_INDEX(1) SUBROUTINE(_colorResult) vec4 objColor()
+{
+    uint packCol = floatBitsToUint(a_ActualPoint.w);
+    vec4 col = unpackUnorm4x8(packCol);
+
+    return col;
+}
+
+LAYUOT_INDEX(0) SUBROUTINE(_colorResult) vec4 velColor()
+{
+    float vel = a_ActualPoint.w*u.velIntensity;
+    return vec4(texture(paletteTex, vec2(vel,0.f)).rgb,1.0);
+}
 

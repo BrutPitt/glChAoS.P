@@ -105,28 +105,13 @@ private:
 class paletteDlgClass : public baseDlgClass
 {
 public:
-    paletteDlgClass(const char *title, int id) : ID(id), baseDlgClass(title) { }
+    paletteDlgClass() : baseDlgClass(" " ICON_FA_TINT " Palette") { }
 
     void view();
 
-
 protected:
-    
-    int ID;
 };
 
-class bbPaletteDlgClass : public paletteDlgClass
-{
-public:
-    bbPaletteDlgClass() : paletteDlgClass(" " ICON_FA_TINT " Billobard", 'B') {}
-
-};
-
-class psPaletteDlgClass : public paletteDlgClass
-{
-public:
-    psPaletteDlgClass() : paletteDlgClass(" " ICON_FA_TINT " Pointsprite", 'P') {}
-};
                                
 
 class particlesDlgClass : public baseDlgClass
@@ -315,14 +300,13 @@ attractorDlgClass attractorDlg;
 particlesDlgClass particlesDlg;
 imGuIZMODlgClass imGuIZMODlg;
 infoDlgClass infoDlg;
-psPaletteDlgClass psPaletteDlg;
+paletteDlgClass paletteDlg;
 viewSettingDlgClass viewSettingDlg;
 fastViewDlgClass fastViewDlg;
 particleEditDlgClass particleEditDlg;
 #if !defined(GLCHAOSP_LIGHTVER)
 dataDlgClass dataDlg;
 progSettingDlgClass progSettingDlg;
-bbPaletteDlgClass bbPaletteDlg;
 #else
     bool invertSettings = false;
 #endif

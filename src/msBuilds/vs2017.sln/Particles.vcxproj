@@ -340,7 +340,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;USE_THREAD_TO_FILL;USE_MAPPED_BUFFER;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;USE_THREAD_TO_FILL;USE_MAPPED_BUFFER;_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
@@ -500,7 +500,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;USE_THREAD_TO_FILL;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;USE_THREAD_TO_FILL;USE_MAPPED_BUFFER;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -581,6 +581,17 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\emsTouch.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug noThread OpenGL 4.1|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release singleThread OpenGL 4.1|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug noThread OpenGL 4.1|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release singleThread OpenGL 4.1|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\libs\lodePNG\lodepng.cpp" />
     <ClCompile Include="..\..\src\tools\fastRandom.cpp" />
@@ -616,6 +627,7 @@
     <ClInclude Include="..\..\src\emsTouch.h" />
     <ClInclude Include="..\..\src\libs\imgui_markdown\imgui_markdown.h" />
     <ClInclude Include="..\..\src\libs\lodePNG\lodepng.h" />
+    <ClInclude Include="..\..\src\libs\tinyPLY\tinyply.h" />
     <ClInclude Include="..\..\src\tools\fastRandom.h" />
     <ClInclude Include="..\..\src\tools\glslProgramObject.h" />
     <ClInclude Include="..\..\src\tools\glslShaderObject.h" />
@@ -665,6 +677,7 @@
     <None Include="..\..\..\Shaders\oglAxesFrag.glsl" />
     <None Include="..\..\..\Shaders\oglAxesVert.glsl" />
     <None Include="..\..\..\Shaders\ParticlesFrag.glsl" />
+    <None Include="..\..\..\Shaders\ParticlesVert.glsl" />
     <None Include="..\..\..\Shaders\PointSpriteFragLight.glsl" />
     <None Include="..\..\..\Shaders\PointSpriteVert.glsl" />
     <None Include="..\..\..\Shaders\RadialBlur2PassFrag.glsl" />

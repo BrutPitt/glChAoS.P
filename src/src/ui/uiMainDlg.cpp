@@ -55,6 +55,8 @@ bool loadObjFile();
 void saveSettingsFile();
 void loadSettingsFile();
 
+
+
 bool show_test_window = true;
 bool show_another_window = false;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -117,15 +119,25 @@ void showHelpMarkdown( const char *desc ) {
 
 void paletteDlgClass::view() 
 {
-    int id = ID;
+    
     if(!visible()) return;
 
+    particlesBaseClass *particles;
+    int id;
+    
 #ifdef GLCHAOSP_LIGHTVER
-    particlesBaseClass *particles = (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
+    id = 'P';
+    *particles = (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
     const int hSz = 0;
 #else
-    particlesBaseClass *particles = id == 'B' ? (particlesBaseClass *) theWnd->getParticlesSystem()->shaderBillboardClass::getPtr() :
-                                                (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
+    if(theWnd->getParticlesSystem()->getRenderMode() == particlsRenderMethod::RENDER_USE_BILLBOARD) {
+        particles = (particlesBaseClass *) theWnd->getParticlesSystem()->shaderBillboardClass::getPtr();
+        id = 'P';
+    } else {
+        particles = (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
+        id = 'B';
+    }
+
     const int hSz = -ImGui::GetFrameHeightWithSpacing();
 #endif
     //static bool colorMapDlg=false;
@@ -465,11 +477,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 //if(ImGui::colormapButton("pippo", ImVec2(w-10,12), 256, particles->getSelectedColorMap_pf3()))
                 if(ImGui::ImageButton(reinterpret_cast<ImTextureID>(cmSet->getOrigTex()), ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
                 //if(ImGui::Button("paletteAAA", ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
-#if !defined(GLCHAOSP_LIGHTVER)
-                    if(id=='B') theDlg.bbPaletteDlg.visible( theDlg.bbPaletteDlg.visible()^1);
-                    else
-#endif
-                        theDlg.psPaletteDlg.visible( theDlg.psPaletteDlg.visible()^1);
+                    theDlg.paletteDlg.visible( theDlg.paletteDlg.visible()^1);
                 }
                
 
@@ -1487,15 +1495,52 @@ void dataDlgClass::view()
 
     if(ImGui::Begin(getTitle(), &isVisible)) {
     
-        const float w = ImGui::GetContentRegionAvailWidth();
         const float border = DLG_BORDER_SIZE;
-        const float wButt = ImGui::GetContentRegionAvailWidth()-border*2;
+        const float w = ImGui::GetContentRegionAvailWidth();
+        const float wH = w*.5f+border*2;
+        const float wButt = w-border*2;
+        const float wButtH = wButt * .5f;
 
-        if(ImGui::Button("Load Data", ImVec2(wButt,0))) loadObjFile();
+        static bool bBinary = true;
+        static bool bColors = true;
+        static bool bNormals = true;
+        static bool bNormalized = true;
+        static int idxNorm = 0;
 
-        if(ImGui::Button("Save CFG", ImVec2(wButt/2,0))) saveSettingsFile();
-        ImGui::SameLine();
-        if(ImGui::Button("Load CFG", ImVec2(wButt/2,0))) loadSettingsFile();
+        ImGui::TextDisabled(" Export vertex data");
+        ImGui::Checkbox("Binary fileType", &bBinary);
+        ImGui::TextDisabled(" Additional exports");
+        ImGui::Checkbox("Colors", &bColors);
+        ImGui::SameLine(wH);
+        ImGui::Checkbox("Normals", &bNormals);
+        if(bNormals) {
+            ImGui::TextDisabled(" Normals type");
+            ImGui::PushItemWidth(wButtH);
+            ImGui::Combo("##NormaType", &idxNorm, "pt(i) + CoR\0"\
+                                                   "pt(i) + pt(i+1)\0"\
+                                                   "pt(i) + pt(i+1) + CoR\0");
+            ImGui::SameLine(wH);
+            ImGui::Checkbox("Normalized", &bNormalized);
+            ImGui::PopItemWidth();
+        } else {
+            ImGui::NewLine();
+            ImGui::AlignTextToFramePadding();
+            ImGui::NewLine();
+        }
+
+
+        if(ImGui::Button("Import PLY", ImVec2(wButtH,0))) 
+            if(importPLY(bColors)) //loadObjFile();
+                theWnd->getParticlesSystem()->viewObjON();
+        ImGui::SameLine(wH);
+        if(ImGui::Button("Export PLY", ImVec2(wButtH,0))) exportPLY(bBinary, bColors, bNormals, bNormalized, (normalType) idxNorm);
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::NewLine();
+        ImGui::TextDisabled(" Export render settings");
+        if(ImGui::Button("Import CFG", ImVec2(wButtH,0))) loadSettingsFile();
+        ImGui::SameLine(wH);
+        if(ImGui::Button("Export CFG", ImVec2(wButtH,0))) saveSettingsFile();
 
         ImGui::NewLine();
         ImGui::Text("Work in progress...");
@@ -2138,11 +2183,10 @@ void mainImGuiDlgClass::switchMode(int x, int y)
     aboutDlg.rePosWndByMode(x, y);
     attractorDlg.rePosWndByMode(x, y);
     particlesDlg.rePosWndByMode(x, y);
-    psPaletteDlg.rePosWndByMode(x, y);
+    paletteDlg.rePosWndByMode(x, y);
     infoDlg.rePosWndByMode(x, y);
     viewSettingDlg.rePosWndByMode(x, y);
 #if !defined(GLCHAOSP_LIGHTVER)
-    bbPaletteDlg.rePosWndByMode(x, y);
     progSettingDlg.rePosWndByMode(x, y);
     dataDlg.rePosWndByMode(x, y);
     rePosWndByMode(x, y);
@@ -2191,12 +2235,7 @@ void mainImGuiDlgClass::renderImGui()
         aboutDlg.view();
         attractorDlg.view();
         particlesDlg.view();
-        if(particlesDlg.visible()) {
-#if !defined(GLCHAOSP_LIGHTVER)
-            bbPaletteDlg.view();
-#endif
-            psPaletteDlg.view();
-        }
+        paletteDlg.view();
         imGuIZMODlg.view();
         viewSettingDlg.view();
         infoDlg.view();

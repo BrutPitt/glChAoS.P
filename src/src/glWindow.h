@@ -175,7 +175,7 @@ public:
     GLuint getSizeAllocatedBuffer() { return szAllocatedBuffer; }     //getLimitMaxParticlesToEmit
     void setSizeAllocatedBuffer(GLuint p) { szAllocatedBuffer = p; }
 
-    void setSizeCircularBuffer(GLuint p) { szCircularBuffer = p; }    //getMaxParticlesToEmit
+    void setSizeCircularBuffer(GLuint p) { szCircularBuffer = p>szAllocatedBuffer ? szAllocatedBuffer : p; }    //getMaxParticlesToEmit
     GLuint getSizeCircularBuffer() { return szCircularBuffer; }
 
     void setSizeStepBuffer(GLuint step) {  szStepBuffer =  step; }    //getEmittedParticles
@@ -202,14 +202,8 @@ public:
 
 
     bool isEmitterOn() { return bEmitter; }
-    void setEmitter(bool emit) 
-    { 
-        bEmitter = emit;
-#ifdef USE_THREAD_TO_FILL
-        attractorsList.getThreadStep()->notify();
-#endif
-    }
-    void setEmitterOn() { setEmitter(true); }
+    void setEmitter(bool emit);
+    void setEmitterOn();
     void setEmitterOff() { setEmitter(false); }
 
     bool stopFull() { return bStopFull; }
@@ -553,5 +547,16 @@ private:
 };
 
 
+inline void emitterBaseClass::setEmitter(bool emit) 
+{ 
+    bEmitter = emit;
+    if(emit) theWnd->getParticlesSystem()->viewObjOFF();
+#ifdef USE_THREAD_TO_FILL
+    attractorsList.getThreadStep()->notify();
+#endif
+}
+
+inline void emitterBaseClass::setEmitterOn() 
+{ setEmitter(true); theWnd->getParticlesSystem()->viewObjOFF(); }
 
 

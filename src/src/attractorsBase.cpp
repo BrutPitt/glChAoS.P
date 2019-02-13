@@ -908,6 +908,7 @@ void threadStepClass::newThread()
 }
 void threadStepClass::startThread(bool stratOn)
 {
+    
     emitter->setEmitter(stratOn);
 }
 

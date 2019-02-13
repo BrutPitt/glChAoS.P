@@ -37,6 +37,12 @@
 
 #include "attractorsBase.h"
 
+#define TINYPLY_IMPLEMENTATION
+#include <tinyPLY/tinyply.h>
+
+
+#if !defined(GLCHAOSP_LIGHTVER)
+
 bool loadObjFile() 
 {  
     //string line;         
@@ -92,6 +98,268 @@ bool loadObjFile()
     return true;
 }
 
+bool importPLY(bool wantColors)
+{
+    attractorsList.getThreadStep()->stopThread();
+
+    char const * patterns[] = { "*.ply" };           
+    char const * fileName = theApp->openFile(nullptr, patterns, 1);
+
+    if(fileName==nullptr) return false;
+
+    try	{
+		std::ifstream ss(fileName, std::ios::binary);
+		if (ss.fail()) throw std::runtime_error(fileName);
+
+		PlyFile ply;
+        ply.parse_header(ss);
+
+        std::shared_ptr<PlyData> vertices, colors;
+
+        try { vertices = ply.request_properties_from_element("vertex", { "x", "y", "z" }); }
+        catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
+
+        try { colors = ply.request_properties_from_element("vertex", { "red", "green", "blue" }); }
+        catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
+
+        ply.read(ss);
+
+        const uint nVtx = vertices->count;
+        emitterBaseClass *e = theWnd->getParticlesSystem()->getEmitter();
+        e->resetVBOindexes();
+        
+        e->setSizeCircularBuffer(nVtx);
+
+        GLfloat *vtx, *fClr;
+        uint8 *bClr;
+        if (vertices->t == tinyply::Type::FLOAT32) {
+            vtx = (GLfloat *)vertices->buffer.get();
+        } else {
+            cout << "Unsupported vertex format (only float)" << endl;
+            return false;
+        }
+
+        if (colors->t == tinyply::Type::FLOAT32 || colors->t == tinyply::Type::UINT8) {
+            bClr = (uint8 *)   colors->buffer.get();
+            fClr = (GLfloat *) colors->buffer.get();
+        } else {
+            cout << "Unsupported color format (only byte or float)" << endl;
+            return false;
+        }
+
+#ifdef USE_MAPPED_BUFFER
+        glm::vec4 *mappedBuffer = (glm::vec4 *) e->getVBO()->getBuffer();
+#else
+        glm::vec4 *mappedBuffer = new glm::vec4[nVtx];
+#endif
+        glm::vec4 *ptr = mappedBuffer;
+
+        uint iCol;
+        for(int i=0; i<nVtx; i++, ptr++) {
+
+            ptr->x = *vtx++; // for portability;
+            ptr->y = *vtx++;
+            ptr->z = *vtx++;
+
+            if (colors->t == tinyply::Type::FLOAT32) {
+                const float r = *fClr++;
+                const float g = *fClr++;
+                const float b = *fClr++;
+                iCol = 0xff000000 | (uint(b*255.f) << 16) | (uint(g*255.f) << 8) | uint(r*255.f);
+            } else {
+                const uint r = *bClr++;
+                const uint g = *bClr++;
+                const uint b = *bClr++;
+                iCol = 0xff000000 | (b << 16) | (g << 8) | r;
+            }
+         
+            ptr->w = glm::uintBitsToFloat( iCol );            
+
+#if !defined(NDEBUG)
+            if(!(i%100000))
+                cout << i << endl;
+#endif
+        }
+
+        e->getVBO()->setVertexCount(nVtx);
+
+#if !defined(USE_MAPPED_BUFFER)
+    #ifdef GLAPP_REQUIRE_OGL45
+            glNamedBufferSubData(e->getVBO()->getVBO(), 0, nVtx * e->getVBO()->getBytesPerVertex(), (void *) mappedBuffer); 
+    #else
+            glBindBuffer(GL_ARRAY_BUFFER, e->getVBO()->getVBO());
+            glBufferSubData(GL_ARRAY_BUFFER, 0, nVtx * e->getVBO()->getBytesPerVertex(), (void *) mappedBuffer);
+    #endif
+        delete [] mappedBuffer;
+#endif
+
+    } catch (const std::exception & e) {
+        std::cerr << "Caught tinyply exception: " << e.what() << std::endl;
+    }
+
+    return true;
+
+}
+
+
+uint8_t *getColorBuffer(glm::vec4 *map, const uint32_t sizeBuff)
+{
+    particlesBaseClass *pSys = theWnd->getParticlesSystem()->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? 
+        (particlesBaseClass *) theWnd->getParticlesSystem()->shaderBillboardClass::getPtr() : 
+        (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
+
+    uint8_t *clrBuff = new uint8_t[sizeBuff*3];
+    uint32_t *palBuff = new uint32_t[256]; // RGBA*256 -> 256*4
+    uint8_t *clr = clrBuff;
+
+    //glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glBindTexture(GL_TEXTURE_2D, pSys->getCMSettings()->getModfTex());
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, palBuff);
+    //glPixelStorei(GL_PACK_ALIGNMENT, 4);
+//        glGetTextureImage(theWnd->getParticlesSystem()->shaderPointClass::getCMSettings()->getModfTex(),
+//                          0, GL_RGB, GL_UNSIGNED_BYTE, 256, palBuff);
+
+    const float vel = pSys->getCMSettings()->getVelIntensity();
+
+    for(unsigned i=sizeBuff; i>0; i--, map++) {
+        const int32_t offset = int(map->w*vel*255.f+.5);
+        uint8_t *p = (uint8_t *)(palBuff + (offset>255 ? 255 : (offset <= 0 ? 0 : offset)));
+        *clr++ =  *p++;
+        *clr++ =  *p++;
+        *clr++ =  *p;
+
+/*
+        // to import old OBJ saved -> above func loadOBJFile()
+
+        uint packCol = glm::floatBitsToUint(map->w);
+        glm::vec4 col = glm::unpackUnorm4x8(packCol) * 255.f;
+        //emitterWasOn, glm::vec4(0.0), glm::vec4(1.0))*255.f;
+        *clr++ = col.x;
+        *clr++ = col.y;
+        *clr++ = col.z;
+*/
+
+    }
+
+    delete [] palBuff;
+
+    return clrBuff;
+}
+
+glm::vec3 *getVertexBuffer(glm::vec4 *map, const uint32_t sizeBuff)
+{
+    glm::vec3 *vtxBuff = new glm::vec3[sizeBuff];
+    glm::vec3 *vtx = vtxBuff;
+
+    for(unsigned i=sizeBuff; i>0; i--) *vtx++ = *map++;
+
+    return vtxBuff;
+}
+
+
+glm::vec3 *getNormalBuffer(glm::vec4 *map, const uint32_t sizeBuff, const bool isNormalized, normalType type)
+{
+    glm::vec3 *nrmBuff = new glm::vec3[sizeBuff];
+    glm::vec3 *nrm = nrmBuff;
+
+    glm::vec3 CoR = theWnd->getParticlesSystem()->getTMat()->getTrackball().getRotationCenter();
+
+    if(type == normalType::ptCoR) {
+        for(unsigned i=sizeBuff; i>0; i--) {
+            const glm::vec3 v = CoR+glm::vec3(*map++);
+            *nrm++ = isNormalized ? glm::normalize(v) : v;
+        }
+    } else if(type == normalType::ptPt1) {
+        for(unsigned i=sizeBuff-1; i>0; i--,map++) {
+            const glm::vec3 v = glm::vec3(*(map+1) + *map);
+            *nrm++ = isNormalized ? glm::normalize(v) : v;
+        }
+        *nrm = isNormalized ? glm::normalize(*map) : *map;
+    } else { // normalType::ptPt1CoR
+        for(unsigned i=sizeBuff-1; i>0; i--,map++) {
+            const glm::vec3 v = CoR+glm::vec3(*(map+1) + *map);
+            *nrm++ = isNormalized ? glm::normalize(v) : v;
+        }
+        *nrm = isNormalized ? glm::normalize(CoR+glm::vec3(*map)) : CoR+glm::vec3(*map);
+    }
+
+    return nrmBuff;
+}
+
+void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool wantNormalized, normalType nType)
+{
+    
+    emitterBaseClass *e = theWnd->getParticlesSystem()->getEmitter();
+    
+    bool emitterWasOn = e->isEmitterOn();
+    attractorsList.getThreadStep()->stopThread();
+
+    char const * patterns[] = { "*.ply" };        
+    const char *name = theApp->saveFile(theApp->getCapturePath().c_str(), patterns, 1);
+    std::string filename = name != nullptr ? name : "";    
+
+    if(filename.length()>0) {
+
+
+        std::filebuf fbOut;
+	    fbOut.open(filename, wantBinary ? std::ios::out | std::ios::binary : std::ios::out);
+        std::ostream os(&fbOut);
+	    if (os.fail()) throw std::runtime_error("failed to open " + filename);
+
+        const uint32_t sizeBuff = e->getSizeCircularBuffer();
+
+#ifdef USE_MAPPED_BUFFER
+        glm::vec4 *mappedBuffer = (glm::vec4 *) e->getVBO()->getBuffer();
+#else
+        glm::vec4 *mappedBuffer = new glm::vec4[sizeBuff];
+    #ifdef GLAPP_REQUIRE_OGL45
+        glGetNamedBufferSubData(e->getVBO()->getVBO(), 0, sizeBuff * e->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
+    #else
+        glBindBuffer(GL_ARRAY_BUFFER, e->getVBO()->getVBO());
+        glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeBuff * e->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
+    #endif
+#endif
+
+        glm::vec3 *vtxBuff = getVertexBuffer(mappedBuffer, sizeBuff);
+        uint8_t *clrBuff = nullptr;
+        glm::vec3 *nrmBuff = nullptr;
+
+        PlyFile ply;
+        ply.add_properties_to_element("vertex", { "x", "y", "z" }, 
+        Type::FLOAT32, sizeBuff, reinterpret_cast<uint8_t*>(vtxBuff), Type::INVALID, 0);
+
+        if(wantColors) {
+            clrBuff  = getColorBuffer(mappedBuffer, sizeBuff);
+            ply.add_properties_to_element("vertex", { "red", "green", "blue" }, 
+            Type::UINT8, sizeBuff, reinterpret_cast<uint8_t*>(clrBuff), Type::INVALID, 0);
+        }
+
+        if(wantNormals) {
+            nrmBuff = getNormalBuffer(mappedBuffer, sizeBuff, wantNormalized, nType);
+            ply.add_properties_to_element("vertex", { "nx", "ny", "nz" },
+            Type::FLOAT32, sizeBuff, reinterpret_cast<uint8_t*>(nrmBuff), Type::INVALID, 0);
+
+        }
+
+        ply.get_comments().push_back("generated by glChAoS.P");
+
+        ply.write(os, wantBinary);
+
+#ifdef USE_MAPPED_BUFFER
+        //glUnmapNamedBuffer(e->getVBO()->getVBO());
+#else
+        delete [] mappedBuffer;
+#endif
+        delete [] vtxBuff;
+        delete [] clrBuff;
+        delete [] nrmBuff;
+    }
+
+
+    if(emitterWasOn) attractorsList.getThreadStep()->startThread();
+}
+
+#endif
 
 
 bool loadAttractorFile(bool fileImport, const char *file)  

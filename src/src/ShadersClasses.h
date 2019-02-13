@@ -88,6 +88,11 @@ enum particlesSysyemType {
     PS_MULTIPLE_EMITTER
 };
 
+enum particlesViewColor {
+    paletteIndex,
+    packedRGB
+};
+
 enum PS_FRAME_BUFFERS {
     FB_BILLBOARD,
     FB_POINTSPRITE
@@ -363,6 +368,8 @@ public:
     void showAxes(int b) { axesShow = b; }
     int showAxes() { return axesShow; }
 
+    void viewObjON()  { idxViewOBJ = GLuint(particlesViewColor::packedRGB); }
+    void viewObjOFF() { idxViewOBJ = GLuint(particlesViewColor::paletteIndex); }
 #endif
 
     int getWhitchRenderMode() { return whichRenderMode; }
@@ -382,6 +389,8 @@ protected:
 
     oglAxes *axes;
     int axesShow = noShowAxes;
+
+    GLuint idxViewOBJ = 0;
 #endif
 
     cmContainerClass colorMapContainer;
@@ -392,6 +401,7 @@ protected:
 //        , msaaFBO;
 
     transformsClass tMat;
+
 
     std::vector<GLuint> blendArray;
     std::vector<const char *> blendingStrings;
@@ -647,7 +657,7 @@ public:
         flagUpdate = true;
 
         //cmTex.buildMultiDrawFBO(1,256,1);
-        cmTex.buildFBO(1,256,2, theApp->getFBOInternalPrecision(), false);
+        cmTex.buildFBO(1,256,1, theApp->getFBOInternalPrecision(), false);
 
         create();
     }
@@ -847,6 +857,7 @@ public:
 
     float *getSelectedColorMap_pf3()   { return colorMapContainer.getRGB_pf3  (colorMap->selected()); }
     CMap3 &getSelectedColorMap_CMap3() { return colorMapContainer.getRGB_CMap3(colorMap->selected()); }
+    vec3 *getSelectedColorMap_vec3() { return colorMapContainer.getRGB_pv3(colorMap->selected()); }
     float *getColorMap_pf3(int i) { return colorMapContainer.getRGB_pf3(i); }
     const char *getColorMap_name()      { return colorMapContainer.getName(colorMap->selected()); }
     const char *getColorMap_name(int i) { return colorMapContainer.getName(i); }
@@ -893,6 +904,7 @@ protected:
 
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locDotsTex, locPaletteTex;
+    GLuint idxSubOBJ, idxSubVEL;
 #endif
 
     enum lightIDX { off, on };

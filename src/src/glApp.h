@@ -126,13 +126,11 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 #endif
 
 
-/////////////////////////////////////////////////
-// Initialize WX for main Dlg tools:
-//    other thread  -> Not real main App
+enum normalType { ptCoR, ptPt1, ptPt1CoR };
 
+void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool normalized = true, normalType nType = normalType::ptCoR);
+bool importPLY(bool wantColors);
 
-//
-/////////////////////////////////////////////////
 
 class particlesBaseClass;
 
@@ -161,8 +159,6 @@ private:
 /////////////////////////////////////////////////
 // theApp -> Main App -> container
 /////////////////////////////////////////////////
-
-
 class mainGLApp
 {
 public:
@@ -329,7 +325,7 @@ private:
     bool isFullScreen = false;
 
 #if !defined(GLCHAOSP_USE_LOWPRECISION)
-    bool lowPrecision = false;
+    bool lowPrecision = true;
     GLenum fboInternalPrecision = GL_RGBA32F;
     GLenum palInternalPrecision = GL_RGB32F;
     GLenum texInternalPrecision = GL_R32F;

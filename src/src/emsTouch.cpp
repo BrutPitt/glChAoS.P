@@ -53,7 +53,7 @@ void emsMDeviceClass::imGuiUpdateTouch()
     // Update buttons
     for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
     {
-        // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
+        // If a touch event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
         io.MouseDown[i] = imguiJustTouched[i];
     }
 

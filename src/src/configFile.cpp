@@ -44,7 +44,7 @@
 #include "glWindow.h"
 
 #define CONFIGURU_IMPLEMENTATION 
-#include "libs/configuru/configuru.hpp"
+#include <configuru/configuru.hpp>
 
 #if !defined(GLCHAOSP_LIGHTVER)
     #include "libs/tinyFileDialog/tinyfiledialogs.h"

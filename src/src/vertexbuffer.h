@@ -82,6 +82,7 @@ public:
     GLuint64 *getPtrVertexUploaded() { return &uploadedVtx; }
     void     incVertexCount() { uploadedVtx++;  }
     void     resetVertexCount()  { uploadedVtx = 0; }
+    void     setVertexCount(GLuint i) { uploadedVtx = i; }
     GLuint   getVBO()            { return vbo; };
     GLenum   getPrimitive() { return primitive; }
 

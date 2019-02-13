@@ -1,6 +1,3 @@
-// [ImGui] this is a slightly modified version of stb_truetype.h 1.19. Those changes would need to be pushed into nothings/stb
-// grep for [ImGui] to find the changes.
-
 // stb_truetype.h - v1.19 - public domain
 // authored from 2009-2016 by Sean Barrett / RAD Game Tools
 //
@@ -1828,7 +1825,7 @@ static int stbtt__GetGlyphShapeTT(const stbtt_fontinfo *info, int glyph_index, s
                if (comp_verts) STBTT_free(comp_verts, info->userdata);
                return 0;
             }
-            if (num_vertices > 0) STBTT_memcpy(tmp, vertices, num_vertices*sizeof(stbtt_vertex)); //-V595
+            if (num_vertices > 0) STBTT_memcpy(tmp, vertices, num_vertices*sizeof(stbtt_vertex));
             STBTT_memcpy(tmp+num_vertices, comp_verts, comp_num_verts*sizeof(stbtt_vertex));
             if (vertices) STBTT_free(vertices, info->userdata);
             vertices = tmp;
@@ -2199,7 +2196,7 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
       } break;
 
       default:
-         if (b0 != 255 && b0 != 28 && (b0 < 32 || b0 > 254)) //-V560
+         if (b0 != 255 && b0 != 28 && (b0 < 32 || b0 > 254))
             return STBTT__CSERR("reserved operator");
 
          // push immediate
@@ -2371,8 +2368,7 @@ static stbtt_int32  stbtt__GetGlyphClass(stbtt_uint8 *classDefTable, int glyph)
             if (glyph >= startGlyphID && glyph < startGlyphID + glyphCount)
                 return (stbtt_int32)ttUSHORT(classDef1ValueArray + 2 * (glyph - startGlyphID));
 
-            // [ImGui: commented to fix static analyzer warning]
-            //classDefTable = classDef1ValueArray + 2 * glyphCount;
+            classDefTable = classDef1ValueArray + 2 * glyphCount;
         } break;
 
         case 2: {
@@ -2396,8 +2392,7 @@ static stbtt_int32  stbtt__GetGlyphClass(stbtt_uint8 *classDefTable, int glyph)
                     return (stbtt_int32)ttUSHORT(classRangeRecord + 4);
             }
 
-            // [ImGui: commented to fix static analyzer warning]
-            //classDefTable = classRangeRecords + 6 * classRangeCount;
+            classDefTable = classRangeRecords + 6 * classRangeCount;
         } break;
 
         default: {
@@ -3029,7 +3024,6 @@ static void stbtt__fill_active_edges_new(float *scanline, float *scanline_fill, 
                   dx = -dx;
                   dy = -dy;
                   t = x0, x0 = xb, xb = t;
-                  (void)dx; // [ImGui: fix static analyzer warning]
                }
 
                x1 = (int) x_top;
@@ -4259,7 +4253,7 @@ static int stbtt__compute_crossings_x(float x, float y, int nverts, stbtt_vertex
    int winding = 0;
 
    orig[0] = x;
-   //orig[1] = y; // [ImGui] commmented double assignment without reading
+   orig[1] = y;
 
    // make sure y never passes through a vertex of the shape
    y_frac = (float) STBTT_fmod(y, 1.0f);

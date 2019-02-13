@@ -94,7 +94,7 @@ void shaderPointClass::initShader()
     selectColorMap(0);
     useVertex(); useFragment();
 
-	getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "PointSpriteVert.glsl");
+	getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesVert.glsl", SHADER_PATH "PointSpriteVert.glsl");
 	getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesFrag.glsl", SHADER_PATH "PointSpriteFragLight.glsl");
 	// The vertex and fragment are added to the program object
     addVertex();
@@ -119,6 +119,8 @@ void shaderPointClass::initShader()
     #if !defined(GLCHAOSP_LIGHTVER)
         idxSubLightOn = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorLight");
         idxSubLightOff = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorOnly");
+        idxSubOBJ = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "objColor"); 
+        idxSubVEL = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "velColor"); 
     #endif
 
     ProgramObject::reset();
@@ -185,6 +187,7 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
     glBindTextureUnit(0, colorMap->getModfTex());
     glBindTextureUnit(1, texID);
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &lightStateIDX);
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &idxViewOBJ);
 #else
     glActiveTexture(GL_TEXTURE0+colorMap->getModfTex());
     glBindTexture(GL_TEXTURE_2D,colorMap->getModfTex());
@@ -197,6 +200,7 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
 
 #if !defined(GLCHAOSP_LIGHTVER)
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), lightStateIDX==1 ? &idxSubLightOn : &idxSubLightOff);
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), idxViewOBJ==1 ? &idxSubOBJ : &idxSubVEL);
 #endif
     updatePalTex();
 #endif
@@ -248,7 +252,7 @@ void shaderBillboardClass::initShader()
     selectColorMap(1); //pal_magma_data
     useAll(); 
 
-	getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "BillboardVert.glsl");
+	getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesVert.glsl", SHADER_PATH "BillboardVert.glsl");
     getGeometry()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "BillboardGeom.glsl");
 	getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesFrag.glsl", SHADER_PATH "BillboardFrag.glsl");
 
@@ -273,6 +277,9 @@ void shaderBillboardClass::initShader()
 
     idxSubLightOn = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorLight");
     idxSubLightOff = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorOnly");
+    idxSubOBJ = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "objColor"); 
+    idxSubVEL = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "velColor"); 
+
     ProgramObject::reset();
 #endif
 
