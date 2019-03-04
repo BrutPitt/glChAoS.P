@@ -33,14 +33,8 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
+#line 37    //#version dynamically inserted
 
-// #version dynamically inserted
-/*
-#if __VERSION__ >= 420
-    #define LAYUOT_BINDING(X) layout (location = X)
-#else
-    #define LAYUOT_BINDING(X)
-#endif*/
 LAYUOT_BINDING(0) uniform sampler2D sourceRendered;
 LAYUOT_BINDING(1) uniform sampler2D accumMotion;
 

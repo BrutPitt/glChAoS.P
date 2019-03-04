@@ -33,19 +33,12 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
+#line 37 // #include ColorSpaces.glsl
 
-// #version dynamically inserted
-/*
-#if __VERSION__ >= 420
-    #define LAYUOT_BINDING(X) layout (binding = X)
-#else
-    #define LAYUOT_BINDING(X)
-#endif 
-*/
 
 ///////////////////////////////////////
 //
-// Add file: "GlowConstFrag.h.glsl" 
+// Add file: "ColorSpaces.glsl" 
 //
 // Use ShaderObject::Load(char *defines, int nArgs, ...); in wrap class to include more files
 //

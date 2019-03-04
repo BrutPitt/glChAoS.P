@@ -33,6 +33,7 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
+#line 37 // #version dynamically inserted
 
 //This is an HEADER/INCLUDE file for RadialBlur2PassFrag.glsl and cmTextureFrag.glsl
 

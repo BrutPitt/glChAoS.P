@@ -33,8 +33,7 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-// #version dynamically inserted
+#line 37 // #include ColorSpaces.glsl
 
 layout(std140) uniform;
 

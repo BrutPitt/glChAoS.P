@@ -33,8 +33,7 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-// #include "ParticlesVert.glsl" 
+#line 37 // #include "ParticlesVert.glsl" 
 
 
 out vec3 mvVtxPos;

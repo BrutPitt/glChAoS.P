@@ -33,7 +33,7 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
-//layout (depth_less) out float gl_FragDepth;
+#line 37    //#version dynamically inserted
 
 out vec4 color;
 uniform vec3 zoomF;

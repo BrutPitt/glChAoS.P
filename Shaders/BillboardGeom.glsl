@@ -33,8 +33,8 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
+#line 37 // #version dynamically inserted
 
-// #version dynamically inserted
 layout(std140) uniform;
 
 layout (points) in;

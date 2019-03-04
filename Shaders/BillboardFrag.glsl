@@ -33,8 +33,7 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-// #include ParticlesFrag.glsl
+#line 37 // #include ParticlesFrag.glsl
 
 subroutine vec4 _pixelColor();
 subroutine uniform _pixelColor pixelColor;

@@ -33,8 +33,8 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
+#line 37 // #version dynamically inserted
 
-// #version dynamically inserted
 LAYUOT_BINDING(0) uniform sampler2D billboardTex;
 LAYUOT_BINDING(1) uniform sampler2D pointTex;
 

@@ -33,6 +33,8 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
+#line 37    //#version dynamically inserted
+
 layout (location = 1) in vec3 vPos;
 layout (location = 2) in vec3 normal;
 
