@@ -1031,6 +1031,27 @@ protected:
     void searchAttractor()  { searchLyapunov(); }
 };
 
+//  SinCos base class
+////////////////////////////////////////////////////////////////////////////
+class Mira3D : public attractorScalarK
+{
+public:
+
+    Mira3D() {
+        stepFn = (stepPtrFn) &Mira3D::Step;    
+
+        vMin = -10.0; vMax = 10.0; kMin = -1.0; kMax = 1.0;
+
+        m_POV = vec3( 0.f, 0, 12.f);
+    }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+    void searchAttractor()  { searchLyapunov(); }
+};
+
+
 //--------------------------------------------------------------------------
 //  d(x,y,z)/dt Attractors
 //--------------------------------------------------------------------------
@@ -1394,7 +1415,6 @@ public:
     void startData();
 };
 
-
 //  Rucklidge
 ////////////////////////////////////////////////////////////////////////////
 class Rucklidge : public attractorDtType
@@ -1410,6 +1430,53 @@ public:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
+
+//  Dequan Li 
+////////////////////////////////////////////////////////////////////////////
+class DequanLi : public attractorDtType
+{
+public:
+
+    DequanLi() {
+        stepFn = (stepPtrFn) &DequanLi::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+//  Multi Chua II
+////////////////////////////////////////////////////////////////////////////
+class MultiChuaII : public attractorDtType
+{
+public:
+
+    MultiChuaII() {
+        stepFn = (stepPtrFn) &MultiChuaII::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+//  Zhou-Chen
+////////////////////////////////////////////////////////////////////////////
+class ZhouChen : public attractorDtType
+{
+public:
+
+    ZhouChen() {
+        stepFn = (stepPtrFn) &ZhouChen::Step;    
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
 
 //  Magnetic base class
 ////////////////////////////////////////////////////////////////////////////
@@ -1646,8 +1713,9 @@ public:
         PB(KingsDream         , u8"\uf006" " King's Dream"       )
         PB(Pickover           , u8"\uf006" " Pickover"           )
         PB(SinCos             , u8"\uf006" " Sin Cos"            )
+//        PB(Mira3D             , u8"\uf006" " Mira3D"             )
         PB(Lorenz             , u8"\uf192" " Lorenz"             )
-        PB(ChenLee            , u8"\uf192" " Chen Lee"           )
+        PB(ChenLee            , u8"\uf192" " Chen-Lee"           )
         PB(TSUCS              , u8"\uf192" " TSUCS 1&2"          )
         PB(Aizawa             , u8"\uf192" " Aizawa"             )
         PB(YuWang             , u8"\uf192" " Yu-Wang"            )
@@ -1659,15 +1727,18 @@ public:
         PB(Arneodo            , u8"\uf192" " Arneodo"            )
         PB(Bouali             , u8"\uf192" " Bouali"             )
         PB(Hadley             , u8"\uf192" " Hadley"             )
-        PB(LiuChen            , u8"\uf192" " LiuChen"            )
-        PB(GenesioTesi        , u8"\uf192" " GenesioTesi"        )
-        PB(NewtonLeipnik      , u8"\uf192" " NewtonLeipnik"      )
-        PB(NoseHoover         , u8"\uf192" " NoseHoover"         )
-        PB(RayleighBenard     , u8"\uf192" " RayleighBenard"     )
+        PB(LiuChen            , u8"\uf192" " Liu-Chen"           )
+        PB(GenesioTesi        , u8"\uf192" " Genesio-Tesi"       )
+        PB(NewtonLeipnik      , u8"\uf192" " Newton-Leipnik"     )
+        PB(NoseHoover         , u8"\uf192" " Nose-Hoover"        )
+        PB(RayleighBenard     , u8"\uf192" " Rayleigh-Benard"    )
         PB(Sakarya            , u8"\uf192" " Sakarya"            )
-//        PB(Robinson           , u8"\uf192" " Robinson"           )
         PB(Rossler            , u8"\uf192" " Rossler"            )
         PB(Rucklidge          , u8"\uf192" " Rucklidge"          )
+        PB(DequanLi           , u8"\uf192" " Dequan-Li"          )
+        PB(MultiChuaII        , u8"\uf192" " Multi-Chua II"      )
+        PB(ZhouChen           , u8"\uf192" " Zhou-Chen"          )
+//        PB(Robinson           , u8"\uf192" " Robinson"           )
         PB(juliaBulb_IIM      , u8"\uf2dc" " JuliaBulb"          )
         PB(juliaBulb4th_IIM   , u8"\uf2dc" " JuliaBulb Nth"      )
         PB(BicomplexJ_IIM     , u8"\uf2dc" " biComplex Julia"    )

@@ -546,17 +546,21 @@ private:
     particlesSystemClass *particlesSystem = nullptr;
 };
 
-
 inline void emitterBaseClass::setEmitter(bool emit) 
 { 
     bEmitter = emit;
+#if !defined(GLCHAOSP_LIGHTVER)
     if(emit) theWnd->getParticlesSystem()->viewObjOFF();
+#endif
 #ifdef USE_THREAD_TO_FILL
     attractorsList.getThreadStep()->notify();
 #endif
 }
 
 inline void emitterBaseClass::setEmitterOn() 
-{ setEmitter(true); theWnd->getParticlesSystem()->viewObjOFF(); }
-
-
+{ 
+    setEmitter(true); 
+#if !defined(GLCHAOSP_LIGHTVER)
+    theWnd->getParticlesSystem()->viewObjOFF(); 
+#endif
+}

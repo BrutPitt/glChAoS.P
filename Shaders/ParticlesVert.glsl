@@ -33,7 +33,7 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
-#line 37 // #version dynamically inserted
+#line 37    // #version dynamically inserted
 
 layout(std140) uniform;
 
@@ -67,7 +67,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     bool lightActive;
 } u;
 
-LAYUOT_BINDING(4) uniform _tMat { //shared?
+LAYUOT_BINDING(4) uniform _tMat {
     mat4 pMatrix;
     mat4 mvMatrix;
     mat4 mvpMatrix;
@@ -76,24 +76,22 @@ LAYUOT_BINDING(4) uniform _tMat { //shared?
 #ifndef GL_ES
 out gl_PerVertex
 {
-	vec4 gl_Position;
+    vec4 gl_Position;
     float gl_PointSize;
 };
 #endif
 
 
 #ifdef GL_ES
-    #define SUBROUTINE(X) 
+    #define SUBROUTINE(X)
 #else
     subroutine vec4 _colorResult();
     subroutine uniform _colorResult colorResult;
     #define SUBROUTINE(X) subroutine(X)
 #endif
 
-//#define USE_HLS_INTERNAL
-
-
 // Load OBJ
+#ifndef GL_ES
 LAYUOT_INDEX(1) SUBROUTINE(_colorResult) vec4 objColor()
 {
     uint packCol = floatBitsToUint(a_ActualPoint.w);
@@ -101,10 +99,10 @@ LAYUOT_INDEX(1) SUBROUTINE(_colorResult) vec4 objColor()
 
     return col;
 }
+#endif
 
 LAYUOT_INDEX(0) SUBROUTINE(_colorResult) vec4 velColor()
 {
     float vel = a_ActualPoint.w*u.velIntensity;
     return vec4(texture(paletteTex, vec2(vel,0.f)).rgb,1.0);
 }
-

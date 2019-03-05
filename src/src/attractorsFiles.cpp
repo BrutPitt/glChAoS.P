@@ -37,11 +37,9 @@
 
 #include "attractorsBase.h"
 
+#if !defined(GLCHAOSP_LIGHTVER)
 #define TINYPLY_IMPLEMENTATION
 #include <tinyPLY/tinyply.h>
-
-
-#if !defined(GLCHAOSP_LIGHTVER)
 
 bool loadObjFile() 
 {  
@@ -255,7 +253,6 @@ glm::vec3 *getVertexBuffer(glm::vec4 *map, const uint32_t sizeBuff)
 
     return vtxBuff;
 }
-
 
 glm::vec3 *getNormalBuffer(glm::vec4 *map, const uint32_t sizeBuff, const bool isNormalized, normalType type)
 {

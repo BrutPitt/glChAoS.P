@@ -666,6 +666,7 @@ void colorMapTexturedClass::create()
 void colorMapTexturedClass::render(int tex)
 {
 
+    
     if(!flagUpdate) return;
 
     bindPipeline();

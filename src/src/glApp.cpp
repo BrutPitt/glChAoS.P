@@ -541,7 +541,7 @@ void mainGLApp::mainLoop()
             }
             getMainDlg().renderImGui();
 
-            //glfwMakeContextCurrent(getGLFWWnd());
+            glfwMakeContextCurrent(getGLFWWnd());
             glfwSwapBuffers(getGLFWWnd());
 #else
             newFrame();
@@ -549,7 +549,6 @@ void mainGLApp::mainLoop()
     }
 
 }
-
 
 // classic entry point
 /////////////////////////////////////////////////

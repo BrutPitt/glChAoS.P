@@ -33,16 +33,15 @@
 //  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 ////////////////////////////////////////////////////////////////////////////////
-#line 37 // #include "ParticlesVert.glsl" 
-
+#line 37    // #version dynamically inserted
 
 out vec3 mvVtxPos;
 
 out float pointDistance;
 out vec4 particleColor;
 
-void main()                                                 
-{              
+void main()
+{
 
     vec4 vtxPos = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
     gl_Position = m.pMatrix * vtxPos;
@@ -65,5 +64,4 @@ void main()
     // NVidia & Intel do not supports gl_PointSize<1.0 -> point disappear
     // Look in Info dialog: point Range and Granularity
     if(gl_PointSize<u.pointspriteMinSize) gl_PointSize = u.pointspriteMinSize;
-}                                                           
-
+}

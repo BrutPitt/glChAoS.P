@@ -42,7 +42,7 @@ bool emsMDeviceClass::isDoubleTap(float x, float y, double ms)
     return retval;
 }
 
-
+//ImGui Docking/ViewPorts
 void emsMDeviceClass::imGuiUpdateTouch()
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -68,6 +68,7 @@ void emsMDeviceClass::imGuiUpdateTouch()
 
         if (focused)
         {
+            std::cout << "Tx: " << touchX << "Ty: " << touchY << "Px: " << viewport->Pos.x << "Py: " << viewport->Pos.y << std::endl;
             io.MousePos = ImVec2((float)touchX + viewport->Pos.x, (float)touchY + viewport->Pos.y);
 
             for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) {
@@ -76,7 +77,31 @@ void emsMDeviceClass::imGuiUpdateTouch()
         }
     }
 }
+/*
+//ImGui ViewPorts master
+void emsMDeviceClass::imGuiUpdateTouch()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    const ImVec2 mouse_pos_backup = io.MousePos;
+    io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+    //io.MouseHoveredViewport = 0;
 
+    // Update buttons
+    for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
+    {
+        // If a touch event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
+        io.MouseDown[i] = imguiJustTouched[i];
+    }
+
+    {
+        io.MousePos = ImVec2((float)touchX + mouse_pos_backup.x, (float)touchY + mouse_pos_backup.y);
+
+        for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) {
+            io.MouseDown[i] |=  imguiJustTouched[i];
+        }
+    }
+}
+*/
 EM_BOOL emsMDeviceClass::touchStart(int eventType, const EmscriptenTouchEvent *e, void *userData)
 {
     emsMDeviceClass &t = *((emsMDeviceClass *) userData);
@@ -85,10 +110,13 @@ EM_BOOL emsMDeviceClass::touchStart(int eventType, const EmscriptenTouchEvent *e
 
     t.oldTouchX = t.touchX;
     t.oldTouchY = t.touchY;
-    t.touchX = e->touches[0].canvasX; 
-    t.touchY = e->touches[0].canvasY;
+    t.touchX = e->touches[0].targetX; 
+    t.touchY = e->touches[0].targetY;
 
     t.touched = true;
+
+    std::cout << "TouchStart: " <<  std::endl;
+    std::cout << "Tx: " << t.touchX << "Ty: " << t.touchY <<  std::endl;
 
     if(e->numTouches==1 && t.isDoubleTap(t.touchX, t.touchY, 300)) {
         const float sz = 150.f;
@@ -102,8 +130,8 @@ EM_BOOL emsMDeviceClass::touchStart(int eventType, const EmscriptenTouchEvent *e
     }
 
     if(e->numTouches==2) {
-        t.prevDist = glm::distance(glm::vec2(e->touches[0].canvasX, e->touches[0].canvasY),
-                                   glm::vec2(e->touches[1].canvasX, e->touches[1].canvasY));
+        t.prevDist = glm::distance(glm::vec2(e->touches[0].targetX, e->touches[0].targetY),
+                                   glm::vec2(e->touches[1].targetX, e->touches[1].targetY));
             
         t.pinchStart = true;
         return true;
@@ -111,7 +139,7 @@ EM_BOOL emsMDeviceClass::touchStart(int eventType, const EmscriptenTouchEvent *e
 
     if(ImGui::GetIO().WantCaptureMouse) return true;
         
-    theWnd->onMouseButton(0, APP_MOUSE_BUTTON_DOWN, e->touches[0].canvasX, e->touches[0].canvasY); 
+    theWnd->onMouseButton(0, APP_MOUSE_BUTTON_DOWN, e->touches[0].targetX, e->touches[0].targetY); 
 
     return true;
 }
@@ -123,8 +151,8 @@ EM_BOOL emsMDeviceClass::touchEnd(int eventType, const EmscriptenTouchEvent *e, 
     t.dblTouch = false;
     t.actualTouchEvent = touchAct::tEnd;
 
-    t.touchX = e->touches[0].canvasX; 
-    t.touchY = e->touches[0].canvasY;
+    t.touchX = e->touches[0].targetX; 
+    t.touchY = e->touches[0].targetY;
 
     if(e->numTouches!=2) t.pinchStart = false;
 
@@ -132,7 +160,7 @@ EM_BOOL emsMDeviceClass::touchEnd(int eventType, const EmscriptenTouchEvent *e, 
 
     if(ImGui::GetIO().WantCaptureMouse) return true;
         
-    theWnd->onMouseButton(0, APP_MOUSE_BUTTON_UP, e->touches[0].canvasX, e->touches[0].canvasY); 
+    theWnd->onMouseButton(0, APP_MOUSE_BUTTON_UP, e->touches[0].targetX, e->touches[0].targetY); 
     return true;
 }
 
@@ -142,8 +170,8 @@ EM_BOOL emsMDeviceClass::touchMove(int eventType, const EmscriptenTouchEvent *e,
 
     t.actualTouchEvent = touchAct::tMove;
     if(t.touched) {
-        t.touchX = e->touches[0].canvasX; 
-        t.touchY = e->touches[0].canvasY;
+        t.touchX = e->touches[0].targetX; 
+        t.touchY = e->touches[0].targetY;
 
         if(t.dblTouch) {
             const float scl = .25;
@@ -159,11 +187,11 @@ EM_BOOL emsMDeviceClass::touchMove(int eventType, const EmscriptenTouchEvent *e,
             
         if(e->numTouches==1) {
             if(ImGui::GetIO().WantCaptureMouse) return true;
-            theWnd->onMotion(e->touches[0].canvasX, e->touches[0].canvasY);
+            theWnd->onMotion(e->touches[0].targetX, e->touches[0].targetY);
         } else if(t.pinchStart && e->numTouches==2) { // pinch
 
-            float d = glm::distance(glm::vec2(e->touches[0].canvasX, e->touches[0].canvasY), 
-                                    glm::vec2(e->touches[1].canvasX, e->touches[1].canvasY));
+            float d = glm::distance(glm::vec2(e->touches[0].targetX, e->touches[0].targetY), 
+                                    glm::vec2(e->touches[1].targetX, e->touches[1].targetY));
 
             vfGizmo3DClass &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
             if(abs(t.prevDist-d)>4) {

@@ -504,6 +504,19 @@ INLINE void SinCos::Step(vec3 &v, vec3 &vp)
     vp.z = -cos(kVal[6]*v.x) + cos(kVal[7]*v.y) + cos(kVal[8]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
+INLINE void Mira3D::Step(vec3 &v, vec3 &vp) 
+{
+    auto f = [] (float v, float k) -> float {
+        const float v2 = v*v;
+        return k*v + 2.f*(1.f-k)*v2 / (1+v2);
+    };
+    vp.x =  kVal[4]*v.z + v.y + f(v.x, kVal[0]);
+    const float vpp = f(vp.x, kVal[0]);
+    vp.y =  kVal[5]*v.z - v.x + vpp;
+    vp.z =  f(v.z, kVal[3]) + f(vp.y, kVal[2]) + f(vpp, kVal[1]);
+
+}
+////////////////////////////////////////////////////////////////////////////
 INLINE void Lorenz::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.x+dtStepInc*(kVal[0]*(v.y-v.x));
@@ -658,6 +671,34 @@ INLINE void Rucklidge::Step(vec3 &v, vec3 &vp)
 	vp.x = v.x + dtStepInc*(-kVal[1]*v.x + kVal[0]*v.y - v.y*v.z);
  	vp.y = v.y + dtStepInc*v.x; 
  	vp.z = v.z + dtStepInc*(-v.z + v.y*v.y);
+}
+////////////////////////////////////////////////////////////////////////////
+INLINE void DequanLi::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, c, d, e, k, f
+	vp.x = v.x + dtStepInc*(kVal[0]*(v.y-v.x) + kVal[2]*v.x*v.z);
+ 	vp.y = v.y + dtStepInc*(kVal[4]*v.x + kVal[5]*v.y - v.x*v.z); 
+ 	vp.z = v.z + dtStepInc*(kVal[1]*v.z + v.x*v.y - kVal[3]*v.x*v.x);
+}
+////////////////////////////////////////////////////////////////////////////
+INLINE void MultiChuaII::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, b, m0 -> m5, c1 -> c5
+    auto f = [&](const float x) -> float {
+        const int startM = 2, startC = 7;
+        float sum = 0;
+        for(int i=1; i<=5; i++) sum+= (kVal[startM+(i-1)]-kVal[startM+i])*(fabs(x+kVal[startC+i]) - fabs(x-kVal[startC+i]));
+        return kVal[startM+5]*x + sum*.5f;  
+    };
+
+	vp.x = v.x + dtStepInc*(kVal[0]*(v.y-f(v.x)));
+ 	vp.y = v.y + dtStepInc*(v.x - v.y + v.z); 
+ 	vp.z = v.z + dtStepInc*(-kVal[1]*v.y);
+}
+////////////////////////////////////////////////////////////////////////////
+INLINE void ZhouChen::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, b, c, d, e, 
+	vp.x = v.x + dtStepInc*(kVal[0]*v.x + kVal[1]*v.y+ v.y*v.z);
+ 	vp.y = v.y + dtStepInc*(kVal[2]*v.y - v.x*v.z - kVal[3]*v.y*v.z); 
+ 	vp.z = v.z + dtStepInc*(kVal[4]*v.z - v.x*v.y);
 }
 
 // stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set

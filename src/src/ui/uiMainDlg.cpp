@@ -127,15 +127,15 @@ void paletteDlgClass::view()
     
 #ifdef GLCHAOSP_LIGHTVER
     id = 'P';
-    *particles = (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
+    particles = (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
     const int hSz = 0;
 #else
     if(theWnd->getParticlesSystem()->getRenderMode() == particlsRenderMethod::RENDER_USE_BILLBOARD) {
         particles = (particlesBaseClass *) theWnd->getParticlesSystem()->shaderBillboardClass::getPtr();
-        id = 'P';
+        id = 'B';
     } else {
         particles = (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
-        id = 'B';
+        id = 'P';
     }
 
     const int hSz = -ImGui::GetFrameHeightWithSpacing();

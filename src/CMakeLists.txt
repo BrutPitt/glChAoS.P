@@ -42,7 +42,6 @@ if (EMSCRIPTEN)
         ${SRC}/libs/ImGui/imgui.cpp
         ${SRC}/libs/ImGui/imgui_widgets.cpp
         ${SRC}/libs/ImGui/imgui.h
-        ${SRC}/libs/ImGui/imgui_demo.cpp
         ${SRC}/libs/ImGui/imgui_draw.cpp
         ${SRC}/libs/ImGui/imgui_impl_glfw.cpp
         ${SRC}/libs/ImGui/imgui_impl_glfw.h
@@ -111,7 +110,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 # emcc compiler options
     set(M_EMCC_FLAGS "-DGLAPP_NO_OGL_DSA -DGLFW_INCLUDE_ES3")
-    set(M_GLOBAL_FLAGS "-DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
+    set(M_GLOBAL_FLAGS "-DIMGUI_IMPL_OPENGL_ES3 -DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
 
 # BUILD TYPE: [Debug|RelWithDebInfo|Release|MinSizeRel]    
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -124,7 +123,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
             set(M_EMCC_SHELL_FILE "--shell-file \"${CMAKE_SOURCE_DIR}/shell_minimal.html\"")
         else()
             if(${CMAKE_BUILD_TYPE} MATCHES "MinSizeRel")
-                # one file no memory option: -s SINGLE_FILE=1 --memory-init-file 0 
+                # one file no memory option: -s SINGLE_FILE=1 --memory-init-file 0
                 set(M_EMCC_BINARYEN "--no-heap-copy --closure 1 -s WASM=1 ")
                 set(M_EMCC_SHELL_FILE "--shell-file \"${CMAKE_SOURCE_DIR}/mVeryMinimal.html\"")
             else() # Release 
@@ -140,7 +139,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
     set(M_EMCC_EMBED_FILES "--preload-file \"${CMAKE_SOURCE_DIR}/../Shaders@Shaders/\"\
      --preload-file \"${CMAKE_SOURCE_DIR}/../ChaoticAttractors@ChaoticAttractors/\"\
-     --preload-file  \"${CMAKE_SOURCE_DIR}/../colorMaps/palettes.json@colorMaps/\"\
+     --preload-file \"${CMAKE_SOURCE_DIR}/../colorMaps/palettes.json@colorMaps/\"\
      --preload-file \"${CMAKE_SOURCE_DIR}/../Fonts@Fonts/\"\
      --preload-file \"${CMAKE_SOURCE_DIR}/../startData@startData/\"")
      
@@ -151,8 +150,8 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
     # -s FULL_ES3=1 -s OFFSCREENCANVAS_SUPPORT=1
     set(M_EMCC_OGL_OPTIONS "-s USE_WEBGL2=1 -s USE_GLFW=3 -s LEGACY_GL_EMULATION=0 -s OFFSCREENCANVAS_SUPPORT=1 ")
 
-# merge all EMCC_OPTIONS -s BINARYEN_TRAP_MODE=clamp
-    set(M_EMCC_OPTIONS "-s ALLOW_MEMORY_GROWTH=1 -s BINARYEN_TRAP_MODE=clamp -s PRECISE_F32=1 ${M_EMCC_SHELL_FILE} ${M_EMCC_OGL_OPTIONS} ${M_EMCC_BINARYEN} ${M_EMCC_EMBED_FILES}")
+# merge all EMCC_OPTIONS -s BINARYEN_TRAP_MODE=clamp 
+    set(M_EMCC_OPTIONS "-s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN_TRAP_MODE=clamp -s PRECISE_F32=1 ${M_EMCC_SHELL_FILE} ${M_EMCC_OGL_OPTIONS} ${M_EMCC_BINARYEN} ${M_EMCC_EMBED_FILES}")
 
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${EMSOUT}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${M_GLOBAL_FLAGS} ${OGL_EMITTER_TYPE} ${M_EMCC_FLAGS} ${M_EMCC_OPTIONS} -Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value")
@@ -235,7 +234,6 @@ add_executable(${PROJECT_NAME}
         src/libs/ImGui/imgui.cpp
         src/libs/ImGui/imgui_widgets.cpp
         src/libs/ImGui/imgui.h
-        src/libs/ImGui/imgui_demo.cpp
         src/libs/ImGui/imgui_draw.cpp
         src/libs/ImGui/imgui_impl_glfw.cpp
         src/libs/ImGui/imgui_impl_glfw.h

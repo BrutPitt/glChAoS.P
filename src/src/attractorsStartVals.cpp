@@ -400,6 +400,21 @@ void KingsDream::startData()
 
     Insert(vVal[0]);
 }
+void Mira3D::startData()
+{
+    vVal.push_back(glm::vec3(0.f, 12.f, 0.0f));
+
+    kVal.push_back( 0.2);
+    kVal.push_back( 1.0);
+    kVal.push_back( 0.2);
+    kVal.push_back(-1.0);
+    kVal.push_back( 0.2);
+    kVal.push_back( 1.0);
+    kVal.push_back( 0.2);
+    kVal.push_back(-1.0);
+
+    Insert(vVal[0]);
+}
 
 void ChenLee::startData()
 {
@@ -650,6 +665,54 @@ void Rucklidge::startData()
 
     kVal.push_back(6.7f);
     kVal.push_back(2.f);
+
+    Insert(vVal[0]);
+}
+
+void DequanLi::startData()
+{
+    vVal.push_back(vec3(.349f, 0.f, -.16f));
+
+    kVal.push_back(40.f);
+    kVal.push_back(1.833f);
+    kVal.push_back(0.16f);
+    kVal.push_back(0.65f);
+    kVal.push_back(55.f);
+    kVal.push_back(20.f);
+
+    Insert(vVal[0]);
+}
+
+void MultiChuaII::startData()
+{
+    vVal.push_back(vec3(.1f, -.2f, .3f));
+
+    kVal.push_back(9.f);
+    kVal.push_back(14.286f);
+    kVal.push_back(-1.f/7.f);
+    kVal.push_back( 2.f/7.f);
+    kVal.push_back(-4.f/7.f);
+    kVal.push_back( 2.f/7.f);
+    kVal.push_back(-4.f/7.f);
+    kVal.push_back( 2.f/7.f);
+    kVal.push_back( 1.0f);
+    kVal.push_back( 2.15);
+    kVal.push_back( 3.6f);
+    kVal.push_back( 8.2f);
+    kVal.push_back(13.0f);
+
+    Insert(vVal[0]);
+}
+
+void ZhouChen::startData()
+{
+    vVal.push_back(vec3(3.f, 1.f, 1.f));
+
+    kVal.push_back(2.97f);
+    kVal.push_back(.15f);
+    kVal.push_back(-3.f);
+    kVal.push_back(1.f);
+    kVal.push_back(-8.78f);
 
     Insert(vVal[0]);
 }

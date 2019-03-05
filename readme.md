@@ -200,6 +200,8 @@ You can use CMake to generate a VS2015 solution: previous versions do not suppor
 \
 If you want use *LLVM clang* to build glChAoSP, inside Visual Studio, you can use the LLVM plugin (after to have installed clang, in windows) and simply change the toolschain in *“Properties → General → Platform Toolset”*
 
+- **NOTE:** To build *viewports* version add `GLAPP_IMGUI_VIEWPORT` compiler define or uncomment it in `appDefines.h`
+
 **Linux**
 
 Lunux users need to install the GCC C/C++ v.5 or higher (or clang v.5 or higher) compilers and associated tools such as *make* and *CMake* (need v3.10 or higher).
@@ -239,7 +241,7 @@ Several warnings are visualized, it is normal: I'm not a mac guru (advice and su
 
 **WebGL via WebAssembly**
 
-The CMake file is able to build also an [**EMSCRIPTEN**](https://kripken.github.io/emscripten-site/index.html) version, obviously you need to have installed EMSCRIPTEN SDK on your computer (1.38.20 or higher).
+The CMake file is able to build also an [**EMSCRIPTEN**](https://kripken.github.io/emscripten-site/index.html) version, obviously you need to have installed EMSCRIPTEN SDK on your computer (~~1.38.20~~ 1.38.28 or higher).
 Use `emsCMakeGen.cmd` or `emsCMakeGen.sh` from ./src directory, or look inside it, to pass appropriate defines/patameters to CMake command line.
 `emsCMakeGen` need to know the location of EMSDK, and the "build-type" object to create.
 
