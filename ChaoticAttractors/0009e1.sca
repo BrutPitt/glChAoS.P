@@ -73,7 +73,7 @@
 		"camDolly":       [ 0.0, 0.0, -1.5799997 ],
 		"camPan":         [ 0.75, -0.2100001, 0.0 ],
 		"camRotCent":     [ 0.3, -0.24000001, -0.05 ],
-		"camRot":         [ -0.25108549, -0.72862011, -0.586002, 0.252579 ]
+		"camRot":         [ -0.18790448, -0.70385134, -0.63059831, 0.26973504 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":   1,
@@ -101,10 +101,13 @@
 		"PalL":             -0.01,
 		"lightShinExp":     28.6,
 		"lightDiffInt":     0.42,
-		"lightSpecInt":     0.22,
+		"lightSpecInt":     0.27,
 		"lightAmbInt":      0.23,
 		"lightStepMin":     0.1,
 		"lightStepMax":     1.1,
+		"lightModel":       5,
+		"ggxRoughness":     0.75,
+		"ggxFresnel":       0.565,
 		"lightDir":         [ 47.480053, -6.2503867, 20.774439 ],
 		"lightColor":       [ 1.0, 1.0, 1.0 ],
 		"glowOn":           true,
@@ -934,6 +937,9 @@
 		"lightAmbInt":      -1.0,
 		"lightStepMin":     0.1,
 		"lightStepMax":     1.1,
+		"lightModel":       4,
+		"ggxRoughness":     0.75,
+		"ggxFresnel":       0.5,
 		"lightDir":         [ 31.894764, -11.745385, 39.620407 ],
 		"lightColor":       [ 1.0, 1.0, 1.0 ],
 		"glowOn":           true,

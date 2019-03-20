@@ -73,7 +73,7 @@
 		"camDolly":       [ 0.0, 0.0, -0.099999852 ],
 		"camPan":         [ 1.1300008, -0.5999999, 0.0 ],
 		"camRotCent":     [ 0.3, -0.24000001, -0.05 ],
-		"camRot":         [ 0.10241622, 0.98224044, -0.013838805, -0.16005099 ]
+		"camRot":         [ 0.16941521, 0.96710676, 0.14656648, -0.124991 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":   1,
@@ -915,9 +915,9 @@
 		"clippingDist":     0.5,
 		"alphaKFactor":     1.0,
 		"alphaAttenFactor": 2.628,
-		"alphaSkip":        0.272,
+		"alphaSkip":        0.0,
 		"dotsSize":         2,
-		"HermiteVals":      [ 0.5, 0.0, 1.0, 0.0 ],
+		"HermiteVals":      [ 1.0, 0.52, 1.0, 0.0 ],
 		"dotsType":         0,
 		"ColorInt":         1.0,
 		"ColorVel":         0.517,
@@ -929,7 +929,7 @@
 		"PalS":             0.14500001,
 		"PalL":             -0.18,
 		"lightShinExp":     17.922,
-		"lightDiffInt":     2.45,
+		"lightDiffInt":     1.0,
 		"lightSpecInt":     0.19,
 		"lightAmbInt":      0.232,
 		"lightStepMin":     0.1,
