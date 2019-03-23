@@ -385,6 +385,12 @@ public:
         }
     }
 
+    //    Call on wheel (only for Dolly/Zoom)
+    ////////////////////////////////////////////////////////////////////////////
+    void wheel( T x, T y) {
+        dolly.z += y * dollyScale * 5.;
+    }
+
     //////////////////////////////////////////////////////////////////
     void motion( T x, T y) {
         if( this->tbActive || dollyActive || panActive) virtualGizmoBaseClass<T>::motion(x,y);
@@ -455,6 +461,10 @@ public:
 
     //  Set the speed for the dolly operation.
     //////////////////////////////////////////////////////////////////
+    void setWheelScale( T scale) { wheelScale = scale;  }
+    T getWheelScale() { return wheelScale;  }
+    //  Set the speed for the dolly operation.
+    //////////////////////////////////////////////////////////////////
     void setDollyScale( T scale) { dollyScale = scale;  }
     T getDollyScale() { return dollyScale;  }
     //  Set the speed for pan
@@ -493,6 +503,7 @@ private:
     
     T dollyScale = T(0.01);  //dolly scale
     T panScale   = T(0.01);  //pan scale
+    T wheelScale = T(5.0);   //dolly multiply for wheel
 };
 
 typedef virtualGizmoClass<float> vfGizmoClass;

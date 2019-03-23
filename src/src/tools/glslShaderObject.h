@@ -114,6 +114,13 @@ inline void CheckErrorsGL( const char* location = NULL,
 #define CHECK_GL_ERROR()
 #endif
 
+#define FORCE_CHECK_GL_ERROR() {\
+    CheckGLError(__FILE__, __LINE__);\
+    GLenum err = glGetError();\
+    if(err!=GL_NO_ERROR) cout << "OpenGL Error:" << err << endl;\
+}
+
+
 #if !defined(NDEBUG)
 #define CHECK_SHADER_ERROR(hProg) CheckShaderError(hProg)
 #else
