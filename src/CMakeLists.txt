@@ -1,22 +1,31 @@
 cmake_minimum_required(VERSION 3.10)
 
 ###########################################################
+#
+# *** CHANGES NOTE ***
+# Now ALL EMITTER TYPES are selectable inside program
+# Remain only differentiation on OpenGL type
+# for EMSCRIPTEN is FIXED: Single thread & Aux Buffer
+#
 #   OpenGL 4.5 - Zero Driver Overhead
 #
-# OGL 4.5 Thread and mappedBuffer on GPU (fastest on new GPU)
-set(OGL45_THREAD_MAPMEM "-DGLAPP_REQUIRE_OGL45 -DUSE_THREAD_TO_FILL -DUSE_MAPPED_BUFFER")
-# OGL 4.5 Thread and CPU buffer (fastest)
-set(OGL45_THREAD "-DGLAPP_REQUIRE_OGL45 -DUSE_THREAD_TO_FILL")
-# OGL 4.5 NO separate thread, static CPU buffer
-set(OGL45_BUFFER "-DGLAPP_REQUIRE_OGL45")
-
-###########################################################
+# OGL 4.5 Aux Thread and mappedBuffer on GPU (less GPU memory)
+# set(OGL45_THREAD_MAPMEM "-DGLAPP_REQUIRE_OGL45 -DUSE_THREAD_TO_FILL -DUSE_MAPPED_BUFFER")
+# OGL 4.5 Aux Thread and Aux buffer (fastest)
+# set(OGL45_THREAD "-DGLAPP_REQUIRE_OGL45 -DUSE_THREAD_TO_FILL")
+# OGL 4.5 Single thread, Aux buffer
+# set(OGL45_BUFFER "-DGLAPP_REQUIRE_OGL45")
+set(OGL45 "-DGLAPP_REQUIRE_OGL45")
+#
 #   OpenGL 4.1 - Olden GPU and MacOS X
 #
-# OGL 4.1 Thread and CPU buffer (fastest on openGL 4.1)
-set(OGL41_THREAD "-DUSE_THREAD_TO_FILL")
-# OGL 4.1 without separate thread & static CPU buffer
-set(OGL41_BUFFER "")
+# OGL 4.1 Aux Thread and Aux buffer  (fastest on openGL 4.1)
+# set(OGL41_THREAD "-DUSE_THREAD_TO_FILL")
+# OGL 4.1 Single thread, Aux buffer
+# set(OGL41_BUFFER "")
+set(OGL41 "")
+
+
 
 set(SRC "${CMAKE_SOURCE_DIR}/src")
 
@@ -26,7 +35,7 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
 ###########################################################
 if (EMSCRIPTEN)
     project(wglChAoSP)
-    set(OGL_EMITTER_TYPE ${OGL41_BUFFER})
+    set(OGL_EMITTER_TYPE ${OGL41})
     
     set(CMAKE_CXX_STANDARD 14)
     find_package(OpenGL)
@@ -154,7 +163,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
     set(M_EMCC_OPTIONS "-s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN_TRAP_MODE=clamp -s PRECISE_F32=1 ${M_EMCC_SHELL_FILE} ${M_EMCC_OGL_OPTIONS} ${M_EMCC_BINARYEN} ${M_EMCC_EMBED_FILES}")
 
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${EMSOUT}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${M_GLOBAL_FLAGS} ${OGL_EMITTER_TYPE} ${M_EMCC_FLAGS} ${M_EMCC_OPTIONS} -Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${M_GLOBAL_FLAGS} ${OGL_EMITTER_TYPE} ${M_EMCC_FLAGS} ${M_EMCC_OPTIONS} -Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value -Wdelete-non-virtual-dtor")
 
     add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
@@ -166,9 +175,9 @@ else()
 #   Default best emitter type and OpenGL
     if(NOT OGL_EMITTER_TYPE)
         if(APPLE)
-            set(OGL_EMITTER_TYPE ${OGL41_THREAD})
+            set(OGL_EMITTER_TYPE ${OGL41})
         else()
-            set(OGL_EMITTER_TYPE ${OGL45_THREAD_MAPMEM})
+            set(OGL_EMITTER_TYPE ${OGL45})
         endif()
     endif()    
 
