@@ -10,7 +10,7 @@ Please read the release notes for changes and new features of **ver. 1.1.1**: [*
 ### [New Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html)
 | hypercomplex fractals | hypercomplex fractals |
 | :-----: | :----: |
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
 
 ### [New WebGL2 online version](https://michelemorrone.eu/glchaosp/webGL.html)
 New [**wglChAoS.P**](https://michelemorrone.eu/glchaosp/webGL.html) / [**wglChAoSP**](https://michelemorrone.eu/glchaosp/webGL.html) WebGL 2 / WebAssembly lightened **LIVE / ONLINE** version of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
@@ -18,9 +18,9 @@ New [**wglChAoS.P**](https://michelemorrone.eu/glchaosp/webGL.html) / [**wglChAo
 ### Now supports touch screen for mobile devices, smartphones and tablets
 
 
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssWGLtitle.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
 | :-----: |
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssWGL_half.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGL_half.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
 
 
 
@@ -53,11 +53,11 @@ For more usage info: [**glChAoS.P info**](https://michelemorrone.eu/glchaosp/inf
 
 | Windows | Windows Viewports |
 | :-----: | :----: |
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS01.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ss001.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/osSS01.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ss001.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
 
 | Linux | Mac OS X |
 | :---: | :---: |
-| [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS09.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/osSS04.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
+| [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/osSS09.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/osSS04.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
 ### Hardware required:
 
 - GPU with OpenGL 4.1 or higher
