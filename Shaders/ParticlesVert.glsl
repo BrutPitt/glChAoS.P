@@ -42,9 +42,9 @@ layout (location = 0) in vec4 a_ActualPoint;
 LAYUOT_BINDING(0) uniform sampler2D paletteTex;
 
 LAYUOT_BINDING(2) uniform _particlesData {
-    vec3 lightDir;
+    vec3 lightDir;          // align 0
     float lightDiffInt;
-    vec3 lightColor; 
+    vec3 lightColor;        // align 16
     float lightSpecInt;
     vec2 scrnRes;
     float lightAmbInt ;
@@ -64,6 +64,9 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float ySizeRatio;
     float ptSizeRatio;
     float pointspriteMinSize;
+    float ggxRoughness;
+    float ggxFresnel;
+    int lightModel;
     bool lightActive;
 } u;
 
@@ -82,12 +85,9 @@ out gl_PerVertex
 #endif
 
 
-#ifdef GL_ES
-    #define SUBROUTINE(X)
-#else
+#ifndef GL_ES
     subroutine vec4 _colorResult();
     subroutine uniform _colorResult colorResult;
-    #define SUBROUTINE(X) subroutine(X)
 #endif
 
 // Load OBJ

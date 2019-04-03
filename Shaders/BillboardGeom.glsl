@@ -47,6 +47,7 @@ out vec3 mvVtxPos;
 out vec2 texCoord;
 out vec4 particleColor;
 out float pointDistance;
+out float particleSize;
 
 LAYUOT_BINDING(4) uniform _tMat {
     mat4 pMatrix;
@@ -74,6 +75,7 @@ void main(void)
     particleColor = vertParticleColor[0];
 
     float sz = gl_in[0].gl_PointSize;
+    particleSize = sz;
 
     vec4 position = gl_in[0].gl_Position;
     mvVtxPos = position.xyz;

@@ -39,6 +39,7 @@ out vec3 mvVtxPos;
 
 out float pointDistance;
 out vec4 particleColor;
+out float particleSize;
 
 void main()
 {
@@ -57,9 +58,10 @@ void main()
 
     float ptAtten = exp(-0.01*sign(pointDistance)*pow(abs(pointDistance)+1.f, u.pointDistAtten*.1));
     float size = u.pointSize * ptAtten * u.ySizeRatio;
+    particleSize = size/u.scrnRes.y;
 
     vec4 pt  = m.pMatrix * vec4(vtxPos.xy + vec2(size) * u.ptSizeRatio , vtxPos.zw);
-    gl_PointSize = abs(gl_Position.w)>0.00001 ? distance(gl_Position.xy, pt.xy)/gl_Position.w  : 0.0;
+    gl_PointSize = distance(gl_Position.xyz, pt.xyz)/max(abs(gl_Position.w),.0001);
 
     // NVidia & Intel do not supports gl_PointSize<1.0 -> point disappear
     // Look in Info dialog: point Range and Granularity

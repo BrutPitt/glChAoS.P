@@ -54,12 +54,9 @@
 layout(std140) uniform;
 
 
-#ifdef GL_ES
-    #define SUBROUTINE(X) 
-#else
+#ifndef GL_ES
     subroutine vec4 _radialPass();
     subroutine uniform _radialPass imageResult;
-    #define SUBROUTINE(X) subroutine(X)
 #endif
 
 

@@ -35,11 +35,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 #line 37    //#version dynamically inserted
 
+
 layout(std140) uniform;
 
 LAYUOT_BINDING(1) uniform sampler2D tex;
 //uniform vec2 WinAspect;
-
 
 LAYUOT_BINDING(2) uniform _particlesData {
     vec3 lightDir;          // align 0
@@ -64,17 +64,28 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float ySizeRatio;
     float ptSizeRatio;
     float pointspriteMinSize;
+    float ggxRoughness;
+    float ggxFresnel;
+    int lightModel;
     bool lightActive;
 } u;
 
-//vec3 lightColor = vec3(.5,.9,0.0);
+#define idxPHONG 3
+#define idxBLINPHONG 4
+#define idxGGX 5
 
-//uniform vec3 light;
+#ifndef GL_ES
+    subroutine float _lightModel(vec3 L, vec3 N);
+    subroutine uniform _lightModel lightModel;
+#endif
+
 in vec3 mvVtxPos;
 
 
 in float pointDistance;
 in vec4 particleColor;
+in float particleSize;
+
 
 //uniform float distAlphaFactor;
 //uniform float alphaK;
@@ -91,7 +102,8 @@ float getAlpha(float alpha)
 
 }
 
-float getSpecularPhong(vec3 L, vec3 N)
+
+LAYUOT_INDEX(idxPHONG) SUBROUTINE(_lightModel) float specularPhong(vec3 L, vec3 N)
 {
     vec3 viewDir = normalize(-mvVtxPos);
     vec3 reflectDir = reflect(-L, N);
@@ -100,7 +112,7 @@ float getSpecularPhong(vec3 L, vec3 N)
     return pow(specAngle, u.lightShinExp * .25);
 }
 
-float getSpecularBlinnPhong(vec3 L, vec3 N)
+LAYUOT_INDEX(idxBLINPHONG) SUBROUTINE(_lightModel) float specularBlinnPhong(vec3 L, vec3 N)
 {
 // point on surface of sphere in eye space
     vec3 viewDir = normalize(-mvVtxPos);
@@ -111,22 +123,27 @@ float getSpecularBlinnPhong(vec3 L, vec3 N)
 
 }
 
-float ggx (vec3 N, vec3 V, vec3 L, float roughness, float F0) 
+LAYUOT_INDEX(idxGGX) SUBROUTINE(_lightModel) float specularGGX(vec3 L, vec3 N) 
 {
-    float alpha = roughness*roughness;
-    vec3 H = normalize(L - V);
+    float alpha = u.ggxRoughness*u.ggxRoughness;
+    vec3 V = normalize(mvVtxPos);
+    vec3 H = normalize(L - V); // View = -
     float dotLH = max(0.0, dot(L,H));
     float dotNH = max(0.0, dot(N,H));
     float dotNL = max(0.0, dot(N,L));
     float alphaSqr = alpha * alpha;
+
+    // D (GGX normal distribution)
     float denom = dotNH * dotNH * (alphaSqr - 1.0) + 1.0;
     float D = alphaSqr / (3.141592653589793 * denom * denom);
-    float F = F0 + (1.0 - F0) * pow(1.0 - dotLH, 5.0);
+
+    // F (Fresnel term)
+    float F = u.ggxFresnel + (1.0 - u.ggxFresnel) * pow(1.0 - dotLH, 5.0);
     float k = 0.5 * alpha;
     float k2 = k * k;
+
     return dotNL * D * F / (dotLH*dotLH*(1.0-k2)+k2);
 }
-
 
 float linearizeDepth(float depth, float near, float far) 
 {
@@ -143,29 +160,39 @@ vec4 acquireColor(vec2 coord)
     return vec4(color.rgb * u.colIntensity, getAlpha(color.a)) ;
 }
 
+vec4 getParticleNormal(vec2 coord)
+{
+    vec4 N;
+    N.xy = (coord - vec2(.5))*2.0;  // diameter ZERO centred -> radius
+    N.w = dot(N.xy, N.xy);          // magnitudo
+    N.z = sqrt(1.0-N.w);            // Z convexity 
+    return N;
+}
 
-vec4 getLightedColor(vec2 coord)
+
+vec4 getLightedColor(vec2 coord, vec4 N)
 {
 
     vec4 color = acquireColor(coord);
 
-    vec3 N;
-    N.xy = (coord - vec2(.5))*2.0; // xy = radius in 0
-
-    float mag = dot(N.xy, N.xy);
-    if (mag > 1.0f || color.a < u.alphaSkip) discard;   // kill pixels outside circle: r=1.0
+    //vec3 N;
+    //N.xy = (coord - vec2(.5))*2.0; // xy = radius in 0
+    //float mag = dot(N.xy, N.xy);
+    //N.z = sqrt(1.0-mag);
+    if (N.w > 1.0f || color.a < u.alphaSkip) discard;   // kill pixels outside circle: r=1.0
     
-    N.z = sqrt(1.0-mag);
-    N = normalize(N);
+    N.xyz = normalize(N.xyz); 
 
+    //Light @ vertex position
     vec3 light = normalize(u.lightDir+mvVtxPos);  // 
     
-    float lambertian = max(0.0, dot(light, N)); 
+    float lambertian = max(0.0, dot(light, N.xyz)); 
 
-    float specular = getSpecularBlinnPhong(light, N);
-    //specular = ggx(N, normalize(mvVtxPos), normalize(u.lightDir),  u.lightShinExp * .1, .12);
-    //float lightDist = distance(u.lightDir, mvVtxPos);
-    //float lightAtten = 1.0 / (lightDist * lightDist);
+#ifdef GL_ES
+    float specular = u.lightModel == idxPHONG ? specularPhong(light, N.xyz) : (u.lightModel == idxBLINPHONG ? specularBlinnPhong(light, N.xyz) : specularGGX(light, N.xyz));
+#else
+    float specular = lightModel(light, N.xyz);
+#endif
 
 
     vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,

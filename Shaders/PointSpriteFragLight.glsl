@@ -38,21 +38,21 @@
 #ifdef GL_ES
     #define SUBROUTINE(X) 
 #else
-    subroutine vec4 _pixelColor();
+    subroutine vec4 _pixelColor(vec4 N);
     subroutine uniform _pixelColor pixelColor;
     #define SUBROUTINE(X) subroutine(X)
 #endif
 
 out vec4 outColor;
 
-LAYUOT_INDEX(1) SUBROUTINE(_pixelColor) vec4 pixelColorLight()
+LAYUOT_INDEX(1) SUBROUTINE(_pixelColor) vec4 pixelColorLight(vec4 N)
 {
 
-    return getLightedColor(gl_PointCoord);
+    return getLightedColor(gl_PointCoord, N);
 
 }
 
-LAYUOT_INDEX(0) SUBROUTINE(_pixelColor)  vec4 pixelColorOnly()
+LAYUOT_INDEX(0) SUBROUTINE(_pixelColor)  vec4 pixelColorOnly(vec4 N)
 {
 
     return getColorOnly(gl_PointCoord);
@@ -67,11 +67,12 @@ void main()
     //gl_FragDepth = (u.zNear - u.zFar/posEye.z);
     //outColor = vec4(vec3((1.0+gl_FragDepth)*.5), 1.0);
 
-    gl_FragDepth = linearizeDepth(mvVtxPos.z, u.zNear, u.zFar);
+    vec4 N = getParticleNormal(gl_PointCoord);
+    gl_FragDepth = linearizeDepth(mvVtxPos.z + (N.w > 1.0 ? 0.0 : N.z) * particleSize, u.zNear, u.zFar);
 
 #if defined(GL_ES) || defined(TEST_WGL)
-    outColor = u.lightActive ? pixelColorLight() : pixelColorOnly();
+    outColor = u.lightActive ? pixelColorLight(N) : pixelColorOnly(N);
 #else
-    outColor = pixelColor();
+    outColor = pixelColor(N);
 #endif
 }
