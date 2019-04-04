@@ -78,7 +78,7 @@ void emsMDeviceClass::imGuiUpdateTouch()
     }
 }
 /*
-//ImGui ViewPorts master
+//ImGui master
 void emsMDeviceClass::imGuiUpdateTouch()
 {
     ImGuiIO& io = ImGui::GetIO();

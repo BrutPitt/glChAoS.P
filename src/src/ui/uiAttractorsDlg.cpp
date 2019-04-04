@@ -48,6 +48,8 @@
 
 #include "uiMainDlg.h"
 
+bool colCheckButton(bool b, const char *s, const float sz);
+
 int AttractorBase::additionalDataDlg()
 {
     int retVal = 0;
@@ -363,7 +365,13 @@ void attractorDlgClass::view()
                     } else { ImGui::AlignTextToFramePadding();  ImGui::NewLine(); }
                 } else {
                     ImGui::AlignTextToFramePadding(); ImGui::NewLine();
+#ifdef GLCHAOSP_LIGHTVER
                     ImGui::AlignTextToFramePadding(); ImGui::NewLine();
+#else
+                    ImGui::SetCursorPosX(border);
+                    static bool b;
+                    if(colCheckButton(b, ICON_FA_RANDOM " Explorer", buttW)) { b^=1; }
+#endif
                 }
 
 /*

@@ -232,21 +232,25 @@ void paletteDlgClass::view()
             //ImGui::OK
 }
 
+void pushColorButton()
+{
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImGui::GetColorU32(ImGuiCol_PlotHistogramHovered)));
+    ImGui::PushStyleColor(ImGuiCol_Button,        (ImGui::GetColorU32(ImGuiCol_PlotHistogram)));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  (ImGui::GetColorU32(ImGuiCol_CheckMark)));
+}
+
+void popColorButton()
+{
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
+}
 //////////////////////////////////////////////////////////////////
 bool colCheckButton(bool b, const char *s, const float sz)
 {
-    if(b) {
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImGui::GetColorU32(ImGuiCol_PlotHistogramHovered)));
-        ImGui::PushStyleColor(ImGuiCol_Button,        (ImGui::GetColorU32(ImGuiCol_PlotHistogram)));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  (ImGui::GetColorU32(ImGuiCol_CheckMark)));
-    }
+    if(b) pushColorButton();
     const bool ret = ImGui::Button(s,  ImVec2(sz,0));
-
-    if(b) {
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-    }
+    if(b) popColorButton();
     return ret;
 }
 
@@ -566,7 +570,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
         ShowHelpOnTitle(GLAPP_HELP_LIGHT_TREE);
         if(isOpen) {
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-            ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*3+ImGui::GetStyle().ItemSpacing.y), true);
+            ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*4+ImGui::GetStyle().ItemSpacing.y), true);
 
                 //ImGui::Columns(2);               
 
@@ -580,6 +584,33 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 const float posA = border;
 
                 //ImGui::PushItemWidth(wButt4);
+                //ImGui::AlignTextToFramePadding();
+                glm::vec3 lCol = particles->getLightColor();
+                glm::vec3 vL(-particles->getUData().lightDir);
+
+                ImGui::SetCursorPosX(posA); 
+                if(ImGui::ColorEdit3(buildID(base, idA++, id),glm::value_ptr(lCol),ImGuiColorEditFlags_NoInputs)) particles->setLightColor(lCol); 
+                ImGui::SameLine(); 
+                ImGui::TextDisabled(" Model"); ImGui::SameLine();
+                ImGui::PushItemWidth(wLightButt*1.67 - (ImGui::GetCursorPosX()-posA));
+                {
+                    int idx = particles->getLightModel() - particles->modelOffset;
+                    if (ImGui::Combo(buildID(base, idA++, id), &idx, "Phong\0"\
+                                                                     "Blinn-Phong\0"\
+                                                                     "GGX\0"))
+                        {  particles->setLightModel(idx + particles->modelOffset); }
+                }
+                ImGui::PopItemWidth();
+                ImGui::SameLine(); 
+                ImGui::TextDisabled("Dist"); ImGui::SameLine();
+                ImGui::PushItemWidth(w - (ImGui::GetCursorPosX()-posA));
+                float dist = glm::length(vL);
+                if(ImGui::DragFloatEx(buildID(base, idA++, id), &dist ,0.01, 0.001, 5000.f, "% .3f",1.0f,ImVec2(.93,0.5))) {
+                    particles->getUData().lightDir = glm::normalize(particles->getUData().lightDir) * dist;
+                }
+
+
+
                 ImGui::AlignTextToFramePadding();
 
                 ImGui::SetCursorPosX(posA); ImGui::TextDisabled("Diff"); ImGui::SameLine();
@@ -593,10 +624,9 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::PopItemWidth();
                 
                 ImVec2 pos(ImGui::GetCursorPos());
-                vec3 lCol = particles->getLightColor();
 
                 ImGui::SameLine(wLight);
-                glm::vec3 vL(-particles->getUData().lightDir);
+                
                 imguiGizmo::setDirectionColor(ImVec4(.4f+lCol.x*.6f, .4f+lCol.y*.6f, .4f+lCol.z*.6f, 1.0));
                 if(ImGui::gizmo3D("##Bht", vL ,wGizmo))  particles->getUData().lightDir = -vL;
                 imguiGizmo::restoreDirectionColor();
@@ -605,22 +635,39 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                 ImGui::AlignTextToFramePadding();
                 
+                const float wSZ = particles->getLightModel()==particles->modelGGX ? sz*.8f : sz;
+
                 ImGui::SetCursorPosX(posA); ImGui::TextDisabled("Spec");  ImGui::SameLine();
-                ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-posA));
+                ImGui::PushItemWidth(wSZ - (ImGui::GetCursorPosX()-posA));
                 ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightSpecInt,0.01, 0.0, 1000.f, "% .3f",1.0f,ImVec2(.93,0.5));
                 ImGui::PopItemWidth();
                 
-                ImGui::SameLine(wLightPos);     ImGui::TextDisabled("sExp");  ImGui::SameLine();
-                ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-wLightPos));
-                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightShinExp, 0.01, .1, 1000.f, "%.3f", DRAGFLOAT_POW_3,ImVec2(.93,0.5));
-                ImGui::PopItemWidth();
+                if(particles->getLightModel()==particles->modelGGX) {
+                    ImGui::SameLine();     
+                    const float sPos = ImGui::GetCursorPosX();
+                    ImGui::TextDisabled("F");  ImGui::SameLine();
+                    const float ePos = ImGui::GetCursorPosX();
+                    const float buttGGX = (wLight - sPos)*.5 - border - (ePos-sPos);
+                    ImGui::PushItemWidth(buttGGX);
+                    ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().ggxFresnel, 0.001, .001, 1.f, "%.3f", DRAGFLOAT_POW_3,ImVec2(.93,0.5));
+                    ImGui::PopItemWidth();
+
+                    ImGui::SameLine();     ImGui::TextDisabled("R");  ImGui::SameLine();
+                    ImGui::PushItemWidth(buttGGX);
+                    ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().ggxRoughness, 0.001, .001, 1.f, "%.3f", DRAGFLOAT_POW_3,ImVec2(.93,0.5));
+                    ImGui::PopItemWidth();
+
+                } else {
+                    ImGui::SameLine(wLightPos);     ImGui::TextDisabled("sExp");  ImGui::SameLine();
+                    ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-wLightPos));
+                    ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightShinExp, 0.01, .1, 1000.f, "%.3f", DRAGFLOAT_POW_3,ImVec2(.93,0.5));
+                    ImGui::PopItemWidth();
+                }
 
                 ImGui::AlignTextToFramePadding();
 
                 ImGui::SetCursorPosX(posA); 
-                if(ImGui::ColorEdit3(buildID(base, idA++, id),glm::value_ptr(lCol),ImGuiColorEditFlags_NoInputs)) particles->setLightColor(lCol); 
-                
-                ImGui::SameLine(); ImGui::TextDisabled(" Modul."); ImGui::SameLine();
+                ImGui::TextDisabled("Modulate"); ImGui::SameLine();
                 ImGui::PushItemWidth((wLightButt+border)*2 - (ImGui::GetCursorPosX()));
                 ImGui::DragFloatRange2(buildID(base, idA++, id), &particles->getUData().sstepColorMin, &particles->getUData().sstepColorMax, .01, -1.0, 2.0);
                 ImGui::PopItemWidth();
@@ -826,7 +873,6 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
             ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+wPaddingY), true);
                 
-            const char *cmb1 = " 1\0 1/2\0 1/4\0 1/8\0 1/16\0 1/32\0 1/64\0 1/128\0 1/256\0 1/512\0 0\0";
 
             fxaaClass* fxaa = particles->getFXAA();
 
@@ -849,7 +895,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::PushItemWidth(wButt2-ImGui::GetCursorPosX());
 
                 int i = int(log2(fxaa->getSpan()))-1;
-                if (ImGui::Combo(buildID(base, idA++, id), &i, "  2\0  4\0  8\0 16\0 32\0"))
+                if (ImGui::Combo(buildID(base, idA++, id), &i, "  2\0  4\0  8\0"))
                     { fxaa->setSpan(int(1<<(i+1))); }
 
                 ImGui::PopItemWidth();
@@ -873,7 +919,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::PushItemWidth(wButt2-ImGui::GetCursorPosX());
 
                 int i = int(log2(fxaa->getReductMul()));
-                if (ImGui::Combo(buildID(base, idA++, id), &i, cmb1))
+                if (ImGui::Combo(buildID(base, idA++, id), &i, " 1\0 1/2\0 1/4\0 1/8\0 1/16\0 1/32\0 1/64\0"))
                     { fxaa->setReductMul(int(1<<(i))); }
 
                 ImGui::PopItemWidth();
@@ -881,10 +927,10 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             {
                 ImGui::SameLine(posC4);
                 ImGui::TextDisabled("Min:"); ImGui::SameLine();
-                ImGui::PushItemWidth(w-ImGui::GetCursorPosX()-border);
+                ImGui::PushItemWidth(w-ImGui::GetCursorPosX()-border);            
 
                 int i = int(log2(fxaa->getReductMin()));
-                if (ImGui::Combo(buildID(base, idA++, id), &i, cmb1))
+                if (ImGui::Combo(buildID(base, idA++, id), &i, " 1\0 1/2\0 1/4\0 1/8\0 1/16\0 1/32\0 1/64\0 1/128\0 1/256\0 1/512\0"))
                     { fxaa->setReductMin(int(1<<(i))); }
 
                 ImGui::PopItemWidth();
@@ -1175,7 +1221,7 @@ void particlesDlgClass::view()
                     float f = float(emit->getSizeCircularBuffer())*.000001f;
                     if(ImGui::DragFloat("##max", &f, .01f, .1, 
                                                      emit->getSizeAllocatedBuffer()*.000001f,"%.3f M")) {
-                        int maxBuff = int(f*1000000.f);
+                        uint maxBuff = uint(f*1000000.f);
                         emit->setSizeCircularBuffer(maxBuff>emit->getSizeAllocatedBuffer() ? emit->getSizeAllocatedBuffer() : maxBuff);
                         emit->getVBO()->resetVertexCount();
                         if(!emit->isEmitterOn()) emit->setEmitterOn();
@@ -1283,8 +1329,9 @@ void progSettingDlgClass::view()
 
         comboWindowRes(w);
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextDisabled("Position: ");
+        //ImGui::AlignTextToFramePadding();
+        static bool wantSavePos = false;
+        ImGui::Checkbox("Save position ", &wantSavePos);
 
         //ImGui::SameLine();
         //static bool savePos;
@@ -1316,16 +1363,15 @@ void progSettingDlgClass::view()
 */
         ImGui::NewLine();
 
-        ImGui::Text(" GUI apparence");
+        ImGui::Text(" GUI apparence / Fonts");
+        ImGui::SameLine();
+        ShowHelpMarker(GLAPP_HELP_FONTS);
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextDisabled("Theme:");
         ImGui::SameLine();
         const int idxTheme = ShowStyleSelector(wButt-ImGui::GetCursorPosX());
 
-        ImGui::Text(" Fonts");
-        ImGui::SameLine();
-        ShowHelpMarker(GLAPP_HELP_FONTS);
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextDisabled("FontSize:");
@@ -1387,27 +1433,57 @@ void progSettingDlgClass::view()
 
         ImGui::NewLine();
 
-        ImGui::Text(" MAX # of particles");
+        static bool emitterChanges = false;
+
+        static float maxBuff= theApp->getMaxAllocatedBuffer()*(.000001);
+        ImGui::Text(" Emitter type & properties ");
         ImGui::SameLine();
-        ShowHelpMarker(GLAPP_HELP_MAX_PART);
+        ShowHelpMarker(GLAPP_HELP_EMIT_TYPE);
+
+        ImGui::PushItemWidth(wButt*.5-border);
+        static int idxEmitt = theApp->getEmitterType();
+#ifdef GLAPP_REQUIRE_OGL45
+        if(ImGui::Combo("##EmitterType", &idxEmitt, "Single thread & Aux buffer\0"\
+                                                 "Aux thread & Aux buffer\0"\
+                                                 "Aux thread & Mapped buffer\0")) { 
+#else
+        if(ImGui::Combo("##EmitterType", &idxEmitt, "Single thread & Aux buffer\0"\
+                                                    "Aux thread & Aux buffer\0")) {
+#endif        
+            emitterChanges|=true;
+        }
+        static int emitStep = theApp->getEmissionStepBuffer()>>10;
+        if(idxEmitt!=emitter_separateThread_mappedBuffer) {
+            ImGui::SameLine(wButt*.5 + border*2);            
+            if(ImGui::DragInt("##emStep", &emitStep,1, 0, 2000, "Aux buff: %dK")) emitterChanges|=true; 
+        }
+        ImGui::PopItemWidth();
 
         ImGui::AlignTextToFramePadding();
-        ImGui::TextDisabled("#:"); 
-        ImGui::SameLine(); 
-        
-        ImGui::PushItemWidth(wButt*.5 -ImGui::GetCursorPosX() - border);
-        static float maxBuff= theApp->getMaxAllocatedBuffer()*(.000001);
-        ImGui::DragFloat("##partNum",&maxBuff,0.1, 0, PARTICLES_MAX*(.000001),"%.3f M");
-
+        ImGui::TextDisabled("Max particles:"); 
+        ImGui::SameLine();
+        //ImGui::PushItemWidth(wButt*.5 -ImGui::GetCursorPosX() - border);
+        ImGui::PushItemWidth(wButt*.3 - border);
+        if(ImGui::DragFloat("##partNum",&maxBuff,0.05, 0, PARTICLES_MAX*(.000001),"%.2fM")) emitterChanges|=true;
         ImGui::PopItemWidth();
-
-        ImGui::SameLine(wButt*.5 + border); 
-        ImGui::TextDisabled("Mem req.: "); 
+        ImGui::SameLine();
+        ImGui::TextDisabled(" Mem:"); 
         ImGui::SameLine(); 
-        ImGui::PushItemWidth(wButt -ImGui::GetCursorPosX());
-        ImGui::Text("%.3f GB", (maxBuff*16.f)/(1024));
+        //ImGui::PushItemWidth(wButt -ImGui::GetCursorPosX());
+        ImGui::Text("%.2fGB", (maxBuff*16000000.f)/(1024*1024*1024));
 
-        ImGui::PopItemWidth();
+        if(emitterChanges) pushColorButton();
+        if(ImGui::Button("Apply Emitter Changes", ImVec2(w,0))) {
+            theApp->setMaxAllocatedBuffer(maxBuff * 1000000.f);
+            theApp->setEmissionStepBuffer(emitStep<<10);
+            theApp->selectEmitterType(idxEmitt);
+            theApp->resetParticlesSystem();
+            if(emitterChanges) popColorButton();
+            emitterChanges = false;
+        }
+        if(emitterChanges) popColorButton();
+
+        ImGui::NewLine();
 
         {
             ImGui::AlignTextToFramePadding();
@@ -1426,8 +1502,10 @@ void progSettingDlgClass::view()
         {
             ImGui::AlignTextToFramePadding();
             bool b = bool(theApp->useLowPrecision());
-            if(ImGui::Checkbox(" Use LOW precision", &b)) {
-                theApp->useLowPrecision(b);
+            if(ImGui::Checkbox(" Use LOW precision", &b)) {                
+                if(b) theApp->setLowPrecision();
+                else  theApp->setHighPrecision();
+                theApp->resetParticlesSystem();
             }
             ImGui::SameLine();
             ShowHelpMarker(GLAPP_HELP_PRECISION);
@@ -1448,7 +1526,9 @@ void progSettingDlgClass::view()
 */
         ImGui::NewLine();
 
-        ImGui::Text(" Images capture");
+        ImGui::Text(" ScreenShots location");
+        ImGui::SameLine();
+        ShowHelpMarker(GLAPP_HELP_CAPTURE);
 
         ImGui::AlignTextToFramePadding();
         if(ImGui::Button("...")) theApp->selectCaptureFolder();
@@ -1476,10 +1556,14 @@ void progSettingDlgClass::view()
 */
         ImGui::NewLine();
         if(ImGui::Button("Save Prog.Settings",ImVec2(wButt,0))) {
-            theApp->setPosX(x);
-            theApp->setPosY(y);
+            theApp->setPosX(wantSavePos ? x : -1);
+            theApp->setPosY(wantSavePos ? y : -1);
             theApp->setMaxAllocatedBuffer(maxBuff * 1000000.f);
+            theApp->setEmissionStepBuffer(emitStep<<10);
+            theApp->selectEmitterType(idxEmitt);
             theApp->saveProgConfig();
+            theApp->resetParticlesSystem();
+            emitterChanges = false;
         }
 
     }
@@ -2070,7 +2154,9 @@ void infoDlgClass::view()
 
         if(metricW) ImGui::ShowMetricsWindow(&metricW);
 
-            
+        if(ImGui::Button(" start/stop ")) {
+            theApp->resetParticlesSystem();
+        }
     }
     ImGui::End();
 

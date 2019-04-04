@@ -166,6 +166,7 @@ void glfwScrollCallback(GLFWwindow* window, double x, double y)
     ImGui_ImplGlfw_ScrollCallback(window, x, -y);
 #endif
     if(ImGui::GetIO().WantCaptureMouse) return;
+    theWnd->onMouseWheel(0, 0, int(x), int(y));
 }
 
 static void glfwMousePosCallback(GLFWwindow* window, double x, double y)
@@ -271,7 +272,6 @@ GLFWmonitor* getCurrentMonitor(GLFWwindow *window)
 // Interface
 /////////////////////////////////////////////////
 
-
 // Set the application to null for the linker
 mainGLApp* mainGLApp::theMainApp = 0;
 
@@ -291,7 +291,6 @@ void mainGLApp::imguiInit()
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
     //io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcon;
 #endif
-
     //ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui_ImplGlfw_InitForOpenGL(mainGLFWwnd, false);
     ImGui_ImplOpenGL3_Init(get_glslVer().c_str());
@@ -305,7 +304,6 @@ int mainGLApp::imguiExit()
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-
 
     return 0;
 }
@@ -346,12 +344,14 @@ void mainGLApp::glfwInit()
         glslVersion = "#version 450\n";
         glslDefines = "#define LAYUOT_BINDING(X) layout (binding = X)\n"
                       "#define LAYUOT_INDEX(X) layout(index = X)\n"
+                      "#define SUBROUTINE(X) subroutine(X)\n"
                       "#define CONST const\n";
     #else
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
         glslVersion = "#version 410\n";
         glslDefines = "#define LAYUOT_BINDING(X)\n"
                       "#define LAYUOT_INDEX(X)\n"
+                      "#define SUBROUTINE(X) subroutine(X)\n"
     #ifdef GLCHAOSP_LIGHTVER
                       "#define TEST_WGL\n"
     #endif
@@ -364,10 +364,11 @@ void mainGLApp::glfwInit()
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
         glslVersion = "#version 300 es\n";
-        if(useLowPrecision()) glslDefines = "precision mediump float;\n";
-        else                  glslDefines = "precision highp float;\n";
+        if(useLowPrecision()) glslDefines = "precision mediump float;\n" "precision highp int;\n";
+        else                  glslDefines = "precision highp float;\n"   "precision highp int;\n";
         glslDefines+= "#define LAYUOT_BINDING(X)\n"
                       "#define LAYUOT_INDEX(X)\n"
+                      "#define SUBROUTINE(X)\n"
                       "#define CONST\n";
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //GLFW_OPENGL_ANY_PROFILE
@@ -503,6 +504,14 @@ int mainGLApp::onExit()
     return 0;
 }
 
+void mainGLApp::resetParticlesSystem() { 
+    //int sel = attractorsList.getSelection();
+    theWnd->onExit(); 
+    //attractorsList.resetSelection();
+    theWnd->onInit(); 
+    //attractorsList.setSelection(sel);
+}
+
 void newFrame()
 {
     glfwPollEvents();
@@ -537,6 +546,7 @@ void mainGLApp::mainLoop()
 
             if(screenShotRequest) {
                 if(screenShotRequest == ScreeShotReq::ScrnSht_CAPTURE_ALL) getMainDlg().renderImGui();
+                glfwMakeContextCurrent(getGLFWWnd());
                 getScreenShot();
             }
             getMainDlg().renderImGui();
@@ -554,8 +564,6 @@ void mainGLApp::mainLoop()
 /////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-
-    
 //Initialize class e self pointer
     theApp = new mainGLApp;          
 
@@ -583,7 +591,7 @@ int main(int argc, char **argv)
     } else
 #endif        
         theApp->onInit();
-
+   
 // Enter in GL main loop
 /////////////////////////////////////////////////
 #if !defined (__EMSCRIPTEN__)

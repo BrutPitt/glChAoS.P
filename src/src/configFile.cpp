@@ -186,6 +186,9 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["lightAmbInt"     ] = ptr->getUData().lightAmbInt ;
     c["lightStepMin"    ] = ptr->getUData().sstepColorMin;
     c["lightStepMax"    ] = ptr->getUData().sstepColorMax;
+    c["lightModel"      ] = ptr->getUData().lightModel;
+    c["ggxRoughness"    ] = ptr->getUData().ggxRoughness;
+    c["ggxFresnel"      ] = ptr->getUData().ggxFresnel;
     {
         vector<float> v(3); 
         *((vec3 *)v.data()) = ptr->getUData().lightDir;
@@ -417,6 +420,9 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     ptr->getUData().lightAmbInt   = c.get_or("lightAmbInt"     , ptr->getUData().lightAmbInt  );
     ptr->getUData().sstepColorMin = c.get_or("lightStepMin"    , ptr->getUData().sstepColorMin);
     ptr->getUData().sstepColorMax = c.get_or("lightStepMax"    , ptr->getUData().sstepColorMax);
+    ptr->getUData().lightModel    = c.get_or("lightModel"      , int(ptr->modelBlinnPhong));
+    ptr->getUData().ggxRoughness  = c.get_or("ggxRoughness"    , ptr->getUData().ggxRoughness);
+    ptr->getUData().ggxFresnel    = c.get_or("ggxFresnel"      , ptr->getUData().ggxFresnel);
 
     vec3 v3;
     ptr->getUData().lightDir   = (getVec_asArray(c, "lightDir"  , v3) ? v3 : vec3(50.f, 0.f, 15.f));
@@ -454,11 +460,15 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     glow->getImgTuning()->setMixBilateral (c.get_or("bilatMix" , glow->getImgTuning()->getMixBilateral() ));
 #if !defined(GLCHAOSP_NO_FXAA)
 //FXAA
-    ptr->getFXAA()->activate(    c.get_or("fxaaOn"       , ptr->getFXAA()->isOn()));
-    ptr->getFXAA()->setThreshold(c.get_or("fxaaThreshold", ptr->getFXAA()->getThreshold()));
-    ptr->getFXAA()->setReductMul(c.get_or("ReductMul"    , ptr->getFXAA()->getReductMul()));
-    ptr->getFXAA()->setReductMin(c.get_or("ReductMin"    , ptr->getFXAA()->getReductMin()));
-    ptr->getFXAA()->setSpan     (c.get_or("Span"         , ptr->getFXAA()->getSpan     ()));
+    fxaaClass *fxaa = ptr->getFXAA();
+    fxaa->activate(    c.get_or("fxaaOn"       , fxaa->isOn()));
+    fxaa->setThreshold(c.get_or("fxaaThreshold", fxaa->getThreshold()));
+    fxaa->setReductMul(c.get_or("ReductMul"    , fxaa->getReductMul()));
+    fxaa->setReductMin(c.get_or("ReductMin"    , fxaa->getReductMin()));
+    fxaa->setSpan     (c.get_or("Span"         , fxaa->getSpan     ()));
+    if(fxaa->getSpan()     >fxaa->getSpanMax()) fxaa->setSpan(     fxaa->getSpanMax());
+    if(fxaa->getReductMul()>fxaa->getMulMax() ) fxaa->setReductMul(fxaa->getMulMax() );
+    if(fxaa->getReductMin()>fxaa->getMinMax() ) fxaa->setReductMin(fxaa->getMinMax() );
 #endif
 
 //DisplayAdjoust
@@ -718,6 +728,9 @@ void mainGLApp::saveProgConfig()
 
     cfg["capturePath" ] = capturePath;
 
+    cfg["emitterType" ] = theApp->getEmitterType();
+    cfg["auxStepBuffer" ] = theApp->getEmissionStepBuffer();
+
     dump_file(filename, cfg, JSON);
 
 }
@@ -772,6 +785,9 @@ bool mainGLApp::loadProgConfig()
     theApp->setParticlesSizeConstant(cfg.get_or("partSizeConst", false));
 
     theApp->useLowPrecision(cfg.get_or("useLowPrecision", false));
+
+    theApp->selectEmitterType(cfg.get_or("emitterType",int(emitter_separateThread_externalBuffer)));
+    theApp->setEmissionStepBuffer(cfg.get_or("auxStepBuffer", theApp->getEmissionStepBuffer()));
 
     if(theApp->useLowPrecision()) theApp->setLowPrecision();
     else                          theApp->setHighPrecision();

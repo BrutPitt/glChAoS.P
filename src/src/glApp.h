@@ -54,6 +54,12 @@ enum ScreeShotReq {
     ScrnSht_CAPTURE_ALL = 4 //0x04
 };
 
+enum normalType { ptCoR, ptPt1, ptPt1CoR };
+
+enum enumEmitterType { emitter_singleThread_externalBuffer,    // webGL
+                       emitter_separateThread_externalBuffer,  // max performance for OGL 4.1
+                       emitter_separateThread_mappedBuffer};    // max performance for OGL 4.5
+
 
 #define GLAPP_PROG_NAME "glChAoS.P"
 
@@ -99,7 +105,7 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 #if INTPTR_MAX == INT32_MAX
     #define PARTICLES_MAX 67000000
 #elif INTPTR_MAX == INT64_MAX
-    #define PARTICLES_MAX 105000000
+    #define PARTICLES_MAX 267000000
 #else
     #error "Environment not 32 or 64-bit."
 #endif
@@ -109,7 +115,7 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 
 #ifdef NDEBUG
     #if !defined(GLCHAOSP_LIGHTVER)
-        #define EMISSION_STEP 100000
+        #define EMISSION_STEP 500000
     #else
         #define EMISSION_STEP 20000
     #endif
@@ -126,7 +132,6 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 #endif
 
 
-enum normalType { ptCoR, ptPt1, ptPt1CoR };
 
 void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool normalized = true, normalType nType = normalType::ptCoR);
 bool importPLY(bool wantColors);
@@ -172,8 +177,8 @@ public:
     int onExit();
 
     void mainLoop();
-////////////////////////////////
 //GLFW Utils
+/////////////////////////////////////////////////
     GLFWwindow* getGLFWWnd()  const { return(mainGLFWwnd);  }
     
 
@@ -195,8 +200,8 @@ public:
     void setWindowSize(int  w, int  h) { glfwSetWindowSize(mainGLFWwnd, w, h); }
     void getWindowSize(int *w, int *h) { glfwGetWindowSize(mainGLFWwnd, w, h); }
 
-    //  Request for scrrenshot
-    //////////////////////////////////////////////////////////////////
+//  Request for scrrenshot
+//////////////////////////////////////////////////////////////////
     void setScreenShotRequest(int val) { screenShotRequest = val; }
     void getScreenShot();
 
@@ -218,6 +223,8 @@ public:
 
     std::string &get_glslVer() {return glslVersion; }
     std::string &get_glslDef() {return glslDefines; }
+
+    void resetParticlesSystem();
 
     unsigned getMaxAllocatedBuffer() { return maxAllocatedBuffer; }
     void setMaxAllocatedBuffer(unsigned v) { maxAllocatedBuffer = v; }
@@ -279,6 +286,18 @@ public:
     void selectedListQuickView(int i) { idxListQuickView = i; }
     int selectedListQuickView() { return idxListQuickView; }
 
+    void selectEmitterType(int type) {
+#if !defined(__EMSCRIPTEN__)
+    #ifdef GLAPP_REQUIRE_OGL45
+        emitterType = type;
+    #else
+        emitterType = type == emitter_separateThread_mappedBuffer ? emitter_separateThread_externalBuffer : type;
+    #endif
+#endif
+    }
+
+    int getEmitterType() { return emitterType; }
+
     timerClass& getTimer() { return timer; }
 
 
@@ -302,14 +321,14 @@ protected:
     
     
 private:
-/////////////////////////////////////////////////
 // imGui utils
+/////////////////////////////////////////////////
     void imguiInit();
     int imguiExit();
     mainImGuiDlgClass mainImGuiDlg;
 
-/////////////////////////////////////////////////
 // glfw utils
+/////////////////////////////////////////////////
     void glfwInit();
     int glfwExit();
     int getModifier();
@@ -323,6 +342,11 @@ private:
     int screenShotRequest;
     int vSync = 0;
     bool isFullScreen = false;
+#if !defined(__EMSCRIPTEN__)
+    int emitterType = emitter_separateThread_externalBuffer;
+#else
+    int emitterType = emitter_singleThread_externalBuffer;
+#endif
 
 #if !defined(GLCHAOSP_USE_LOWPRECISION)
     bool lowPrecision = true;

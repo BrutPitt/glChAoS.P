@@ -485,13 +485,17 @@ public:
 
     void updateSettings() {
         const vec4 fxaaData = vec4(threshold, 
-                                   reduceMul>512 ? 0 : 1.f/reduceMul, 
-                                   reduceMin>512 ? 0 : 1.f/reduceMin, 
+                                   1.f/reduceMul, 
+                                   1.f/reduceMin, 
                                    span);
         setUniform4fv(_fxaaData, 1, glm::value_ptr(fxaaData));    
     }
 
     mmFBO &getFBO() { return fbo; }
+
+    float getSpanMax() { return spanMax; }
+    float getMulMax() { return mulMax; }
+    float getMinMax() { return minMax; }
 
 private:
     void on()  { fbo.reBuildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false); }
@@ -501,7 +505,8 @@ private:
     mmFBO fbo;
     bool bIsOn = false;
 
-    GLfloat span = 8.f, reduceMul = 8.f, reduceMin = 128.f, threshold = .5f;
+    const float spanMax = 8.f, mulMax = 64.f, minMax = 512.f;
+    GLfloat span = 4.f, reduceMul = 8.f, reduceMin = 128.f, threshold = .5f;
     //Locations
     GLuint _fxaaData, _invScrnSize, _u_colorTexture;
 };
@@ -766,11 +771,17 @@ struct uParticlesData {
     GLfloat ySizeRatio = 1.0;
     GLfloat ptSizeRatio = 1.0;
     GLfloat pointspriteMinSize = 1.0;
+    GLfloat ggxRoughness = .75f;
+    GLfloat ggxFresnel = .5f;
+    GLuint lightModel = modelBlinnPhong;
     GLuint lightActive;
 } uData;
 
 
 public:
+    enum lightIDX { off, on };
+    enum lightMDL { modelOffset = 3, modelPhong = 3, modelBlinnPhong, modelGGX };
+
     particlesBaseClass ()  { 
 
         glowRender = new radialBlurClass(this);
@@ -793,6 +804,15 @@ public:
 #ifndef GLAPP_REQUIRE_OGL45
         locPaletteTex = getUniformLocation("paletteTex" );
         locDotsTex    = getUniformLocation("tex"); 
+    #if !defined(GLCHAOSP_LIGHTVER)
+        idxSubLightOn = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorLight");
+        idxSubLightOff = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorOnly");
+        idxSubLightModel[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularPhong");
+        idxSubLightModel[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularBlinnPhong");
+        idxSubLightModel[2] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularGGX");
+        idxSubOBJ = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "objColor"); 
+        idxSubVEL = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "velColor"); 
+    #endif
 #endif
 
     }
@@ -883,6 +903,9 @@ public:
     void setHermiteVals(const vec4 &v) { dotTex.setHermiteVals(v); }
     vec4& getHermiteVals() { return dotTex.getHermiteVals(); }
 
+    int getLightModel() { return uData.lightModel; }
+    void setLightModel(int l) { uData.lightModel = l; }
+
     dotsTextureClass& getDotTex() { return dotTex; }
 
 protected:
@@ -905,11 +928,11 @@ protected:
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locDotsTex, locPaletteTex;
     GLuint idxSubOBJ, idxSubVEL;
+    GLuint idxSubLightOn, idxSubLightOff;
+    GLuint idxSubLightModel[3];
 #endif
 
-    enum lightIDX { off, on };
     GLuint lightStateIDX = GLuint(on);
-    GLuint idxSubLightOn, idxSubLightOff;
     bool depthBuffActive = true;
     bool blendActive = true;
 

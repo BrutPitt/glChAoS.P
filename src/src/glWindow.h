@@ -87,7 +87,7 @@ public:
         glGenVertexArrays(1, &vao); 
         glGenBuffers(1, &vaoBuffer);
         glBindBuffer(GL_ARRAY_BUFFER,vaoBuffer);
-        glBufferData(GL_ARRAY_BUFFER,size, vtx, GL_STATIC_READ);
+        glBufferData(GL_ARRAY_BUFFER,size, vtx, GL_STATIC_DRAW);
 
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vaoBuffer);
@@ -116,22 +116,19 @@ private:
 
 class particlesSystemClass;
 
-#ifdef USE_MAPPED_BUFFER
-    #define vtxBUFFER mappedVertexBuffer
-#else
-    #define vtxBUFFER vertexBuffer
-#endif
-
 class emitterBaseClass
 {
 public:
     emitterBaseClass() {
+        setEmitterType(theApp->getEmitterType());
         setSizeCircularBuffer(CIRCULAR_BUFFER);
         szAllocatedBuffer = theApp->getMaxAllocatedBuffer();
         //setParticlesCount(0L);
-        setSizeStepBuffer(theApp->getEmissionStepBuffer());    
+        setSizeStepBuffer(theApp->getEmissionStepBuffer());
         setEmitterOff();
     }
+
+    virtual ~emitterBaseClass() {}
 
     virtual void resetVBOindexes() {
         //setParticlesCount(0L);
@@ -146,28 +143,36 @@ public:
         InsertVbo->draw(szCircularBuffer);
     }
 
+    void checkRestartCircBuffer() {
+        if(needRestartCircBuffer()) {
+            resetVBOindexes();
+            attractorsList.get()->resetEmittedParticles();
+            attractorsList.get()->initStep();
+            needRestartCircBuffer(false);
+        }
+    }
+
     void storeData() {
         if(isEmitterOn()) { 
-
-#if !defined(USE_MAPPED_BUFFER) 
-    #ifdef USE_THREAD_TO_FILL 
-            bool bufferFull = InsertVbo->uploadSubBuffer(attractorsList.get()->getEmittedParticles(), szCircularBuffer);
-    #else
-            GLfloat *ptrBuff = InsertVbo->getBuffer();
-            attractorsList.get()->Step(ptrBuff, getSizeStepBuffer());
-            bool bufferFull = InsertVbo->uploadSubBuffer(szStepBuffer, szCircularBuffer);
-    #endif
-            if(bufferFull && stopFull()) {
-                setEmitterOff();
-            }
-            if(bufferFull && restartCircBuff()) {
-                needRestartCircBuffer(true);
+            if(!useMappedMem()) {   // ! USE_MAPPED_BUFFER
+                bool bufferFull;
+                if(useThread()) {    // USE_THREAD_TO_FILL 
+                    bufferFull = InsertVbo->uploadSubBuffer(attractorsList.get()->getEmittedParticles(), szCircularBuffer);
+                } else {
+                    checkRestartCircBuffer();
+                    GLfloat *ptrBuff = InsertVbo->getBuffer();
+                    attractorsList.get()->Step(ptrBuff, getSizeStepBuffer());
+                    bufferFull = InsertVbo->uploadSubBuffer(getSizeStepBuffer(), getSizeCircularBuffer());
+                    //attractorsList.get()->Step(ptrBuff, 1);
+                    //bufferFull = InsertVbo->uploadSubBuffer(1, getSizeCircularBuffer());
+                }
+                if(bufferFull && stopFull())        setEmitterOff();
+                if(bufferFull && restartCircBuff()) needRestartCircBuffer(true);                    
             } 
-#else
-            //Alredy GL_MAP_COHERENT_BIT
-            //glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
-#endif
+            //else //Alredy GL_MAP_COHERENT_BIT
+                //glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
             
+            //
         }
     }
 
@@ -184,13 +189,14 @@ public:
     GLuint64 getParticlesCount() { return InsertVbo->getVertexUploaded(); }
     //inline void setParticlesCount(GLuint val) { ParticlesCount=val; }               
 
-    bool loopCanStart() { 
-#ifdef USE_MAPPED_BUFFER
-        const bool retVal = isEmitterOn() || !attractorsList.getEndlessLoop();
-#else
-        const bool retVal = (bBufferRendered && isEmitterOn() || !attractorsList.getEndlessLoop());
-        bufferRendered(false);
-#endif
+    bool loopCanStart() {
+        bool retVal;
+        if(useMappedMem())
+            retVal = isEmitterOn() || !attractorsList.getEndlessLoop();
+        else {
+            retVal = (bBufferRendered && isEmitterOn() || !attractorsList.getEndlessLoop());
+            bufferRendered(false);
+        }
         return retVal;
     }
 
@@ -215,13 +221,32 @@ public:
     bool needRestartCircBuffer() { return needRestartBuffer; }
     void needRestartCircBuffer(bool b) { needRestartBuffer = b; }
 
-    vtxBUFFER *getVBO() { return InsertVbo; }
+    vertexBufferBaseClass *getVBO() { return InsertVbo; }
 
     void setThreadRunning(bool b) { threadRunning=b; }
     bool getThreadRunning() { return threadRunning; }
     bool isLoopRunning() { return getThreadRunning(); }
     bool isLoopStopped() { return !getThreadRunning(); }
 
+    bool useThread() { return bUseThread; }
+    void useThread(bool b) { bUseThread = b; }
+
+    bool useMappedMem() { return bUseMappedMem; }
+    void useMappedMem(bool b) { bUseMappedMem = b; }
+
+    void setEmitterType(int type) {
+        switch(type) {
+#ifdef GLAPP_REQUIRE_OGL45
+            case emitter_separateThread_mappedBuffer:
+                bUseThread = true; bUseMappedMem = true; break;
+#endif
+            case emitter_separateThread_externalBuffer:
+                bUseThread = true; bUseMappedMem = false; break;
+            case emitter_singleThread_externalBuffer:
+            default:
+                bUseThread = false; bUseMappedMem = false; break;
+        }
+    }
 
 
 protected:
@@ -232,10 +257,13 @@ protected:
     GLuint szStepBuffer;
     bool bEmitter = false; 
     bool bStopFull = false, bRestartCircBuff = false;
+
+    bool bUseThread = true;
+    bool bUseMappedMem = true;
     
     bool bBufferRendered = false, bStopLoop = false;
 
-    vtxBUFFER *InsertVbo;
+    vertexBufferBaseClass *InsertVbo;
 
     bool threadRunning=false;
     bool needRestartBuffer = false;
@@ -245,33 +273,34 @@ protected:
 class singleEmitterClass : public emitterBaseClass
 {
 public:
-    singleEmitterClass() {
-        InsertVbo = new vtxBUFFER(GL_POINTS, getSizeStepBuffer(), 1);
+    singleEmitterClass() {        
+        InsertVbo = useMappedMem() ? (vertexBufferBaseClass *) new mappedVertexBuffer(GL_POINTS, getSizeStepBuffer(), 1) : 
+                                     (vertexBufferBaseClass *) new vertexBuffer(GL_POINTS, getSizeStepBuffer(), 1);
         InsertVbo->initBufferStorage(getSizeAllocatedBuffer());
     }
 
-    ~singleEmitterClass() { delete InsertVbo; }
+    ~singleEmitterClass() {
+        delete InsertVbo;
+    }
 
-    void preRenderEvents() 
+    void preRenderEvents()
     { 
-        if(isEmitterOn()) 
-        {
-#if !defined(USE_MAPPED_BUFFER)
-    #ifdef USE_THREAD_TO_FILL
-            stopLoop(true);
-            while(isLoopRunning()) attractorsList.getThreadStep()->notify();
+        if(isEmitterOn()) {
+            if(!useMappedMem()) {   // ! USE_MAPPED_BUFFER
+                if(useThread()) {   // USE_THREAD_TO_FILL 
+                    stopLoop(true);
+                    while(isLoopRunning()) attractorsList.getThreadStep()->notify();
 
-            storeData();
-            stopLoop(false);
-            bufferRendered();
-            attractorsList.get()->resetEmittedParticles();
-            attractorsList.getThreadStep()->notify();
-    #else
-            storeData();
-    #endif
-#else
+                    storeData();
+                    stopLoop(false);
+                    bufferRendered();
+                    attractorsList.get()->resetEmittedParticles();
+                    attractorsList.getThreadStep()->notify();
+                } else 
+                    storeData();
+            }
+            //else
             //attractorsList.getThreadStep()->notify();
-#endif
         }
 
     }
@@ -308,7 +337,7 @@ public:
         tfbs[1] = new transformFeedbackInterleaved(vbos[1]);
 
         //InsertVbo = new vertexBuffer(GL_POINTS, 1, 2);
-        InsertVbo = new vtxBUFFER(GL_POINTS, 1, 2);
+        InsertVbo = new vertexBuffer(GL_POINTS, 1, 2);
         //InsertVbo->storeSpace(2);
 
         activeBuffer = 0;
@@ -395,9 +424,7 @@ public:
     {
     }
 
-    ~particlesSystemClass() { 
-        delete emitter; 
-    }
+    ~particlesSystemClass() { delete emitter; }
 
     void onReshape(int w, int h) {
         if(w==0 || h==0) return; //Is in iconic (GLFW do not intercept on Window)
@@ -425,11 +452,29 @@ public:
     GLuint render() {
 
         //getShader()->renderOfflineFeedback(attractorsList.get());
-
         glViewport(0,0, getWidth(), getHeight());
-        
-        GLuint texRendered;        
+/*
+        glm::vec3 head = attractorsList.get()->getCurrent();
 
+        glm::vec3 vecA = (attractorsList.get()->getAt(10)-head)*.5f;
+        glm::vec3 vecB = (attractorsList.get()->getAt(40)-head)*.5f;
+        getTMat()->setView(head+vecB, head+vecA);
+
+        static int sel = attractorsList.getSelection(), oldSel = -1;
+
+        sel = attractorsList.getSelection();
+
+        if(oldSel!=sel) {
+            getTMat()->setPerspective(90.f, float(theApp->GetWidth())/float(theApp->GetHeight()), 0.f, 100.f);
+            getTMat()->getTrackball().setRotation(glm::quat(1.0f,0.0f, 0.0f, 0.0f));
+            getTMat()->getTrackball().setDollyPosition(glm::vec3(0.f));
+            getTMat()->getTrackball().setPanPosition(glm::vec3(0.f));
+            getTMat()->getTrackball().setRotationCenter(glm::vec3(0.f));
+            getTMat()->applyTransforms();
+        }
+        oldSel = sel;
+*/
+        GLuint texRendered;        
 
     mat4 m;
 
@@ -551,9 +596,7 @@ inline void emitterBaseClass::setEmitter(bool emit)
     bEmitter = emit;
 #if !defined(GLCHAOSP_LIGHTVER)
     if(emit) theWnd->getParticlesSystem()->viewObjOFF();
-#endif
-#ifdef USE_THREAD_TO_FILL
-    attractorsList.getThreadStep()->notify();
+    attractorsList.getStepCondVar().notify_one();
 #endif
 }
 

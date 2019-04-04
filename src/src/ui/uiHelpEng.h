@@ -70,11 +70,19 @@
 #define GLAPP_HELP_LIGHT_TREE\
     "Light settings\n\n"\
     "All parameters have effect ONLY if/when light button (Rendering) is active\n\n"\
+    "* Model: Light model for specular component\n"\
+    "* Dist: Light distance from origin\n"\
     "* Diff: Diffuse Intensity\n"\
     "* Ambt: Ambient Intensity\n"\
     "* Spec: Specular Intensity\n"\
-    "* sExp: Shininess Exponent\n"\
-    "* ccCorr: curve color Correction\n"\
+    "* sExp: Shininess Exponent (Phong/Blinn-Phong)\n"\
+    "     0.0 <- Opaque - sExp - Glossy -> XXX\n"\
+    "* R: Roughness value (GGX model)\n"\
+    "     0.0 <- Smooth - R - Rough -> 1.0\n"\
+    "* F: Fresnel factor Schlick's approximation (GGX model)\n"\
+    "     FresnelTerm = F + (1-F) * (1-HdotL)^5\n"\
+    "     0.0 <- Dielectric - F - Metal -> 1.0\n"\
+    "* Modulate: curve color Correction\n"\
     "     form standard [0,1] interval to new [min,max]\n"
 
 #define GLAPP_HELP_MOUSE_KEY\
@@ -157,12 +165,29 @@
     "    *  unChecked - use 32bit floating point (default)"
 #endif
 
-#define GLAPP_HELP_MAX_PART\
-    "After resizing particles buffer, need to restart the program for validate new buffer dimension"
+#define GLAPP_HELP_EMIT_TYPE\
+    "Emitter type:\n"\
+    "Select emitter features:\n"\
+    "   Single thread & Aux buffer - compatibility mode\n"\
+    "   Aux thread & Aux buffer    - best performance\n"\
+    "   Aux thread & Mapped buffer - low mem use\n"\
+    "   TransformFeedback          - partilces effects\n"\
+    "Default: Aux thread & Aux buffer\n\n"\
+    "Aux Buffer (when avilable):\n"\
+    "   Size (in bytes) of auxiliary buffer:\n"\
+    "   Bigger values avoid bottleneck between calculus/rendering\n   especially on slow GPUs\n"\
+    "Default: 100K (100 * 1024 bytes)\n\n"\
+    "Max particles\n"\
+    "Preallocated buffer for MAX circular buffer:\n"\
+    "   Increase - if you want use more\n"\
+    "   Decrease - if your GPU have low memory\n"\
+    "Default allocation: 30M of partilces\n\n"\
+    "*NOTE: to apply changes need to press APPLY EMITTER CHANGES"
 #define GLAPP_HELP_PART_SZ_CONST\
     "Particles size behavior changing window size:\n"\
     "     Checked - Particles have fixed size when resizing window\n"\
-    "   unChecked - Particles are proportional to window height\n"\
+    "   unChecked - Particles are proportional to window height\n\n"\
+    "Default: unChecked"
 
 #define GLAPP_HELP_FORCE_PNTSPRT_SZ\
     "Force minimum PointSprite size to 1.0\n"\
@@ -170,15 +195,25 @@
     "Look at Info dialog for PointSprites range size and granularity supported from your GPU\n"
 
 #define GLAPP_HELP_FONTS\
+     "GUI\nSelect preferred GUI style and/or adjust color/alpha\n\n"\
+     "FONTS\n"\
      "In settings fase the fonts can appear slightly 'blurred', after you have selected and saved a preferred"\
      " dimension, restart the program for a clear font appearance:\n"\
-     " - Prefer always \"FontSize\" that is the real dimension of the characters\n"\
+     " - Prefer always \"FontSize\" that is the real dimension\n   of the characters\n"\
      " - FontScale is an antialiased zoom of FontSize"\
 
 #define GLAPP_HELP_PRECISION\
-    "Internal precision of FBO, palettes, textures: NEED RESTART\n"\
+    "Internal precision of FBO, palettes, textures\n"\
     "      Checked - use 16bit floating point\n"\
     "    unChecked - use 32bit floating point (default)"\
+
+#define GLAPP_HELP_CAPTURE\
+    "Select path where to save the screenShots\n"\
+    "   Default: ./imgsCapture\n\n"\
+    "ScreenShots keys:\n"\
+    "   SHIFT+PrtSc    : Screenshot silently (w/o GUI) \n"\
+    "   CTRL+PrtSc     : Screenshot with prompt filename (w/o GUI)\n"\
+    "   ALT|SUPER+PrtSc: Capture screen with GUI\n"\
 
 #define GLAPP_HELP_ABOUT\
     "   glChAoS.P - glChAoSP / wglChAoS.P - wglChAoSP\n"\

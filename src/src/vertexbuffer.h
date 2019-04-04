@@ -38,6 +38,8 @@
 #include <iomanip>
 #include <chrono>
 #include <vector>
+#include <cstdint>
+
 #include "glslProgramObject.h"
 #include "glslShaderObject.h"
 #include "appDefines.h"
@@ -53,7 +55,7 @@
 class vertexBufferBaseClass 
 {
 public:
-    vertexBufferBaseClass(GLenum primitive, int numVertex, int attributesPerVertex) : 
+    vertexBufferBaseClass(GLenum primitive, uint32_t numVertex, int attributesPerVertex) : 
         attributesPerVertex(attributesPerVertex), primitive(primitive), nVtxStepBuffer(numVertex)
     {
 #ifdef GLAPP_REQUIRE_OGL45 
@@ -67,11 +69,10 @@ public:
         uploadedVtx = 0;
     }
 
-    ~vertexBufferBaseClass() 
+    virtual ~vertexBufferBaseClass() 
     {
         glDeleteVertexArrays(1, &vao);
         glDeleteBuffers(1,&vbo);
-        delete [] vtxBuffer;
     }
 
     GLfloat* getBuffer()  { return vtxBuffer; }
@@ -108,14 +109,14 @@ public:
 
     virtual bool uploadSubBuffer(GLuint nVtx, GLuint szCircularBuff) 
     {
-        const GLuint offset = uploadedVtx % szCircularBuff;
-        const GLuint offByte = offset * bytesPerVertex;
+        const GLuint64 offset = uploadedVtx % szCircularBuff;
+        const GLuint64 offByte = offset * bytesPerVertex;
 
         bool retVal = (offset+nVtx >= szCircularBuff) ? true : false;
 
         if(offset+nVtx > szCircularBuff) {            
-            const GLuint szPart1 = (szCircularBuff - offset) * bytesPerVertex;
-            const GLuint szPart2 = ((offset+nVtx) - szCircularBuff) * bytesPerVertex;
+            const GLuint64 szPart1 = (szCircularBuff - offset) * bytesPerVertex;
+            const GLuint64 szPart2 = ((offset+nVtx) - szCircularBuff) * bytesPerVertex;
            
             //cout << szPart1 << " - " << szPart2 << endl;
 #ifdef GLAPP_REQUIRE_OGL45
@@ -143,11 +144,14 @@ public:
         return retVal;
     }
 
-    void draw(GLuint maxSize) {
-        //ActivateClientStates();
+    void draw(GLsizei maxSize) {
+/*        
+#ifdef GLAPP_REQUIRE_OGL45
+        if(isMapped)) glFlushMappedNamedBufferRange(vao, 0, uploadedVtx*bytesPerVertex);
+#endif
+*/
         glBindVertexArray(vao);
-        glDrawArrays(primitive,0,uploadedVtx<maxSize ? uploadedVtx : maxSize);
-        //DeactivateClientStates();
+        glDrawArrays(primitive,0,uploadedVtx<GLuint64(maxSize) ? uploadedVtx : maxSize);
         CHECK_GL_ERROR();
     }
 
@@ -191,7 +195,7 @@ class mappedVertexBuffer : public vertexBufferBaseClass
 {
 public:
 
-    mappedVertexBuffer(GLenum primitive, int numVertex, int attributesPerVertex) : 
+    mappedVertexBuffer(GLenum primitive, uint32_t numVertex, int attributesPerVertex) : 
         vertexBufferBaseClass(primitive, numVertex, attributesPerVertex) { }
 
     ~mappedVertexBuffer() {
@@ -207,13 +211,15 @@ public:
         GLsizeiptr storageSize = nVtx * bytesPerVertex;
 
 #ifdef GLAPP_REQUIRE_OGL45
-        glNamedBufferStorage(vbo, storageSize, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT); // ); //  
-        vtxBuffer = (GLfloat *) glMapNamedBufferRange(vbo, 0, storageSize, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);   //
+        glNamedBufferStorage(vbo, storageSize, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT ); // ); //  
+        vtxBuffer = (GLfloat *) glMapNamedBufferRange(vbo, 0, storageSize, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT  | GL_MAP_COHERENT_BIT );   // | GL_MAP_FLUSH_EXPLICIT_BIT
+        if(vtxBuffer==nullptr) { cout << "glMapNamedBufferRange: memory allocation failure!" << endl; exit(-1); }
 #else
         //glBindBuffer(GL_ARRAY_BUFFER,vbo); 
         //glBufferData(GL_ARRAY_BUFFER, storageSize, nullptr, GL_DYNAMIC_DRAW ); // ); //
         //vtxBuffer = (GLfloat *) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE  );   //| GL_MAP_COHERENT_BIT
 #endif
+        FORCE_CHECK_GL_ERROR();
         buildVertexAttrib();
     }
 
@@ -223,8 +229,10 @@ public:
 class vertexBuffer : public vertexBufferBaseClass 
 {
 public:
-    vertexBuffer(GLenum primitive, int numVertex, int attributesPerVertex) : 
+    vertexBuffer(GLenum primitive, uint32_t numVertex, int attributesPerVertex) : 
         vertexBufferBaseClass(primitive, numVertex, attributesPerVertex) { }
+
+    ~vertexBuffer() { delete [] vtxBuffer; }
 
     void initBufferStorage(GLsizeiptr nVtx) {
         GLsizeiptr storageSize = nVtx * bytesPerVertex;
@@ -238,8 +246,7 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER,vbo);        
         glBufferData(GL_ARRAY_BUFFER,storageSize,nullptr,GL_DYNAMIC_DRAW);
 #endif
-        CHECK_GL_ERROR();
-
+        FORCE_CHECK_GL_ERROR();
 
         buildVertexAttrib();
     }

@@ -116,12 +116,6 @@ void shaderPointClass::initShader()
 
     getCommonLocals();
 
-    #if !defined(GLCHAOSP_LIGHTVER)
-        idxSubLightOn = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorLight");
-        idxSubLightOff = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorOnly");
-        idxSubOBJ = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "objColor"); 
-        idxSubVEL = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "velColor"); 
-    #endif
 
     ProgramObject::reset();
 #endif
@@ -186,7 +180,9 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, colorMap->getModfTex());
     glBindTextureUnit(1, texID);
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &lightStateIDX);
+
+    GLuint subIDX[2] = { uData.lightModel, lightStateIDX }; 
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &idxViewOBJ);
 #else
     glActiveTexture(GL_TEXTURE0+colorMap->getModfTex());
@@ -199,7 +195,9 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
     setUniform1i(locDotsTex,texID);
 
 #if !defined(GLCHAOSP_LIGHTVER)
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), lightStateIDX==1 ? &idxSubLightOn : &idxSubLightOff);
+    GLuint subIDX[2] = { idxSubLightModel[uData.lightModel - modelOffset],
+                         lightStateIDX==1 ? idxSubLightOn : idxSubLightOff }; 
+    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), idxViewOBJ==1 ? &idxSubOBJ : &idxSubVEL);
 #endif
     updatePalTex();
@@ -274,11 +272,6 @@ void shaderBillboardClass::initShader()
 
 
     getCommonLocals();
-
-    idxSubLightOn = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorLight");
-    idxSubLightOff = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorOnly");
-    idxSubOBJ = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "objColor"); 
-    idxSubVEL = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "velColor"); 
 
     ProgramObject::reset();
 #endif

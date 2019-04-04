@@ -43,7 +43,7 @@
 
 bool loadObjFile() 
 {  
-    //string line;         
+    //string line;
     attractorsList.getThreadStep()->stopThread();
     char const * patterns[] = { "*.obj", "*.sca" };           
     char const * fileName = theApp->openFile(nullptr, patterns, 2);
@@ -105,11 +105,11 @@ bool importPLY(bool wantColors)
 
     if(fileName==nullptr) return false;
 
-    try	{
-		std::ifstream ss(fileName, std::ios::binary);
-		if (ss.fail()) throw std::runtime_error(fileName);
-
-		PlyFile ply;
+    try {
+        std::ifstream ss(fileName, std::ios::binary);
+        if (ss.fail()) throw std::runtime_error(fileName);
+        
+        PlyFile ply;
         ply.parse_header(ss);
 
         std::shared_ptr<PlyData> vertices, colors;
@@ -145,11 +145,12 @@ bool importPLY(bool wantColors)
             return false;
         }
 
-#ifdef USE_MAPPED_BUFFER
-        glm::vec4 *mappedBuffer = (glm::vec4 *) e->getVBO()->getBuffer();
-#else
-        glm::vec4 *mappedBuffer = new glm::vec4[nVtx];
-#endif
+        glm::vec4 *mappedBuffer;
+        if(e->useMappedMem())   // USE_MAPPED_BUFFER
+            mappedBuffer = (glm::vec4 *) e->getVBO()->getBuffer();
+        else
+            mappedBuffer = new glm::vec4[nVtx];
+
         glm::vec4 *ptr = mappedBuffer;
 
         uint iCol;
@@ -181,15 +182,15 @@ bool importPLY(bool wantColors)
 
         e->getVBO()->setVertexCount(nVtx);
 
-#if !defined(USE_MAPPED_BUFFER)
-    #ifdef GLAPP_REQUIRE_OGL45
+        if(!e->useMappedMem()) {   // !defined(USE_MAPPED_BUFFER)
+#ifdef GLAPP_REQUIRE_OGL45
             glNamedBufferSubData(e->getVBO()->getVBO(), 0, nVtx * e->getVBO()->getBytesPerVertex(), (void *) mappedBuffer); 
-    #else
+#else
             glBindBuffer(GL_ARRAY_BUFFER, e->getVBO()->getVBO());
             glBufferSubData(GL_ARRAY_BUFFER, 0, nVtx * e->getVBO()->getBytesPerVertex(), (void *) mappedBuffer);
-    #endif
-        delete [] mappedBuffer;
 #endif
+        }
+        delete [] mappedBuffer;
 
     } catch (const std::exception & e) {
         std::cerr << "Caught tinyply exception: " << e.what() << std::endl;
@@ -305,17 +306,18 @@ void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool wantNorm
 
         const uint32_t sizeBuff = e->getSizeCircularBuffer();
 
-#ifdef USE_MAPPED_BUFFER
-        glm::vec4 *mappedBuffer = (glm::vec4 *) e->getVBO()->getBuffer();
+        glm::vec4 *mappedBuffer = nullptr;
+        if(e->useMappedMem())   // USE_MAPPED_BUFFER
+            mappedBuffer = (glm::vec4 *) e->getVBO()->getBuffer();
+        else {
+            mappedBuffer = new glm::vec4[sizeBuff];
+#ifdef GLAPP_REQUIRE_OGL45
+            glGetNamedBufferSubData(e->getVBO()->getVBO(), 0, sizeBuff * e->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
 #else
-        glm::vec4 *mappedBuffer = new glm::vec4[sizeBuff];
-    #ifdef GLAPP_REQUIRE_OGL45
-        glGetNamedBufferSubData(e->getVBO()->getVBO(), 0, sizeBuff * e->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
-    #else
-        glBindBuffer(GL_ARRAY_BUFFER, e->getVBO()->getVBO());
-        glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeBuff * e->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
-    #endif
+            glBindBuffer(GL_ARRAY_BUFFER, e->getVBO()->getVBO());
+            glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeBuff * e->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
 #endif
+        }
 
         glm::vec3 *vtxBuff = getVertexBuffer(mappedBuffer, sizeBuff);
         uint8_t *clrBuff = nullptr;
@@ -342,11 +344,9 @@ void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool wantNorm
 
         ply.write(os, wantBinary);
 
-#ifdef USE_MAPPED_BUFFER
-        //glUnmapNamedBuffer(e->getVBO()->getVBO());
-#else
-        delete [] mappedBuffer;
-#endif
+        if(!e->useMappedMem())  // ! USE_MAPPED_BUFFER
+            delete [] mappedBuffer;
+
         delete [] vtxBuff;
         delete [] clrBuff;
         delete [] nrmBuff;
@@ -553,11 +553,6 @@ void attractorDtType::loadAdditionalData(Config &cfg)
 
 
 }
-
-
-
-
-
 
 //  Magnetic Attractor
 ////////////////////////////////////////////////////////////////////////////

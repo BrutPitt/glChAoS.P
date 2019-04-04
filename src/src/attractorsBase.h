@@ -979,7 +979,7 @@ class KingsDream : public attractorScalarK
 {
 public:
     KingsDream() { 
-        stepFn = (stepPtrFn) &KingsDream::Step; 
+        stepFn = (stepPtrFn) &KingsDream::Step;
         vMin = -0.5; vMax = 0.5; kMin = -2.0; kMax = 2.0;
         m_POV = vec3( 0.f, 0, 10.f);
     }
@@ -996,7 +996,7 @@ class Pickover : public attractorScalarK
 public:
 
     Pickover() {
-        stepFn = (stepPtrFn) &Pickover::Step;    
+        stepFn = (stepPtrFn) &Pickover::Step;
 
         vMin = -1.0; vMax = 1.0; kMin = -3.0; kMax = 3.0;
 
@@ -1016,7 +1016,7 @@ class SinCos : public attractorScalarK
 public:
 
     SinCos() {
-        stepFn = (stepPtrFn) &SinCos::Step;    
+        stepFn = (stepPtrFn) &SinCos::Step;
 
         kMin = -glm::pi<float>();
         kMax =  glm::pi<float>();
@@ -1038,7 +1038,7 @@ class Mira3D : public attractorScalarK
 public:
 
     Mira3D() {
-        stepFn = (stepPtrFn) &Mira3D::Step;    
+        stepFn = (stepPtrFn) &Mira3D::Step;
 
         vMin = -10.0; vMax = 10.0; kMin = -1.0; kMax = 1.0;
 
@@ -1063,7 +1063,7 @@ class Lorenz : public attractorDtType
 public:
 
     Lorenz() {
-        stepFn = (stepPtrFn) &Lorenz::Step;    
+        stepFn = (stepPtrFn) &Lorenz::Step;
 
         kMin = -10; kMax = 10; vMin = 0; vMax = 0;
         m_POV = vec3(0.f, .0, 40.f);
@@ -1102,7 +1102,7 @@ class ChenLee : public attractorDtType
 public:
 
     ChenLee() {
-        stepFn = (stepPtrFn) &ChenLee::Step;    
+        stepFn = (stepPtrFn) &ChenLee::Step;
 
         m_POV = vec3( 0.f, 0, 50.f);
     }
@@ -1118,7 +1118,7 @@ class TSUCS : public attractorDtType
 public:
 
     TSUCS() {
-        stepFn = (stepPtrFn) &TSUCS::Step;    
+        stepFn = (stepPtrFn) &TSUCS::Step;
 
         m_POV = vec3( 0.f, 0, 240.f);
     }
@@ -1134,7 +1134,7 @@ class Aizawa : public attractorDtType
 public:
 
     Aizawa() {
-        stepFn = (stepPtrFn) &Aizawa::Step;    
+        stepFn = (stepPtrFn) &Aizawa::Step;
 
         m_POV = vec3( 0.f, 0, 10.f);
     }
@@ -1150,7 +1150,7 @@ class YuWang : public attractorDtType
 public:
 
     YuWang() {
-        stepFn = (stepPtrFn) &YuWang::Step;    
+        stepFn = (stepPtrFn) &YuWang::Step;
 
         m_POV = vec3( 0.f, 0, 10.f);
     }
@@ -1214,7 +1214,7 @@ class Thomas : public attractorDtType
 public:
 
     Thomas() {
-        stepFn = (stepPtrFn) &Thomas::Step;    
+        stepFn = (stepPtrFn) &Thomas::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1230,7 +1230,7 @@ class Halvorsen : public attractorDtType
 public:
 
     Halvorsen() {
-        stepFn = (stepPtrFn) &Halvorsen::Step;    
+        stepFn = (stepPtrFn) &Halvorsen::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1246,7 +1246,7 @@ class Arneodo : public attractorDtType
 public:
 
     Arneodo() {
-        stepFn = (stepPtrFn) &Arneodo::Step;    
+        stepFn = (stepPtrFn) &Arneodo::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1262,7 +1262,7 @@ class Bouali : public attractorDtType
 public:
 
     Bouali() {
-        stepFn = (stepPtrFn) &Bouali::Step;    
+        stepFn = (stepPtrFn) &Bouali::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1278,7 +1278,7 @@ class Hadley : public attractorDtType
 public:
 
     Hadley() {
-        stepFn = (stepPtrFn) &Hadley::Step;    
+        stepFn = (stepPtrFn) &Hadley::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1294,7 +1294,7 @@ class LiuChen : public attractorDtType
 public:
 
     LiuChen() {
-        stepFn = (stepPtrFn) &LiuChen::Step;    
+        stepFn = (stepPtrFn) &LiuChen::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1310,7 +1310,7 @@ class GenesioTesi : public attractorDtType
 public:
 
     GenesioTesi() {
-        stepFn = (stepPtrFn) &GenesioTesi::Step;    
+        stepFn = (stepPtrFn) &GenesioTesi::Step;
 
         m_POV = vec3( 0.f, 0, 10.f);
     }
@@ -1326,7 +1326,7 @@ class NewtonLeipnik : public attractorDtType
 public:
 
     NewtonLeipnik() {
-        stepFn = (stepPtrFn) &NewtonLeipnik::Step;    
+        stepFn = (stepPtrFn) &NewtonLeipnik::Step;
 
         m_POV = vec3( 0.f, 0, 10.f);
     }
@@ -1342,7 +1342,7 @@ class NoseHoover : public attractorDtType
 public:
 
     NoseHoover() {
-        stepFn = (stepPtrFn) &NoseHoover::Step;    
+        stepFn = (stepPtrFn) &NoseHoover::Step;
 
         m_POV = vec3( 0.f, 0, 10.f);
     }
@@ -1358,7 +1358,7 @@ class RayleighBenard : public attractorDtType
 public:
 
     RayleighBenard() {
-        stepFn = (stepPtrFn) &RayleighBenard::Step;    
+        stepFn = (stepPtrFn) &RayleighBenard::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1374,7 +1374,7 @@ class Sakarya : public attractorDtType
 public:
 
     Sakarya() {
-        stepFn = (stepPtrFn) &Sakarya::Step;    
+        stepFn = (stepPtrFn) &Sakarya::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1390,7 +1390,7 @@ class Robinson : public attractorDtType
 public:
 
     Robinson() {
-        stepFn = (stepPtrFn) &Robinson::Step;    
+        stepFn = (stepPtrFn) &Robinson::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1406,7 +1406,7 @@ class Rossler : public attractorDtType
 public:
 
     Rossler() {
-        stepFn = (stepPtrFn) &Rossler::Step;    
+        stepFn = (stepPtrFn) &Rossler::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1422,7 +1422,7 @@ class Rucklidge : public attractorDtType
 public:
 
     Rucklidge() {
-        stepFn = (stepPtrFn) &Rucklidge::Step;    
+        stepFn = (stepPtrFn) &Rucklidge::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1438,7 +1438,7 @@ class DequanLi : public attractorDtType
 public:
 
     DequanLi() {
-        stepFn = (stepPtrFn) &DequanLi::Step;    
+        stepFn = (stepPtrFn) &DequanLi::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1453,7 +1453,7 @@ class MultiChuaII : public attractorDtType
 public:
 
     MultiChuaII() {
-        stepFn = (stepPtrFn) &MultiChuaII::Step;    
+        stepFn = (stepPtrFn) &MultiChuaII::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1468,7 +1468,7 @@ class ZhouChen : public attractorDtType
 public:
 
     ZhouChen() {
-        stepFn = (stepPtrFn) &ZhouChen::Step;    
+        stepFn = (stepPtrFn) &ZhouChen::Step;
 
         m_POV = vec3( 0.f, 0, 20.f);
     }
@@ -1487,7 +1487,7 @@ public:
     typedef  const vec3 (Magnetic::*magneticPtrFn)(const vec3 &, int);
     Magnetic() 
     {
-        stepFn = (stepPtrFn) &ChenLee::Step;    
+        stepFn = (stepPtrFn) &ChenLee::Step;
         kMax = 5.0; kMin = -5.0; vMax = 1.0; vMin = -1.0;
 
         m_POV = vec3( 0.f, 0.f, 3.f);
@@ -1713,7 +1713,7 @@ public:
         PB(KingsDream         , u8"\uf006" " King's Dream"       )
         PB(Pickover           , u8"\uf006" " Pickover"           )
         PB(SinCos             , u8"\uf006" " Sin Cos"            )
-//        PB(Mira3D             , u8"\uf006" " Mira3D"             )
+        PB(Mira3D             , u8"\uf006" " Mira3D"             )
         PB(Lorenz             , u8"\uf192" " Lorenz"             )
         PB(ChenLee            , u8"\uf192" " Chen-Lee"           )
         PB(TSUCS              , u8"\uf192" " TSUCS 1&2"          )
@@ -1756,7 +1756,7 @@ public:
 //        PB(glynnJB_IIM        , u8"\uf2dc" " Glynn JuliaBulb"    )
 //        PB(Hopalong        , "Hopalong"         )
 
-        selected = -1;
+        selected = 0;
 
         //std::sort(ptr.begin(), ptr.end());
 
@@ -1767,9 +1767,7 @@ public:
 #undef ATT_PATH
 #undef ATT_EXT 
 
-    void loadStartData() {
-        for(auto i : ptr) i->startData();
-    }
+    void loadStartData() { for(auto i : ptr) i->startData(); }
 
     AttractorBase *get()      { return ptr.at(selected); }
     AttractorBase *get(int i) { return ptr.at(i); }
@@ -1795,7 +1793,9 @@ public:
     int  getSelection()      { return selected; }
     void setSelection(int i) { newSelection(i);  }
 
-    void setSelectionByName(const string &s) {        
+    void resetSelection() { selected = -1; }
+
+    void setSelectionByName(const string &s) {
         for (int i = 0; i < ptr.size(); i++) 
             if(getNameID(i) == s) {
                 newSelection(i);
@@ -1803,7 +1803,7 @@ public:
             }
     }
 
-    int getSelectionByName(const string &s) {        
+    int getSelectionByName(const string &s) {
         for (int i = 0; i < ptr.size(); i++) 
             if(getNameID(i) == s) return i;
 
@@ -1812,7 +1812,7 @@ public:
 
     void restart();
 
-    ~AttractorsClass() {        
+    ~AttractorsClass() {
 
         while(!ptr.empty()) {
             delete ptr.back();
@@ -1836,6 +1836,7 @@ public:
     void generateNewRandom();
 
     std::mutex &getStepMutex() { return stepMutex; }
+    std::condition_variable & getStepCondVar() {return stepCondVar; }
 
     bool getEndlessLoop() { return endlessLoop; }
 

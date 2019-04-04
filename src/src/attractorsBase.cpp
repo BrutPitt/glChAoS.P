@@ -58,57 +58,44 @@ void AttractorsClass::endlessStep(emitterBaseClass *emitter)
     {
         //mtxStep.lock();
 
-        if(!emitter->isEmitterOn() || getSelection() < 0) return;
+        if(!emitter->isEmitterOn()/* || getSelection() < 0*/) return;
 
         vec3 v = get()->getCurrent();
         vec3 vp = v;
 
-#ifdef USE_MAPPED_BUFFER
-        GLuint64 &inc = *emitter->getVBO()->getPtrVertexUploaded();
-        const uint szBuffer = emitter->getSizeCircularBuffer(); 
-        uint countVtx = inc%szBuffer;
-        float *newPtr = ptr + countVtx * 4;
-        for(; countVtx<szBuffer && emitter->isEmitterOn() ; countVtx++, inc++) {
-            get()->Step(newPtr, v, vp);
-#else
-        for(uint &countVtx = get()->getRefEmittedParticles(); countVtx<emitter->getSizeStepBuffer() && emitter->isEmitterOn() && (!emitter->stopLoop()); countVtx++) {
-            get()->Step(ptr, v, vp);
-#endif
-            
+        if(emitter->useMappedMem()) {   // USE_MAPPED_BUFFER
+            GLuint64 &inc = *emitter->getVBO()->getPtrVertexUploaded();
+            const uint szBuffer = emitter->getSizeCircularBuffer(); 
+            uint countVtx = inc%szBuffer;
+            float *newPtr = ptr + (countVtx << 2);
+            for(; countVtx<szBuffer && emitter->isEmitterOn() ; countVtx++, inc++) 
+                get()->Step(newPtr, v, vp);
+        } else {
+            for(uint &countVtx = get()->getRefEmittedParticles(); countVtx<emitter->getSizeStepBuffer() && emitter->isEmitterOn() && (!emitter->stopLoop()); countVtx++) 
+                get()->Step(ptr, v, vp);
         }
         get()->Insert(vp);
         //mtxStep.unlock();
-    };       
+    };
 
     while(endlessLoop) {
         std::unique_lock<std::mutex> mlock(stepMutex);
         stepCondVar.wait(mlock, std::bind(&emitterBaseClass::loopCanStart, emitter));
 
-        if(emitter->needRestartCircBuffer()) {
-            emitter->resetVBOindexes();
-            get()->initStep();
-            emitter->needRestartCircBuffer(false);
+        std::lock_guard<std::mutex> l( mtxStep );
+
+        emitter->checkRestartCircBuffer();
+        if(emitter->useMappedMem()) {   // USE_MAPPED_BUFFER
+            singleStep(emitter->getVBO()->getBuffer()); 
+            if(emitter->isEmitterOn()) {
+                if(emitter->stopFull()) emitter->setEmitterOff();
+                if(emitter->restartCircBuff()) emitter->needRestartCircBuffer(true);
+            }
+        } else {
+            emitter->setThreadRunning(true);
+            singleStep(emitter->getVBO()->getBuffer()); 
+            emitter->setThreadRunning(false);
         }
-
-#ifdef USE_MAPPED_BUFFER
-        //static bool needRestart = false;
-
-
-        singleStep(emitter->getVBO()->getBuffer()); 
-        if(emitter->isEmitterOn()) {
-            if(emitter->stopFull()) emitter->setEmitterOff();
-            if(emitter->restartCircBuff()) emitter->needRestartCircBuffer(true);
-        }
-#else
-
-
-        //cout << attractorsList.get()->getEmittedParticles() << " " << emitter->isBufferRendered() << " " << emitter->stopLoop() << endl;
-        emitter->setThreadRunning(true);
-
-        singleStep(emitter->getVBO()->getBuffer()); 
-
-        emitter->setThreadRunning(false);
-#endif
     };
     
 }
@@ -510,9 +497,9 @@ INLINE void Mira3D::Step(vec3 &v, vec3 &vp)
         const float v2 = v*v;
         return k*v + 2.f*(1.f-k)*v2 / (1+v2);
     };
-    vp.x =  kVal[4]*v.z + v.y + f(v.x, kVal[0]);
+    vp.x =  v.y + f(v.x, kVal[0]);
     const float vpp = f(vp.x, kVal[0]);
-    vp.y =  kVal[5]*v.z - v.x + vpp;
+    vp.y =  vpp - v.x;
     vp.z =  f(v.z, kVal[3]) + f(vp.y, kVal[2]) + f(vpp, kVal[1]);
 
 }
@@ -939,11 +926,14 @@ INLINE const vec3 Magnetic::tryed(const vec3 &vx, int i)
 ////////////////////////////////////////////////////////////////////////////
 void threadStepClass::newThread()
 {
-#ifdef USE_THREAD_TO_FILL
-    attractorsList.queryStartThread();  //endlessLoop = true
-    if(attractorLoop == nullptr) {
-        attractorLoop = new thread(&AttractorsClass::endlessStep, &attractorsList, emitter);
-        //attractorLoop->detach();
+#if !defined(GLCHAOSP_LIGHTVER)
+    if(getEmitter()->useThread()) {
+        attractorsList.queryStartThread();  //endlessLoop = true
+        emitter->setEmitterOff();
+        if(attractorLoop == nullptr) {
+            attractorLoop = new thread(&AttractorsClass::endlessStep, &attractorsList, emitter);
+            //attractorLoop->detach();
+        }
     }
 #endif
 }
@@ -955,8 +945,8 @@ void threadStepClass::startThread(bool stratOn)
 
 void threadStepClass::deleteThread()
 {
-#ifdef USE_THREAD_TO_FILL
-    if(getThread() && (getThread()->get_id() != std::thread::id())) {
+#if !defined(GLCHAOSP_LIGHTVER)
+    if(getEmitter()->useThread() && getThread() && (getThread()->get_id() != std::thread::id())) {
         attractorsList.queryStopThread();
         stopThread();
         getThread()->join();
@@ -967,16 +957,18 @@ void threadStepClass::deleteThread()
 }
 
 void threadStepClass::stopThread() {
-#ifdef USE_THREAD_TO_FILL
-    emitter->setEmitterOff();
-    while(emitter->isLoopRunning())
-        std::this_thread::sleep_for(200ms);
+#if !defined(GLCHAOSP_LIGHTVER)
+    if(getEmitter()->useThread()) {
+        emitter->setEmitterOff();
+        while(emitter->isLoopRunning())
+            std::this_thread::sleep_for(200ms);
+    }
 #endif
 }
 
 void threadStepClass::notify() {
-#ifdef USE_THREAD_TO_FILL
-    attractorsList.stepCondVar.notify_one();
+#if !defined(GLCHAOSP_LIGHTVER)
+    if(getEmitter()->useThread()) attractorsList.stepCondVar.notify_one();
 #endif
 }
 
@@ -988,7 +980,7 @@ void threadStepClass::restartEmitter() {
 //  Attractor Class container
 ////////////////////////////////////////////////////////////////////////////
 void AttractorsClass::newSelection(int i) {
-    if(i==getSelection()) return;
+    //if(i==getSelection()) return;
     getThreadStep()->stopThread();
     selection(i);
     theApp->getMainDlg().getParticlesDlgClass().resetTreeParticlesFlags();

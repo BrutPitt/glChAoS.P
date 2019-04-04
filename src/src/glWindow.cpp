@@ -54,21 +54,25 @@ void glWindow::onInit()
     //rndTexture.buildTex(1024);
     //hlsTexture.buildTex(1024);
 
-    //particlesSystem = new particlesSystemClass(new transformedEmitterClass(1,mVB_COLOR));
+#if !defined(__EMSCRIPTEN__)
+    //new particlesSystemClass(new transformedEmitterClass(1,1/*mVB_COLOR*/)) :
     particlesSystem = new particlesSystemClass(new singleEmitterClass);
 
-#if !defined(__EMSCRIPTEN__)
+    //pointsprite initialization
     glEnable( GL_PROGRAM_POINT_SIZE );
     glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
     GLfloat retVal[4];
     glGetFloatv(GL_POINT_SIZE_RANGE, &retVal[0]);
     particlesSystem->shaderPointClass::getUData().pointspriteMinSize = retVal[0];
+
+    //lock aux thread until initialization is complete
+    std::lock_guard<std::mutex> l( attractorsList.getStepMutex() );
+#else
+    particlesSystem = new particlesSystemClass(new singleEmitterClass);
 #endif
 
-    attractorsList.newStepThread(particlesSystem->getEmitter());
-    attractorsList.setSelection(0);
-    attractorsList.getThreadStep()->startThread();
-
+    //start new thread (if aux thread enabled)
+    attractorsList.newStepThread(particlesSystem->getEmitter());    
 
     vfGizmo3DClass &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
 
@@ -90,6 +94,10 @@ void glWindow::onInit()
     T.viewportSize(theApp->GetWidth(), theApp->GetHeight());
 
     mmFBO::Init(theApp->GetWidth(), theApp->GetHeight()); 
+
+    //load attractor file (if exist) and (if exist) override default parameters
+    attractorsList.setSelection(attractorsList.getSelection()); 
+    //attractorsList.getThreadStep()->startThread();
 }
 
 
@@ -252,5 +260,8 @@ void glWindow::onKeyDown(unsigned char key, int x, int y) {}
 void glWindow::onSpecialKeyUp(int key, int x, int y) {}
 
 ////////////////////////////////////////////////////////////////////////////
-void glWindow::onMouseWheel(int wheel, int direction, int x, int y) {}
+void glWindow::onMouseWheel(int wheel, int direction, int x, int y) 
+{
+    particlesSystem->getTMat()->getTrackball().wheel(x, y);
+}
 
