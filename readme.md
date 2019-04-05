@@ -134,6 +134,7 @@ Read Build/CMake sections for further information.
     - **wine**    
     The Windows executable, 32/64 bit, works fine also in wine 3.xx with no evident loss of performance
 
+*NOTE*: Ending support for Ubuntu 16.04 LTS (ended to April 2019): the distributed executable is no longer compatible, but compatibility remains: you can compile source code to build your executable.
 - **OS X**\
 `glChAoSP_OSX`: native executable (64 bit) is provided for OpenGL 4.1
 \
