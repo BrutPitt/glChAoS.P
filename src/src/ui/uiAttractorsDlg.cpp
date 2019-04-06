@@ -442,7 +442,7 @@ const float border = 5;
     static bool sIdx=0; 
                 
 
-    char s[10];
+    char s[32];
     static int selIdx=-1;
     int valIdx = selIdx;   
 

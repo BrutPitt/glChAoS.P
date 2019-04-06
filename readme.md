@@ -1,7 +1,9 @@
-# [**glChAoS.P / wglChAoS.P - ver 1.1.1**](https://michelemorrone.eu/glchaosp)
+# [**glChAoS.P / wglChAoS.P - ver 1.2**](https://michelemorrone.eu/glchaosp)
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractor scout... and hypercompex fractals (new!) 
+
+**OpenGL 4.5 desktop ver. 1.2 soon avialable: currently online 1.2 WebGL version with new rendering engine and GGX light model support**
 
 Please read the release notes for changes and new features of **ver. 1.1.1**: [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases/tag/v1.1.1)
 
@@ -10,9 +12,9 @@ Please read the release notes for changes and new features of **ver. 1.1.1**: [*
 ### [New Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html)
 | hypercomplex fractals | hypercomplex fractals |
 | :-----: | :----: |
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master//screenShots/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
 
-### [New WebGL2 online version](https://michelemorrone.eu/glchaosp/webGL.html)
+### [New WebGL2 online version (ver. 1.2)](https://michelemorrone.eu/glchaosp/webGL.html)
 New [**wglChAoS.P**](https://michelemorrone.eu/glchaosp/webGL.html) / [**wglChAoSP**](https://michelemorrone.eu/glchaosp/webGL.html) WebGL 2 / WebAssembly lightened **LIVE / ONLINE** version of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
 
 ### Now supports touch screen for mobile devices, smartphones and tablets
@@ -20,7 +22,7 @@ New [**wglChAoS.P**](https://michelemorrone.eu/glchaosp/webGL.html) / [**wglChAo
 
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
 | :-----: |
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGL_half.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssWGL_half.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
 
 
 
