@@ -47,7 +47,7 @@
 //#define USE_MAPPED_BUFFER
 
 
-#define GLAPP_IMGUI_VIEWPORT
+//#define GLAPP_IMGUI_VIEWPORT
 
 #ifdef __EMSCRIPTEN__
     #define DOT_TEXT_SHFT 1
