@@ -115,7 +115,7 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 
 #ifdef NDEBUG
     #if !defined(GLCHAOSP_LIGHTVER)
-        #define EMISSION_STEP 500000
+        #define EMISSION_STEP (200*1024)
     #else
         #define EMISSION_STEP 20000
     #endif

@@ -35,32 +35,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 #line 37 // #include ParticlesFrag.glsl
 
-subroutine vec4 _pixelColor(vec4 N);
-subroutine uniform _pixelColor pixelColor;
-
 in vec2 texCoord;
-out vec4 outColor;
-
-
-LAYUOT_INDEX(1) subroutine(_pixelColor) vec4 pixelColorLight(vec4 N)
-{
-
-    return getLightedColor(texCoord, N);
-
-}
-
-LAYUOT_INDEX(0) subroutine(_pixelColor)  vec4 pixelColorOnly(vec4 N)
-{
-
-    return getColorOnly(texCoord);
-
-}
 
 
 void main(void)
 {
-    vec4 N = getParticleNormal(texCoord);
-    gl_FragDepth = linearizeDepth(mvVtxPos.z + (N.w > 1.0 ? 0.0 : N.z) * particleSize, u.zNear, u.zFar);
-
-    outColor = pixelColor(N);
+    outColor = mainFunc(texCoord);
 }

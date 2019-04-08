@@ -804,12 +804,17 @@ public:
 #ifndef GLAPP_REQUIRE_OGL45
         locPaletteTex = getUniformLocation("paletteTex" );
         locDotsTex    = getUniformLocation("tex"); 
-    #if !defined(GLCHAOSP_LIGHTVER)
-        idxSubLightOn = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorLight");
-        idxSubLightOff = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorOnly");
-        idxSubLightModel[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularPhong");
-        idxSubLightModel[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularBlinnPhong");
-        idxSubLightModel[2] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularGGX");
+    #if !defined(GLCHAOSP_LIGHTVER) 
+        #if !defined(__APPLE__)
+            locSubPixelColor = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "pixelColor");
+            idxSubLightOn = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorLight");
+            idxSubLightOff = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorOnly");
+
+            locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
+            idxSubLightModel[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularPhong");
+            idxSubLightModel[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularBlinnPhong");
+            idxSubLightModel[2] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularGGX");
+        #endif        
         idxSubOBJ = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "objColor"); 
         idxSubVEL = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "velColor"); 
     #endif
@@ -888,7 +893,7 @@ public:
     
     void setDepthState(bool b) { depthBuffActive = b; }
     void setBlendState(bool b) { blendActive = b; }
-    void setLightState(bool b) { lightStateIDX = b ? GLuint(on) : GLuint(off); }
+    void setLightState(bool b) { uData.lightActive = lightStateIDX = b ? GLuint(on) : GLuint(off); }
 
     radialBlurClass *getGlowRender()  { return glowRender; }
 #if !defined(GLCHAOSP_NO_FXAA)
@@ -928,6 +933,7 @@ protected:
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locDotsTex, locPaletteTex;
     GLuint idxSubOBJ, idxSubVEL;
+    GLuint locSubLightModel, locSubPixelColor; 
     GLuint idxSubLightOn, idxSubLightOff;
     GLuint idxSubLightModel[3];
 #endif

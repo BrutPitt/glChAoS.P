@@ -47,7 +47,7 @@
 //#define USE_MAPPED_BUFFER
 
 
-//#define GLAPP_IMGUI_VIEWPORT
+#define GLAPP_IMGUI_VIEWPORT
 
 #ifdef __EMSCRIPTEN__
     #define DOT_TEXT_SHFT 1
@@ -57,8 +57,10 @@
 
 //#define GLCHAOSP_LIGHTVER
 //#define GLCHAOSP_USE_LOWPRECISION
+//#define __APPLE__
 
 #ifdef GLCHAOSP_LIGHTVER
+//FF !:! pixel -> layout.css.devPixelsPerPx = 1
     #define GLCHAOSP_NO_FXAA
     //#define GLCHAOSP_NO_DeL
     //#define GLCHAOSP_USE_LOWPRECISION

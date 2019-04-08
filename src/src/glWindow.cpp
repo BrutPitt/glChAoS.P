@@ -60,7 +60,7 @@ void glWindow::onInit()
 
     //pointsprite initialization
     glEnable( GL_PROGRAM_POINT_SIZE );
-    glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
+    //glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT);
     GLfloat retVal[4];
     glGetFloatv(GL_POINT_SIZE_RANGE, &retVal[0]);
     particlesSystem->shaderPointClass::getUData().pointspriteMinSize = retVal[0];
@@ -97,9 +97,7 @@ void glWindow::onInit()
 
     //load attractor file (if exist) and (if exist) override default parameters
     attractorsList.setSelection(attractorsList.getSelection()); 
-    //attractorsList.getThreadStep()->startThread();
 }
-
 
 // 
 ////////////////////////////////////////////////////////////////////////////
@@ -110,7 +108,6 @@ void glWindow::onExit()
     delete particlesSystem;
     delete vao;
 }
-
 
 // 
 ////////////////////////////////////////////////////////////////////////////
@@ -197,14 +194,13 @@ void glWindow::onRender()
     #endif
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind both FRAMEBUFFERS to default
 #else 
 
     model->applyTransforms();
     GLuint texRendered = particlesSystem->render();
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind both FRAMEBUFFERS to default
 #endif
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind both FRAMEBUFFERS to default
 
     particlesSystem->clearFlagUpdate();
 }
@@ -221,7 +217,6 @@ void glWindow::onIdle()
 void glWindow::onReshape(GLint w, GLint h)
 {
     glViewport(0,0,w,h);
-
 
     if(particlesSystem) particlesSystem->onReshape(w,h);
 

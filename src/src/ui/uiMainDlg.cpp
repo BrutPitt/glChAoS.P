@@ -1060,7 +1060,7 @@ void particlesDlgClass::view()
 #if !defined(GLCHAOSP_LIGHTVER)
     const int wSZ = 300, hSZ = 900;
 #else
-    const int wSZ = theApp->isTabletMode() ? 300 : 270, hSZ = theApp->isTabletMode() ? 860 : 800;
+    const int wSZ = theApp->isTabletMode() ? 300 : 270, hSZ = theApp->isTabletMode() ? 880 : 820;
 #endif
 
     
@@ -2306,18 +2306,16 @@ void mainImGuiDlgClass::renderImGui()
         fontChanged = false;
     }
 */
+    if(visible()) {
 
-
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
 #ifdef __EMSCRIPTEN__
-    if(theApp->isTabletMode()) theApp->getEmsDevice().imGuiUpdateTouch();
+        if(theApp->isTabletMode()) theApp->getEmsDevice().imGuiUpdateTouch();
 #endif
 
-    ImGui::NewFrame();
+        ImGui::NewFrame();
 
-    if(visible()) {
         aboutDlg.view();
         attractorDlg.view();
         particlesDlg.view();
@@ -2332,20 +2330,20 @@ void mainImGuiDlgClass::renderImGui()
         dataDlg.view();
 #endif
         view();
-    }
 
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 
 #ifdef GLAPP_IMGUI_VIEWPORT
     // Update and Render additional Platform Windows
-    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
-    }
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+        }
 #endif
+    }
 
 }
 

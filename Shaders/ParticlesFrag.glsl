@@ -35,7 +35,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #line 37    //#version dynamically inserted
 
-
 layout(std140) uniform;
 
 LAYUOT_BINDING(1) uniform sampler2D tex;
@@ -67,25 +66,35 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float ggxRoughness;
     float ggxFresnel;
     int lightModel;
-    bool lightActive;
+    int lightActive;
 } u;
 
 #define idxPHONG 3
 #define idxBLINPHONG 4
 #define idxGGX 5
 
-#ifndef GL_ES
+#if !defined(GL_ES) && !defined(__APPLE__)
     subroutine float _lightModel(vec3 L, vec3 N);
     subroutine uniform _lightModel lightModel;
+
+    subroutine vec4 _pixelColor(vec4 color, vec4 N);
+    subroutine uniform _pixelColor pixelColor;
 #endif
 
-in vec3 mvVtxPos;
+LAYUOT_BINDING(4) uniform _tMat {
+    mat4 pMatrix;
+    mat4 mvMatrix;
+    mat4 mvpMatrix;
+} m;
 
+
+in vec3 mvVtxPos;
 
 in float pointDistance;
 in vec4 particleColor;
 in float particleSize;
 
+out vec4 outColor;
 
 //uniform float distAlphaFactor;
 //uniform float alphaK;
@@ -102,8 +111,10 @@ float getAlpha(float alpha)
 
 }
 
-
-LAYUOT_INDEX(idxPHONG) SUBROUTINE(_lightModel) float specularPhong(vec3 L, vec3 N)
+#if !defined(__APPLE__)
+LAYUOT_INDEX(idxPHONG) SUBROUTINE(_lightModel) 
+#endif
+float specularPhong(vec3 L, vec3 N)
 {
     vec3 viewDir = normalize(-mvVtxPos);
     vec3 reflectDir = reflect(-L, N);
@@ -112,7 +123,10 @@ LAYUOT_INDEX(idxPHONG) SUBROUTINE(_lightModel) float specularPhong(vec3 L, vec3 
     return pow(specAngle, u.lightShinExp * .25);
 }
 
-LAYUOT_INDEX(idxBLINPHONG) SUBROUTINE(_lightModel) float specularBlinnPhong(vec3 L, vec3 N)
+#if !defined(__APPLE__)
+LAYUOT_INDEX(idxBLINPHONG) SUBROUTINE(_lightModel) 
+#endif
+float specularBlinnPhong(vec3 L, vec3 N)
 {
 // point on surface of sphere in eye space
     vec3 viewDir = normalize(-mvVtxPos);
@@ -123,7 +137,10 @@ LAYUOT_INDEX(idxBLINPHONG) SUBROUTINE(_lightModel) float specularBlinnPhong(vec3
 
 }
 
-LAYUOT_INDEX(idxGGX) SUBROUTINE(_lightModel) float specularGGX(vec3 L, vec3 N) 
+#if !defined(__APPLE__)
+LAYUOT_INDEX(idxGGX) SUBROUTINE(_lightModel) 
+#endif
+float specularGGX(vec3 L, vec3 N) 
 {
     float alpha = u.ggxRoughness*u.ggxRoughness;
     vec3 V = normalize(mvVtxPos);
@@ -145,10 +162,23 @@ LAYUOT_INDEX(idxGGX) SUBROUTINE(_lightModel) float specularGGX(vec3 L, vec3 N)
     return dotNL * D * F / (dotLH*dotLH*(1.0-k2)+k2);
 }
 
+// need to read for AO
+//http://web.archive.org/web/20130416194336/http://olivers.posterous.com/linear-depth-in-glsl-for-real
+//https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
+
 float linearizeDepth(float depth, float near, float far) 
 {
-    float z = -depth * 2.0 - (far - near);                          // back to NDC -depth/(far - near) * 2.0 - 1.0
-    return (2.0 * near * far) / ((far + near) - z * (far - near));	
+    float z = -depth/(far - near) * 2.0 - 1.0; //-depth * 2.0 - (far - near);  // back to NDC -> -depth/(far - near) * 2.0 - 1.0
+    return ((2.0 * near * far) / ((far + near) - z * (far - near)));	
+  
+}
+
+// result suitable for assigning to gl_FragDepth
+float depthSample(float linearDepth, float zNear, float zFar)
+{
+    float nonLinearDepth = (zFar + zNear - 2.0 * zNear * zFar / linearDepth) / (zFar - zNear);
+    nonLinearDepth = (nonLinearDepth + 1.0) / 2.0;
+    return nonLinearDepth;
 }
 
 vec4 acquireColor(vec2 coord)
@@ -170,48 +200,68 @@ vec4 getParticleNormal(vec2 coord)
 }
 
 
-vec4 getLightedColor(vec2 coord, vec4 N)
+#if !defined(__APPLE__)
+LAYUOT_INDEX(1) SUBROUTINE(_pixelColor) 
+#endif
+vec4 pixelColorLight(vec4 color, vec4 N)
 {
-
-    vec4 color = acquireColor(coord);
-
-    //vec3 N;
-    //N.xy = (coord - vec2(.5))*2.0; // xy = radius in 0
-    //float mag = dot(N.xy, N.xy);
-    //N.z = sqrt(1.0-mag);
-    if (N.w > 1.0f || color.a < u.alphaSkip) discard;   // kill pixels outside circle: r=1.0
+    if (color.a < u.alphaSkip) discard;   // kill pixels outside circle: r=1.0
+    //else {
+        //vec3 N;
+        //N.xy = (coord - vec2(.5))*2.0; // xy = radius in 0
+        //float mag = dot(N.xy, N.xy);
+        //N.z = sqrt(1.0-mag);
     
-    N.xyz = normalize(N.xyz); 
+        N.xyz = normalize(N.xyz); 
 
-    //Light @ vertex position
-    vec3 light = normalize(u.lightDir+mvVtxPos);  // 
+        //Light @ vertex position
+        vec3 light = normalize(u.lightDir+mvVtxPos);  // 
     
-    float lambertian = max(0.0, dot(light, N.xyz)); 
+        float lambertian = max(0.0, dot(light, N.xyz)); 
 
-#ifdef GL_ES
-    float specular = u.lightModel == idxPHONG ? specularPhong(light, N.xyz) : (u.lightModel == idxBLINPHONG ? specularBlinnPhong(light, N.xyz) : specularGGX(light, N.xyz));
+#if defined(GL_ES) || defined(__APPLE__)
+        float specular = u.lightModel == idxPHONG ? specularPhong(light, N.xyz) : (u.lightModel == idxBLINPHONG ? specularBlinnPhong(light, N.xyz) : specularGGX(light, N.xyz));
 #else
-    float specular = lightModel(light, N.xyz);
+        float specular = lightModel(light, N.xyz);
 #endif
 
 
-    vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,
-                                /*color.rgb + */
-                                color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
-                                u.lightColor * specular * u.lightSpecInt  + 
-                                (color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5); /* (color.rgb+u.lightAmbInt*0.1) * */
+        vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,
+                                    /*color.rgb + */
+                                    color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
+                                    u.lightColor * specular * u.lightSpecInt  + 
+                                    (color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5); /* (color.rgb+u.lightAmbInt*0.1) * */
 
 
  
-    return vec4(lColor.rgb , color.a);        
+        return vec4(lColor.rgb , color.a);
+    //}
 }
 
 
-vec4 getColorOnly(vec2 coord)
+#if !defined(__APPLE__)
+LAYUOT_INDEX(0) SUBROUTINE(_pixelColor)  
+#endif
+vec4 pixelColorOnly(vec4 color, vec4 N)
 {
-    vec4 color = acquireColor(coord);
 
     if(color.a < u.alphaSkip ) discard ;
-
     return color;
+}
+
+vec4 mainFunc(vec2 ptCoord)
+{
+
+    vec4 N = getParticleNormal(ptCoord);
+    if(N.w > 1.0) discard;
+    //else {
+    gl_FragDepth =linearizeDepth(mvVtxPos.z + (N.w > 1.0 ? 0.0 : N.z) * particleSize, u.zNear, u.zFar);
+    vec4 color = acquireColor(ptCoord);
+
+#if defined(GL_ES) || defined(__APPLE__)
+    return u.lightActive==1 ? pixelColorLight(color, N) : pixelColorOnly(color, N);
+#else
+    //return vec4(vec3(gl_FragDepth),1.0); 
+    return pixelColor(color, N);
+#endif
 }

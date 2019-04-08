@@ -352,9 +352,12 @@ void mainGLApp::glfwInit()
         glslDefines = "#define LAYUOT_BINDING(X)\n"
                       "#define LAYUOT_INDEX(X)\n"
                       "#define SUBROUTINE(X) subroutine(X)\n"
-    #ifdef GLCHAOSP_LIGHTVER
+        #ifdef __APPLE__  // troubles on MAC with multiple subroutines
+                      "#define __APPLE__\n"
+        #endif
+        #ifdef GLCHAOSP_LIGHTVER
                       "#define TEST_WGL\n"
-    #endif
+        #endif
                       "#define CONST\n";
     #endif
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -376,7 +379,6 @@ void mainGLApp::glfwInit()
         glfwWindowHint(GLFW_SAMPLES,0);
 #endif
     //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-    
 
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);

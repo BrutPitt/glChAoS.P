@@ -167,6 +167,7 @@ void mmFBO::deleteFBO()
 
     glDeleteFramebuffers(m_NumFB,m_fb);
     glDeleteTextures(m_NumFB, m_tex);
+    if(m_depthTex>-1) glDeleteTextures(1, &m_depthTex);
     
     if(haveRB) glDeleteRenderbuffers(m_NumFB, m_rb);
 
@@ -248,7 +249,7 @@ void mmFBO::initFB(GLuint fbuff, GLuint iText)
     CheckFramebufferStatus(glCheckFramebufferStatus(GL_FRAMEBUFFER));
 }
 
-void mmFBO::attachRB(GLuint iRB )
+void mmFBO::attachRB(GLuint iFB, GLuint iRB)
 {
             ////////////////////////////////////////
             // initialize depth renderbuffer
@@ -265,13 +266,45 @@ void mmFBO::attachRB(GLuint iRB )
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_rb, 0);
             glDrawBuffers(1, (const GLenum *)&drawbuffer);
 */
-
+/*
     //glGenRenderbuffersEXT(1, m_rb[index]);
     glBindRenderbuffer(GL_RENDERBUFFER, iRB);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, m_sizeX, m_sizeY);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, iRB);
     CheckFramebufferStatus(glCheckFramebufferStatus(GL_FRAMEBUFFER));
-    
+*/
+/*
+    glBindTexture(GL_TEXTURE_2D, m_depthTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, m_sizeX, m_sizeY, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTex, 0);
+    glDrawBuffers(1, &drawBuffers);
+*/
+/*
+    GLuint drawBuffers = GL_COLOR_ATTACHMENT0;
+    glCreateTextures(GL_TEXTURE_2D ,1, &m_depthTex);
+    glTextureStorage2D(m_depthTex,1,GL_DEPTH_COMPONENT32F,m_sizeX, m_sizeY);    
+    glTextureParameteri(m_depthTex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(m_depthTex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(m_depthTex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(m_depthTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glNamedFramebufferTexture(iFB, GL_DEPTH_ATTACHMENT, m_depthTex, 0);
+*/
+#ifdef GLAPP_REQUIRE_OGL45
+            if(aaLevel>0) glNamedRenderbufferStorageMultisample(iRB, aaLevel, GL_DEPTH_COMPONENT32F, m_sizeX, m_sizeY);
+            else          glNamedRenderbufferStorage(iRB, GL_DEPTH_COMPONENT32F, m_sizeX, m_sizeY);
+
+            glNamedFramebufferRenderbuffer(iFB, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, iRB);
+#else
+            glBindRenderbuffer(GL_RENDERBUFFER, iRB);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, m_sizeX, m_sizeY);
+            glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, iRB);
+#endif
+
+
 }
 
 
@@ -369,17 +402,7 @@ void mmFBO::buildFBO(int num, int sizeX, int sizeY, GLenum precision, bool zBuff
         initFB( m_fb[i], m_tex[i]);
 
         if(haveRB) {
-            //attachRB(m_rb[i]);
-#ifdef GLAPP_REQUIRE_OGL45
-            if(aaLevel>0) glNamedRenderbufferStorageMultisample(m_rb[i], aaLevel, GL_DEPTH_COMPONENT32F, m_sizeX, m_sizeY);
-            else          glNamedRenderbufferStorage(m_rb[i], GL_DEPTH_COMPONENT32F, m_sizeX, m_sizeY);
-
-            glNamedFramebufferRenderbuffer(m_fb[i], GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_rb[i]);
-#else
-            glBindRenderbuffer(GL_RENDERBUFFER, m_rb[i]);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, m_sizeX, m_sizeY);
-            glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_rb[i]);
-#endif
+            attachRB( m_fb[i], m_rb[i]);
 
 
             //glTextureStorage2D(m_rb[i],1,GL_DEPTH_COMPONENT32F,m_sizeX, m_sizeY);    

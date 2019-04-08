@@ -508,7 +508,7 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
         pSys->getEmitter()->restartCircBuff(      c.get_or("rstrtCircBuff", pSys->getEmitter()->restartCircBuff()      ));        
         pSys->getEmitter()->stopFull(             c.get_or("stopCircBuff" , pSys->getEmitter()->stopFull()             ));
 #ifdef GLCHAOSP_LIGHTVER
-        pSys->getEmitter()->stopFull(true);
+        if(theApp->isTabletMode()) pSys->getEmitter()->stopFull(true);
 #endif
 
 
@@ -660,7 +660,7 @@ char const *mainGLApp::saveFile(const char *startDir, char const * patterns[], i
 
     //char const * patterns[2] = { "*.chatt", "*.txt" };
     return tinyfd_saveFileDialog("Save File...", startDir, numPattern, patterns, NULL);
-#else 
+#else
     return NULL;
 #endif
 }
@@ -688,7 +688,7 @@ void loadSettingsFile()
 
     if(isOn) attractorsList.getThreadStep()->stopThread();
 
-    char const * patterns[] = { "*.cfg", "*.sca" };        
+    char const * patterns[] = { "*.cfg", "*.sca" };
     char const * fileName = theApp->openFile(RENDER_CFG_PATH, patterns, 2);
 
     if(fileName!=nullptr) 

@@ -71,6 +71,7 @@ using namespace configuru;
 
 
 #define BUFFER_DIM 100
+#define STABILIZE_DIM 1500
 
 //#define RANDOM(MIN, MAX) ((MIN)+((float)rand()/(float)RAND_MAX)*((MAX)-(MIN)))
 
@@ -149,6 +150,10 @@ public:
     virtual void Step(float *ptr, int numElements);
     //attractor step algorithm
     virtual void Step(vec3 &v, vec3 &vp) = 0;
+
+    void stabilize(int samples) {
+        for(int i = samples; i>0; i--) Step();
+    }
 
 
     vec3& getCurrent()  { return stepQueue.front(); }
@@ -236,6 +241,7 @@ public:
     virtual void initStep() {
         resetQueue();
         Insert(vVal[0]);
+        stabilize(STABILIZE_DIM);
     }
 
     virtual void newRandomValues() 
@@ -302,6 +308,7 @@ public:
     virtual void initStep() {
         resetQueue();
         Insert(vVal[0]);
+        stabilize(STABILIZE_DIM);
     }
     virtual void newRandomValues() 
     {
@@ -712,6 +719,7 @@ public:
         if(nCoeff!=kVal.size()) assert("mismatch loaded size!!");
 
         Insert(vVal[0]);
+        stabilize(STABILIZE_DIM);
 
     }
 
@@ -1497,6 +1505,7 @@ public:
         resetQueue();
         Insert(vec3(0.f));
         tmpElements = vVal.size();
+        stabilize(STABILIZE_DIM);
     }
 
     void Step(vec3 &v, vec3 &vp);

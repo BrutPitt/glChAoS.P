@@ -137,10 +137,10 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
 
     if(depthBuffActive) {
         glEnable(GL_DEPTH_TEST);
-        glDepthFunc( GL_LESS );
+        //glDepthFunc( GL_LESS );
         glDepthMask(GL_TRUE);
 #if !defined(GLCHAOSP_LIGHTVER)
-        glDepthRange(-1.0, 1.0);
+        //glDepthRange(-1.0, 1.0);
 #endif
         //glClearDepth(1.0f);
         GLfloat f=1.0f;
@@ -195,11 +195,16 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
     setUniform1i(locDotsTex,texID);
 
 #if !defined(GLCHAOSP_LIGHTVER)
-    GLuint subIDX[2] = { idxSubLightModel[uData.lightModel - modelOffset],
-                         lightStateIDX==1 ? idxSubLightOn : idxSubLightOff }; 
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
+    #if !defined(__APPLE__)
+        GLuint subIDX[2];
+        subIDX[locSubPixelColor] = lightStateIDX==1 ? idxSubLightOn : idxSubLightOff;
+        subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel - modelOffset];
+
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
+    #endif
     glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), idxViewOBJ==1 ? &idxSubOBJ : &idxSubVEL);
 #endif
+
     updatePalTex();
 #endif
 
@@ -687,6 +692,8 @@ void colorMapTexturedClass::render(int tex)
 #if !defined(GLAPP_REQUIRE_OGL45)
     ProgramObject::reset();
 #endif
+
+    glViewport(0,0, particles->getWidth(), particles->getHeight());
 }
 
 #if !defined(GLCHAOSP_NO_FXAA)

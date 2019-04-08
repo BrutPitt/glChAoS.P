@@ -35,44 +35,22 @@
 ////////////////////////////////////////////////////////////////////////////////
 #line 37    // #include ParticlesFrag.glsl
 
-#ifdef GL_ES
-    #define SUBROUTINE(X) 
-#else
-    subroutine vec4 _pixelColor(vec4 N);
-    subroutine uniform _pixelColor pixelColor;
-    #define SUBROUTINE(X) subroutine(X)
-#endif
-
-out vec4 outColor;
-
-LAYUOT_INDEX(1) SUBROUTINE(_pixelColor) vec4 pixelColorLight(vec4 N)
-{
-
-    return getLightedColor(gl_PointCoord, N);
-
-}
-
-LAYUOT_INDEX(0) SUBROUTINE(_pixelColor)  vec4 pixelColorOnly(vec4 N)
-{
-
-    return getColorOnly(gl_PointCoord);
-}
-
 
 
 void main()
 {
 
-    //gl_FragDepth = -posEye.z*u.zFar;
-    //gl_FragDepth = (u.zNear - u.zFar/posEye.z);
-    //outColor = vec4(vec3((1.0+gl_FragDepth)*.5), 1.0);
-
-    vec4 N = getParticleNormal(gl_PointCoord);
-    gl_FragDepth = linearizeDepth(mvVtxPos.z + (N.w > 1.0 ? 0.0 : N.z) * particleSize, u.zNear, u.zFar);
-
-#if defined(GL_ES) || defined(TEST_WGL)
-    outColor = u.lightActive ? pixelColorLight(N) : pixelColorOnly(N);
-#else
-    outColor = pixelColor(N);
-#endif
+    vec2 ptCoord = vec2(gl_PointCoord.x,1.0-gl_PointCoord.y); //upsideDown: revert point default
+    outColor = mainFunc(ptCoord);
+/*
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    vec2 uv = fragCoord.xy / iResolution.xy;
+    vec4 color =  texture(iChannel0, uv);
+    float gray = length(color.rgb);
+    vec3 dx = dFdx(vec3(uv,gray));
+    vec3 dy = dFdy(vec3(uv,gray));
+    vec3 N = normalize(cross(dx, dy));
+    fragColor = vec4(N,1.0);
+}*/
 }

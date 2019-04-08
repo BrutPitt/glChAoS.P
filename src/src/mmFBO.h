@@ -65,6 +65,7 @@ public:
     GLuint getFB(int num)  { return num<m_NumFB ? m_fb[num] : -1; }
     GLuint getTex(int num) { return num<m_NumFB ? m_tex[num] : -1; }
     GLuint getRB(int num) { return num<m_NumFB ? m_rb[num] : -1; }
+    GLuint getDepth() { return m_depthTex; }
 
     int getSizeX() { return m_sizeX; }
     int getSizeY() { return m_sizeY; }
@@ -88,7 +89,7 @@ static GLuint vbaID;
 
 private:
     void initFB(GLuint fbuff, GLuint iText);
-    void attachRB(GLuint iRB );
+    void attachRB(GLuint iFB, GLuint iRB );
     void CheckFramebufferStatus(GLenum status);
     void resetData();
 
@@ -100,9 +101,10 @@ private:
 
     //fboBuffers *fbo;
 
-    GLuint  *m_fb;		
-    GLuint  *m_rb;	
+    GLuint  *m_fb;
+    GLuint  *m_rb;
     GLuint  *m_tex;
+    GLuint  m_depthTex = -1;
 
     int m_sizeX, m_sizeY;
 

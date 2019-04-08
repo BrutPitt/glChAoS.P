@@ -291,12 +291,11 @@ public:
     void updateBufferData() {
 #ifdef GLAPP_REQUIRE_OGL45
         glNamedBufferSubData(uBuffer, 0, realDataSize, ptrData); 
-        glBindBufferBase(GL_UNIFORM_BUFFER, bind::bindIdx, uBuffer);
 #else
         glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, realDataSize, ptrData); 
-        glBindBufferBase(GL_UNIFORM_BUFFER, bind::bindIdx, uBuffer);
 #endif
+        glBindBufferBase(GL_UNIFORM_BUFFER, bind::bindIdx, uBuffer);
     }
 
 private:

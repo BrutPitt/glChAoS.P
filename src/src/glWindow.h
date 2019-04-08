@@ -451,8 +451,9 @@ public:
 
     GLuint render() {
 
+        //glViewport(0,0, getWidth(), getHeight());
+
         //getShader()->renderOfflineFeedback(attractorsList.get());
-        glViewport(0,0, getWidth(), getHeight());
 /*
         glm::vec3 head = attractorsList.get()->getCurrent();
 

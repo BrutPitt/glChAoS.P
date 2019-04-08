@@ -67,7 +67,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float ggxRoughness;
     float ggxFresnel;
     int lightModel;
-    bool lightActive;
+    int lightActive;
 } u;
 
 LAYUOT_BINDING(4) uniform _tMat {
