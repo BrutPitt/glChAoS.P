@@ -19,7 +19,7 @@
 		"stopCircBuff":   true,
 		"camPOV":         [ 0.0, 0.0, 3.0 ],
 		"camTGT":         [ 0.0, 0.0, 0.0 ],
-		"camPerspective": [ 30.0, 1.1920929e-07, 100.0 ],
+		"camPerspective": [ 30.0, 0.107, 100.0 ],
 		"camDolly":       [ 0.0, 0.0, -7.3700023 ],
 		"camPan":         [ 0.45000005, -0.029999983, 0.0 ],
 		"camRotCent":     [ 0.0, 0.0, 0.0 ],
