@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,34 +11,20 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #include <chrono>
 #include <array>
 #include <algorithm>
 #include <vector>
 #include <ostream>
-#include <dirent.h>
+
+#ifdef _WIN32
+    #include <dirent/dirent.h>
+#else
+    #include <dirent.h>
+#endif
                 
 #include "glApp.h"
 #include "glWindow.h"
@@ -168,6 +154,15 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     }
     c["dotsType"        ] = ptr->getDotTex().getDotType();
 
+    c["AOenabled"       ] = ptr->useAO();
+    c["AObias"          ] = ptr->getAOBias();
+    c["AOradius"        ] = ptr->getAORadius();
+    c["AOdarkness"      ] = ptr->getAODarkness();
+    
+    c["depthRender"     ] = ptr->postRenderingActive();
+    c["drNearAdj"       ] = ptr->dpAdjNearPlane();
+
+
 //Colors
     c["ColorInt"        ] = ptr                 ->getColIntensity();
     c["ColorVel"        ] = ptr->getCMSettings()->getVelIntensity();
@@ -191,7 +186,7 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["ggxFresnel"      ] = ptr->getUData().ggxFresnel;
     {
         vector<float> v(3); 
-        *((vec3 *)v.data()) = ptr->getUData().lightDir;
+        *((vec3 *)v.data()) = ptr->getLightDir();
         c["lightDir"        ] = Config::array(v);
         *((vec3 *)v.data()) = ptr->getUData().lightColor;
         c["lightColor"      ] = Config::array(v);
@@ -394,10 +389,19 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     ptr->setAlphaAtten(     c.get_or("alphaAttenFactor", ptr->getAlphaAtten()     ));
     ptr->setAlphaSkip(      c.get_or("alphaSkip"       , ptr->getAlphaSkip()      ));
 
+
     vec4 v4;
     ptr->getDotTex().rebuild( c.get_or("dotsSize"        , DOT_TEXT_SHFT),
                               getVec_asArray(c, "HermiteVals", v4) ? v4 : vec4(.7f, 0.f, .3f, 0.f),
                               c.get_or("dotsType"        , 0));
+
+    ptr->useAO(                    c.get_or("AOenabled"   , false               ));
+    ptr->setAOBias(                c.get_or("AObias"      , ptr->getAOBias()    ));
+    ptr->setAORadius(              c.get_or("AOradius"    , ptr->getAORadius()  ));
+    ptr->setAODarkness(            c.get_or("AOdarkness"  , ptr->getAODarkness()));
+
+    ptr->postRenderingActive(             c.get_or("depthRender" , false                    ));
+    ptr->dpAdjNearPlane(                  c.get_or("drNearAdj"   , 0.0                      ));
 
     ptr->dstBlendIdx(getBlendIdx(ptr->getDstBlend()));
     ptr->srcBlendIdx(getBlendIdx(ptr->getSrcBlend()));
@@ -425,9 +429,8 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     ptr->getUData().ggxFresnel    = c.get_or("ggxFresnel"      , ptr->getUData().ggxFresnel);
 
     vec3 v3;
-    ptr->getUData().lightDir   = (getVec_asArray(c, "lightDir"  , v3) ? v3 : vec3(50.f, 0.f, 15.f));
+    ptr->setLightDir( (getVec_asArray(c, "lightDir"  , v3) ? v3 : vec3(50.f, 15.f, 25.f)));
     ptr->getUData().lightColor = (getVec_asArray(c, "lightColor", v3) ? v3 : vec3(1.f));
-
 
 //glow    
     radialBlurClass *glow = ptr->getGlowRender();

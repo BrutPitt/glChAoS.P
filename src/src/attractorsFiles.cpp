@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,27 +11,8 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #include "glWindow.h"
 
@@ -304,7 +285,8 @@ void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool wantNorm
         std::ostream os(&fbOut);
 	    if (os.fail()) throw std::runtime_error("failed to open " + filename);
 
-        const uint32_t sizeBuff = e->getSizeCircularBuffer();
+        const uint32_t sizeBuff = e->getSizeCircularBuffer()>e->getVBO()->getVertexUploaded() ? 
+                                  e->getVBO()->getVertexUploaded() : e->getSizeCircularBuffer();
 
         glm::vec4 *mappedBuffer = nullptr;
         if(e->useMappedMem())   // USE_MAPPED_BUFFER
@@ -552,6 +534,16 @@ void attractorDtType::loadAdditionalData(Config &cfg)
     dtStepInc = cfg.get_or("dtInc",dtStepInc);
 
 
+}
+//  DLA 3D
+////////////////////////////////////////////////////////////////////////////
+void dla3D::saveAdditionalData(Config &cfg) 
+{
+        cfg["Stubbornness"] = m_Stubbornness;
+}
+void dla3D::loadAdditionalData(Config &cfg) 
+{
+        m_Stubbornness = cfg.get_or("Stubbornness",0);
 }
 
 //  Magnetic Attractor

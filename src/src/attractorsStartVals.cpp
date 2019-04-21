@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,27 +11,8 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #include "attractorsBase.h"
 
@@ -414,6 +395,35 @@ void Mira3D::startData()
     kVal.push_back(-1.0);
 
     Insert(vVal[0]);
+}
+
+// https://github.com/fogleman/dlaf
+void dla3D::startData()
+{
+    //staring point: Center
+    vVal.push_back(glm::vec3(0.f));
+
+    // m_ParticleSpacing defines the distance between particles that are
+    // joined together
+    kVal.push_back( 1.0/100.0); // kVal[0] -> m_ParticleSpacing;    
+
+    // m_AttractionDistance defines how close together particles must be in
+    // order to join together
+    kVal.push_back( 3.0/100.0); // kVal[1] -> m_AttractionDistance;
+
+    // m_MinMoveDistance defines the minimum distance that a particle will move
+    // during its random walk
+    kVal.push_back( 1.0/100.0); // kVal[2] -> m_MinMoveDistance;
+
+    // m_Stickiness defines the probability that a particle will allow another
+    // particle to join to it.
+    kVal.push_back( 1.); // kVal[3] -> m_Stickiness;
+
+    // m_BoundingRadius defines the radius of the bounding sphere that bounds
+    // all of the particles
+    //kVal.push_back( 0.0); // kVal[4] -> m_BoundingRadius;
+
+
 }
 
 void ChenLee::startData()

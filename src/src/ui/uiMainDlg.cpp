@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,27 +11,8 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #include <sstream>
 #include "../glApp.h"
@@ -314,7 +295,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
         if(isOpen) {
 #if !defined(GLCHAOSP_LIGHTVER)
-            const int numItems = 7;
+            const int numItems = 9;
 #else
             const int numItems = 7;
 #endif
@@ -423,6 +404,77 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                         if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.0,  1.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAlphaSkip(f);
                     }
                 ImGui::PopItemWidth();
+
+#if !defined(GLCHAOSP_LIGHTVER)
+                if(particles->getDepthState() || particles->getLightState()) {
+                    ImGui::AlignTextToFramePadding();
+
+                    bool b = particles->postRenderingActive();
+                    ImGui::TextDisabled("DRender");
+                    ImGui::SameLine();
+                    if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->postRenderingActive(b);
+                        
+                    if(particles->postRenderingActive()) {
+                        ImGui::SameLine();
+                        float aoW = w - (ImGui::GetCursorPosX()-posA);
+                        float aoSZ = (aoW - border*3.f) * .333;
+
+                        float start = ImGui::GetCursorPosX();
+                        ImGui::TextDisabled("Adj");
+                        ImGui::SameLine();
+                        float end = ImGui::GetCursorPosX();
+                        ImGui::PushItemWidth(aoSZ - (end-start));
+
+                        float f = particles->dpAdjNearPlane();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, -1.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->dpAdjNearPlane(f);
+                        ImGui::PopItemWidth();
+                    }
+                    ImGui::AlignTextToFramePadding();
+
+                    ImGui::TextDisabled("AO");
+                    ImGui::SameLine();
+                    b = particles->useAO();
+                    if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useAO(b);
+
+                    if(particles->useAO()) {
+                        ImGui::SameLine();
+                        float aoW = w - (ImGui::GetCursorPosX()-posA);
+                        float aoSZ = (aoW - border*3.f) * .333;
+                    
+                        float start = ImGui::GetCursorPosX();
+                        ImGui::TextDisabled("Bias");
+                        ImGui::SameLine();
+                        float end = ImGui::GetCursorPosX();
+                        ImGui::PushItemWidth(aoSZ - (end-start));
+
+                        float f = particles->getAOBias();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOBias(f);
+                        ImGui::PopItemWidth();
+
+                        ImGui::SameLine();
+                        start = ImGui::GetCursorPosX();
+                        ImGui::TextDisabled("Rad");
+                        ImGui::SameLine();
+                        end = ImGui::GetCursorPosX();
+                        ImGui::PushItemWidth(aoSZ - (end-start));
+
+                        f = particles->getAORadius();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .01, 0.01, 5.0,  "%.2f",1.f,ImVec2(.93,0.5))) particles->setAORadius(f);
+                        ImGui::PopItemWidth();
+
+                        ImGui::SameLine();
+                        start = ImGui::GetCursorPosX();
+                        ImGui::TextDisabled("Dark");
+                        ImGui::SameLine();
+                        end = ImGui::GetCursorPosX();
+                        ImGui::PushItemWidth(aoSZ - (end-start));
+
+                        f = particles->getAODarkness();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .0025, 0.0, 1.0,  "%.2f",1.f,ImVec2(.93,0.5))) particles->setAODarkness(f);
+                        ImGui::PopItemWidth();
+                    }
+                }
+#endif
 
             ImGui::EndChild();
             ImGui::PopStyleVar();
@@ -586,7 +638,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 //ImGui::PushItemWidth(wButt4);
                 //ImGui::AlignTextToFramePadding();
                 glm::vec3 lCol = particles->getLightColor();
-                glm::vec3 vL(-particles->getUData().lightDir);
+                glm::vec3 vL(-particles->getLightDir());
 
                 ImGui::SetCursorPosX(posA); 
                 if(ImGui::ColorEdit3(buildID(base, idA++, id),glm::value_ptr(lCol),ImGuiColorEditFlags_NoInputs)) particles->setLightColor(lCol); 
@@ -605,11 +657,9 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::TextDisabled("Dist"); ImGui::SameLine();
                 ImGui::PushItemWidth(w - (ImGui::GetCursorPosX()-posA));
                 float dist = glm::length(vL);
-                if(ImGui::DragFloatEx(buildID(base, idA++, id), &dist ,0.01, 0.001, 5000.f, "% .3f",1.0f,ImVec2(.93,0.5))) {
-                    particles->getUData().lightDir = glm::normalize(particles->getUData().lightDir) * dist;
+                if(ImGui::DragFloatEx(buildID(base, idA++, id), &dist ,0.01, 0.01f, 5000.f, "% .3f",1.0f,ImVec2(.93,0.5))) {
+                    particles->setLightDir(glm::normalize(particles->getLightDir()) * dist);
                 }
-
-
 
                 ImGui::AlignTextToFramePadding();
 
@@ -628,7 +678,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::SameLine(wLight);
                 
                 imguiGizmo::setDirectionColor(ImVec4(.4f+lCol.x*.6f, .4f+lCol.y*.6f, .4f+lCol.z*.6f, 1.0));
-                if(ImGui::gizmo3D("##Bht", vL ,wGizmo))  particles->getUData().lightDir = -vL;
+                if(ImGui::gizmo3D("##Bht", vL ,wGizmo))  particles->setLightDir(-vL);
                 imguiGizmo::restoreDirectionColor();
 
                 ImGui::SetCursorPos(pos);
@@ -672,43 +722,6 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::DragFloatRange2(buildID(base, idA++, id), &particles->getUData().sstepColorMin, &particles->getUData().sstepColorMax, .01, -1.0, 2.0);
                 ImGui::PopItemWidth();
 
-
-                //ImGui::NextColumn();
-
-
-                //ImGui::SetCursorPos(pos);
-                //ImGui::SameLine();
-
-                //bool l = particles->lightStateIDX;
-                //if(ImGui::Checkbox("light on/off", &l))  particles->lightStateIDX = l ? particles->on : particles->off;
-
-                //ImGui::Checkbox("depth on/off", &particles->depthBuffActive);
-                //ImGui::Checkbox("blend on/off", &particles->blendActive);
-                // reDim axes ... same lenght, 
-                //const float psG = (ImGui::GetContentRegionAvailWidth() - ((ImGui::GetFrameHeightWithSpacing()*4) - (ImGui::GetStyle().ItemSpacing.y*2))) * .5;
-                //ImGui::SetCursorPosX(ImGui::GetCursorPosX()+psG);
-
-                //imguiGizmo::resizeSolidOf(.75); // sphere bigger
-
-
-                //imguiGizmo::restoreSolidSize(); // restore at default
-
-                //ImGui::SetCursorPosX(posC4); 
-/*
-                ImGui::PushItemWidth(wButt2);
-                ImGui::DragFloat3(buildID(base, idA++, id),glm::value_ptr(particles->getUData().lightDir),0.01f);
-                ImGui::PopItemWidth();
-*/
-                //ImGui::SliderFloat("diffInt",&particles->getUData().lightDiffInt, 0, 20.f);
-                //ImGui::SliderFloat("shi",&particles->getUData().lightShinExp, 1, 2000.f, "%.1f",5.f);
-                //ImGui::SliderFloat("spec",&particles->getUData().lightSpecInt, 0, 20.f);
-                //ImGui::SliderFloat("amb",&particles->getUData().lightAmbInt, -1, 2.f);
-
-                //ImGui::SliderFloat("alphSkip",&particles->getUData().alphaSkip, 0.0, 1.f);
-                //ImGui::DragFloat("ssmin",&particles->getUData().sstepColorMin,0.01, -1., 2.f);
-                //ImGui::DragFloat("ssmax",&particles->getUData().sstepColorMax, 0.01, 0, 3.f);
-
-                //ImGui::Columns(1);
 
             ImGui::EndChild();
             ImGui::PopStyleVar();
@@ -1060,7 +1073,7 @@ void particlesDlgClass::view()
 #if !defined(GLCHAOSP_LIGHTVER)
     const int wSZ = 300, hSZ = 900;
 #else
-    const int wSZ = theApp->isTabletMode() ? 300 : 270, hSZ = theApp->isTabletMode() ? 880 : 820;
+    const int wSZ = theApp->isTabletMode() ? 300 : 270, hSZ = theApp->isTabletMode() ? 900 : 820;
 #endif
 
     
@@ -1294,7 +1307,7 @@ void comboWindowRes(const float width)
     ImGui::SameLine();
     ImGui::PushItemWidth(width-ImGui::GetCursorPosX()-DLG_BORDER_SIZE);
 
-    const char *items[20] = { "", "1024x1024", "1280x720", "1920x1080", "1920x1200", "2048x2048", "2560x1440", "3440x1440" };
+    const char *items[20] = { "", "1024x1024", "1280x720", "1280x1024", "1920x1080", "1920x1200", "2048x2048", "2560x1440", "3440x1440" };
     int w, h;
     // glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
     char s[30];
@@ -1305,6 +1318,7 @@ void comboWindowRes(const float width)
     if (ImGui::Combo("##wSize", &i, items, 8)) {  
         sscanf(items[i], "%dx%d", &w, &h);
         theApp->setWindowSize(w,h);
+        //theWnd->onReshape(w,h);
         i=0;
     }
 }
@@ -1626,10 +1640,6 @@ void dataDlgClass::view()
         ImGui::SameLine(wH);
         if(ImGui::Button("Export CFG", ImVec2(wButtH,0))) saveSettingsFile();
 
-        ImGui::NewLine();
-        ImGui::Text("Work in progress...");
-
-
     }
     ImGui::End();
 
@@ -1772,10 +1782,10 @@ void viewSettingDlgClass::view()
             quat q(tBall.getRotation());
 #if !defined(GLCHAOSP_LIGHTVER)
             vec3 l(pSys->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? 
-                   -pSys->shaderBillboardClass::getPtr()->getUData().lightDir :
-                   -pSys->shaderPointClass::getPtr()->getUData().lightDir);
+                   -pSys->shaderBillboardClass::getPtr()->getLightDir() :
+                   -pSys->shaderPointClass::getPtr()->getLightDir());
 #else
-            vec3 l(-pSys->shaderPointClass::getPtr()->getUData().lightDir);
+            vec3 l(-pSys->shaderPointClass::getPtr()->getLightDir());
 #endif
             //imguiGizmo::resizeSolidOf(.75); // sphere resize
             if(ImGui::gizmo3D("##RotB1", q, wButt2, imguiGizmo::sphereAtOrigin))  { tBall.setRotation(q); } 
@@ -1785,10 +1795,10 @@ void viewSettingDlgClass::view()
             if( ImGui::gizmo3D("##RotA", l,wButt2,0)) { 
 #if !defined(GLCHAOSP_LIGHTVER)
                 if(pSys->getWhitchRenderMode()==RENDER_USE_BILLBOARD)
-                     pSys->shaderBillboardClass::getPtr()->getUData().lightDir = -l;
+                     pSys->shaderBillboardClass::getPtr()->setLightDir(-l);
                 else
 #endif
-                     pSys->shaderPointClass::getPtr()->getUData().lightDir = -l;                
+                     pSys->shaderPointClass::getPtr()->setLightDir(-l);
             }   
             imguiGizmo::restoreAxesSize();
 
@@ -1802,10 +1812,10 @@ void viewSettingDlgClass::view()
             if(ImGui::DragFloat3("##Lux",value_ptr(l),.01,0.0,0.0)) {
 #if !defined(GLCHAOSP_LIGHTVER)
                 if(pSys->getWhitchRenderMode()==RENDER_USE_BILLBOARD)
-                     pSys->shaderBillboardClass::getPtr()->getUData().lightDir = l;
+                     pSys->shaderBillboardClass::getPtr()->setLightDir(-l);
                 else
 #endif
-                     pSys->shaderPointClass::getPtr()->getUData().lightDir = l;                
+                     pSys->shaderPointClass::getPtr()->setLightDir(-l);
             }
             ImGui::PopItemWidth();
             //if(ImGui::DragFloat4("Rot",value_ptr(q),.01,0.0,0.0)) tBall.setRotation(q);
@@ -1970,14 +1980,15 @@ void imGuIZMODlgClass::view()
         ImGui::PopItemWidth();
 
 #if !defined(GLCHAOSP_LIGHTVER)
-        vec3 &ligh = theWnd->getParticlesSystem()->getRenderMode()==RENDER_USE_POINTS ? theWnd->getParticlesSystem()->shaderPointClass::getUData().lightDir : theWnd->getParticlesSystem()->shaderBillboardClass::getUData().lightDir;
+        vec3 &ligh = theWnd->getParticlesSystem()->getRenderMode()==RENDER_USE_POINTS ? theWnd->getParticlesSystem()->shaderPointClass::getLightDir() : theWnd->getParticlesSystem()->shaderBillboardClass::getLightDir();
 #else
-        vec3 &ligh = theWnd->getParticlesSystem()->shaderPointClass::getUData().lightDir;
+        vec3 &ligh = theWnd->getParticlesSystem()->shaderPointClass::getLightDir();
 #endif
         glm::vec3 lL(-ligh);
         if(ImGui::gizmo3D("##aaa", qt, lL, sz))  { 
             ligh = -lL;
             theWnd->getParticlesSystem()->getTMat()->getTrackball().setRotation(qt);
+            theWnd->getParticlesSystem()->setFlagUpdate();
         }
         ImGui::PushItemWidth(sz);
         style.Colors[ImGuiCol_Text].x = style.Colors[ImGuiCol_Text].y = 1.0, style.Colors[ImGuiCol_Text].z =0.f;

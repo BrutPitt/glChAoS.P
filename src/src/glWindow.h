@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,27 +11,8 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
@@ -110,7 +91,7 @@ public:
     }
 private:
     GLuint vao, vaoBuffer;
-    enum Attrib_IDs { vPosition = 2 };
+    enum Attrib_IDs { vPosition = 0 };
     int size;
 };
 
@@ -161,8 +142,8 @@ public:
                 } else {
                     checkRestartCircBuffer();
                     GLfloat *ptrBuff = InsertVbo->getBuffer();
-                    attractorsList.get()->Step(ptrBuff, getSizeStepBuffer());
-                    bufferFull = InsertVbo->uploadSubBuffer(getSizeStepBuffer(), getSizeCircularBuffer());
+                    uint32_t numElem = attractorsList.get()->Step(ptrBuff, getSizeStepBuffer());
+                    bufferFull = InsertVbo->uploadSubBuffer(numElem, getSizeCircularBuffer());
                     //attractorsList.get()->Step(ptrBuff, 1);
                     //bufferFull = InsertVbo->uploadSubBuffer(1, getSizeCircularBuffer());
                 }
@@ -434,6 +415,8 @@ public:
         getTMat()->setPerspective(float(w)/float(h));
 
         getRenderFBO().reSizeFBO(w, h);
+        getPostRendering()->getFBO().reSizeFBO(w, h);
+        getAO()->getFBO().reSizeFBO(w, h);
         shaderPointClass::getGlowRender()->getFBO().reSizeFBO(w, h);
 #if !defined(GLCHAOSP_NO_FXAA)
         shaderPointClass::getFXAA()->getFBO().reSizeFBO(w, h);
@@ -498,16 +481,17 @@ public:
                 getAxes()->renderOnFB(getRenderFBO().getFB(0));
                 float zoomK = particles->getTMat()->getPOV().z - particles->getTMat()->getTrackball().getDollyPosition().z;
                 getAxes()->setZoomFactor(vec3(vec2(zoomK/10.f), zoomK/7.f) * particles->getTMat()->getPerspAngle()/30.f);
-            }
-            particles->render(getRenderFBO().getFB(0), getEmitter());
-            texRendered = getRenderFBO().getTex(0);
+            }            
+            texRendered = particles->render(0, getEmitter());
 
-            if(particles->getFXAA()->isOn()) 
-                texRendered = particles->getFXAA()->render(getRenderFBO().getTex(0));                
-
-            const GLuint fbo = getMotionBlur()->Active() ? particles->getGlowRender()->getFBO().getFB(1) : 0;
+            const GLuint fbo = (getMotionBlur()->Active() || particles->getFXAA()->isOn()) ? particles->getGlowRender()->getFBO().getFB(1) : 0;
             particles->getGlowRender()->render(texRendered, fbo); 
             texRendered = particles->getGlowRender()->getFBO().getTex(1);  // used only if Motionblur
+
+            if(particles->getFXAA()->isOn()) 
+                texRendered = particles->getFXAA()->render(texRendered);
+
+
         };
 
         if(getRenderMode() == RENDER_USE_POINTS) {
@@ -515,12 +499,11 @@ public:
         }  else if(getRenderMode() == RENDER_USE_BILLBOARD) {
             renderSelection(shaderBillboardClass::getPtr());
         } else {
-            shaderBillboardClass::render(getRenderFBO().getFB(0), getEmitter());
-            shaderPointClass::render(getRenderFBO().getFB(1), getEmitter());
+            GLuint tex1 = shaderBillboardClass::render(0, getEmitter());
+            shaderBillboardClass::getGlowRender()->render(tex1, shaderBillboardClass::getGlowRender()->getFBO().getFB(1));  
+            GLuint tex2 = shaderPointClass::render(1, getEmitter());
             emitter->bufferRendered();
-            //setViewOrtho();
-            shaderBillboardClass::getGlowRender()->render(getRenderFBO().getTex(0), shaderBillboardClass::getGlowRender()->getFBO().getFB(1));  
-            shaderPointClass::getGlowRender()->render(getRenderFBO().getTex(1), shaderPointClass::getGlowRender()->getFBO().getFB(1));  
+            shaderPointClass::getGlowRender()->render(tex2, shaderPointClass::getGlowRender()->getFBO().getFB(1));  
             texRendered = getMergedRendering()->render(shaderBillboardClass::getGlowRender()->getFBO().getTex(1), shaderPointClass::getGlowRender()->getFBO().getTex(1));  // only if Motionblur
         }
 #else

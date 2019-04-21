@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,27 +11,8 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "glslShaderObject.h"
@@ -214,8 +195,8 @@ public:
     void useFragment() { fragObj = new FragmentShader; }
     void useAll()      { useVertex(); useGeometry(); useFragment(); }
 
-    void deleteVertex()   { if(!vsCloned) { delete vertObj; vertObj = nullptr; } }
-    void deleteFragment() { if(!fsCloned) { delete fragObj; fragObj = nullptr; } }
+    void deleteVertex()   { if(!vsCloned) { removeShader(vertObj); delete vertObj; vertObj = nullptr; } }
+    void deleteFragment() { if(!fsCloned) { removeShader(fragObj); delete fragObj; fragObj = nullptr; } }
     void deleteAll()      { deleteVertex(); deleteFragment(); deleteGeometry(); }
 
     void addVertex()      { addShader(vertObj); }
@@ -228,7 +209,7 @@ public:
 
 #if !defined(__EMSCRIPTEN__)
     void useGeometry() { geomObj = new GeometryShader; }
-    void deleteGeometry() { if(!gsCloned) { delete geomObj; geomObj = nullptr; } }
+    void deleteGeometry() { if(!gsCloned) { removeShader(geomObj); delete geomObj; geomObj = nullptr; } }
     void addGeometry()    { addShader(geomObj); }
 
     GeometryShader *getGeometry() { return geomObj; }
@@ -253,9 +234,17 @@ public:
 // getting aligment for min size block allocation
     void getAlignment() {
         GLint uBufferMinSize(0);
-		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uBufferMinSize);
-		uBlockSize = (GLint(realDataSize)/ uBufferMinSize) * uBufferMinSize;
-		if(realDataSize%uBufferMinSize) uBlockSize += uBufferMinSize;
+        glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uBufferMinSize);
+        uBlockSize = (GLint(realDataSize)/ uBufferMinSize) * uBufferMinSize;
+        if(realDataSize%uBufferMinSize) uBlockSize += uBufferMinSize;
+    }
+
+    static GLuint bindIndex(GLuint prog, const char *nameUBlock)
+    {
+        GLuint blockIndex = glGetUniformBlockIndex(prog, nameUBlock);
+        glUniformBlockBinding(prog, blockIndex, bind::bindIdx);
+
+        return blockIndex;
     }
 
 #ifdef GLAPP_REQUIRE_OGL45
@@ -264,8 +253,6 @@ public:
     void create(GLuint size, void *pData, GLuint prog, const char *nameUBlock)
 #endif
     {
-        glGenBuffers(1,    &uBuffer);
-
         realDataSize = size;
         ptrData = pData;
 
@@ -276,10 +263,11 @@ public:
         glNamedBufferStorage(uBuffer,  uBlockSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
         glNamedBufferSubData(uBuffer, 0, realDataSize, ptrData);
 #else
-        blockIndex = glGetUniformBlockIndex(prog, nameUBlock);
+        glGenBuffers(1,    &uBuffer);
+        GLuint blockIndex = bindIndex(prog, nameUBlock);
 //get min size block sending
+        GLint minBlockSize;
         glGetActiveUniformBlockiv(prog, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &minBlockSize);
-        glUniformBlockBinding(prog, blockIndex, bind::bindIdx);
 
         glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
 // now we alloc min size permitted, but copy realDataSize
@@ -301,8 +289,6 @@ public:
 private:
     void *ptrData;
     enum bind { bindIdx=2 };
-    GLuint blockIndex;
     GLuint uBuffer;
-    GLint minBlockSize;
     GLuint realDataSize, uBlockSize; 
 };

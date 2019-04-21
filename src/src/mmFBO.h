@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,71 +11,55 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef _mm_FBO_
 #define _mm_FBO_
 
 #include "glm/vec2.hpp"
+#include <vector>
 
 //#include "GPU.h"
 
 using namespace glm;
 
-struct fboBuffers
-{
-    GLuint  m_fb;		
-    GLuint  m_rb;	
-    GLuint  m_tex;
-};
+
 
 class mmFBO 
 {
 public:
+    enum secondaryBufferType { depthBuffer, stencilBuffer, depthStencilBuffer };
+    enum depthBufferType { depthTexture, depthBuiltIn };
     
-    mmFBO();
-    ~mmFBO();
+    mmFBO()  { resetData(); }
+    ~mmFBO() { deleteFBO(); }
 
-    void buildFBO(int num, int sizeX, int sizeY, GLenum precision, bool zBuff, int levelAA=0);
-    void reBuildFBO(int num, int sizeX, int sizeY, GLenum precision, bool zBuff, int levelAA=0);
-    void buildMultiDrawFBO(int num, int sizeX, int sizeY, GLenum precision);
+    void buildFBO(int num, int sizeX, int sizeY, GLenum precision, int levelAA=0);
+    void reBuildFBO(int num, int sizeX, int sizeY, GLenum precision, int levelAA=0);
     void reSizeFBO(int sizeX, int sizeY);
     void deleteFBO();
 
     GLuint getFB(int num)  { return num<m_NumFB ? m_fb[num] : -1; }
     GLuint getTex(int num) { return num<m_NumFB ? m_tex[num] : -1; }
-    GLuint getRB(int num) { return num<m_NumFB ? m_rb[num] : -1; }
-    GLuint getDepth() { return m_depthTex; }
+    GLuint getRB(int num)  { return num<m_NumFB ? m_rb[num] : -1; }
+    GLuint getDepth(int num) { return num<m_NumFB ? m_depth[num] : -1; }
+    GLuint getTexMultiFB(int num) { return num<numMultiDraw ? multiDrawFB[num] : -1; }
+
+    void attachDB(bool builtIN)    { attachSecondaryBuffer(builtIN, depthBuffer); }
+    void attachSB(bool builtIN)    { attachSecondaryBuffer(builtIN, stencilBuffer); }
+    void attachDB_SB(bool builtIN) { attachSecondaryBuffer(builtIN, depthStencilBuffer); };
 
     int getSizeX() { return m_sizeX; }
     int getSizeY() { return m_sizeY; }
 
+    void defineTexture(GLuint iTex, GLuint intFormat, GLuint format = GL_RGBA, GLuint type = GL_FLOAT);
+    void attachMultiFB(int num);
 
 // static members
     static void onReshape() { onReshape(mmFBO::m_winSize.x, mmFBO::m_winSize.y); }
-
     static void onReshape(int w, int h);
-    static void Init(int w, int h);
+    static void Init(int w, int h) { mmFBO::onReshape(w, h); }
 
     static ivec2 m_winSize;
     static vec2 m_winAspect;     
@@ -89,28 +73,27 @@ static GLuint vbaID;
 
 private:
     void initFB(GLuint fbuff, GLuint iText);
-    void attachRB(GLuint iFB, GLuint iRB );
+    void attachSecondaryBuffer(bool builtIN, secondaryBufferType type); //depthBuffer + Stencil
     void CheckFramebufferStatus(GLenum status);
     void resetData();
 
     int m_NumFB, aaLevel = 0;
     bool isBuilded;
-    bool haveRB;
+    bool haveRB = false;
+    bool isBuiltIn = true;
+
 
     GLuint glPrecision;
 
-    //fboBuffers *fbo;
-
-    GLuint  *m_fb;
-    GLuint  *m_rb;
-    GLuint  *m_tex;
-    GLuint  m_depthTex = -1;
+    GLuint *m_fb    = nullptr;
+    GLuint *m_rb    = nullptr;
+    GLuint *m_tex   = nullptr;
+    GLuint *m_depth = nullptr;
+    GLuint *multiDrawFB = nullptr;
+    secondaryBufferType dsBufferType = depthBuffer;
+    int numMultiDraw = 0;
 
     int m_sizeX, m_sizeY;
-
-
-
-
 };
 
 

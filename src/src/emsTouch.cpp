@@ -1,3 +1,19 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Copyright (c) 2018-2019 Michele Morrone
+//  All rights reserved.
+//
+//  mailto:me@michelemorrone.eu
+//  mailto:brutpitt@gmail.com
+//  
+//  https://github.com/BrutPitt
+//
+//  https://michelemorrone.eu
+//  https://BrutPitt.com
+//
+//  This software is distributed under the terms of the BSD 2-Clause license
+//  
+////////////////////////////////////////////////////////////////////////////////
 #include "emsTouch.h"
 
 #include "glApp.h"
@@ -68,7 +84,7 @@ void emsMDeviceClass::imGuiUpdateTouch()
 
         if (focused)
         {
-            std::cout << "Tx: " << touchX << "Ty: " << touchY << "Px: " << viewport->Pos.x << "Py: " << viewport->Pos.y << std::endl;
+            //std::cout << "Tx: " << touchX << "Ty: " << touchY << "Px: " << viewport->Pos.x << "Py: " << viewport->Pos.y << std::endl;
             io.MousePos = ImVec2((float)touchX + viewport->Pos.x, (float)touchY + viewport->Pos.y);
 
             for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) {
@@ -115,8 +131,8 @@ EM_BOOL emsMDeviceClass::touchStart(int eventType, const EmscriptenTouchEvent *e
 
     t.touched = true;
 
-    std::cout << "TouchStart: " <<  std::endl;
-    std::cout << "Tx: " << t.touchX << "Ty: " << t.touchY <<  std::endl;
+    //std::cout << "TouchStart: " <<  std::endl;
+    //std::cout << "Tx: " << t.touchX << "Ty: " << t.touchY <<  std::endl;
 
     if(e->numTouches==1 && t.isDoubleTap(t.touchX, t.touchY, 300)) {
         const float sz = 150.f;

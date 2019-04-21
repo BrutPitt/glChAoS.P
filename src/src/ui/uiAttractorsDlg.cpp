@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,27 +11,8 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #include <sstream>
 
@@ -208,6 +189,26 @@ void PowerN3D::additionalDataCtrls()
     ImGui::PopItemWidth();
 }
 
+void dla3D::additionalDataCtrls()
+{
+    ImGui::NewLine();
+    headerAdditionalDataCtrls();
+        
+    ImGui::DragInt("##stub", &m_Stubbornness, .05, 0, 99, "Stubbornness: %02d");
+    ImGui::SameLine();
+/*
+    if(ImGui::Button(" Set " )) {
+        attractorsList.getThreadStep()->stopThread();
+        
+        setElements(m_Stubbornness);
+        attractorsList.getThreadStep()->restartEmitter();
+        attractorsList.getThreadStep()->startThread();
+
+    }
+*/
+    ImGui::PopItemWidth();
+}
+
 
 void Magnetic::additionalDataCtrls()
 {
@@ -347,7 +348,7 @@ void attractorDlgClass::view()
             ImGui::BeginChild("buttons"); {
                 const float wDn = ImGui::GetContentRegionAvailWidth();
                 const int buttW = wDn*.2;
-                if(!attractorsList.get()->dtType()) {
+                if(!attractorsList.get()->dtType() && !attractorsList.get()->dlaType()) {
                     ImGui::PushItemWidth((wDn-border*3)*.5+.5); //wDn*.5-border
                     ImGui::SetCursorPosX(border);
                     ImGui::DragFloatRange2("##vR", &attractorsList.get()->vMin, &attractorsList.get()->vMax, 
@@ -365,6 +366,9 @@ void attractorDlgClass::view()
                     } else { ImGui::AlignTextToFramePadding();  ImGui::NewLine(); }
                 } else {
                     ImGui::AlignTextToFramePadding(); ImGui::NewLine();
+
+                    ImGui::AlignTextToFramePadding(); ImGui::NewLine();
+/*
 #ifdef GLCHAOSP_LIGHTVER
                     ImGui::AlignTextToFramePadding(); ImGui::NewLine();
 #else
@@ -372,16 +376,9 @@ void attractorDlgClass::view()
                     static bool b;
                     if(colCheckButton(b, ICON_FA_RANDOM " Explorer", buttW)) { b^=1; }
 #endif
-                }
-
-/*
-                {
-                    if(ImGui::Button("AdditionalData")) attractorsList.get()->dlgAdditionalDataVisible(true);
-                    attractorsList.get()->additionalDataDlg();
-
-                }
 */
-                //ImGui::NewLine();
+                }
+
                 attractorsList.get()->additionalDataCtrls();
                 ImGui::SameLine();
 
@@ -450,7 +447,7 @@ const float border = 5;
     static const char *idCell = "XYZW";
     AttractorBase *att = attractorsList.get();
 
-    auto populateData = [&] (auto colWidth, int elem, int pos, int nCol = 1) {
+    auto populateData = [&] (auto colWidth, int elem, int pos, int nCol, float minVal, float maxVal) {
         const int typeVal = ImGui::GetColumnIndex();
         for(int i=0; i<elem ; i++) {
             float szItem;
@@ -483,7 +480,7 @@ const float border = 5;
                     }
                         
                     float f = att->getValue(i,j,typeVal);
-                    if(ImGui::DragFloatEx(s, (float *) &f, .0001, 0.0, 0.0, "%.7f",1.0f,ImVec2(.93,0.5))) {
+                    if(ImGui::DragFloatEx(s, (float *) &f, .0001, minVal, maxVal, "%.7f",1.0f,ImVec2(.93,0.5))) {
                          att->setValue(i, j, typeVal, f); valIdx=idx; 
                          if(!theWnd->getParticlesSystem()->getEmitter()->isEmitterOn()) 
                              theWnd->getParticlesSystem()->getEmitter()->setEmitterOn(); 
@@ -506,7 +503,7 @@ const float border = 5;
                 
                 const bool test4D = !typeVal && att->getPtSize()==AttractorBase::attPt4D && i==3;
                 float f =  test4D ? att->getDim4D() : att->getValue(i,typeVal);
-                if(ImGui::DragFloatEx(s, (float *) &f, .0001, 0.0, 0.0, "%.7f",1.0f,ImVec2(.93,0.5))) {
+                if(ImGui::DragFloatEx(s, (float *) &f, .0001, minVal, maxVal, "%.7f",1.0f,ImVec2(.93,0.5))) {
                     if(test4D) att->setDim4D(f);
                     else       att->setValue(i, typeVal, f); 
                     valIdx=idx; 
@@ -529,9 +526,9 @@ const float border = 5;
         const float wCl = ImGui::GetContentRegionAvailWidth();
 
         const int nElem = att->getNumElements(AttractorBase::attLoadPtVal);
-        if(nElem > 1) { columnsHeader(wCl, "X", "Y", "Z"); populateData(wCl, nElem, border, 3); }
+        if(nElem > 1) { columnsHeader(wCl, "X", "Y", "Z"); populateData(wCl, nElem, border, 3, att->getInputVMin(), att->getInputVMax()); }
         else          { columnHeader(wCl, "Start Pt"); 
-                        populateData(wCl, att->getPtSize(), border, 1); }
+                        populateData(wCl, att->getPtSize(), border, 1, att->getInputVMin(), att->getInputVMax()); }
     }
 
     ImGui::SetCursorPosY(posY);
@@ -546,7 +543,7 @@ const float border = 5;
         if(nCol > 1) columnsHeader(wCl, "Kx", "Ky", "Kz");
         else         columnHeader(wCl, " K Vals ");
 
-        populateData(wCl, nElem, ImGui::GetCursorPosX()+border, nCol);
+        populateData(wCl, nElem, ImGui::GetCursorPosX()+border, nCol, att->getInputKMin(), att->getInputKMax());
     }
 /*
     if(attractorsList.get()->getKType() == attractorsList.get()->attHaveKVect )

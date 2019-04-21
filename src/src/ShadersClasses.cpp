@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,29 +11,11 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #include <glm/glm.hpp>
+#include <fastRandom.h>
 
 #include "glWindow.h"
 
@@ -105,7 +87,8 @@ void shaderPointClass::initShader()
 
 
 #ifdef GLAPP_REQUIRE_OGL45
-        uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData);
+    uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData);
+    getCommonLocals();
 #else
     bindPipeline();
     useProgram();
@@ -116,7 +99,6 @@ void shaderPointClass::initShader()
 
     getCommonLocals();
 
-
     ProgramObject::reset();
 #endif
 
@@ -126,33 +108,21 @@ void shaderPointClass::initShader()
 //  particlesBase 
 //
 ////////////////////////////////////////////////////////////////////////////////
-void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
-
-    bindPipeline();
-
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbOut);
-    //glBindFramebuffer(GL_FRAMEBUFFER, fbOut);
-
-    //glEnable(GL_MULTISAMPLE);
+void particlesBaseClass::clearScreenBuffers()
+{
 
     if(depthBuffActive) {
         glEnable(GL_DEPTH_TEST);
-        //glDepthFunc( GL_LESS );
         glDepthMask(GL_TRUE);
-#if !defined(GLCHAOSP_LIGHTVER)
-        //glDepthRange(-1.0, 1.0);
-#endif
-        //glClearDepth(1.0f);
         GLfloat f=1.0f;
-        glClearBufferfv(GL_DEPTH, 0, &f);
+        glClearBufferfv(GL_DEPTH , 0, &f);
+        //glClearBufferfi(GL_DEPTH_STENCIL , 0, 1.f, 0);
     }
 
-    const GLuint texID = dotTex.getTexID();
 #if !defined(GLCHAOSP_LIGHTVER)
-    if(showAxes() == noShowAxes) glClearBufferfv(GL_COLOR, 0, glm::value_ptr(glm::vec4(0.0f)));
+    if(showAxes() == noShowAxes) glClear(GL_COLOR_BUFFER_BIT); //glClearBufferfv(GL_COLOR,  GL_DRAW_BUFFER, glm::value_ptr(glm::vec4(0.0f)));
     if(blendActive || showAxes()) {
 #else
-    getUData().lightActive = lightStateIDX; 
     glClearBufferfv(GL_COLOR, 0, glm::value_ptr(glm::vec4(0.0f)));
     if(blendActive) {
 #endif
@@ -161,29 +131,68 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
         glBlendFunc(getSrcBlend(), getDstBlend());
     }
 
-    //getUData().velocity = getCMSettings()->getVelIntensity();
-    if(checkFlagUpdate()) updateCommonUniforms();
-    //const float dist = getTMat()->getPerspFar()-getTMat()->getPerspNear();
-    //const float newFar = getTMat()->getPerspFar() + (getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z) * 2.0;
-    //getUData().zNear = -(newFar+getTMat()->getPerspNear())/dist;
-    //getUData().zFar = -2.f * newFar * getTMat()->getPerspNear() / dist;
+}
+
+GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter) 
+{
+
+    auto updateCommons = [&] () {
+        getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
+        getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getRenderFBO().getSizeY()/1024.0);
+        getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
+        getUData().velocity = getCMSettings()->getVelIntensity();
+        getUData().lightDir = glm::vec3(getTMat()->tM.vMatrix * vec4(getLightDir(), 1.0));
+    };
+
+    auto selectSubroutines = [&]() {
+        GLuint subIDX[2];
+#ifdef GLAPP_REQUIRE_OGL45
+        subIDX[locSubPixelColor] = getLightState();
+        subIDX[locSubLightModel] = uData.lightModel;
+
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
+        glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &idxViewOBJ);
+#else
+#if !defined(GLCHAOSP_LIGHTVER)
+    #if !defined(__APPLE__)
+        subIDX[locSubPixelColor] = getLightState();
+        subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel - modelOffset];
+
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
+    #endif
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), idxViewOBJ==1 ? &idxSubOBJ : &idxSubVEL);
+#endif
+#endif
+    };
+/*
+    GLint max_combined_texture_image_units;
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
+    cout << max_combined_texture_image_units << "\n";
+*/
+    bindPipeline();
+
+    GLuint returnedTex = getRenderFBO().getTex(fbIdx);
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, getRenderFBO().getFB(fbIdx));
+    clearScreenBuffers();
+
+    if(checkFlagUpdate()) updateCommons();
 
     getUData().zNear = getTMat()->getPerspNear();
-    getUData().zFar = (getTMat()->getPerspFar() + (getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z)) * 2.0;
+    getUData().zFar  = getTMat()->getPerspFar();
+//    getUData().zFar = (getTMat()->getPerspFar() + (getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z)) * 2.0;
 
-    //getUData().zFar = .5f/(getTMat()->getPOV().z-getTMat()->getTrackball().getDollyPosition().z); //1((/POV.z-Dolly.z)*2)
-
-    //getUData().zFar = getTMat()->getPerspFar()+getTMat()->getPerspNear()
     tMat.updateBufferData();
+    getUData().pass = (isPostRenderingActive ? 2 : 0) + (usingAO ? 1 : 0);
+
     updateBufferData();
        
+    const GLuint texID = dotTex.getTexID();
+
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, colorMap->getModfTex());
     glBindTextureUnit(1, texID);
 
-    GLuint subIDX[2] = { uData.lightModel, lightStateIDX }; 
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &idxViewOBJ);
 #else
     glActiveTexture(GL_TEXTURE0+colorMap->getModfTex());
     glBindTexture(GL_TEXTURE_2D,colorMap->getModfTex());
@@ -194,36 +203,91 @@ void particlesBaseClass::render(GLuint fbOut, emitterBaseClass *emitter) {
     useProgram();
     setUniform1i(locDotsTex,texID);
 
-#if !defined(GLCHAOSP_LIGHTVER)
-    #if !defined(__APPLE__)
-        GLuint subIDX[2];
-        subIDX[locSubPixelColor] = lightStateIDX==1 ? idxSubLightOn : idxSubLightOff;
-        subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel - modelOffset];
-
-        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
-    #endif
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), idxViewOBJ==1 ? &idxSubOBJ : &idxSubVEL);
-#endif
-
     updatePalTex();
 #endif
-
+    selectSubroutines();
 
     //transformInterlieve->renderFeedbackData();
     emitter->renderEvents();
-
-    CHECK_GL_ERROR();
 
 #if !defined(GLAPP_REQUIRE_OGL45)
     ProgramObject::reset();
 #endif
 
+#if !defined(GLCHAOSP_LIGHTVER)
+    if(depthBuffActive)  {
+        //float tN = getTMat()->getPerspNear()-.95;    
+        //getUData().zNear = tN < 0.0 ? getTMat()->getPerspNear()-tN : getTMat()->getPerspNear();
+        float tN = .27;//+(getTMat()->getPOV()[2]-getTMat()->getTrackball().getDollyPosition()[2])*.01;
+        getUData().zNear = tN + dpAdjNearPlane();
+
+        //if(usingAO) {
+            getAO()->bindRender();
+
+            if(getAO()->flagChanged) {
+                getAO()->setUniform4f(getAO()->locAOVals, aoBias, aoRadius, aoDarkness, 0.0);
+            }
+
+
+            tMat.updateBufferData();
+
+            //getUData().zNear = 1.f+getTMat()->getPOV().z;
+            //getUData().zFar  = getTMat()->getPerspFar();
+            //getUData().pass = usingAO ? 2 : 0;
+            getUData().halfTanFOV = tanf(getTMat()->getPerspAngleRad()*.5);
+
+            updateBufferData();
+#ifdef GLAPP_REQUIRE_OGL45
+            glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
+#else
+            glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTex(fbIdx));
+            glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTex(fbIdx));
+
+            glUniform1i(getAO()->getLocPrevData(), getRenderFBO().getTex(fbIdx));
+#endif
+
+            getAO()->render();
+            getAO()->releaseRender();
+            //returnedTex = getAO()->getFBO().getTex(0);
+        //}
+
+        if(isPostRenderingActive || usingAO) {
+        //glBindProgramPipeline(0);
+            getPostRendering()->bindRender();
+
+            tMat.updateBufferData();
+
+            //getUData().zNear = .8f+getUData().zNear;
+            //getUData().zFar  = getTMat()->getPerspFar();
+            getUData().halfTanFOV = tanf(getTMat()->getPerspAngleRad()*.5);
+
+            updateBufferData();
+#ifdef GLAPP_REQUIRE_OGL45
+            glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
+            glBindTextureUnit(6, getAO()->getFBO().getTex(0));
+#else
+            glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTex(fbIdx));
+            glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTex(fbIdx));
+            glUniform1i(getPostRendering()->getLocPrevData(), getRenderFBO().getTex(fbIdx));
+
+            glActiveTexture(GL_TEXTURE0 + getAO()->getFBO().getTex(0));
+            glBindTexture(GL_TEXTURE_2D,  getAO()->getFBO().getTex(0));
+            glUniform1i(getPostRendering()->getLocAOTex(), getAO()->getFBO().getTex(0));           
+#endif
+
+            getPostRendering()->render();
+            getPostRendering()->releaseRender();
+            returnedTex = getPostRendering()->getFBO().getTex(0);
+        }
+    }
+#endif
+
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
-    
     //glDisable(GL_MULTISAMPLE);
 
+    return returnedTex;
 }
 
 #if !defined(GLCHAOSP_LIGHTVER)
@@ -267,7 +331,8 @@ void shaderBillboardClass::initShader()
 	link();
 
 #ifdef GLAPP_REQUIRE_OGL45
-        uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData);
+    uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData);
+    getCommonLocals();
 #else
     bindPipeline();
     useProgram();
@@ -296,7 +361,7 @@ GLuint mergedRenderingClass::render(GLuint texA, GLuint texB)
     const GLuint fbo = renderEngine->getMotionBlur()->Active() ? mergedFBO.getFB(0) : 0;
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
     //glInvalidateBufferData(fbo);
-    glClear(GL_COLOR_BUFFER_BIT);
+    //glClear(GL_COLOR_BUFFER_BIT);
     CHECK_GL_ERROR();
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, texA);
@@ -330,9 +395,9 @@ void mergedRenderingClass::create()
 {
 
     useFragment();
-    useVertex();
+    useVertex(renderEngine->getCommonVShader());
 
-    vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
+    //vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
     fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "MergedRenderingFrag.glsl");
 
     addShader(vertObj);
@@ -354,10 +419,10 @@ void mergedRenderingClass::create()
 ////////////////////////////////////////////////////////////////////////////////
 void motionBlurClass::create() 
 {
-    useVertex();
+    useVertex(renderEngine->getCommonVShader());
     useFragment();
 
-    vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
+    //vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
     fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "MotionBlurFS.glsl");
 
     addShader(vertObj);
@@ -511,9 +576,11 @@ renderBaseClass::renderBaseClass()
 
     setRenderMode(RENDER_USE_POINTS);
 
+    commonVShader.Load( theApp->get_glslVer().c_str(), 1, SHADER_PATH "mmFBO_all_vert.glsl");
 
+    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision());
+    renderFBO.attachDB(mmFBO::depthBuiltIn);
 
-    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision(), true);
 
 #if !defined(GLCHAOSP_LIGHTVER)
     //msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision(), true, 4);
@@ -528,14 +595,16 @@ renderBaseClass::renderBaseClass()
 
     motionBlur = new motionBlurClass(this);
     mergedRendering = new mergedRenderingClass(this);
+    postRendering = new postRenderingClass(this);
+    ambientOcclusion = new ambientOcclusionClass(this);
 #endif
-
 }
 
 renderBaseClass::~renderBaseClass()
 {
 #if !defined(GLCHAOSP_LIGHTVER)
-     delete motionBlur; delete mergedRendering;
+     delete motionBlur; delete mergedRendering; 
+     delete postRendering; delete ambientOcclusion;
      delete axes;
 #endif
 }
@@ -559,10 +628,10 @@ VertexShader* commonVShader = nullptr;
 void BlurBaseClass::create()    {
 
 
-        useVertex();   commonVShader = vertObj;
+        useVertex(renderEngine->getCommonVShader());
         useFragment();
 
-        vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
+        //vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
         fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "colorSpaces.glsl", SHADER_PATH "RadialBlur2PassFrag.glsl");
 
         addShader(vertObj);
@@ -597,11 +666,16 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
 
     //glInvalidateBufferData(fbo);
-    glClear(GL_COLOR_BUFFER_BIT);	
+    //glClear(GL_COLOR_BUFFER_BIT);	
     
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, sourceTex);
     glBindTextureUnit(1, glowFBO.getTex(RB_PASS_1));
+
+    //glBindTextureUnit(3, theWnd->getParticlesSystem()->getRenderFBO().getDepth(0));
+    //glBindTextureUnit(4, theWnd->getParticlesSystem()->getRenderFBO().getTexMultiFB(0)); //vtx
+    //glBindTextureUnit(5, theWnd->getParticlesSystem()->getRenderFBO().getTexMultiFB(1)); //Norm
+
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIndex);
     updateData(subIndex);
 
@@ -628,6 +702,35 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
 
 }
 
+void BlurBaseClass::updateData(GLuint subIndex) 
+{
+    const float invSigma = 1.f/sigma.x;
+    sigma.z = .5 * invSigma * invSigma;
+    sigma.w = glm::one_over_pi<float>() * sigma.z;
+    getUData().sigma        = sigma;
+    getUData().threshold    = threshold;
+
+    getUData().toneMapping  = imageTuning->toneMapping;
+    getUData().toneMapVals  = imageTuning->toneMapValsAG;
+
+    const float gamma = 1.f/imageTuning->videoControls.x;
+    const float exposure = imageTuning->videoControls.y;
+    const float bright   = imageTuning->videoControls.z; 
+    const float contrast = imageTuning->videoControls.w;        
+    getUData().videoControls = vec4(gamma , exposure, bright, contrast); 
+    getUData().texControls = imageTuning->texControls;
+
+    getUData().mixTexture   = (1.f + mixTexture)*.5;
+
+    getUData().blurCallType = subIndex;
+    particlesSystemClass *pSys = theWnd->getParticlesSystem();
+    getUData().invScreenSize = 1.f/vec2(float(pSys->getWidth()), float(pSys->getHeight()));
+
+    updateBufferData();
+
+}
+
+
 
 //
 //  colorMapTextured
@@ -635,7 +738,7 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
 ////////////////////////////////////////////////////////////////////////////////
 void colorMapTexturedClass::create()
 {
-    useVertex(commonVShader);
+    useVertex(particles->getCommonVShader());
     useFragment();
 
     //vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
@@ -702,10 +805,10 @@ void colorMapTexturedClass::render(int tex)
 //
 ////////////////////////////////////////////////////////////////////////////////
 void fxaaClass::create() {
-    useVertex();
+    useVertex(renderEngine->getCommonVShader());
     useFragment();
 
-    vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
+    //vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
     fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "fxaaFrag.glsl");
     addShader(vertObj);
     addShader(fragObj);
@@ -722,8 +825,9 @@ GLuint fxaaClass::render(GLuint texIn)
 {
     bindPipeline();
 
-    //glNamedFramebufferDrawBuffer(fbo.getFB(0), GL_NONE);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,  renderEngine->getMotionBlur()->Active() ? fbo.getFB(0) : 0);
+    //glClearBufferfv(GL_COLOR,  0, glm::value_ptr(glm::vec4(0.0f)));
+    //glClear(GL_COLOR_BUFFER_BIT);
 
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, texIn);
@@ -742,8 +846,179 @@ GLuint fxaaClass::render(GLuint texIn)
 
     theWnd->getVAO()->draw();
 
+#if !defined(GLAPP_REQUIRE_OGL45)
+    ProgramObject::reset();
+#endif
+
+
     return fbo.getTex(0);
 }
 
 #endif
 
+//
+//  postRenderingClass
+//
+////////////////////////////////////////////////////////////////////////////////
+postRenderingClass::postRenderingClass(renderBaseClass *ptrRE) : renderEngine(ptrRE) 
+{
+    fbo.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision());
+
+
+    create();
+}
+
+void postRenderingClass::create() {
+
+    useVertex();
+    useFragment();
+
+    vertObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "postRenderingVert.glsl");
+    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "postRenderingFrag.glsl");
+    addShader(vertObj);
+    addShader(fragObj);
+
+    link();
+
+#if !defined(GLAPP_REQUIRE_OGL45)
+    useProgram();
+    locAOTex = getUniformLocation("aoTex");
+    locPrevData = getUniformLocation("prevData");
+    uniformBlocksClass::bindIndex(getProgram(), "_particlesData");
+    renderEngine->getTMat()->blockBinding(getProgram());
+#endif
+
+}
+
+void postRenderingClass::bindRender()
+{
+    bindPipeline();
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
+    glClearBufferfv(GL_COLOR,  0, glm::value_ptr(glm::vec4(0.0f)));
+
+#if !defined(GLAPP_REQUIRE_OGL45)
+    useProgram();
+#endif
+}
+
+void postRenderingClass::render()
+{
+    theWnd->getVAO()->draw();
+    CHECK_GL_ERROR();
+}
+
+void postRenderingClass::releaseRender()
+{
+#if !defined(GLAPP_REQUIRE_OGL45)
+    ProgramObject::reset();
+#endif
+}
+
+//
+//  ambientOcclusionClass
+//
+////////////////////////////////////////////////////////////////////////////////
+ambientOcclusionClass::ambientOcclusionClass(renderBaseClass *ptrRE) : renderEngine(ptrRE) 
+{
+    fbo.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision());
+
+    // generate sample kernel
+    // ----------------------
+    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
+    std::default_random_engine generator;
+    for(unsigned int i = 0; i < kernelSize; ++i)  {
+        glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
+        sample = glm::normalize(sample);
+        sample *= randomFloats(generator);
+        float scale = float(i) / float(kernelSize);
+
+        // scale samples s.t. they're more aligned to center of kernel
+        scale = glm::mix(0.1f, 1.0f, scale * scale);
+        sample *= scale;
+        ssaoKernel.push_back(sample);
+    }
+
+    // generate noise texture
+    // ----------------------
+    std::vector<glm::vec3> ssaoNoise;
+    for(unsigned int i = 0; i < 16; i++) {
+        glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); // rotate around z-axis (in tangent space)
+        ssaoNoise.push_back(noise);
+    }
+#ifdef GLAPP_REQUIRE_OGL45
+    glCreateTextures(GL_TEXTURE_2D, 1, &noiseTexture);
+    glTextureStorage2D(noiseTexture, 1, GL_RGB32F, 4, 4);
+    glTextureSubImage2D(noiseTexture, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, ssaoNoise.data());
+    glTextureParameteri(noiseTexture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(noiseTexture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(noiseTexture, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(noiseTexture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+#else
+    glGenTextures(1, &noiseTexture);
+    glBindTexture(GL_TEXTURE_2D, noiseTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 4, 4, 0, GL_RGB, GL_FLOAT, ssaoNoise.data());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+#endif
+    create();
+
+
+}
+
+void ambientOcclusionClass::create() {
+
+    useVertex();
+    useFragment();
+
+    vertObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "postRenderingVert.glsl");
+    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "ambientOcclusionFrag.glsl");
+    addShader(vertObj);
+    addShader(fragObj);
+
+    link();
+
+#if !defined(GLAPP_REQUIRE_OGL45)
+    useProgram();
+    locNoiseTexture = getUniformLocation("noise");
+    locPrevData = getUniformLocation("prevData");
+    uniformBlocksClass::bindIndex(getProgram(), "_particlesData");
+    renderEngine->getTMat()->blockBinding(getProgram());
+#endif
+    setUniform3fv(getUniformLocation("ssaoSamples"), kernelSize, (const GLfloat*)ssaoKernel.data());
+    locAOVals = getUniformLocation("aoVals");
+}
+
+void ambientOcclusionClass::bindRender()
+{
+    bindPipeline();
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
+    glClearBufferfv(GL_COLOR,  0, glm::value_ptr(glm::vec4(0.0f)));
+
+#ifdef GLAPP_REQUIRE_OGL45
+    glBindTextureUnit(6, noiseTexture);
+#else
+    useProgram();
+    glActiveTexture(GL_TEXTURE0 + noiseTexture);
+    glBindTexture(GL_TEXTURE_2D,  noiseTexture);
+    
+    glUniform1i(locNoiseTexture, noiseTexture);
+#endif
+}
+
+void ambientOcclusionClass::render()
+{
+    theWnd->getVAO()->draw();
+    CHECK_GL_ERROR();
+}
+
+void ambientOcclusionClass::releaseRender()
+{
+#if !defined(GLAPP_REQUIRE_OGL45)
+    ProgramObject::reset();
+#endif
+    flagChanged =false;
+}

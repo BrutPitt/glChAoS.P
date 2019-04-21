@@ -309,6 +309,18 @@
     <None Include="..\..\..\Shaders\ParticlesVert.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\..\..\Shaders\postRenderingFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\lightModelsFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\postRenderingVert.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\ambientOcclusionFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\ReadMe.txt" />

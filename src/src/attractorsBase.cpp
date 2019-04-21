@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,27 +11,8 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 
@@ -131,14 +112,20 @@ void AttractorBase::Step(float *&ptr, vec3 &v, vec3 &vp)
     v = vp;
 }
 
-void AttractorBase::Step(float *ptr, int numElements) 
+uint32_t AttractorBase::Step(float *ptr, uint32_t numElements) 
 {
     vec3 vp;
     vec3 v=getCurrent();
 
-    while(numElements--) Step(ptr, v, vp); 
+    uint32_t elems = numElements;
+    theApp->getTimer().start();
+    while(elems--) {
+        Step(ptr, v, vp); 
+        if(!(elems&0x3F) && theApp->getTimer().elapsed()>0.1f) break;
+    }
 
     Insert(vec3(vp));
+    return numElements-elems;
 }
 
 void AttractorBase::searchLyapunov()
@@ -501,7 +488,13 @@ INLINE void Mira3D::Step(vec3 &v, vec3 &vp)
     const float vpp = f(vp.x, kVal[0]);
     vp.y =  vpp - v.x;
     vp.z =  f(v.z, kVal[3]) + f(vp.y, kVal[2]) + f(vpp, kVal[1]);
+}
 
+////////////////////////////////////////////////////////////////////////////
+INLINE void dla3D::Step(vec3 &v, vec3 &vp) 
+{
+    v = vec3(0.0);
+    vp = AddParticle();
 }
 ////////////////////////////////////////////////////////////////////////////
 INLINE void Lorenz::Step(vec3 &v, vec3 &vp)

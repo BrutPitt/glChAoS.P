@@ -43,6 +43,7 @@ if (EMSCRIPTEN)
     include_directories(${SRC})
     include_directories(${SRC}/tools)
     include_directories(${SRC}/libs)
+    include_directories($ENV{INCLUDE})
     
     
     set(SOURCE_FILES
@@ -220,6 +221,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security ${OGL_EMITTER_TYPE}
 include_directories(${SRC})
 include_directories(${SRC}/tools)
 include_directories(${SRC}/libs)
+include_directories($ENV{INCLUDE})
 
 #uncomment for GLFW installed dir
 if(APPLE)

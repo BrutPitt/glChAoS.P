@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,27 +11,8 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 //#define GLM_FORCE_SWIZZLE 
@@ -268,10 +249,11 @@ struct uBlurData {
 
     vec4 texControls;       // align 32
     vec4 videoControls;     // align 48
+    vec2 invScreenSize;
 
     GLfloat mixTexture;
-
     GLint blurCallType;
+
 } uData;
 
 public:
@@ -283,30 +265,7 @@ public:
 
     void glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex);
 
-    void updateData(GLuint subIndex) {
-        const float invSigma = 1.f/sigma.x;
-        sigma.z = .5 * invSigma * invSigma;
-        sigma.w = glm::one_over_pi<float>() * sigma.z;
-        getUData().sigma        = sigma;
-        getUData().threshold    = threshold;
-
-        getUData().toneMapping  = imageTuning->toneMapping;
-        getUData().toneMapVals  = imageTuning->toneMapValsAG;
-
-        const float gamma = 1.f/imageTuning->videoControls.x;
-        const float exposure = imageTuning->videoControls.y;
-        const float bright   = imageTuning->videoControls.z; 
-        const float contrast = imageTuning->videoControls.w;        
-        getUData().videoControls = vec4(gamma , exposure, bright, contrast); 
-        getUData().texControls = imageTuning->texControls;
-
-        getUData().mixTexture   = (1.f + mixTexture)*.5;
-
-        getUData().blurCallType = subIndex;
-
-        updateBufferData();
-
-    }
+    void updateData(GLuint subIndex);
 
     uBlurData &getUData() { return uData; }
 
@@ -327,6 +286,72 @@ class radialBlurClass;
 class motionBlurClass;
 class mergedRenderingClass;
 #endif
+
+//
+//  ambientOcclusionClass
+//
+////////////////////////////////////////////////////////////////////////////////
+class ambientOcclusionClass : public mainProgramObj
+{
+public:
+    ambientOcclusionClass(renderBaseClass *ptrRE);
+
+    void create();
+
+    void bindRender();
+    void render();
+    void releaseRender();
+
+    mmFBO &getFBO() { return fbo; }
+
+#if !defined(GLAPP_REQUIRE_OGL45)
+    GLuint getLocPrevData() { return locPrevData; }
+#endif
+
+private:
+    mmFBO fbo;
+    renderBaseClass *renderEngine;
+    std::vector<glm::vec3> ssaoKernel;
+    GLuint noiseTexture;
+    const int kernelSize = 64;
+    bool flagChanged = true;
+    GLuint locAOVals;
+#if !defined(GLAPP_REQUIRE_OGL45)
+    GLuint locNoiseTexture, locPrevData;
+#endif
+
+    friend particlesBaseClass;
+};
+//
+//  postRenderingClass
+//
+////////////////////////////////////////////////////////////////////////////////
+class postRenderingClass : public mainProgramObj
+{
+public:
+    postRenderingClass(renderBaseClass *ptrRE);
+
+    void create();
+
+    void bindRender();
+    void render();
+    void releaseRender();
+
+
+    mmFBO &getFBO() { return fbo; }
+
+#if !defined(GLAPP_REQUIRE_OGL45)
+    GLuint getLocPrevData() { return locPrevData; }
+    GLuint getLocAOTex() { return locAOTex; }
+#endif
+
+private:
+    mmFBO fbo;
+    renderBaseClass *renderEngine;
+#if !defined(GLAPP_REQUIRE_OGL45)
+    GLuint locAOTex, locPrevData;
+#endif
+};
 
 //
 //  renderBase
@@ -374,6 +399,10 @@ public:
 
     int getWhitchRenderMode() { return whichRenderMode; }
 
+    VertexShader* getCommonVShader() { return &commonVShader; }
+    postRenderingClass* getPostRendering() { return postRendering; }
+    ambientOcclusionClass* getAO() { return ambientOcclusion; }
+
     
     int getBlendArrayElements() { return blendArray.size(); }
     std::vector<GLuint> &getBlendArray() { return blendArray; }
@@ -384,8 +413,8 @@ protected:
     int whichRenderMode;    
 
 #if !defined(GLCHAOSP_LIGHTVER)
-    motionBlurClass *motionBlur;
-    mergedRenderingClass *mergedRendering;
+    motionBlurClass *motionBlur = nullptr;
+    mergedRenderingClass *mergedRendering = nullptr;
 
     oglAxes *axes;
     int axesShow = noShowAxes;
@@ -401,6 +430,10 @@ protected:
 //        , msaaFBO;
 
     transformsClass tMat;
+
+    VertexShader commonVShader;
+    postRenderingClass *postRendering = nullptr;
+    ambientOcclusionClass *ambientOcclusion = nullptr;
 
 
     std::vector<GLuint> blendArray;
@@ -498,7 +531,7 @@ public:
     float getMinMax() { return minMax; }
 
 private:
-    void on()  { fbo.reBuildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false); }
+    void on()  { fbo.reBuildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0); }
     void off() { fbo.deleteFBO(); }
 
     renderBaseClass *renderEngine;
@@ -550,7 +583,7 @@ public:
     void Active(bool b) { 
         if(b==isActive) return;
         if(b) {
-            mBlurFBO.reBuildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false);            
+            mBlurFBO.reBuildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0);            
         } else {
             mBlurFBO.deleteFBO();
         }
@@ -598,12 +631,12 @@ public:
     void create();
 
     void Activate()   { 
-        renderEngine->getRenderFBO().reBuildFBO(2,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), true);
-        mergedFBO.reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false); 
+        renderEngine->getRenderFBO().reBuildFBO(2,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0);
+        mergedFBO.reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0); 
         renderEngine->setFlagUpdate();
     }
     void Deactivate() { 
-        renderEngine->getRenderFBO().reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), true);
+        renderEngine->getRenderFBO().reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0);
         mergedFBO.deleteFBO(); 
         renderEngine->setFlagUpdate();
     }
@@ -749,13 +782,13 @@ class particlesBaseClass : public mainProgramObj, public uniformBlocksClass, pub
 protected:
 
 struct uParticlesData {
-    vec3    lightDir = vec3(50.f, 0.f, 15.f); // align 0
-    GLfloat lightDiffInt = 3.f;
+    vec3    lightDir; // align 0
+    GLfloat lightDiffInt = 1.f;
     vec3    lightColor = vec3(1.f);           // align 16
-    GLfloat lightSpecInt = 1.f;
+    GLfloat lightSpecInt = .75f;
     vec2    scrnRes;
     GLfloat lightAmbInt = .1f;
-    GLfloat lightShinExp = 50.f;
+    GLfloat lightShinExp = 10.f;
     GLfloat sstepColorMin = .1;
     GLfloat sstepColorMax = 1.1;
     GLfloat pointSize;
@@ -767,6 +800,7 @@ struct uParticlesData {
     GLfloat clippingDist;
     GLfloat zNear;
     GLfloat zFar;
+    GLfloat halfTanFOV;
     GLfloat velocity;
     GLfloat ySizeRatio = 1.0;
     GLfloat ptSizeRatio = 1.0;
@@ -774,7 +808,8 @@ struct uParticlesData {
     GLfloat ggxRoughness = .75f;
     GLfloat ggxFresnel = .5f;
     GLuint lightModel = modelBlinnPhong;
-    GLuint lightActive;
+    GLuint lightActive = GLuint(on);
+    GLint pass = 0;
 } uData;
 
 
@@ -801,16 +836,21 @@ public:
     }
 
     void getCommonLocals() {
+#if !defined(GLCHAOSP_LIGHTVER)
+        locSubPixelColor = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "pixelColor");
+        locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
+        const int numSub = 2;
+        if(locSubPixelColor>=numSub) locSubPixelColor = 0;
+        if(locSubLightModel>=numSub) locSubLightModel = 0;
+#endif
 #ifndef GLAPP_REQUIRE_OGL45
         locPaletteTex = getUniformLocation("paletteTex" );
         locDotsTex    = getUniformLocation("tex"); 
     #if !defined(GLCHAOSP_LIGHTVER) 
         #if !defined(__APPLE__)
-            locSubPixelColor = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "pixelColor");
             idxSubLightOn = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorLight");
             idxSubLightOff = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorOnly");
 
-            locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
             idxSubLightModel[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularPhong");
             idxSubLightModel[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularBlinnPhong");
             idxSubLightModel[2] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularGGX");
@@ -822,13 +862,8 @@ public:
 
     }
 
-    void updateCommonUniforms() {
-        getUData().scrnRes.x = getRenderFBO().getSizeX();
-        getUData().scrnRes.y = getRenderFBO().getSizeY();
-        getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getRenderFBO().getSizeY()/1024.0);
-        getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
-        getUData().velocity = getCMSettings()->getVelIntensity();
-    }
+    void clearScreenBuffers();
+
 
 #ifndef GLAPP_REQUIRE_OGL45
     void updatePalTex()  { setUniform1i(locPaletteTex, getCMSettings()->getModfTex()); }
@@ -836,7 +871,7 @@ public:
 
     uParticlesData &getUData() { return uData; }
 
-    virtual void render(GLuint fbOut, emitterBaseClass *em);
+    virtual GLuint render(GLuint fbOut, emitterBaseClass *em);
 
     GLuint getDstBlend() { return dstBlendAttrib; }
     GLuint getSrcBlend() { return srcBlendAttrib; }
@@ -889,11 +924,11 @@ public:
 
     bool getDepthState() { return depthBuffActive; }
     bool getBlendState() { return blendActive; }
-    bool getLightState() { return bool(lightStateIDX); }
+    bool getLightState() { return bool(getUData().lightActive); }
     
     void setDepthState(bool b) { depthBuffActive = b; }
     void setBlendState(bool b) { blendActive = b; }
-    void setLightState(bool b) { uData.lightActive = lightStateIDX = b ? GLuint(on) : GLuint(off); }
+    void setLightState(bool b) { uData.lightActive = b ? GLuint(on) : GLuint(off); }
 
     radialBlurClass *getGlowRender()  { return glowRender; }
 #if !defined(GLCHAOSP_NO_FXAA)
@@ -911,7 +946,33 @@ public:
     int getLightModel() { return uData.lightModel; }
     void setLightModel(int l) { uData.lightModel = l; }
 
+    bool postRenderingActive() { return isPostRenderingActive; }
+    void postRenderingActive(bool b) { isPostRenderingActive = b; }
+    bool useAO() { return usingAO; }
+    void useAO(bool b) { usingAO = b; }
+
     dotsTextureClass& getDotTex() { return dotTex; }
+
+    glm::vec3& getLightDir() { return lightVec; }
+    void setLightDir(const glm::vec3& v) { lightVec = v; setFlagUpdate(); }
+
+    // Ambient Ocllusion
+    /////////////////////////////////////////////
+    float getAORadius() { return aoRadius; }
+    void setAORadius(float f) { aoRadius = f; getAO()->flagChanged = true; }
+
+    float getAOBias() { return aoBias; }
+    void setAOBias(float f) { aoBias = f; getAO()->flagChanged = true; }
+
+    float getAODarkness() { return aoDarkness; }
+    void setAODarkness(float f) { aoDarkness = f; getAO()->flagChanged = true; }
+
+    // Depth Rendering
+    /////////////////////////////////////////////
+    float dpAdjNearPlane() { return dpNearPlaneAdjust; }
+    void dpAdjNearPlane(float f) { dpNearPlaneAdjust = f; }
+
+
 
 protected:
     GLuint dstBlendAttrib, srcBlendAttrib;
@@ -933,14 +994,19 @@ protected:
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locDotsTex, locPaletteTex;
     GLuint idxSubOBJ, idxSubVEL;
-    GLuint locSubLightModel, locSubPixelColor; 
     GLuint idxSubLightOn, idxSubLightOff;
     GLuint idxSubLightModel[3];
 #endif
+    GLuint locSubLightModel, locSubPixelColor;
+    glm::vec3 lightVec = vec3(50.f, 15.f, 25.f);
 
-    GLuint lightStateIDX = GLuint(on);
     bool depthBuffActive = true;
     bool blendActive = true;
+    bool isPostRenderingActive = false;
+    bool usingAO = false;
+    float aoRadius =  .5, aoBias = .025, aoDarkness = .25;
+    float dpNearPlaneAdjust = 0.0;
+
 
 private:
 

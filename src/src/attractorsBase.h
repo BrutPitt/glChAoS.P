@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,27 +11,8 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
@@ -147,7 +128,7 @@ public:
     //single step
     virtual void Step();
     //buffered Step
-    virtual void Step(float *ptr, int numElements);
+    virtual uint32_t Step(float *ptr, uint32_t numElements);
     //attractor step algorithm
     virtual void Step(vec3 &v, vec3 &vp) = 0;
 
@@ -193,11 +174,17 @@ public:
     void dlgAdditionalDataVisible(bool b) { bDlgAdditionalDataVisible=b; }
 
     bool dtType() { return isDTtype; }
+    bool dlaType() { return isDLAtype; }
     bool fractalType() { return isFractal; }
 
     virtual int getPtSize() { return attPt3D; }
     float getDim4D() { return dim4D; }
     void setDim4D(float f) { dim4D = f; }
+
+    float getInputKMin() { return inputKMin; }
+    float getInputKMax() { return inputKMax; }
+    float getInputVMin() { return inputVMin; }
+    float getInputVMax() { return inputVMax; }
 
     vector<vec3> vVal;
 protected:
@@ -225,7 +212,11 @@ protected:
 
     bool flagFileData = false;
     bool isDTtype = false;
+    bool isDLAtype = false;
     bool isFractal = false;
+
+    float inputKMin = 0.0, inputKMax = 0.0;
+    float inputVMin = 0.0, inputVMax = 0.0;
 private:
 
 };
@@ -1039,7 +1030,7 @@ protected:
     void searchAttractor()  { searchLyapunov(); }
 };
 
-//  SinCos base class
+//  Mira3D base class
 ////////////////////////////////////////////////////////////////////////////
 class Mira3D : public attractorScalarK
 {
@@ -1057,6 +1048,174 @@ protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
     void searchAttractor()  { searchLyapunov(); }
+};
+
+
+#include <boost/function_output_iterator.hpp>
+#include <boost/geometry/geometry.hpp>
+
+// number of dimensions (must be 2 or 3)
+#define DLA_DIM 3
+// boost is used for its spatial index
+using BoostPoint = boost::geometry::model::point<float, DLA_DIM, boost::geometry::cs::cartesian>;
+using boostIndexValue = std::pair<BoostPoint, int>;
+using boostIndex = boost::geometry::index::rtree<boostIndexValue, boost::geometry::index::linear<4>>;
+
+
+//  DLA3D base class
+////////////////////////////////////////////////////////////////////////////
+// Adaptament and optimization from original project of Michael Fogleman
+// https://github.com/fogleman/dlaf
+//
+// Original Parameters   ==>    substitution
+// -------------------------------------------------------------------------
+// ParticleSpacing       ==>    kVal[0]
+// AttractionDistance    ==>    kVal[1]
+// MinMoveDistance       ==>    kVal[2]
+// Stickiness            ==>    kVal[3]
+//
+// Description from author
+// -------------------------------------------------------------------------
+// ParticleSpacing     The distance between particles when they become joined together.
+// AttractionDistance  How close together particles must be in order to join together.
+// MinMoveDistance     The minimum distance that a particle will move in an iteration during its random walk.
+// Stubbornness        How many join attempts must occur before a particle will allow another particle to join to it.
+// Stickiness          The probability that a particle will allow another particle to join to it.
+class dla3D : public attractorScalarK {
+public:
+    dla3D() {
+        stepFn = (stepPtrFn) &dla3D::Step;
+
+        vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
+
+        m_POV = vec3( 0.f, 0, 12.f);
+        inputKMin = 0.0001, inputKMax = 10000.0;
+        isDLAtype = true;
+    }
+
+protected:
+    void initStep() {
+        m_Points.clear();
+        m_JoinAttempts.clear();
+        m_Index.clear();
+        resetQueue();
+        Insert(vec3(0.f));
+        Add(glm::vec3(0.0));
+    }
+
+    void additionalDataCtrls();
+    void saveAdditionalData(Config &cfg);
+    void loadAdditionalData(Config &cfg);
+
+    // Add adds a new particle with the specified parent particle
+    void Add(const glm::vec3 &p) {
+        const int id = m_Points.size();
+        m_Index.insert(std::make_pair(BoostPoint(p.x, p.y, p.z), id));
+        m_Points.push_back(p);
+        m_JoinAttempts.push_back(0);
+        boundingRadius = std::max(boundingRadius, glm::length(p) + kVal[1]);
+        //std::cout << id << "," << p.x << "," << p.y << "," << p.z << std::endl;
+    }
+
+    // Nearest returns the index of the particle nearest the specified point
+    int Nearest(const glm::vec3 &point) const {
+        int result = -1;
+        m_Index.query(
+            boost::geometry::index::nearest(BoostPoint(point.x,point.y,point.z), 1),
+            boost::make_function_output_iterator([&result](const auto &value) {
+                result = value.second;
+            }));
+        return result;
+    }
+
+    // RandomStartingPosition returns a random point to start a new particle
+    glm::vec3 RandomStartingPosition() const {
+        return glm::normalize(RandomInUnitSphere()) * boundingRadius;
+    }
+
+    // ShouldReset returns true if the particle has gone too far away and
+    // should be reset to a new random starting position
+    bool ShouldReset(const glm::vec3 &p) const {
+        return glm::length(p) > boundingRadius * 2;
+    }
+
+    // ShouldJoin returns true if the point should attach to the specified
+    // parent particle. This is only called when the point is already within
+    // the required attraction distance.
+    bool ShouldJoin(const glm::vec3 &p, const int parent) {
+        return (m_JoinAttempts[parent]++ < m_Stubbornness) ? false : fastRandom.xorshift32_01() <= kVal[3];
+    }
+
+    // PlaceParticle computes the final placement of the particle.
+    glm::vec3 PlaceParticle(const glm::vec3 &p, const int parent) const {
+        return glm::mix(m_Points[parent], p, kVal[0]);
+    }
+
+    // MotionVector returns a vector specifying the direction that the
+    // particle should move for one iteration. The distance that it will move
+    // is determined by the algorithm.
+    glm::vec3 MotionVector(const glm::vec3 &p) const {
+        return RandomInUnitSphere();
+    }
+
+    glm::vec3 RandomInUnitSphere() const {
+        return glm::vec3(fastRandom.xorshiftNorm32(), 
+                         fastRandom.xorshiftNorm32(), 
+                         fastRandom.xorshiftNorm32());
+    } 
+
+    // AddParticle diffuses one new particle and adds it to the model
+    glm::vec3 &AddParticle() {
+        // compute particle starting location
+        glm::vec3 p = RandomStartingPosition();
+
+        // do the random walk
+        while (true) {
+            // get distance to nearest other particle
+            const int parent = Nearest(p);
+            const float d = glm::distance(p, m_Points[parent]);
+
+            // check if close enough to join
+            if (d < kVal[1]) {
+                if (!ShouldJoin(p, parent)) {
+                    // push particle away a bit
+                    p = glm::mix(m_Points[parent], p, kVal[1] + kVal[2]);
+                    continue;
+                } 
+                // adjust particle pos in relation to its parent and add the point
+                Add(PlaceParticle(p, parent));
+                return m_Points.back();
+            }
+
+            // move randomly
+            p += glm::normalize(MotionVector(p)) * std::max(kVal[2], d - kVal[1]);
+
+            // check if particle is too far away, reset if so
+            if (ShouldReset(p)) p = RandomStartingPosition();
+        }
+    }
+
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+
+private:
+    // m_Stubbornness defines how many interactions must occur before a
+    // particle will allow another particle to join to it.
+    int m_Stubbornness = 0;
+
+    // m_BoundingRadius defines the radius of the bounding sphere that bounds
+    // all of the particles
+    float boundingRadius = 0;
+
+    // m_Points stores the final particle positions
+    std::vector<glm::vec3> m_Points;
+
+    // m_JoinAttempts tracks how many times other particles have attempted to
+    // join with each finalized particle
+    std::vector<int> m_JoinAttempts;
+
+    // m_Index is the spatial index used to accelerate nearest neighbor queries
+    boostIndex m_Index;
 };
 
 
@@ -1115,6 +1274,7 @@ public:
         m_POV = vec3( 0.f, 0, 50.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1131,6 +1291,7 @@ public:
         m_POV = vec3( 0.f, 0, 240.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1147,6 +1308,7 @@ public:
         m_POV = vec3( 0.f, 0, 10.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1163,6 +1325,7 @@ public:
         m_POV = vec3( 0.f, 0, 10.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1179,6 +1342,7 @@ public:
         m_POV = vec3( 0.f, 0, 30.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1195,6 +1359,7 @@ public:
         m_POV = vec3( 0.f, 0, 100.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1211,6 +1376,7 @@ public:
         m_POV = vec3( 0.f, 0, 70.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1227,6 +1393,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1243,6 +1410,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1259,6 +1427,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1275,6 +1444,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1291,6 +1461,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1307,6 +1478,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1323,6 +1495,7 @@ public:
         m_POV = vec3( 0.f, 0, 10.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1339,6 +1512,7 @@ public:
         m_POV = vec3( 0.f, 0, 10.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1355,6 +1529,7 @@ public:
         m_POV = vec3( 0.f, 0, 10.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1371,6 +1546,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1387,6 +1563,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1403,6 +1580,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1419,6 +1597,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1435,6 +1614,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1451,6 +1631,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1466,6 +1647,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1481,6 +1663,7 @@ public:
         m_POV = vec3( 0.f, 0, 20.f);
     }
 
+protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
@@ -1495,12 +1678,21 @@ public:
     typedef  const vec3 (Magnetic::*magneticPtrFn)(const vec3 &, int);
     Magnetic() 
     {
-        stepFn = (stepPtrFn) &ChenLee::Step;
+        stepFn = (stepPtrFn) &Magnetic::Step;
         kMax = 5.0; kMin = -5.0; vMax = 1.0; vMin = -1.0;
 
         m_POV = vec3( 0.f, 0.f, 3.f);
     }
 
+    //  innerSteps functions
+    ///////////////////////////////////////
+    const vec3 straight(const vec3 &vx, int i);
+    const vec3 rightShift(const vec3 &vx, int i);
+    const vec3 leftShift(const vec3 &vx, int i);
+    const vec3 fullPermutated(const vec3 &vx, int i);
+    const vec3 tryed(const vec3 &vx, int i);
+
+protected:
     void initStep() {
         resetQueue();
         Insert(vec3(0.f));
@@ -1511,15 +1703,6 @@ public:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 
-    //  innerSteps functions
-    ///////////////////////////////////////
-    const vec3 straight(const vec3 &vx, int i);
-    const vec3 rightShift(const vec3 &vx, int i);
-    const vec3 leftShift(const vec3 &vx, int i);
-    const vec3 fullPermutated(const vec3 &vx, int i);
-    const vec3 tryed(const vec3 &vx, int i);
-
-    
     //  Additional save vals
     ///////////////////////////////////////
     void saveAdditionalData(Config &cfg);
@@ -1588,9 +1771,6 @@ public:
     
     void searchAttractor()  { searchLyapunov(); }
 
-
-
-protected:
     thread *th[4];
     vec3 vth[4],vcurr;
 
@@ -1723,6 +1903,7 @@ public:
         PB(Pickover           , u8"\uf006" " Pickover"           )
         PB(SinCos             , u8"\uf006" " Sin Cos"            )
         PB(Mira3D             , u8"\uf006" " Mira3D"             )
+        PB(dla3D              , u8"\uf2dc" " DLA 3D"             )
         PB(Lorenz             , u8"\uf192" " Lorenz"             )
         PB(ChenLee            , u8"\uf192" " Chen-Lee"           )
         PB(TSUCS              , u8"\uf192" " TSUCS 1&2"          )
@@ -1748,18 +1929,18 @@ public:
         PB(MultiChuaII        , u8"\uf192" " Multi-Chua II"      )
         PB(ZhouChen           , u8"\uf192" " Zhou-Chen"          )
 //        PB(Robinson           , u8"\uf192" " Robinson"           )
-        PB(juliaBulb_IIM      , u8"\uf2dc" " JuliaBulb"          )
-        PB(juliaBulb4th_IIM   , u8"\uf2dc" " JuliaBulb Nth"      )
-        PB(BicomplexJ_IIM     , u8"\uf2dc" " biComplex Julia"    )
-        PB(BicomplexJMod0_IIM , u8"\uf2dc" " biCplxJ m.0"        )
-        PB(BicomplexJMod1_IIM , u8"\uf2dc" " biCplxJ m.1"        )
-        PB(BicomplexJMod2_IIM , u8"\uf2dc" " biCplxJ m.2"        )
-        PB(BicomplexJMod3_IIM , u8"\uf2dc" " biCplxJ m.3"        )
-        PB(BicomplexJMod4_IIM , u8"\uf2dc" " biCplxJ m.4"        )
-        PB(BicomplexJMod5_IIM , u8"\uf2dc" " biCplxJ m.5"        )
-        PB(BicomplexJMod6_IIM , u8"\uf2dc" " biCplxJ m.6"        )
-        PB(BicomplexJMod7_IIM , u8"\uf2dc" " biCplxJ m.7"        )
-        PB(quatJulia_IIM      , u8"\uf2dc" " quatJulia"          )
+        PB(juliaBulb_IIM      , u8"\uf185" " JuliaBulb"          )
+        PB(juliaBulb4th_IIM   , u8"\uf185" " JuliaBulb Nth"      )
+        PB(BicomplexJ_IIM     , u8"\uf185" " biComplex Julia"    )
+        PB(BicomplexJMod0_IIM , u8"\uf185" " biCplxJ m.0"        )
+        PB(BicomplexJMod1_IIM , u8"\uf185" " biCplxJ m.1"        )
+        PB(BicomplexJMod2_IIM , u8"\uf185" " biCplxJ m.2"        )
+        PB(BicomplexJMod3_IIM , u8"\uf185" " biCplxJ m.3"        )
+        PB(BicomplexJMod4_IIM , u8"\uf185" " biCplxJ m.4"        )
+        PB(BicomplexJMod5_IIM , u8"\uf185" " biCplxJ m.5"        )
+        PB(BicomplexJMod6_IIM , u8"\uf185" " biCplxJ m.6"        )
+        PB(BicomplexJMod7_IIM , u8"\uf185" " biCplxJ m.7"        )
+        PB(quatJulia_IIM      , u8"\uf185" " quatJulia"          )
 //        PB(BicomplexJExplorer , u8"\uf2dc" " biComplexJExplorer" )
             
 //        PB(glynnJB_IIM        , u8"\uf2dc" " Glynn JuliaBulb"    )

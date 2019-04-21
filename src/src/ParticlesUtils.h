@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,27 +11,8 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef PARTICLES_UTILS_H
 #define PARTICLES_UTILS_H
@@ -192,7 +173,7 @@ public:
                 Dist = (float)sqrtf(X*X+Y2);
                 //if (Dist>1) Dist=1;
                 const float ev = evalHermite(hermVals,Dist); 
-                *m++ = (Dist>=1) ? 0.f : typeSolid ? 1.f :  ev <= 0.0 ? 0.0 : ev * factor;
+                *m++ = (Dist>=1.f) ? 0.f : typeSolid ? 1.f :  ev <= 0.0 ? 0.0 : ev * factor;
             }
         }
 
@@ -283,11 +264,17 @@ public:
         int level = 1;
         int sz = texSize;
         while(sz>>=1) level++;
-
-        if(!generated)
+        
     #ifdef GLAPP_REQUIRE_OGL45
+        static int oldSZ = -1;
+
+        if(generated && oldSZ!=texSize) { glDeleteTextures(1, &texID); generated = false; }
+        if(!generated) {
             glCreateTextures(GL_TEXTURE_2D , 1, &texID);
-        glTextureStorage2D(texID, level, theApp->getTexInternalPrecision(), w, h);
+            glTextureStorage2D(texID, level, theApp->getTexInternalPrecision(), w, h);
+        }
+
+        oldSZ = texSize;
         glTextureSubImage2D(texID, 0, 0, 0, w, h, GL_RED, GL_FLOAT, gMap.getBuffer());
         glGenerateTextureMipmap(texID);
         glTextureParameteri(texID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -295,8 +282,8 @@ public:
         glTextureParameteri(texID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTextureParameteri(texID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     #else
-            glGenTextures(1, &texID);					// Generate OpenGL texture IDs
-        glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
+        if(!generated)  glGenTextures(1, &texID);   // Generate OpenGL texture IDs
+        glBindTexture(GL_TEXTURE_2D, texID);        // Bind Our Texture
 
         //glTexStorage2D(GL_TEXTURE_2D, 7, GL_R32F, w, h);
         //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RED, GL_FLOAT, buffer);

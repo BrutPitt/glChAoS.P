@@ -665,12 +665,14 @@
     <ClInclude Include="..\..\src\vertexbuffer.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\Shaders\ambientOcclusionFrag.glsl" />
     <None Include="..\..\..\Shaders\BillboardFrag.glsl" />
     <None Include="..\..\..\Shaders\BillboardGeom.glsl" />
     <None Include="..\..\..\Shaders\BillboardVert.glsl" />
     <None Include="..\..\..\Shaders\cmTexturedFrag.glsl" />
     <None Include="..\..\..\Shaders\colorSpaces.glsl" />
     <None Include="..\..\..\Shaders\fxaaFrag.glsl" />
+    <None Include="..\..\..\Shaders\lightModelsFrag.glsl" />
     <None Include="..\..\..\Shaders\MergedRenderingFrag.glsl" />
     <None Include="..\..\..\Shaders\mmFBO_all_vert.glsl" />
     <None Include="..\..\..\Shaders\MotionBlurFS.glsl" />
@@ -680,6 +682,8 @@
     <None Include="..\..\..\Shaders\ParticlesVert.glsl" />
     <None Include="..\..\..\Shaders\PointSpriteFragLight.glsl" />
     <None Include="..\..\..\Shaders\PointSpriteVert.glsl" />
+    <None Include="..\..\..\Shaders\postRenderingFrag.glsl" />
+    <None Include="..\..\..\Shaders\postRenderingVert.glsl" />
     <None Include="..\..\..\Shaders\RadialBlur2PassFrag.glsl" />
   </ItemGroup>
   <ItemGroup>
