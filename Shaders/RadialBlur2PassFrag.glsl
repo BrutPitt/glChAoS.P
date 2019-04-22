@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018 Michele Morrone
+//  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -11,30 +11,10 @@
 //  https://michelemorrone.eu
 //  https://BrutPitt.com
 //
-//  This software is distributed under the terms of the BSD 2-Clause license:
+//  This software is distributed under the terms of the BSD 2-Clause license
 //  
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//      * Redistributions of source code must retain the above copyright
-//        notice, this list of conditions and the following disclaimer.
-//      * Redistributions in binary form must reproduce the above copyright
-//        notice, this list of conditions and the following disclaimer in the
-//        documentation and/or other materials provided with the distribution.
-//   
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-//  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-//  ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-//  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-//  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-//  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-//  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 ////////////////////////////////////////////////////////////////////////////////
-#line 37 // #include ColorSpaces.glsl
-
+#line 17    //#version dynamically inserted - #include ColorSpaces.glsl
 
 ///////////////////////////////////////
 //
@@ -68,6 +48,7 @@ LAYUOT_BINDING(2) uniform _blurData {
 
     vec4 texControls;
     vec4 videoControls; //videoControls vec4 ->  1.f/m_gamma, m_exposure, m_bright, m_contrast
+    vec2 invScreenSize;
 
     float mixTexture;
 
@@ -77,9 +58,14 @@ LAYUOT_BINDING(2) uniform _blurData {
 LAYUOT_BINDING(0) uniform sampler2D origTexture;
 LAYUOT_BINDING(1) uniform sampler2D pass1Texture;
 
+//LAYUOT_BINDING(3) uniform sampler2D depthTexture;
+//LAYUOT_BINDING(4) uniform sampler2D vtxTex;
+//LAYUOT_BINDING(5) uniform sampler2D normTex;
+
 
 //in vec2 vTexCoord;
 out vec4 outColor;
+
 
 CONST vec2 aspect = vec2(1.0, 1.0);
 
@@ -144,43 +130,42 @@ CONST vec2 aspect = vec2(1.0, 1.0);
 //
 //          fXY = exp( -dot(k,k) * invSigmaQx2) * invSigmaQx2PI
 
-
 vec4 bilateralSmartSmooth(CONST float reductFactor)
 {
     CONST float bsigma = threshold*reductFactor;
-	CONST float radius = float(round(sigma.y*sigma.x-1.f));
+    CONST float radius = float(round(sigma.y*sigma.x-1.f));
     CONST float radQ = radius * radius;
-
+    
     CONST float invSigma = 1.f/sigma.x;
-	CONST float invSigmaQx2 = .5 * invSigma * invSigma;          // 1.0 / (sigma^2 * 2.0)
+    CONST float invSigmaQx2 = .5 * invSigma * invSigma;          // 1.0 / (sigma^2 * 2.0)
     CONST float invSigmaQx2PI = INV_PI * invSigmaQx2;    // 1.0 / (sqrt(PI) * sigma)
-//	CONST float invSigmaxSqrt2PI = INV_SQRT_OF_2PI * invSigma;    // 1.0 / (sqrt(PI) * sigma)
-	
+    
     CONST float invBSigma = 1.f/bsigma;
-	CONST float invBSigmaSqx2 = .5 * invBSigma * invBSigma;          // 1.0 / (sigma^2 * 2.0)
-	CONST float invBSigmaxSqrt2PI = INV_SQRT_OF_2PI * invBSigma;    // 1.0 / (sqrt(2*PI) * sigma)
-
-	CONST vec4 centrPx = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0);
-
-	float Zbuff = 0.0;
-	vec4 accumBuff = vec4(0.0);
-
+    CONST float invBSigmaSqx2 = .5 * invBSigma * invBSigma;          // 1.0 / (sigma^2 * 2.0)
+    CONST float invBSigmaxSqrt2PI = INV_SQRT_OF_2PI * invBSigma;    // 1.0 / (sqrt(2*PI) * sigma)
+    
+    CONST vec4 centrPx = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0);
+    
+    float Zbuff = 0.0;
+    vec4 accumBuff = vec4(0.0);
+    
     vec2 d;
-	for (d.x=-radius; d.x <= radius; d.x++)	{
+    for (d.x=-radius; d.x <= radius; d.x++)	{
         CONST float pt = sqrt(radQ-d.x*d.x);
-		for (d.y=-pt; d.y <= pt; d.y++) {
+        for (d.y=-pt; d.y <= pt; d.y++) {
             CONST float blurFactor = exp( -dot(d , d) * invSigmaQx2 ) * invSigmaQx2;
-
-			CONST vec4 walkPx =  texelFetch(origTexture, ivec2(gl_FragCoord.xy+d),0 );
+            
+            CONST vec4 walkPx =  texelFetch(origTexture, ivec2(gl_FragCoord.xy+d),0 );
             CONST vec4 dC = walkPx-centrPx;
-			CONST float deltaFactor = exp( -dot(dC, dC) * invBSigmaSqx2) * invBSigmaxSqrt2PI * blurFactor;
+            CONST float deltaFactor = exp( -dot(dC, dC) * invBSigmaSqx2) * invBSigmaxSqrt2PI * blurFactor;
                                  
-			Zbuff     += deltaFactor;
-			accumBuff += deltaFactor*walkPx;
-		}
-	}
-	return accumBuff/Zbuff;
+            Zbuff     += deltaFactor;
+            accumBuff += deltaFactor*walkPx;
+        }
+    }
+    return accumBuff/Zbuff;
 }
+
 
 vec4 bilateralSmartSmoothOK()
 {
@@ -189,27 +174,27 @@ vec4 bilateralSmartSmoothOK()
 
 vec4 gPass(sampler2D tex, vec2 direction) 
 {
-	//vec2 offset = wSize; 
-	
-	//compute the radius across the kernel
-	CONST float radius = sigma.y*sigma.x-1.f;
-	
+    //vec2 offset = wSize; 
+    
+    //compute the radius across the kernel
+    CONST float radius = sigma.y*sigma.x-1.f;
+    
     float Zbuff = 0.0;
-	vec4 accumBuff = vec4(0.0);
-	
-	//precompute factors used every iteration
+    vec4 accumBuff = vec4(0.0);
+    
+    //precompute factors used every iteration
     CONST float invSigma = 1.f/sigma.x;
-	CONST float invSigmaSqx2 = .5 * invSigma * invSigma;          // 1.0 / (sigma^2 * 2.0)
-	CONST float invSigmaxSqrt2PI = INV_SQRT_OF_2PI * invSigma;    // 1.0 / (sqrt(PI) * sigma)
-	
-	// separable Gaussian
+    CONST float invSigmaSqx2 = .5 * invSigma * invSigma;          // 1.0 / (sigma^2 * 2.0)
+    CONST float invSigmaxSqrt2PI = INV_SQRT_OF_2PI * invSigma;    // 1.0 / (sqrt(PI) * sigma)
+    
+    // separable Gaussian
     for ( float r = -radius; r <= radius; r++) {
         float factor = exp( -(r*r) * invSigmaSqx2 ) * invSigmaxSqrt2PI;
         vec4 c = texelFetch(tex, ivec2(gl_FragCoord.xy + r * direction), 0);
-	    accumBuff += factor * c;
-	}
-		
-	return accumBuff;
+        accumBuff += factor * c;
+    }
+    
+    return accumBuff;
 }
 
 
@@ -339,6 +324,87 @@ LAYUOT_INDEX(4) SUBROUTINE(_radialPass) vec4 bilateralSmooth()
     return qualitySetting(min(mix(original,newBlur,mixTexture), 1.0f));
 }
 
+// result suitable for assigning to gl_FragDepth
+float depthSample(float linearDepth, float zNear, float zFar)
+{
+    float nonLinearDepth = (zFar + zNear - 2.0 * zNear * zFar / linearDepth) / (zFar - zNear);
+    nonLinearDepth = (nonLinearDepth + 1.0) / 2.0;
+    return nonLinearDepth;
+}
+
+float specularGGX(vec3 vtx, vec3 L, vec3 N) 
+{
+
+    float ggxRoughness = .703;
+    float ggxFresnel = .348;
+
+    float alpha = ggxRoughness*ggxRoughness;
+    float alphaSqr = alpha * alpha;
+
+    vec3 V = normalize(vtx);
+    vec3 H = normalize(L - V); // View = -
+    float dotLH = max(0.0, dot(L,H));
+    float dotNH = max(0.0, dot(N,H));
+    float dotNL = max(0.0, dot(N,L));
+
+    // D (GGX normal distribution)
+    float denom = dotNH * dotNH * (alphaSqr - 1.0) + 1.0;
+    float D = alphaSqr / (3.141592653589793 * denom * denom);
+
+    // F (Fresnel term)
+    float F = ggxFresnel + (1.0 - ggxFresnel) * pow(1.0 - dotLH, 5.0);
+    float k = 0.5 * alpha;
+    float k2 = k * k;
+
+    return dotNL * D * F / (dotLH*dotLH*(1.0-k2)+k2);
+}
+
+float getZ(float depth)
+{
+    float f = 100., n = .1;
+
+    float zNDC = 2.1 * depth - 1.05;
+
+
+
+    //if(zNDC>1.0) discard;
+/*
+    float zEye = 2.0 * n * f / (f + n - zNDC * (f - n));
+    return zEye;
+*/
+    return zNDC;
+}
+/*
+float getZ(vec2 uv)
+{
+    vec3 sampleCoord[9];
+    const float NR = 1.;
+    sampleCoord[0] = vec3( 0.,  0., 1.);
+    sampleCoord[1] = vec3( NR, -NR, .3);
+    sampleCoord[2] = vec3(-NR,  NR, .3);
+    sampleCoord[3] = vec3( NR,  NR, .3);
+    sampleCoord[4] = vec3(-NR, -NR, .3);
+    sampleCoord[5] = vec3(  0,  NR, .5);
+    sampleCoord[6] = vec3(  0, -NR, .5);
+    sampleCoord[7] = vec3( NR,   0, .5);
+    sampleCoord[8] = vec3(-NR,   0, .5);
+    
+    float colorDiv = .2381;
+
+    float z = 0;
+    for (int i = 0; i < 9; i++) 
+        z+=texelFetch(depthTexture,ivec2(uv+sampleCoord[i].xy), 0).r * sampleCoord[i].z;
+        //z+=texture(depthTexture,(uv+sampleCoord[i].xy)*invScreenSize).r * sampleCoord[i].z;
+
+    return getZ(z*colorDiv);
+}
+*/
+
+vec2 scale (vec2 p, float s) {
+    return p * s;
+}
+
+
 //  bypass, only image adjust
 ////////////////////////////////////////////////////////////////////////////
 LAYUOT_INDEX(0) SUBROUTINE(_radialPass) vec4 byPass()
@@ -346,13 +412,10 @@ LAYUOT_INDEX(0) SUBROUTINE(_radialPass) vec4 byPass()
     return qualitySetting(min(texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y, 1.0f));
 }
 
-
-
 void main ()
 {
 #if defined(GL_ES) || defined(TEST_WGL)
-    if(blurCallType==0) outColor = byPass();
-    else                outColor = bilateralSmooth();
+    outColor = blurCallType==0 ? byPass() : bilateralSmooth();
 #else
     outColor = imageResult();
 #endif

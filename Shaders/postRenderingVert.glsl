@@ -18,9 +18,7 @@
 
 layout(std140) uniform;
 
-layout (location = 0) in vec4 a_ActualPoint;
-
-LAYUOT_BINDING(0) uniform sampler2D paletteTex;
+layout (location = 0) in vec2 vPos;
 
 LAYUOT_BINDING(2) uniform _particlesData {
     vec3 lightDir;          // align 0
@@ -53,39 +51,23 @@ LAYUOT_BINDING(2) uniform _particlesData {
     int pass;
 } u;
 
-LAYUOT_BINDING(4) uniform _tMat {
-    mat4 pMatrix;
-    mat4 mvMatrix;
-    mat4 mvpMatrix;
-} m;
+out vec2 viewRay;
 
-#ifndef GL_ES
+#ifdef GL_ES
+#else
 out gl_PerVertex
 {
-    vec4 gl_Position;
-    float gl_PointSize;
+	vec4 gl_Position;
 };
 #endif
 
+out vec2 vTexCoord;
+vec2 texCoord[4] = vec2[4](vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(1.0, 1.0), vec2(0.0, 1.0));
 
-#ifndef GL_ES
-    subroutine vec4 _colorResult();
-    subroutine uniform _colorResult colorResult;
-#endif
-
-// Load OBJ
-#ifndef GL_ES
-LAYUOT_INDEX(1) SUBROUTINE(_colorResult) vec4 objColor()
+void main(void)
 {
-    uint packCol = floatBitsToUint(a_ActualPoint.w);
-    vec4 col = unpackUnorm4x8(packCol);
+    vTexCoord = texCoord[gl_VertexID];
+    gl_Position = vec4(vPos.xy,.0f,1.f);
+    viewRay = vPos.xy * vec2(u.scrnRes.x/u.scrnRes.y * u.halfTanFOV, u.halfTanFOV);
 
-    return col;
-}
-#endif
-
-LAYUOT_INDEX(0) SUBROUTINE(_colorResult) vec4 velColor()
-{
-    float vel = a_ActualPoint.w*u.velIntensity;
-    return vec4(texture(paletteTex, vec2(vel,0.f)).rgb,1.0);
 }
