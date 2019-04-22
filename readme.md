@@ -1,4 +1,4 @@
-# [**glChAoS.P / wglChAoS.P - Ver 1.2**](https://michelemorrone.eu/glchaosp)
+# [**glChAoS.P / wglChAoS.P - Ver 1.2**](https://michelemorrone.eu/glchaosp)  ==> 1.3 (WiP)
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractor scout... and hypercompex fractals (new!) 
@@ -13,19 +13,13 @@ Personal adaptation and optimization from original code of [Michael Fogleman](ht
 
 DLA3D is also present in WebGL version: only visualization
 
-Currently "beta" executables, with these and other new features, are available for Windows and Linux in master repository
-
-
-Please read the release notes for changes and new features of **ver. 1.2**: [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases/tag/v1.2)
+**Currently "beta" executables, with these and other new features, are available for Windows and Linux in master repository**
 
 
 
-### [New Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html)
-| hypercomplex fractals | hypercomplex fractals |
-| :-----: | :----: |
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
 
-### [wglChAoS.P / wglChAoSP - the WebGL2 online version (ver. 1.2)](https://michelemorrone.eu/glchaosp/webGL.html)
+
+## [wglChAoS.P / wglChAoSP - the WebGL2 online version (ver. 1.3)](https://michelemorrone.eu/glchaosp/webGL.html)
 This is a WebGL 2 / WebAssembly lightened **LIVE / ONLINE** version of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
 
 ### Supports touch screen for mobile devices, smartphones and tablets 
@@ -36,6 +30,10 @@ This is a WebGL 2 / WebAssembly lightened **LIVE / ONLINE** version of [**glChAo
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/imgsCapture/ssWGL_half.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
 
 
+### [Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html)
+| hypercomplex fractals | hypercomplex fractals |
+| :-----: | :----: |
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
 
 
 
