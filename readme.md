@@ -3,7 +3,18 @@
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractor scout... and hypercompex fractals (new!) 
 
-### Ver 1.2 with new particles rendering engine and lighting models: always in real-time, but now with ray-march quality
+### Towards Ver 1.3 with further rendering engine improvement: dual pass rendering with depth buffer surface reconstruction and ambient occlusion.
+![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/newRE2.jpg)
+(features not available in WebGL version: too many necessary resources)
+
+### New 3D Diffusion Limited Aggregation (DLA 3D)
+![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/dla3D.jpg)
+Personal adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman/dlaf), and possibility to export/reImport in PLY format.
+
+DLA3D is also present in WebGL version: only visualization
+
+Currently "beta" executables, with these and other new features, are available for Windows and Linux in master repository
+
 
 Please read the release notes for changes and new features of **ver. 1.2**: [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases/tag/v1.2)
 

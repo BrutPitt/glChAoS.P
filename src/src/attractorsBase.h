@@ -1064,7 +1064,7 @@ using boostIndex = boost::geometry::index::rtree<boostIndexValue, boost::geometr
 
 //  DLA3D base class
 ////////////////////////////////////////////////////////////////////////////
-// Adaptament and optimization from original project of Michael Fogleman
+// Adaptation and optimization from original project of Michael Fogleman
 // https://github.com/fogleman/dlaf
 //
 // Original Parameters   ==>    substitution
