@@ -13,7 +13,7 @@ Personal adaptation and optimization from original code of [Michael Fogleman](ht
 
 DLA3D is also present in WebGL version: only visualization
 
-**Currently "beta" executables, with these and other new features, are available for Windows and Linux in master repository**
+**Currently "beta" executables, with these and other new features, are available in master repository**
 
 
 
@@ -162,6 +162,7 @@ Read Build/CMake sections for further information.
 
 - Compilers with full C++14 standard required
 - CMake 3.10 or higher
+- Boost Library to build DLA3D (Diffusion Limited Aggregation) object exlploration, (or uncomment DISABLE_DLA3D in CMake file to disable it)
 
 
 **Tested Compilers**
@@ -184,7 +185,7 @@ In the folder `./src` there is the `CmakeLists.txt`, use this folder as base dir
 
 Read below more obout your OS.
 
-**GLFW:**
+**GLFW Library**
 
 Enclosed 32/64bit built library for Windows, and 64bit for Linux and OS X 
 \
@@ -194,8 +195,16 @@ When build glChAoSP, compiler looks for GLFW installed library, before, in the f
 - src/src/libs/glfw/buildWin (Windows)
 
 So, you need to delete it, or modify the CMake file, to use personal ones version.
-In this case you need to have installed GLFW Library, ver 3.3 development branch or higher, or re-build the enclosed version in `“./src/src/libs/glfw”` folder: this is the development branch for version 3.3 (cloned form the github)
+In this case you need to have installed GLFW Library, ver 3.3 or higher, or re-build the enclosed version in `“./src/src/libs/glfw”` folder.
 
+**Boost Library**
+
+Boost Library in particular: *function_output_iterator* and *geometry* are necessary to build DLA3D (Diffusion Limited Aggregation) object exlploration in glChAoS.P. It's not included in the repository, but can be downloaded from [https://www.boost.org/](https://www.boost.org/)
+
+It is not necessary to build the library, only headers files is enough (they must be in the compiler research path).
+Add the location in to `INCLUDE` environment variable or unpack/copy the `boost` include directory under `src/src/libs`: this folder is already added in CMakeFile
+
+You can also disable the building of DLA function: pass `-DGLAPP_DISABLE_DLA` to compiler, or uncomment `GLAPP_DISABLE_DLA` flag in `src/CMakeFile.txt`, or uncomment it directly in the file `src/src/appDefines.h`
 
 **Windows**
 
@@ -319,10 +328,16 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
 - libs/glad → GL/GLES/EGL/GLX/WGL Loader-Generator
 [https://github.com/Dav1dde/glad](https://github.com/Dav1dde/glad)
 
+- libs/dirent → "dirent" Unix/Linux filesystem interface port for Windows
+[https://github.com/tronkko/dirent](https://github.com/tronkko/dirent)
+
 - libs/glfw → A multi-platform library for OpenGL, OpenGL ES, Vulkan,
 window and input
 [https://github.com/glfw/glfw](https://github.com/glfw/glfw)
 *(need version \>= 3.3, recommended enclosed pre-built)*
+
+- boost Library in particular: *function_output_iterator* and *geometry* are necessary to build DLA3D (Diffusion Limited Aggregation) object exlploration in glChAoS.P (can be disabled). It's not included in the repository, but can be downloaded from [https://www.boost.org/](https://www.boost.org/)
+It is not necessary to build the library, only headers files is enough. (more information in: how to build)
 
 **Color Maps/Palettes**
 

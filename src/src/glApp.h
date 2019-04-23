@@ -115,7 +115,7 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 
 
 void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool normalized = true, normalType nType = normalType::ptCoR);
-bool importPLY(bool wantColors);
+bool importPLY(bool wantColors, bool isDLA);
 
 
 class particlesBaseClass;

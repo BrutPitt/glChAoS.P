@@ -77,7 +77,7 @@ bool loadObjFile()
     return true;
 }
 
-bool importPLY(bool wantColors)
+bool importPLY(bool wantColors, bool isDLA)
 {
     attractorsList.getThreadStep()->stopThread();
 
@@ -141,19 +141,22 @@ bool importPLY(bool wantColors)
             ptr->y = *vtx++;
             ptr->z = *vtx++;
 
-            if (colors->t == tinyply::Type::FLOAT32) {
-                const float r = *fClr++;
-                const float g = *fClr++;
-                const float b = *fClr++;
-                iCol = 0xff000000 | (uint(b*255.f) << 16) | (uint(g*255.f) << 8) | uint(r*255.f);
+            if(wantColors) {
+                if (colors->t == tinyply::Type::FLOAT32) {
+                    const float r = *fClr++;
+                    const float g = *fClr++;
+                    const float b = *fClr++;
+                    iCol = 0xff000000 | (uint(b*255.f) << 16) | (uint(g*255.f) << 8) | uint(r*255.f);
+                } else {
+                    const uint r = *bClr++;
+                    const uint g = *bClr++;
+                    const uint b = *bClr++;
+                    iCol = 0xff000000 | (b << 16) | (g << 8) | r;
+                }         
+                ptr->w = glm::uintBitsToFloat( iCol );            
             } else {
-                const uint r = *bClr++;
-                const uint g = *bClr++;
-                const uint b = *bClr++;
-                iCol = 0xff000000 | (b << 16) | (g << 8) | r;
+                ptr->w = isDLA ? glm::distance(vec3(*ptr), vec3(0.f)) : ((i>0) ? glm::distance(vec3(*ptr), vec3(*(ptr-1))) : 0.f);
             }
-         
-            ptr->w = glm::uintBitsToFloat( iCol );            
 
 #if !defined(NDEBUG)
             if(!(i%100000))
@@ -510,18 +513,7 @@ void PowerN3D::saveAdditionalData(Config &cfg)
 void PowerN3D::loadAdditionalData(Config &cfg) 
 {
     tmpOrder = order= cfg.get_or("Order",order);
-/*
-    nCoeff = getNumCoeff();
-    const int kSize = k.size()/3;
 
-    if(nCoeff!=kSize || v.size()!=3) assert("mismatch loaded size!!");
-
-    resizeBuffers();
-    ResetCurrent();
-
-    memcpy(vVal.data(), v.data(), sizeof(glm::vec3));
-    memcpy(kVal.data(), k.data(), kSize*sizeof(glm::vec3));
-*/
 }
 
 
@@ -535,6 +527,8 @@ void attractorDtType::loadAdditionalData(Config &cfg)
 
 
 }
+
+#if !defined(GLAPP_DISABLE_DLA)
 //  DLA 3D
 ////////////////////////////////////////////////////////////////////////////
 void dla3D::saveAdditionalData(Config &cfg) 
@@ -545,6 +539,7 @@ void dla3D::loadAdditionalData(Config &cfg)
 {
         m_Stubbornness = cfg.get_or("Stubbornness",0);
 }
+#endif
 
 //  Magnetic Attractor
 ////////////////////////////////////////////////////////////////////////////

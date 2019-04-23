@@ -395,6 +395,9 @@ public:
 
     void viewObjON()  { idxViewOBJ = GLuint(particlesViewColor::packedRGB); }
     void viewObjOFF() { idxViewOBJ = GLuint(particlesViewColor::paletteIndex); }
+
+    bool wantPlyObjColor() { return plyObjGetColor; }
+    void wantPlyObjColor(bool b) { plyObjGetColor = b; }
 #endif
 
     int getWhitchRenderMode() { return whichRenderMode; }
@@ -420,6 +423,7 @@ protected:
     int axesShow = noShowAxes;
 
     GLuint idxViewOBJ = 0;
+    bool plyObjGetColor = true;
 #endif
 
     cmContainerClass colorMapContainer;

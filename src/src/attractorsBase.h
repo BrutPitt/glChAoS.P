@@ -1050,12 +1050,22 @@ protected:
     void searchAttractor()  { searchLyapunov(); }
 };
 
-
+#if !defined(GLAPP_DISABLE_DLA)
 #include <boost/function_output_iterator.hpp>
 #include <boost/geometry/geometry.hpp>
 
 // number of dimensions (must be 2 or 3)
 #define DLA_DIM 3
+
+#define DLA_USE_FAST_RANDOM
+#ifdef DLA_USE_FAST_RANDOM
+    #define DLA_RANDOM_NORM fastRandom.xorshiftNorm32()
+    #define DLA_RANDOM_01   fastRandom.xorshift32_01()
+#else
+    #define DLA_RANDOM_NORM stdRandom(-1.f, 1.f)
+    #define DLA_RANDOM_01   stdRandom( 0.f, 1.f)
+#endif
+
 // boost is used for its spatial index
 using BoostPoint = boost::geometry::model::point<float, DLA_DIM, boost::geometry::cs::cartesian>;
 using boostIndexValue = std::pair<BoostPoint, int>;
@@ -1097,16 +1107,34 @@ protected:
     void initStep() {
         m_Points.clear();
         m_JoinAttempts.clear();
-        m_Index.clear();
+        if(m_Index.size()) m_Index.clear();
+        
         resetQueue();
         Insert(vec3(0.f));
         Add(glm::vec3(0.0));
+        //addedPoints.clear();
+        //startThreads(4);
     }
 
     void additionalDataCtrls();
     void saveAdditionalData(Config &cfg);
     void loadAdditionalData(Config &cfg);
+/*
+    void stopThread() { 
+        threadStop = true; 
+    }
 
+    void mainThread() {
+        while(!threadStop) addedPoints.push_back(AddParticle());
+    }
+
+    void startThreads(int num) {
+        while(num--) {
+            addedPoints.push_back(AddParticle());
+            pointTread.emplace_back(std::thread(&dla3D::mainThread, this));
+        }
+    }
+*/
     // Add adds a new particle with the specified parent particle
     void Add(const glm::vec3 &p) {
         const int id = m_Points.size();
@@ -1143,7 +1171,7 @@ protected:
     // parent particle. This is only called when the point is already within
     // the required attraction distance.
     bool ShouldJoin(const glm::vec3 &p, const int parent) {
-        return (m_JoinAttempts[parent]++ < m_Stubbornness) ? false : fastRandom.xorshift32_01() <= kVal[3];
+        return (m_JoinAttempts[parent]++ < m_Stubbornness) ? false : DLA_RANDOM_01 <= kVal[3];
     }
 
     // PlaceParticle computes the final placement of the particle.
@@ -1159,9 +1187,9 @@ protected:
     }
 
     glm::vec3 RandomInUnitSphere() const {
-        return glm::vec3(fastRandom.xorshiftNorm32(), 
-                         fastRandom.xorshiftNorm32(), 
-                         fastRandom.xorshiftNorm32());
+        return glm::vec3(DLA_RANDOM_NORM, 
+                         DLA_RANDOM_NORM, 
+                         DLA_RANDOM_NORM);
     } 
 
     // AddParticle diffuses one new particle and adds it to the model
@@ -1173,7 +1201,7 @@ protected:
         while (true) {
             // get distance to nearest other particle
             const int parent = Nearest(p);
-            const float d = glm::distance(p, m_Points[parent]);
+            const float d = glm::distance(p, m_Points[parent>m_Points.size() ? m_Points.size()-1 : parent]);
 
             // check if close enough to join
             if (d < kVal[1]) {
@@ -1199,6 +1227,11 @@ protected:
     void startData();
 
 private:
+    float stdRandom(float lo, float hi) const {
+        static thread_local std::mt19937 gen(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+        std::uniform_real_distribution<float> dist(lo, hi); return dist(gen);
+    }
+
     // m_Stubbornness defines how many interactions must occur before a
     // particle will allow another particle to join to it.
     int m_Stubbornness = 0;
@@ -1209,7 +1242,12 @@ private:
 
     // m_Points stores the final particle positions
     std::vector<glm::vec3> m_Points;
-
+    
+/*    
+    std::vector<std::thread> pointTread;
+    std::deque<glm::vec3> addedPoints;
+    bool threadStop = false;
+*/
     // m_JoinAttempts tracks how many times other particles have attempted to
     // join with each finalized particle
     std::vector<int> m_JoinAttempts;
@@ -1217,7 +1255,7 @@ private:
     // m_Index is the spatial index used to accelerate nearest neighbor queries
     boostIndex m_Index;
 };
-
+#endif
 
 //--------------------------------------------------------------------------
 //  d(x,y,z)/dt Attractors
@@ -1903,7 +1941,9 @@ public:
         PB(Pickover           , u8"\uf006" " Pickover"           )
         PB(SinCos             , u8"\uf006" " Sin Cos"            )
         PB(Mira3D             , u8"\uf006" " Mira3D"             )
+#if !defined(GLAPP_DISABLE_DLA)
         PB(dla3D              , u8"\uf2dc" " DLA 3D"             )
+#endif
         PB(Lorenz             , u8"\uf192" " Lorenz"             )
         PB(ChenLee            , u8"\uf192" " Chen-Lee"           )
         PB(TSUCS              , u8"\uf192" " TSUCS 1&2"          )

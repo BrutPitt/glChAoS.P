@@ -1605,11 +1605,13 @@ void dataDlgClass::view()
         static bool bNormalized = true;
         static int idxNorm = 0;
 
-        ImGui::TextDisabled(" Export vertex data");
+        static bool bDLA = false;
+
+
+        ImGui::Text(" " ICON_FA_FLOPPY_O "  Export vertex data");
         ImGui::Checkbox("Binary fileType", &bBinary);
-        ImGui::TextDisabled(" Additional exports");
-        ImGui::Checkbox("Colors", &bColors);
-        ImGui::SameLine(wH);
+        ImGui::Checkbox("Colors##E", &bColors);
+            ImGui::SameLine(wH);
         ImGui::Checkbox("Normals", &bNormals);
         if(bNormals) {
             ImGui::TextDisabled(" Normals type");
@@ -1627,18 +1629,29 @@ void dataDlgClass::view()
         }
 
 
-        if(ImGui::Button("Import PLY", ImVec2(wButtH,0))) 
-            if(importPLY(bColors)) //loadObjFile();
+        if(ImGui::Button(ICON_FA_FLOPPY_O " Export PLY", ImVec2(w,0))) exportPLY(bBinary, bColors, bNormals, bNormalized, (normalType) idxNorm);
+
+        ImGui::NewLine();
+        ImGui::Text(" " ICON_FA_FOLDER_OPEN_O "  Import vertex data");
+        bool b = theWnd->getParticlesSystem()->wantPlyObjColor();
+        if(ImGui::Checkbox("PLY Colors##I", &b)) theWnd->getParticlesSystem()->wantPlyObjColor(b);
+        if(!b) {
+            ImGui::SameLine(wH);
+            ImGui::Checkbox("is DLA", &bDLA);
+        }
+
+        if(ImGui::Button(ICON_FA_FOLDER_OPEN_O " Import PLY", ImVec2(w,0))) 
+            if(importPLY(b, bDLA)) //loadObjFile();
                 theWnd->getParticlesSystem()->viewObjON();
-        ImGui::SameLine(wH);
-        if(ImGui::Button("Export PLY", ImVec2(wButtH,0))) exportPLY(bBinary, bColors, bNormals, bNormalized, (normalType) idxNorm);
+//        ImGui::SameLine(wH);
+
 
         ImGui::AlignTextToFramePadding();
         ImGui::NewLine();
-        ImGui::TextDisabled(" Export render settings");
-        if(ImGui::Button("Import CFG", ImVec2(wButtH,0))) loadSettingsFile();
+        ImGui::Text("Import/Export render settings");
+        if(ImGui::Button(ICON_FA_FOLDER_OPEN_O " Import CFG", ImVec2(wButtH,0))) loadSettingsFile();
         ImGui::SameLine(wH);
-        if(ImGui::Button("Export CFG", ImVec2(wButtH,0))) saveSettingsFile();
+        if(ImGui::Button(ICON_FA_FLOPPY_O " Export CFG", ImVec2(wButtH,0))) saveSettingsFile();
 
     }
     ImGui::End();

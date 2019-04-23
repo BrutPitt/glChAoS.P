@@ -98,11 +98,6 @@ float getAlpha(float alpha)
 
 }
 
-// need to read for AO
-//http://web.archive.org/web/20130416194336/http://olivers.posterous.com/linear-depth-in-glsl-for-real
-//https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
-//https://stackoverflow.com/questions/7777913/how-to-render-depth-linearly-in-modern-opengl-with-gl-fragcoord-z-in-fragment-sh/45710371
-
 float linearizeDepth(float Z, float near, float far) 
 {
     //if(-depth>far) discard;
@@ -298,7 +293,12 @@ vec4 mainFunc(vec2 ptCoord)
     vec4 color = acquireColor(ptCoord);
 
 #if defined(GL_ES) || defined(__APPLE__)
-    return u.lightActive==uint(1) ? pixelColorLight(color, N) : pixelColorOnly(color, N);
+    vec4 retColor = u.lightActive==uint(1) ? pixelColorLight(color, N) : pixelColorOnly(color, N);
+    #ifdef GL_ES
+        return retColor;
+    #else
+        return (u.pass >= uint(2)) ? vec4(color.xyz, depthSample(mvVtxPos.z + incVtx)) : (u.pass==uint(0) ? retColor : vec4(retColor.xyz, depthSample(mvVtxPos.z + incVtx))); 
+    #endif
 #else                            
 /*
     vec2 uv = ptCoord;
@@ -309,6 +309,7 @@ vec4 mainFunc(vec2 ptCoord)
 */
     //return vec4(vN,1.0);
 
+    //return vec4(color.xyz, depthSample(mvVtxPos.z + incVtx));
     return (u.pass >= uint(2)) ? vec4(color.xyz, depthSample(mvVtxPos.z + incVtx)) : (u.pass==uint(0) ? pixelColor(color, N) : vec4(pixelColor(color, N).rgb, depthSample(mvVtxPos.z + incVtx))); 
 
 

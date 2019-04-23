@@ -27,6 +27,8 @@
 //#define USE_THREAD_TO_FILL
 //#define USE_MAPPED_BUFFER
 
+//#define GLAPP_DISABLE_DLA
+
 
 //#define GLAPP_IMGUI_VIEWPORT
 

@@ -145,13 +145,15 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
     };
 
     auto selectSubroutines = [&]() {
-        GLuint subIDX[2];
+        GLuint subIDX[2];        
 #ifdef GLAPP_REQUIRE_OGL45
         subIDX[locSubPixelColor] = getLightState();
         subIDX[locSubLightModel] = uData.lightModel;
 
+        GLuint subVtxIdx = idxViewOBJ && plyObjGetColor ? particlesViewColor::packedRGB : particlesViewColor::paletteIndex;
+
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
-        glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &idxViewOBJ);
+        glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &subVtxIdx);
 #else
 #if !defined(GLCHAOSP_LIGHTVER)
     #if !defined(__APPLE__)
@@ -160,7 +162,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
     #endif
-    glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), idxViewOBJ==1 ? &idxSubOBJ : &idxSubVEL);
+    glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), idxViewOBJ ? &idxSubOBJ : &idxSubVEL);
 #endif
 #endif
     };

@@ -189,6 +189,7 @@ void PowerN3D::additionalDataCtrls()
     ImGui::PopItemWidth();
 }
 
+#if !defined(GLAPP_DISABLE_DLA)
 void dla3D::additionalDataCtrls()
 {
     ImGui::NewLine();
@@ -196,19 +197,10 @@ void dla3D::additionalDataCtrls()
         
     ImGui::DragInt("##stub", &m_Stubbornness, .05, 0, 99, "Stubbornness: %02d");
     ImGui::SameLine();
-/*
-    if(ImGui::Button(" Set " )) {
-        attractorsList.getThreadStep()->stopThread();
-        
-        setElements(m_Stubbornness);
-        attractorsList.getThreadStep()->restartEmitter();
-        attractorsList.getThreadStep()->startThread();
 
-    }
-*/
     ImGui::PopItemWidth();
 }
-
+#endif
 
 void Magnetic::additionalDataCtrls()
 {

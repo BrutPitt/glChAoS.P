@@ -397,6 +397,7 @@ void Mira3D::startData()
     Insert(vVal[0]);
 }
 
+#if !defined(GLAPP_DISABLE_DLA)
 // https://github.com/fogleman/dlaf
 void dla3D::startData()
 {
@@ -422,9 +423,8 @@ void dla3D::startData()
     // m_BoundingRadius defines the radius of the bounding sphere that bounds
     // all of the particles
     //kVal.push_back( 0.0); // kVal[4] -> m_BoundingRadius;
-
-
 }
+#endif
 
 void ChenLee::startData()
 {

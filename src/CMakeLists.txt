@@ -25,7 +25,7 @@ set(OGL45 "-DGLAPP_REQUIRE_OGL45")
 # set(OGL41_BUFFER "")
 set(OGL41 "")
 
-
+#set(GLAPP_DISABLE_DLA "-DGLAPP_DISABLE_DLA")
 
 set(SRC "${CMAKE_SOURCE_DIR}/src")
 
@@ -164,7 +164,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
     set(M_EMCC_OPTIONS "-s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ALLOW_MEMORY_GROWTH=1 -s BINARYEN_TRAP_MODE=clamp -s PRECISE_F32=1 ${M_EMCC_SHELL_FILE} ${M_EMCC_OGL_OPTIONS} ${M_EMCC_BINARYEN} ${M_EMCC_EMBED_FILES}")
 
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${EMSOUT}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${M_GLOBAL_FLAGS} ${OGL_EMITTER_TYPE} ${M_EMCC_FLAGS} ${M_EMCC_OPTIONS} -Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value -Wdelete-non-virtual-dtor")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${M_GLOBAL_FLAGS} ${OGL_EMITTER_TYPE} ${M_EMCC_FLAGS} ${M_EMCC_OPTIONS} ${GLAPP_DISABLE_DLA} -Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value -Wdelete-non-virtual-dtor")
 
     add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
@@ -216,7 +216,7 @@ else()
 endif(APPLE)
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security ${OGL_EMITTER_TYPE} ${COMMON_DEFINES} -std=c++14 -fpermissive")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security ${OGL_EMITTER_TYPE} ${COMMON_DEFINES} ${GLAPP_DISABLE_DLA} -std=c++14 -fpermissive")
 
 include_directories(${SRC})
 include_directories(${SRC}/tools)

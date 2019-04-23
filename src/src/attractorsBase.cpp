@@ -23,8 +23,6 @@
 AttractorsClass attractorsList; // need to resolve inlines
 //deque<glm::vec3> AttractorBase::stepQueue;
 
-#define INLINE 
-
 //  Attractor base class
 ////////////////////////////////////////////////////////////////////////////
 
@@ -262,7 +260,7 @@ void Hopalong::Step()
 }
 
 
-INLINE void Hopalong::Step(float *&ptr, vec3 &v, vec3 &vp) {
+void Hopalong::Step(float *&ptr, vec3 &v, vec3 &vp) {
     float a = kVal[0]*_r, b = kVal[1]*_r, c = kVal[2]*_r;  
         
     float oldX = _x, oldY = _y;
@@ -283,7 +281,7 @@ INLINE void Hopalong::Step(float *&ptr, vec3 &v, vec3 &vp) {
     step += kVal[6]/100000.f;
 }
 */
-INLINE void Hopalong::Step(vec3 &v, vec3 &vp) {
+void Hopalong::Step(vec3 &v, vec3 &vp) {
     float a = kVal[0]*_r, b = kVal[1]*_r, c = kVal[2]*_r;  
         
     float oldX = _x, oldY = _y;
@@ -306,7 +304,7 @@ INLINE void Hopalong::Step(vec3 &v, vec3 &vp) {
 
 //  PowerN3D Attractor
 ////////////////////////////////////////////////////////////////////////////
-INLINE void PowerN3D::Step(vec3 &v, vec3 &vp) 
+void PowerN3D::Step(vec3 &v, vec3 &vp) 
 {
     elv[0] = vec3(1.f);
     for(int i=1; i<=order; i++) elv[i] = elv[i-1] * v;
@@ -337,35 +335,35 @@ INLINE void PowerN3D::Step(vec3 &v, vec3 &vp)
  */
 
 ////////////////////////////////////////////////////////////////////////////
-INLINE void PolynomialA::Step(vec3 &v, vec3 &vp)
+void PolynomialA::Step(vec3 &v, vec3 &vp)
 {
     vp.x = kVal[0].x+ v.y - v.y*v.z;
     vp.y = kVal[0].y+ v.z - v.x*v.z;
     vp.z = kVal[0].z+ v.x - v.x*v.y;                                
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void PolynomialB::Step(vec3 &v, vec3 &vp)
+void PolynomialB::Step(vec3 &v, vec3 &vp)
 {
     vp.x = kVal[0].x+v.y-v.z*(kVal[1].x+v.y);
     vp.y = kVal[0].y+v.z-v.x*(kVal[1].y+v.z);
     vp.z = kVal[0].z+v.x-v.y*(kVal[1].z+v.x);                                
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void PolynomialC::Step(vec3 &v, vec3 &vp)
+void PolynomialC::Step(vec3 &v, vec3 &vp)
 {
     vp.x = kVal[0].x +v.x*(kVal[1].x +kVal[2].x *v.x+kVal[3].x *v.y)+v.y*(kVal[4].x+kVal[5].x*v.y);
     vp.y = kVal[0].y +v.y*(kVal[1].y +kVal[2].y *v.y+kVal[3].y *v.z)+v.z*(kVal[4].y+kVal[5].y*v.z);
     vp.z = kVal[0].z +v.z*(kVal[1].z +kVal[2].z *v.z+kVal[3].z *v.x)+v.x*(kVal[4].z+kVal[5].z*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void PolynomialABS::Step(vec3 &v, vec3 &vp)
+void PolynomialABS::Step(vec3 &v, vec3 &vp)
 {
     vp.x = kVal[0].x + kVal[1].x*v.x + kVal[2].x*v.y + kVal[3].x*v.z + kVal[4].x*abs(v.x) + kVal[5].x*abs(v.y) +kVal[6].x*abs(v.z);
     vp.y = kVal[0].y + kVal[1].y*v.x + kVal[2].y*v.y + kVal[3].y*v.z + kVal[4].y*abs(v.x) + kVal[5].y*abs(v.y) +kVal[6].y*abs(v.z);
     vp.z = kVal[0].z + kVal[1].z*v.x + kVal[2].z*v.y + kVal[3].z*v.z + kVal[4].z*abs(v.x) + kVal[5].z*abs(v.y) +kVal[6].z*abs(v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void PolynomialPow::Step(vec3 &v, vec3 &vp)
+void PolynomialPow::Step(vec3 &v, vec3 &vp)
 {
     vp.x = kVal[0].x + kVal[1].x*v.x + kVal[2].x*v.y + kVal[3].x*v.z + kVal[4].x*abs(v.x) + kVal[5].x*abs(v.y) +kVal[6].x*pow(abs(v.z),kVal[7].x);
     vp.y = kVal[0].y + kVal[1].y*v.x + kVal[2].y*v.y + kVal[3].y*v.z + kVal[4].y*abs(v.x) + kVal[5].y*abs(v.y) +kVal[6].y*pow(abs(v.z),kVal[7].y);
@@ -373,112 +371,112 @@ INLINE void PolynomialPow::Step(vec3 &v, vec3 &vp)
 
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void PolynomialSin::Step(vec3 &v, vec3 &vp)
+void PolynomialSin::Step(vec3 &v, vec3 &vp)
 {
     vp.x = kVal[0].x + kVal[1].x*v.x + kVal[2].x*v.y + kVal[3].x*v.z + kVal[4].x*sin(kVal[5].x*kVal[6].x*v.x) + kVal[7].x*sin(kVal[8].x*kVal[9].x*v.y) +kVal[10].x*sin(kVal[11].x*kVal[12].x*v.z);
     vp.y = kVal[0].y + kVal[1].y*v.x + kVal[2].y*v.y + kVal[3].y*v.z + kVal[4].y*sin(kVal[5].y*kVal[6].y*v.x) + kVal[7].y*sin(kVal[8].y*kVal[9].y*v.y) +kVal[10].y*sin(kVal[11].y*kVal[12].y*v.z);
     vp.z = kVal[0].z + kVal[1].z*v.x + kVal[2].z*v.y + kVal[3].z*v.z + kVal[4].z*sin(kVal[5].z*kVal[6].z*v.x) + kVal[7].z*sin(kVal[8].z*kVal[9].z*v.y) +kVal[10].z*sin(kVal[11].z*kVal[12].z*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rampe01::Step(vec3 &v, vec3 &vp)
+void Rampe01::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.z*sin(kVal[0].x*v.x)+cos(kVal[1].x*v.y);
     vp.y = v.x*sin(kVal[0].y*v.y)+cos(kVal[1].y*v.z);
     vp.z = v.y*sin(kVal[0].z*v.z)+cos(kVal[1].z*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rampe02::Step(vec3 &v, vec3 &vp)
+void Rampe02::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.z*sin(kVal[0].x*v.x)+acos(kVal[1].x*v.y);
     vp.y = v.x*sin(kVal[0].y*v.y)+acos(kVal[1].y*v.z);
     vp.z = v.y*sin(kVal[0].z*v.z)+acos(kVal[1].z*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rampe03::Step(vec3 &v, vec3 &vp)
+void Rampe03::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.x*v.z*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y);
     vp.y = v.y*v.x*sin(kVal[0].y*v.y)-cos(kVal[1].y*v.z);
     vp.z = v.z*v.y*sin(kVal[0].z*v.z)-cos(kVal[1].z*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rampe03A::Step(vec3 &v, vec3 &vp)
+void Rampe03A::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.z*v.z*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y);
     vp.y = v.x*v.x*sin(kVal[0].y*v.y)-cos(kVal[1].y*v.z);
     vp.z = v.y*v.y*sin(kVal[0].z*v.z)-cos(kVal[1].z*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rampe04::Step(vec3 &v, vec3 &vp)
+void Rampe04::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.z*sin(kVal[0].x*v.x)+cos(kVal[1].x*v.y);
     vp.y = v.x*sin(kVal[0].y*v.y)+cos(kVal[1].y*v.z);
     vp.z = v.y*sin(kVal[0].z*v.z)+cos(kVal[1].z*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rampe05::Step(vec3 &v, vec3 &vp)
+void Rampe05::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.z*sin(kVal[0].x*v.x)+cos(kVal[1].x*v.y)+sin(kVal[2].x*v.z);
     vp.y = v.x*sin(kVal[0].y*v.x)+cos(kVal[1].y*v.y)+sin(kVal[2].y*v.z);
     vp.z = v.y*sin(kVal[0].z*v.x)+cos(kVal[1].z*v.y)+sin(kVal[2].z*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rampe06::Step(vec3 &v, vec3 &vp)
+void Rampe06::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.z*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y);
     vp.y = v.x*sin(kVal[0].y*v.y)+cos(kVal[1].y*v.z);
     vp.z = v.y*sin(kVal[0].z*v.z)-cos(kVal[1].z*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rampe07::Step(vec3 &v, vec3 &vp)
+void Rampe07::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.z*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y);
     vp.y = v.x*cos(kVal[0].y*v.y)+sin(kVal[1].y*v.z);
     vp.z = v.y*sin(kVal[0].z*v.z)-cos(kVal[1].z*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rampe08::Step(vec3 &v, vec3 &vp)
+void Rampe08::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.z*sin(kVal[0].x*v.x)-cos(v.y);
     vp.y = v.x*cos(kVal[0].y*v.y)+sin(v.z);
     vp.z = v.y*sin(kVal[0].z*v.z)-cos(v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rampe09::Step(vec3 &v, vec3 &vp)
+void Rampe09::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.z*sin(kVal[0].x*v.x)-acos(kVal[1].x*v.y)+sin(kVal[2].x*v.z);
     vp.y = v.x*sin(kVal[0].y*v.x)-acos(kVal[1].y*v.y)+sin(kVal[2].y*v.z);
     vp.z = v.y*sin(kVal[0].z*v.x)-acos(kVal[1].z*v.y)+sin(kVal[2].z*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rampe10::Step(vec3 &v, vec3 &vp)
+void Rampe10::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.z*v.y*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y)+asin(kVal[2].x*v.z);
     vp.y = v.x*v.z*sin(kVal[0].y*v.x)-cos(kVal[1].y*v.y)+ sin(kVal[2].y*v.z);
     vp.z = v.y*v.x*sin(kVal[0].z*v.x)-cos(kVal[1].z*v.y)+ sin(kVal[2].z*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void KingsDream::Step(vec3 &v, vec3 &vp)
+void KingsDream::Step(vec3 &v, vec3 &vp)
 {
     vp.x = sin(v.z * kVal[0]) + kVal[3] * sin(v.x * kVal[0]);
     vp.y = sin(v.x * kVal[1]) + kVal[4] * sin(v.y * kVal[1]);
     vp.z = sin(v.y * kVal[2]) + kVal[5] * sin(v.z * kVal[2]);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Pickover::Step(vec3 &v, vec3 &vp) 
+void Pickover::Step(vec3 &v, vec3 &vp) 
 {
     vp.x =     sin(kVal[0]*v.y) - v.z*cos(kVal[1]*v.x);
     vp.y = v.z*sin(kVal[2]*v.x) -     cos(kVal[3]*v.y);
     vp.z =     sin(v.x)                               ;
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void SinCos::Step(vec3 &v, vec3 &vp) 
+void SinCos::Step(vec3 &v, vec3 &vp) 
 {
     vp.x =  cos(kVal[0]*v.x) + sin(kVal[1]*v.y) - sin(kVal[2]*v.z);
     vp.y =  sin(kVal[3]*v.x) - cos(kVal[4]*v.y) + sin(kVal[5]*v.z);
     vp.z = -cos(kVal[6]*v.x) + cos(kVal[7]*v.y) + cos(kVal[8]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Mira3D::Step(vec3 &v, vec3 &vp) 
+void Mira3D::Step(vec3 &v, vec3 &vp) 
 {
     auto f = [] (float v, float k) -> float {
         const float v2 = v*v;
@@ -489,36 +487,41 @@ INLINE void Mira3D::Step(vec3 &v, vec3 &vp)
     vp.y =  vpp - v.x;
     vp.z =  f(v.z, kVal[3]) + f(vp.y, kVal[2]) + f(vpp, kVal[1]);
 }
-
+#if !defined(GLAPP_DISABLE_DLA)
 ////////////////////////////////////////////////////////////////////////////
-INLINE void dla3D::Step(vec3 &v, vec3 &vp) 
+void dla3D::Step(vec3 &v, vec3 &vp) 
 {
     v = vec3(0.0);
     vp = AddParticle();
+//    while(!addedPoints.size());
+//    vp = addedPoints.front();
+//    addedPoints.pop_front();
+    
 }
+#endif
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Lorenz::Step(vec3 &v, vec3 &vp)
+void Lorenz::Step(vec3 &v, vec3 &vp)
 {
     vp.x = v.x+dtStepInc*(kVal[0]*(v.y-v.x));
     vp.y = v.y+dtStepInc*(v.x*(kVal[1]-v.z)-v.y);
     vp.z = v.z+dtStepInc*(v.x*v.y-kVal[2]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void ChenLee::Step(vec3 &v, vec3 &vp) 
+void ChenLee::Step(vec3 &v, vec3 &vp) 
 {
     vp.x = v.x + dtStepInc*(kVal[0]*v.x - v.y*v.z);
     vp.y = v.y + dtStepInc*(kVal[1]*v.y + v.x*v.z);
     vp.z = v.z + dtStepInc*(kVal[2]*v.z + v.x*v.y/3.f);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void TSUCS::Step(vec3 &v, vec3 &vp) 
+void TSUCS::Step(vec3 &v, vec3 &vp) 
 {
     vp.x = v.x + dtStepInc*(kVal[0]*(v.y - v.x) + kVal[3]*v.x*v.z);
     vp.y = v.y + dtStepInc*(kVal[1]*v.x + kVal[5]*v.y - v.x*v.z);
     vp.z = v.z + dtStepInc*(kVal[2]*v.z + v.x*v.y - kVal[4]*v.x*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Aizawa::Step(vec3 &v, vec3 &vp) 
+void Aizawa::Step(vec3 &v, vec3 &vp) 
 {
     vp.x = v.x + dtStepInc*((v.z-kVal[1])*v.x - kVal[3]*v.y);
     vp.y = v.y + dtStepInc*((v.z-kVal[1])*v.y + kVal[3]*v.x);
@@ -526,112 +529,112 @@ INLINE void Aizawa::Step(vec3 &v, vec3 &vp)
     vp.z = v.z + dtStepInc*(kVal[2] + kVal[0]*v.z - (v.z*v.z*v.z)/3.f - (xQ + v.y*v.y) * (1.f + kVal[4]*v.z) + kVal[5]*v.z*xQ*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void YuWang::Step(vec3 &v, vec3 &vp) 
+void YuWang::Step(vec3 &v, vec3 &vp) 
 {
     vp.x = v.x + dtStepInc*(kVal[0]*(v.y -v.x));
     vp.y = v.y + dtStepInc*(kVal[1]*v.x - kVal[2]*v.x*v.z);
     vp.z = v.z + dtStepInc*(exp(v.x*v.y) - kVal[3]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void FourWing::Step(vec3 &v, vec3 &vp) 
+void FourWing::Step(vec3 &v, vec3 &vp) 
 {
     vp.x = v.x + dtStepInc*(kVal[0]*v.x - kVal[1]*v.y*v.z);
     vp.y = v.y + dtStepInc*(v.x*v.z - kVal[2]*v.y);
     vp.z = v.z + dtStepInc*(kVal[4]*v.x - kVal[3]*v.z + v.x*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void FourWing2::Step(vec3 &v, vec3 &vp) 
+void FourWing2::Step(vec3 &v, vec3 &vp) 
 {
     vp.x = v.x + dtStepInc*(kVal[0]*v.x + kVal[1]*v.y + kVal[2]*v.y*v.z);
     vp.y = v.y + dtStepInc*(kVal[3]*v.y - v.x*v.z);
     vp.z = v.z + dtStepInc*(kVal[4]*v.z + kVal[5]*v.x*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void FourWing3::Step(vec3 &v, vec3 &vp) 
+void FourWing3::Step(vec3 &v, vec3 &vp) 
 {
     vp.x = v.x + dtStepInc*(kVal[0]*v.x + kVal[1]*v.y + kVal[2]*v.y*v.z);
     vp.y = v.y + dtStepInc*(kVal[3]*v.y*v.z - kVal[4]*v.x*v.z);
     vp.z = v.z + dtStepInc*(1.f - kVal[5]*v.z - kVal[6]*v.x*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Thomas::Step(vec3 &v, vec3 &vp) 
+void Thomas::Step(vec3 &v, vec3 &vp) 
 {
     vp.x = v.x + dtStepInc*(-kVal[0]*v.x + sinf(v.y));
     vp.y = v.y + dtStepInc*(-kVal[1]*v.y + sinf(v.z));
     vp.z = v.z + dtStepInc*(-kVal[2]*v.z + sinf(v.x));
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Halvorsen::Step(vec3 &v, vec3 &vp) 
+void Halvorsen::Step(vec3 &v, vec3 &vp) 
 {
     vp.x = v.x + dtStepInc*(-kVal[0]*v.x - 4.f*v.y - 4.f*v.z - v.y*v.y);
     vp.y = v.y + dtStepInc*(-kVal[1]*v.y - 4.f*v.z - 4.f*v.x - v.z*v.z);
     vp.z = v.z + dtStepInc*(-kVal[2]*v.z - 4.f*v.x - 4.f*v.y - v.x*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Arneodo::Step(vec3 &v, vec3 &vp) 
+void Arneodo::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a,b,c
 	vp.x = v.x + dtStepInc*v.y;
  	vp.y = v.y + dtStepInc*v.z; 
  	vp.z = v.z + dtStepInc*(-kVal[0]*v.x - kVal[1]*v.y - v.z + kVal[2]*v.x*v.x*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Bouali::Step(vec3 &v, vec3 &vp) 
+void Bouali::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a,b,c,s,alfa,beta
 	vp.x = v.x + dtStepInc*( v.x*(kVal[0] - v.y) + kVal[4]*v.z);
  	vp.y = v.y + dtStepInc*(-v.y*(kVal[1] - v.x*v.x));
  	vp.z = v.z + dtStepInc*(-v.x*(kVal[2] - kVal[3]*v.z) - kVal[5]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Hadley::Step(vec3 &v, vec3 &vp) 
+void Hadley::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a,b,f,g
     vp.x = v.x + dtStepInc*(-v.y*v.y -v.z*v.z -kVal[0]*v.x + kVal[0]*kVal[2]);
     vp.y = v.y + dtStepInc*(v.x*v.y - kVal[1]*v.x*v.z - v.y + kVal[3]);
     vp.z = v.z + dtStepInc*(kVal[1]*v.x*v.y + v.x*v.z - v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void LiuChen::Step(vec3 &v, vec3 &vp) 
+void LiuChen::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a,b,c,d,e,f,g
      vp.x = v.x + dtStepInc*(kVal[0]*v.y + kVal[1]*v.x + kVal[2]*v.y*v.z);
      vp.y = v.y + dtStepInc*(kVal[3]*v.y - v.z + kVal[4]*v.x*v.z);
      vp.z = v.z + dtStepInc*(kVal[5]*v.z + kVal[6]*v.x*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void GenesioTesi::Step(vec3 &v, vec3 &vp) 
+void GenesioTesi::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a,b,c
 	vp.x = v.x + dtStepInc*v.y;
  	vp.y = v.y + dtStepInc*v.z; 
  	vp.z = v.z + dtStepInc*(-kVal[2]*v.x - kVal[1]*v.y - kVal[0]*v.z + v.x*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void NewtonLeipnik::Step(vec3 &v, vec3 &vp) 
+void NewtonLeipnik::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a,b
 	vp.x = v.x + dtStepInc*(-kVal[0]*v.x + v.y + 10.0*v.y*v.z);
  	vp.y = v.y + dtStepInc*(-v.x - 0.4*v.y + 5.0*v.x*v.z);
  	vp.z = v.z + dtStepInc*(kVal[1]*v.z - 5.0*v.x*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void NoseHoover::Step(vec3 &v, vec3 &vp) 
+void NoseHoover::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a
 	vp.x = v.x + dtStepInc*v.y;
  	vp.y = v.y + dtStepInc*(-v.x + v.y*v.z); 
  	vp.z = v.z + dtStepInc*(kVal[0] - v.y*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void RayleighBenard::Step(vec3 &v, vec3 &vp) 
+void RayleighBenard::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b, r
 	vp.x = v.x + dtStepInc*(-kVal[0]*(v.x - v.y));
  	vp.y = v.y + dtStepInc*(kVal[2]*v.x - v.y - v.x*v.z); 
  	vp.z = v.z + dtStepInc*(v.x*v.y - kVal[1]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Sakarya::Step(vec3 &v, vec3 &vp) 
+void Sakarya::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b
 	vp.x = v.x + dtStepInc*(-v.x + v.y + v.y*v.z);
  	vp.y = v.y + dtStepInc*(-v.x - v.y + kVal[0]*v.x*v.z); 
  	vp.z = v.z + dtStepInc*(v.z - kVal[1]*v.x*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Robinson::Step(vec3 &v, vec3 &vp) 
+void Robinson::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b, c, d, v
     const float x2 = v.x*v.x;
 	vp.x = v.x + dtStepInc*v.y;
@@ -639,28 +642,28 @@ INLINE void Robinson::Step(vec3 &v, vec3 &vp)
  	vp.z = v.z + dtStepInc*(-kVal[2]*v.z + kVal[3]*x2);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rossler::Step(vec3 &v, vec3 &vp) 
+void Rossler::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b, c
 	vp.x = v.x + dtStepInc*(-v.y - v.z);
  	vp.y = v.y + dtStepInc*(v.x + kVal[0]*v.y); 
  	vp.z = v.z + dtStepInc*(kVal[1] + v.z*(v.x - kVal[2]));
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Rucklidge::Step(vec3 &v, vec3 &vp) 
+void Rucklidge::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, k
 	vp.x = v.x + dtStepInc*(-kVal[1]*v.x + kVal[0]*v.y - v.y*v.z);
  	vp.y = v.y + dtStepInc*v.x; 
  	vp.z = v.z + dtStepInc*(-v.z + v.y*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void DequanLi::Step(vec3 &v, vec3 &vp) 
+void DequanLi::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, c, d, e, k, f
 	vp.x = v.x + dtStepInc*(kVal[0]*(v.y-v.x) + kVal[2]*v.x*v.z);
  	vp.y = v.y + dtStepInc*(kVal[4]*v.x + kVal[5]*v.y - v.x*v.z); 
  	vp.z = v.z + dtStepInc*(kVal[1]*v.z + v.x*v.y - kVal[3]*v.x*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void MultiChuaII::Step(vec3 &v, vec3 &vp) 
+void MultiChuaII::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b, m0 -> m5, c1 -> c5
     auto f = [&](const float x) -> float {
         const int startM = 2, startC = 7;
@@ -674,7 +677,7 @@ INLINE void MultiChuaII::Step(vec3 &v, vec3 &vp)
  	vp.z = v.z + dtStepInc*(-kVal[1]*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
-INLINE void ZhouChen::Step(vec3 &v, vec3 &vp) 
+void ZhouChen::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b, c, d, e, 
 	vp.x = v.x + dtStepInc*(kVal[0]*v.x + kVal[1]*v.y+ v.y*v.z);
  	vp.y = v.y + dtStepInc*(kVal[2]*v.y - v.x*v.z - kVal[3]*v.y*v.z); 
@@ -683,7 +686,7 @@ INLINE void ZhouChen::Step(vec3 &v, vec3 &vp)
 
 // stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set
 ////////////////////////////////////////////////////////////////////////////
-INLINE void juliaBulb_IIM::Step(vec3 &v, vec3 &vp) 
+void juliaBulb_IIM::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, k
     auto radiciEq = [&](const vec3 &p, float sign1, float sign2) {
         const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z;
@@ -704,7 +707,7 @@ INLINE void juliaBulb_IIM::Step(vec3 &v, vec3 &vp)
 }
 // stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set
 ////////////////////////////////////////////////////////////////////////////
-INLINE void juliaBulb4th_IIM::Step(vec3 &v, vec3 &vp) 
+void juliaBulb4th_IIM::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, k
     
     auto radiciEq = [&](const vec3 &p, int kTheta, int kPhi) {
@@ -727,7 +730,7 @@ INLINE void juliaBulb4th_IIM::Step(vec3 &v, vec3 &vp)
 
 // stochastic adaptation of P.Nylander's Mathematica formula of quaternion Julia set
 ////////////////////////////////////////////////////////////////////////////
-INLINE void quatJulia_IIM::Step(vec3 &v, vec3 &vp) 
+void quatJulia_IIM::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, k
 
     auto radiciEq = [&](const vec4 &p, float sign)
@@ -747,7 +750,7 @@ INLINE void quatJulia_IIM::Step(vec3 &v, vec3 &vp)
 }
 
 /*
-INLINE void quatJulia_IIM::Step(vec3 &v, vec3 &vp) 
+void quatJulia_IIM::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, k
 
     auto radiciEq = [&](const vec4 &p, float sign)
@@ -771,7 +774,7 @@ INLINE void quatJulia_IIM::Step(vec3 &v, vec3 &vp)
 
 }
 */
-INLINE void glynnJB_IIM::Step(vec3 &v, vec3 &vp) 
+void glynnJB_IIM::Step(vec3 &v, vec3 &vp) 
 {
 //Glynn roots: {x,y,z}^(1/1.5) = {x,y,z}^(2/3)
     const vec3 p = v-((vec3 &)*kVal.data()+vec3(kRnd));
@@ -855,7 +858,7 @@ INLINE void glynnJB_IIM::Step(vec3 &v, vec3 &vp)
 
 
 ////////////////////////////////////////////////////////////////////////////
-INLINE void Magnetic::Step(vec3 &v, vec3 &vp) 
+void Magnetic::Step(vec3 &v, vec3 &vp) 
 {
     vp=vec3(0.f);
 
@@ -867,12 +870,12 @@ INLINE void Magnetic::Step(vec3 &v, vec3 &vp)
     }
 }
 
-INLINE const vec3 Magnetic::straight(const vec3 &vx, int i) 
+const vec3 Magnetic::straight(const vec3 &vx, int i) 
 {
     return vx;
 }
 
-INLINE const vec3 Magnetic::rightShift(const vec3 &vx, int i) 
+const vec3 Magnetic::rightShift(const vec3 &vx, int i) 
 {
     switch(i%3) {
         case 0 :  return vx;
@@ -883,7 +886,7 @@ INLINE const vec3 Magnetic::rightShift(const vec3 &vx, int i)
     return vx;
 }
 
-INLINE const vec3 Magnetic::leftShift(const vec3 &vx, int i) 
+const vec3 Magnetic::leftShift(const vec3 &vx, int i) 
 {
     switch(i%3) {
         case 0 :  return vx;
@@ -892,7 +895,7 @@ INLINE const vec3 Magnetic::leftShift(const vec3 &vx, int i)
     }
     return vx;
 }
-INLINE const vec3 Magnetic::fullPermutated(const vec3 &vx, int i) 
+const vec3 Magnetic::fullPermutated(const vec3 &vx, int i) 
 {
     switch(i%6) {
         case 0 :  return vx;
@@ -905,7 +908,7 @@ INLINE const vec3 Magnetic::fullPermutated(const vec3 &vx, int i)
     return vx;
 }
 
-INLINE const vec3 Magnetic::tryed(const vec3 &vx, int i) 
+const vec3 Magnetic::tryed(const vec3 &vx, int i) 
 {
     switch(i%3) {
         case 0 :  return vx;
