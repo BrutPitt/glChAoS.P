@@ -16,39 +16,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #line 17    //#version dynamically inserted
 
-layout(std140) uniform;
-
-
-LAYUOT_BINDING(2) uniform _particlesData {
-    vec3 lightDir;          // align 0
-    float lightDiffInt;
-    vec3 lightColor;        // align 16
-    float lightSpecInt;
-    vec2 scrnRes;
-    float lightAmbInt ;
-    float lightShinExp;
-    float sstepColorMin;
-    float sstepColorMax;
-    float pointSize;
-    float pointDistAtten;
-    float alphaDistAtten;
-    float alphaSkip;
-    float alphaK;
-    float colIntensity;
-    float clippingDist;
-    float zNear;
-    float zFar;
-    float halfTanFOV;
-    float velIntensity;
-    float ySizeRatio;
-    float ptSizeRatio;
-    float pointspriteMinSize;
-    float ggxRoughness;
-    float ggxFresnel;
-    uint lightModel;
-    uint lightActive;
-    int pass;
-} u;
 
 in vec2 viewRay;
 in vec2 vTexCoord;
@@ -66,12 +33,6 @@ uniform vec3 ssaoSamples[64];
 
 
 out vec4 outColor;
-
-float getViewZ(float D)
-{
-    return (-2.0*u.zFar*u.zNear/(u.zFar-u.zNear)) / (-(2. * D - 1.) + ((u.zFar+u.zNear)/(u.zFar-u.zNear)));
-    //return (pMatrix[3].z / (-(2.* D -1) - pMatrix[2].z));
-}
 
 LAYUOT_BINDING(5) uniform sampler2D prevData;
 LAYUOT_BINDING(6) uniform sampler2D noise;
@@ -136,16 +97,6 @@ vec4 SampleTextureCatmullRom( vec2 uv)
     return result;
 }
 
-float form_01_to_m1p1(float f)
-{
-    return 2. * f - 1.;
-}
-
-float form_m1p1_to_01(float f)
-{
-    return  f*.5 + .5;
-}
-
 float getBlurredZ(ivec2 uv)
 {
     float result = 0.0;
@@ -165,9 +116,10 @@ void main()
     float z = getViewZ(depth);
     vec4 vtx = vec4(viewRay * z, z, 1.0);
 
-    float zEye  = form_01_to_m1p1(texelFetch(prevData,ivec2(uv               ) , 0).w);
+    float zEye  = form_01_to_m1p1(depth);
     float gradA = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 1., 0.)), 0).w);
     float gradB = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 0., 1.)), 0).w);
+
     //float gradC = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2(-1., 0.)), 0).w);
     //float gradD = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 0.,-1.)), 0).w);
     //float gradE = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 1., 1.)), 0).w);

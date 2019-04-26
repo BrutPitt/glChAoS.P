@@ -16,42 +16,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #line 17    //#version dynamically inserted
 
-layout(std140) uniform;
-
-LAYUOT_BINDING(2) uniform _particlesData {
-    vec3 lightDir;          // align 0
-    float lightDiffInt;
-    vec3 lightColor;        // align 16
-    float lightSpecInt;
-    vec2 scrnRes;
-    float lightAmbInt ;
-    float lightShinExp;
-    float sstepColorMin;
-    float sstepColorMax;
-    float pointSize;
-    float pointDistAtten;
-    float alphaDistAtten;
-    float alphaSkip;
-    float alphaK;
-    float colIntensity;
-    float clippingDist;
-    float zNear;
-    float zFar;
-    float halfTanFOV;
-    float velIntensity;
-    float ySizeRatio;
-    float ptSizeRatio;
-    float pointspriteMinSize;
-    float ggxRoughness;
-    float ggxFresnel;
-    uint lightModel;
-    uint lightActive;
-    int pass;
-} u;
-
-#define idxPHONG 3
-#define idxBLINPHONG 4
-#define idxGGX 5
 
 in vec2 viewRay;
 in vec2 vTexCoord;
@@ -63,25 +27,7 @@ LAYUOT_BINDING(4) uniform _tMat {
     mat4 mvpMatrix;
 };
 
-float form_01_to_m1p1(float f)
-{
-    return 2. * f - 1.;
-}
-
-float form_m1p1_to_01(float f)
-{
-    return  f*.5 + .5;
-}
-
-
 out vec4 outColor;
-
-float getViewZ(float D)
-{
-    float denom = u.zFar-u.zNear;
-    return (-2.0*u.zFar*u.zNear/denom) / (-(2. * D - 1.) + ((u.zFar+u.zNear)/denom));
-    //return (pMatrix[3].z / (-(2.* D -1) - pMatrix[2].z));
-}
 
 LAYUOT_BINDING(5) uniform sampler2D prevData;
 LAYUOT_BINDING(6) uniform sampler2D aoTex;
@@ -183,55 +129,6 @@ vec4 SampleTextureCatmullRom( vec2 uv)
     return result;
 }
 
-float specularPhong(vec3 V, vec3 L, vec3 N)
-{
-    //vec3 V = normalize(mvVtxPos.xyz);
-    vec3 R = reflect(L, N);
-    float specAngle = max(dot(R, V), 0.0);
-
-    return pow(specAngle, u.lightShinExp * .25);
-}
-
-float specularBlinnPhong(vec3 V, vec3 L, vec3 N)
-{
-// point on surface of sphere in eye space
-    //vec3 V = normalize(mvVtxPos.xyz);
-    vec3 H = normalize(L - V);
-    float specAngle = max(dot(H, N), 0.0);
-
-    return pow(specAngle, u.lightShinExp);
-
-}
-
-float specularGGX(vec3 V, vec3 L, vec3 N) 
-{
-    float alpha = u.ggxRoughness*u.ggxRoughness;
-    float alphaSqr = alpha * alpha;
-
-    //vec3 V = normalize(mvVtxPos.xyz);
-    vec3 H = normalize(L - V); // View = -
-    float dotLH = max(0.0, dot(L,H));
-    float dotNH = max(0.0, dot(N,H));
-    float dotNL = max(0.0, dot(N,L));
-
-    // D (GGX normal distribution)
-    float denom = dotNH * dotNH * (alphaSqr - 1.0) + 1.0;
-    float D = alphaSqr / (3.141592653589793 * denom * denom);
-
-    // F (Fresnel term)
-    float F = u.ggxFresnel + (1.0 - u.ggxFresnel) * pow(1.0 - dotLH, 5.0);
-    float k = 0.5 * alpha;
-    float k2 = k * k;
-
-    return dotNL * D * F / (dotLH*dotLH*(1.0-k2)+k2);
-}
-
-#define MAGIC 43758.5453123
-
-float random (vec2 st) {
-    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * MAGIC);
-}
-
 
 vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO)
 {
@@ -242,7 +139,7 @@ vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO)
         //float mag = dot(N.xy, N.xy);
         //N.z = sqrt(1.0-mag);
     
-        N.xyz = normalize(N.xyz); 
+        //N.xyz = normalize(N.xyz); 
 
         //Light @ vertex position
         vec3 light =  normalize(u.lightDir);  // 
@@ -250,11 +147,11 @@ vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO)
         float lambertian = max(0.0, dot(light, N.xyz)); 
 
         vec3 V = normalize(vtx);
-//#if defined(GL_ES) || defined(__APPLE__)
+#if defined(GL_ES) || defined(__APPLE__)
         float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
-//#else
-//        float specular = lightModel(V, light, N.xyz);
-//#endif
+#else
+        float specular = lightModel(V, light, N.xyz);
+#endif
 
         float aoD = sqrt(AO);
         vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,
@@ -274,15 +171,6 @@ float getBlurredAO(ivec2 uv)
     for (int x = -2; x <= 2; ++x) 
         for (int y = -2; y <= 2; ++y) 
             result += texelFetch(aoTex,uv+ivec2(x,y), 0).w;
-    return result * .04; // -> result / 25.;
-}
-
-float getBlurredZ(ivec2 uv)
-{
-    float result = 0.0;
-    for (int x = -2; x <= 2; ++x) 
-        for (int y = -2; y <= 2; ++y) 
-            result += texelFetch(prevData,uv+ivec2(x,y), 0).w;
     return result * .04; // -> result / 25.;
 }
 
