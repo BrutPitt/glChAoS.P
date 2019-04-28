@@ -21,12 +21,6 @@ in vec2 viewRay;
 in vec2 vTexCoord;
 
 
-LAYUOT_BINDING(4) uniform _tMat {
-    mat4 pMatrix;
-    mat4 mvMatrix;
-    mat4 mvpMatrix;
-};
-
 out vec4 outColor;
 
 LAYUOT_BINDING(5) uniform sampler2D prevData;
@@ -222,7 +216,8 @@ void main()
         vec4 vtx = vec4(viewRay * z, z, 1.0);
 
         //vec3 N = blurredNormals(uv).xyz;
-        vec3 N = 2.0 * texelFetch(aoTex,ivec2(uv), 0).xyz - 1.0;
+        //vec3 N = 2.0 * texelFetch(aoTex,ivec2(uv), 0).xyz - 1.0;
+        vec3 N = getSelectedNormal(depth, z, prevData);
 
         vec4 color = texelFetch(prevData,ivec2(uv), 0);
 
@@ -230,7 +225,7 @@ void main()
         outColor = pixelColorLight(vtx.xyz, color, vec4(N, 1.0), u.pass==3 ? AO : 1.0);
 
     } else {
-        outColor = vec4(texelFetch(prevData,ivec2(uv), 0).rgb*AO, 1.0);
+        outColor = vec4(texelFetch(prevData,ivec2(uv), 0).rgb*log2(1.+AO), 1.0);
 
     }
 

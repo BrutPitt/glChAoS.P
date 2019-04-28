@@ -416,13 +416,6 @@ void dla3D::startData()
     // during its random walk
     kVal.push_back( 1.0/100.0); // kVal[2] -> m_MinMoveDistance;
 
-    // m_Stickiness defines the probability that a particle will allow another
-    // particle to join to it.
-    kVal.push_back( 1.); // kVal[3] -> m_Stickiness;
-
-    // m_BoundingRadius defines the radius of the bounding sphere that bounds
-    // all of the particles
-    //kVal.push_back( 0.0); // kVal[4] -> m_BoundingRadius;
 }
 #endif
 

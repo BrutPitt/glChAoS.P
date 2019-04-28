@@ -193,10 +193,12 @@ void PowerN3D::additionalDataCtrls()
 void dla3D::additionalDataCtrls()
 {
     ImGui::NewLine();
-    headerAdditionalDataCtrls();
+    headerAdditionalDataCtrls(2);
         
-    ImGui::DragInt("##stub", &m_Stubbornness, .05, 0, 99, "Stubbornness: %02d");
+    ImGui::DragInt("##stub", &m_Stubbornness, .05, 0, 99, "Trials %02d");
     ImGui::SameLine();
+    int i = int(m_Stickiness * 100.f);
+    if(ImGui::DragInt("##perc", &i, .5, 1, 100, "Chance %02d%%")) m_Stickiness = float(i)/100.f;
 
     ImGui::PopItemWidth();
 }

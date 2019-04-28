@@ -17,13 +17,13 @@
 		"circBuff":       11100000,
 		"rstrtCircBuff":  false,
 		"stopCircBuff":   true,
-		"camPOV":         [ 0.0, 0.0, 455.2 ],
+		"camPOV":         [ 0.0, 0.0, 378.4 ],
 		"camTGT":         [ 0.0, 0.0, 0.0 ],
-		"camPerspective": [ 30.0, 0.107, 700.0 ],
-		"camDolly":       [ 0.0, 0.0, 2.9299991 ],
-		"camPan":         [ 0.0, -0.5999999, 0.0 ],
+		"camPerspective": [ 30.0, 0.48, 700.0 ],
+		"camDolly":       [ 0.0, 0.0, 0.7 ],
+		"camPan":         [ -0.099999815, -0.67999989, 0.0 ],
 		"camRotCent":     [ 0.0, 0.0, 0.0 ],
-		"camRot":         [ -0.97989339, 0.044873368, 0.19728909, -0.02993105 ]
+		"camRot":         [ -0.056010332, 0.99438673, 0.029203665, -0.0977683 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":   1,
@@ -869,7 +869,7 @@
 		"DepthState":       true,
 		"BlendState":       false,
 		"LightState":       true,
-		"pointSize":        423.7,
+		"pointSize":        513.3,
 		"pointSizeFactor":  0.0,
 		"clippingDist":     0.5,
 		"alphaKFactor":     1.0,

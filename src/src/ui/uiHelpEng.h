@@ -49,6 +49,44 @@
     "* gaussI: color Intensity of gaussian blur component\n"\
     "* bilatI: color Intensity of bilateral component\n"\
     "* render <-> glow: mix results from original rendering and the selected glow effect (recommended for gauss)\n"
+#define GLAPP_HELP_EXPORT_PLY\
+    "Export PLY file format\n\n"\
+    " - Binary fileType\n"\
+    "     Select Binary or ASCII file type\n"\
+    " - Colors\n"\
+    "     Add Color attribute per vertex\n"\
+    " - Use CoR\n"\
+    "     Use actual Center of Rotation as axes origin\n"\
+    " - Normals\n"\
+    "     Add Normal attribute per vertex\n"\
+    " - Normalized\n"\
+    "     Normal are normalized\n"\
+    " - Normals type\n"\
+    "     To build pointNormal need other point to define plane:\n"\
+    "        *  actual pt + Ceneter of Rotation\n"\
+    "        *  actual pt + previous pt\n"\
+    "        * (actual pt + previous pt) + Ceneter of Rotation\n"
+#define GLAPP_HELP_IMPORT_PLY\
+    "Import PLY file format (binary or ASCII auto detected)\n\n"\
+    " - Colors\n"\
+    "     * Import original PLY color vertex attribute:\n"\
+    "       can't use more pallettes\n"\
+    "     * Use false colors based on points speed or radial dist\n"\
+    " - radial dist\n"\
+    "     Select type of false color to use:\n"\
+    "         * use point speed (distance between points) to get\n"\
+    "           index palette color\n"\
+    "         * use distance from origin to get index color\n"\
+    " - continue DLA\n"\
+    "     Continue/Start Diffusion Limited Aggregation on object:\n"\
+    "         *  need more seconds to build binaryTree index\n"\
+    "         *  this is a special case: after PLY loaded\n"\
+    "            automatically starts DLA creation over object"
+#define GLAPP_HELP_IMP_EXP_CFG\
+    "Import/Export a rendering configuration file\n\n"\
+    "Import/Export rendering settings: RenderingMode, Light, Colors, pointsSize, etc.\n"\
+    "It don't save (only) the attractor parameters\n"\
+    "It can be associated to saved PLY object (to reload own settings) or to save preferred settings and load they over a saved attractors\n"\
 
 #define GLAPP_HELP_COMMON_TREE\
     "Common settings\n\n"\

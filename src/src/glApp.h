@@ -112,9 +112,10 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 #define CIRCULAR_BUFFER  5000000
 #endif
 
+enum loadSettings { ignoreNone, ignoreCircBuffer };
 
 
-void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool normalized = true, normalType nType = normalType::ptCoR);
+void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool bCoR, bool normalized = true, normalType nType = normalType::ptCoR);
 bool importPLY(bool wantColors, bool isDLA);
 
 
@@ -194,7 +195,7 @@ public:
     void saveScreenShot(unsigned char *data, int w, int h);
 
     void saveSettings(const char *name);
-    bool loadSettings(const char *name);
+    bool loadSettings(const char *name, const int type = loadSettings::ignoreNone);
     void saveAttractor(const char *name);
     bool loadAttractor(const char *name);
     void saveProgConfig();

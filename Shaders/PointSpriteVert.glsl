@@ -17,18 +17,13 @@
 #line 17    //#version dynamically inserted
 
 out vec4 mvVtxPos;
+//out vec4 mvVtxLightPos;
 
 out float pointDistance;
 out vec4 particleColor;
 out float particleSize;
 
 out vec3 viewportPixelCoord;
-
-float logzbuf( float w ) {
-    float fc = 2.0/log2(u.zFar + 1.0);
-    return (log(1. + w) * fc - 1.) * w;
-}
-
 
 void main()
 {
@@ -37,11 +32,7 @@ void main()
     vec4 vtxPos = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
     gl_Position = m.pMatrix * vtxPos;
 
-
-//    float Fcoef = 2.0 / log2(u.zFar + 1.0);
-//    gl_Position.z = log2(max(1e-6, 1.0 + gl_Position.w)) * Fcoef - 1.0;
-    //gl_Position.z = logzbuf(gl_Position.w);
-    mvVtxPos = vec4(vtxPos.xyz,1.0 + gl_Position.w);
+    mvVtxPos = vec4(vtxPos.xyz,1.0);
 
 #if defined(GL_ES) || defined(TEST_WGL)
     particleColor = velColor();
@@ -56,9 +47,9 @@ void main()
     particleSize = size/u.scrnRes.y;
 
     vec4 pt  = m.pMatrix * vec4(vtxPos.xy + vec2(size) * u.ptSizeRatio , vtxPos.zw);
-    gl_PointSize = distance(gl_Position.xyz, pt.xyz)/max(abs(gl_Position.w),.0001);
 
     // NVidia & Intel do not supports gl_PointSize<1.0 -> point disappear
+    // AMD driver (some times) supports gl_PointSize from 0.1
     // Look in Info dialog: point Range and Granularity
-    if(gl_PointSize<u.pointspriteMinSize) gl_PointSize = u.pointspriteMinSize;
+    gl_PointSize = max(distance(gl_Position.xyz, pt.xyz)/max(abs(gl_Position.w),.0001), u.pointspriteMinSize);
 }

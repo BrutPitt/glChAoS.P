@@ -77,7 +77,7 @@ void shaderPointClass::initShader()
     useVertex(); useFragment();
 
 	getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesVert.glsl", SHADER_PATH "PointSpriteVert.glsl");
-	getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesFrag.glsl", SHADER_PATH "PointSpriteFragLight.glsl");
+	getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 3, SHADER_PATH "lightModelsFrag.glsl", SHADER_PATH "ParticlesFrag.glsl", SHADER_PATH "PointSpriteFragLight.glsl");
 	// The vertex and fragment are added to the program object
     addVertex();
     addFragment();
@@ -144,11 +144,18 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         getUData().lightDir = glm::vec3(getTMat()->tM.vMatrix * vec4(getLightDir(), 1.0));
     };
 
+    const bool isAO_RD = ( useAO() ||  postRenderingActive());
+    const bool isSolid = ( getDepthState() ||  getLightState());
+
     auto selectSubroutines = [&]() {
         GLuint subIDX[2];        
+        const int idxPixelColor  = (getBlendState() && !isSolid)       ? pixColIDX::pixBlendig :
+                                   !isAO_RD                            ? pixColIDX::pixSolid   :
+                                   (useAO() && !postRenderingActive()) ? pixColIDX::pixAO      :
+                                                                         pixColIDX::pixDR      ;
 #ifdef GLAPP_REQUIRE_OGL45
-        subIDX[locSubPixelColor] = getLightState();
-        subIDX[locSubLightModel] = uData.lightModel;
+        subIDX[locSubPixelColor] = idxPixelColor;
+        subIDX[locSubLightModel] = uData.lightModel + lightMDL::modelOffset;
 
         GLuint subVtxIdx = idxViewOBJ && plyObjGetColor ? particlesViewColor::packedRGB : particlesViewColor::paletteIndex;
 
@@ -157,8 +164,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 #else
 #if !defined(GLCHAOSP_LIGHTVER)
     #if !defined(__APPLE__)
-        subIDX[locSubPixelColor] = getLightState();
-        subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel - modelOffset];
+        subIDX[locSubPixelColor] = idxSubPixelColor[idxPixelColor-pixColIDX::pixOffset];
+        subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel];
 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
     #endif
@@ -217,7 +224,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 #endif
 
 #if !defined(GLCHAOSP_LIGHTVER)
-    if(depthBuffActive)  {
+    if(isAO_RD && !showAxes())  {
         //float tN = getTMat()->getPerspNear()-.95;    
         //getUData().zNear = tN < 0.0 ? getTMat()->getPerspNear()-tN : getTMat()->getPerspNear();
         float tN = .27;//+(getTMat()->getPOV()[2]-getTMat()->getTrackball().getDollyPosition()[2])*.01;
@@ -253,21 +260,24 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
             //returnedTex = getAO()->getFBO().getTex(0);
         //}
 
-        if(isPostRenderingActive || usingAO) {
+        //if(postRenderingActive()) {
         //glBindProgramPipeline(0);
             getPostRendering()->bindRender();
 
             tMat.updateBufferData();
 
-            //getUData().zNear = .8f+getUData().zNear;
-            //getUData().zFar  = getTMat()->getPerspFar();
             getUData().halfTanFOV = tanf(getTMat()->getPerspAngleRad()*.5);
 
             updateBufferData();
 #ifdef GLAPP_REQUIRE_OGL45
+
+            GLuint subIDX = uData.lightModel + lightMDL::modelOffset; 
+
             glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
             glBindTextureUnit(6, getAO()->getFBO().getTex(0));
 #else
+            GLuint subIDX = getPostRendering()->getSubIdx(uData.lightModel);
+
             glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTex(fbIdx));
             glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTex(fbIdx));
             glUniform1i(getPostRendering()->getLocPrevData(), getRenderFBO().getTex(fbIdx));
@@ -276,11 +286,12 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
             glBindTexture(GL_TEXTURE_2D,  getAO()->getFBO().getTex(0));
             glUniform1i(getPostRendering()->getLocAOTex(), getAO()->getFBO().getTex(0));           
 #endif
+            glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
 
             getPostRendering()->render();
             getPostRendering()->releaseRender();
             returnedTex = getPostRendering()->getFBO().getTex(0);
-        }
+        //}
     }
 #endif
 
@@ -323,7 +334,7 @@ void shaderBillboardClass::initShader()
 
 	getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesVert.glsl", SHADER_PATH "BillboardVert.glsl");
     getGeometry()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "BillboardGeom.glsl");
-	getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesFrag.glsl", SHADER_PATH "BillboardFrag.glsl");
+	getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 3, SHADER_PATH "lightModelsFrag.glsl", SHADER_PATH "ParticlesFrag.glsl", SHADER_PATH "BillboardFrag.glsl");
 
 	// The vertex and fragment are added to the program object
 	addVertex();
@@ -876,11 +887,15 @@ void postRenderingClass::create() {
     useFragment();
 
     vertObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "postRenderingVert.glsl");
-    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "postRenderingFrag.glsl");
+    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "lightModelsFrag.glsl", SHADER_PATH "postRenderingFrag.glsl");
     addShader(vertObj);
     addShader(fragObj);
 
     link();
+
+#if !defined(GLCHAOSP_LIGHTVER)
+    locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
+#endif
 
 #if !defined(GLAPP_REQUIRE_OGL45)
     useProgram();
@@ -888,6 +903,13 @@ void postRenderingClass::create() {
     locPrevData = getUniformLocation("prevData");
     uniformBlocksClass::bindIndex(getProgram(), "_particlesData");
     renderEngine->getTMat()->blockBinding(getProgram());
+
+#if !defined(GLCHAOSP_LIGHTVER)
+    idxSubLightModel[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularPhong");
+    idxSubLightModel[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularBlinnPhong");
+    idxSubLightModel[2] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularGGX");
+#endif
+
 #endif
 
 }
@@ -898,6 +920,8 @@ void postRenderingClass::bindRender()
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
     glClearBufferfv(GL_COLOR,  0, glm::value_ptr(glm::vec4(0.0f)));
+
+
 
 #if !defined(GLAPP_REQUIRE_OGL45)
     useProgram();
@@ -976,7 +1000,7 @@ void ambientOcclusionClass::create() {
     useFragment();
 
     vertObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "postRenderingVert.glsl");
-    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "ambientOcclusionFrag.glsl");
+    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "lightModelsFrag.glsl", SHADER_PATH "ambientOcclusionFrag.glsl");
     addShader(vertObj);
     addShader(fragObj);
 

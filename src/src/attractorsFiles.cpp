@@ -107,7 +107,8 @@ bool importPLY(bool wantColors, bool isDLA)
         emitterBaseClass *e = theWnd->getParticlesSystem()->getEmitter();
         e->resetVBOindexes();
         
-        e->setSizeCircularBuffer(nVtx);
+        if(attractorsList.continueDLA()) e->setSizeCircularBuffer(e->getSizeAllocatedBuffer());
+        else                             e->setSizeCircularBuffer(nVtx);
 
         GLfloat *vtx, *fClr;
         uint8 *bClr;
@@ -126,6 +127,7 @@ bool importPLY(bool wantColors, bool isDLA)
             return false;
         }
 
+        
         glm::vec4 *mappedBuffer;
         if(e->useMappedMem())   // USE_MAPPED_BUFFER
             mappedBuffer = (glm::vec4 *) e->getVBO()->getBuffer();
@@ -155,7 +157,8 @@ bool importPLY(bool wantColors, bool isDLA)
                 }         
                 ptr->w = glm::uintBitsToFloat( iCol );            
             } else {
-                ptr->w = isDLA ? glm::distance(vec3(*ptr), vec3(0.f)) : ((i>0) ? glm::distance(vec3(*ptr), vec3(*(ptr-1))) : 0.f);
+                ptr->w = isDLA ? glm::length(vec3(*ptr)) : ((i>0) ? glm::distance(vec3(*ptr), vec3(*(ptr-1))) : 0.f);
+                if(attractorsList.continueDLA()) ((dla3D *)attractorsList.get())->addLoadedPoint(vec3(*ptr));
             }
 
 #if !defined(NDEBUG)
@@ -165,6 +168,7 @@ bool importPLY(bool wantColors, bool isDLA)
         }
 
         e->getVBO()->setVertexCount(nVtx);
+        if(attractorsList.continueDLA()) ((dla3D *)attractorsList.get())->buildIndex();
 
         if(!e->useMappedMem()) {   // !defined(USE_MAPPED_BUFFER)
 #ifdef GLAPP_REQUIRE_OGL45
@@ -229,12 +233,13 @@ uint8_t *getColorBuffer(glm::vec4 *map, const uint32_t sizeBuff)
     return clrBuff;
 }
 
-glm::vec3 *getVertexBuffer(glm::vec4 *map, const uint32_t sizeBuff)
+glm::vec3 *getVertexBuffer(glm::vec4 *map, const uint32_t sizeBuff, bool bCoR)
 {
     glm::vec3 *vtxBuff = new glm::vec3[sizeBuff];
     glm::vec3 *vtx = vtxBuff;
 
-    for(unsigned i=sizeBuff; i>0; i--) *vtx++ = *map++;
+    const glm::vec3 CoR = theWnd->getParticlesSystem()->getTMat()->getTrackball().getRotationCenter();
+    for(unsigned i=sizeBuff; i>0; i--, map++) *vtx++ = bCoR ? vec3(*map) + CoR : vec3(*map);
 
     return vtxBuff;
 }
@@ -268,7 +273,7 @@ glm::vec3 *getNormalBuffer(glm::vec4 *map, const uint32_t sizeBuff, const bool i
     return nrmBuff;
 }
 
-void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool wantNormalized, normalType nType)
+void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool bCoR, bool wantNormalized, normalType nType)
 {
     
     emitterBaseClass *e = theWnd->getParticlesSystem()->getEmitter();
@@ -304,7 +309,7 @@ void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool wantNorm
 #endif
         }
 
-        glm::vec3 *vtxBuff = getVertexBuffer(mappedBuffer, sizeBuff);
+        glm::vec3 *vtxBuff = getVertexBuffer(mappedBuffer, sizeBuff, bCoR);
         uint8_t *clrBuff = nullptr;
         glm::vec3 *nrmBuff = nullptr;
 
@@ -534,10 +539,12 @@ void attractorDtType::loadAdditionalData(Config &cfg)
 void dla3D::saveAdditionalData(Config &cfg) 
 {
         cfg["Stubbornness"] = m_Stubbornness;
+        cfg["attachChance"] = m_Stickiness;
 }
 void dla3D::loadAdditionalData(Config &cfg) 
 {
         m_Stubbornness = cfg.get_or("Stubbornness",0);
+        m_Stickiness   = cfg.get_or("attachChance",1);
 }
 #endif
 

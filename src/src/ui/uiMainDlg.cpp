@@ -646,11 +646,11 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::TextDisabled(" Model"); ImGui::SameLine();
                 ImGui::PushItemWidth(wLightButt*1.67 - (ImGui::GetCursorPosX()-posA));
                 {
-                    int idx = particles->getLightModel() - particles->modelOffset;
+                    int idx = particles->getLightModel();
                     if (ImGui::Combo(buildID(base, idA++, id), &idx, "Phong\0"\
                                                                      "Blinn-Phong\0"\
                                                                      "GGX\0"))
-                        {  particles->setLightModel(idx + particles->modelOffset); }
+                        {  particles->setLightModel(idx); }
                 }
                 ImGui::PopItemWidth();
                 ImGui::SameLine(); 
@@ -685,14 +685,15 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                 ImGui::AlignTextToFramePadding();
                 
-                const float wSZ = particles->getLightModel()==particles->modelGGX ? sz*.8f : sz;
+                int idxGGX = particles->modelGGX-particles->modelOffset;
+                const float wSZ = particles->getLightModel()==idxGGX ? sz*.8f : sz;
 
                 ImGui::SetCursorPosX(posA); ImGui::TextDisabled("Spec");  ImGui::SameLine();
                 ImGui::PushItemWidth(wSZ - (ImGui::GetCursorPosX()-posA));
                 ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightSpecInt,0.01, 0.0, 1000.f, "% .3f",1.0f,ImVec2(.93,0.5));
                 ImGui::PopItemWidth();
                 
-                if(particles->getLightModel()==particles->modelGGX) {
+                if(particles->getLightModel()==idxGGX) {
                     ImGui::SameLine();     
                     const float sPos = ImGui::GetCursorPosX();
                     ImGui::TextDisabled("F");  ImGui::SameLine();
@@ -1603,15 +1604,20 @@ void dataDlgClass::view()
         static bool bColors = true;
         static bool bNormals = true;
         static bool bNormalized = true;
+        static bool bCoR = true;
         static int idxNorm = 0;
 
         static bool bDLA = false;
 
 
         ImGui::Text(" " ICON_FA_FLOPPY_O "  Export vertex data");
+        ImGui::SameLine();
+        ShowHelpMarker(GLAPP_HELP_EXPORT_PLY);
+
         ImGui::Checkbox("Binary fileType", &bBinary);
         ImGui::Checkbox("Colors##E", &bColors);
             ImGui::SameLine(wH);
+        ImGui::Checkbox("Use CoR", &bCoR);
         ImGui::Checkbox("Normals", &bNormals);
         if(bNormals) {
             ImGui::TextDisabled(" Normals type");
@@ -1629,26 +1635,39 @@ void dataDlgClass::view()
         }
 
 
-        if(ImGui::Button(ICON_FA_FLOPPY_O " Export PLY", ImVec2(w,0))) exportPLY(bBinary, bColors, bNormals, bNormalized, (normalType) idxNorm);
+        if(ImGui::Button(ICON_FA_FLOPPY_O " Export PLY", ImVec2(w,0))) exportPLY(bBinary, bColors, bNormals, bCoR, bNormalized, (normalType) idxNorm);
 
         ImGui::NewLine();
         ImGui::Text(" " ICON_FA_FOLDER_OPEN_O "  Import vertex data");
+        ImGui::SameLine();
+        ShowHelpMarker(GLAPP_HELP_IMPORT_PLY);
         bool b = theWnd->getParticlesSystem()->wantPlyObjColor();
         if(ImGui::Checkbox("PLY Colors##I", &b)) theWnd->getParticlesSystem()->wantPlyObjColor(b);
-        if(!b) {
+        if(!b) {            
+            ImGui::Checkbox("radial dist", &bDLA);
             ImGui::SameLine(wH);
-            ImGui::Checkbox("is DLA", &bDLA);
+            bool b = attractorsList.continueDLA();
+            if(ImGui::Checkbox("continue DLA", &b)) attractorsList.continueDLA(b);
+
+        } else {
+            ImGui::NewLine();
         }
 
-        if(ImGui::Button(ICON_FA_FOLDER_OPEN_O " Import PLY", ImVec2(w,0))) 
-            if(importPLY(b, bDLA)) //loadObjFile();
-                theWnd->getParticlesSystem()->viewObjON();
+        if(ImGui::Button(ICON_FA_FOLDER_OPEN_O " Import PLY", ImVec2(w,0))) {
+            if(attractorsList.continueDLA()) { 
+                const int i = attractorsList.getSelectionByName("dla3D");
+                if(i>0) attractorsList.selectToContinueDLA(i);
+            }
+            if(importPLY(b, bDLA)) theWnd->getParticlesSystem()->viewObjON();
+        }
 //        ImGui::SameLine(wH);
 
 
         ImGui::AlignTextToFramePadding();
         ImGui::NewLine();
         ImGui::Text("Import/Export render settings");
+        ImGui::SameLine();
+        ShowHelpMarker(GLAPP_HELP_IMP_EXP_CFG);
         if(ImGui::Button(ICON_FA_FOLDER_OPEN_O " Import CFG", ImVec2(wButtH,0))) loadSettingsFile();
         ImGui::SameLine(wH);
         if(ImGui::Button(ICON_FA_FLOPPY_O " Export CFG", ImVec2(wButtH,0))) saveSettingsFile();

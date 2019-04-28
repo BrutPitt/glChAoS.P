@@ -115,11 +115,13 @@ uint32_t AttractorBase::Step(float *ptr, uint32_t numElements)
     vec3 vp;
     vec3 v=getCurrent();
 
+    static timerClass t;
+
     uint32_t elems = numElements;
-    theApp->getTimer().start();
+    t.start();
     while(elems--) {
         Step(ptr, v, vp); 
-        if(!(elems&0x3F) && theApp->getTimer().elapsed()>0.1f) break;
+        if(!(elems&0x3F) && t.elapsed()>0.1f) break;
     }
 
     Insert(vec3(vp));
@@ -491,12 +493,27 @@ void Mira3D::Step(vec3 &v, vec3 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void dla3D::Step(vec3 &v, vec3 &vp) 
 {
-    v = vec3(0.0);
+    v = vec3(theWnd->getParticlesSystem()->getTMat()->getTrackball().getRotationCenter());
     vp = AddParticle();
-//    while(!addedPoints.size());
-//    vp = addedPoints.front();
-//    addedPoints.pop_front();
-    
+}
+
+void dla3D::buildIndex() // for loaded data
+{
+    uint32_t id = thisPOINT.size();
+
+    m_JoinAttempts.resize(id);
+    memset(m_JoinAttempts.data(), 0, id*sizeof(int));
+
+#ifdef GLAPP_USE_BOOST_LIBRARY
+    glm::vec3 *p = thisPOINT.data();
+    for(int i=0; i<id; i++, p++)
+        m_Index.insert(std::make_pair(BoostPoint(p->x, p->y, p->z), i));
+#else
+    m_Index->addPoints(0, id-1);
+#endif
+
+    attractorsList.continueDLA(false); // reset the flag
+    attractorsList.getThreadStep()->startThread();
 }
 #endif
 ////////////////////////////////////////////////////////////////////////////
@@ -608,9 +625,9 @@ void GenesioTesi::Step(vec3 &v, vec3 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void NewtonLeipnik::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a,b
-	vp.x = v.x + dtStepInc*(-kVal[0]*v.x + v.y + 10.0*v.y*v.z);
- 	vp.y = v.y + dtStepInc*(-v.x - 0.4*v.y + 5.0*v.x*v.z);
- 	vp.z = v.z + dtStepInc*(kVal[1]*v.z - 5.0*v.x*v.y);
+	vp.x = v.x + dtStepInc*(-kVal[0]*v.x + v.y + 10.f*v.y*v.z);
+ 	vp.y = v.y + dtStepInc*(-v.x - 0.4f*v.y + 5.f*v.x*v.z);
+ 	vp.z = v.z + dtStepInc*(kVal[1]*v.z - 5.f*v.x*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
 void NoseHoover::Step(vec3 &v, vec3 &vp) 
@@ -638,7 +655,7 @@ void Robinson::Step(vec3 &v, vec3 &vp)
 { // kVal[] -> a, b, c, d, v
     const float x2 = v.x*v.x;
 	vp.x = v.x + dtStepInc*v.y;
- 	vp.y = v.y + dtStepInc*(v.x - 2*x2*v.x - kVal[0]*v.y + kVal[1]*x2*v.y - kVal[4]*v.y*v.z); 
+ 	vp.y = v.y + dtStepInc*(v.x - 2.f*x2*v.x - kVal[0]*v.y + kVal[1]*x2*v.y - kVal[4]*v.y*v.z); 
  	vp.z = v.z + dtStepInc*(-kVal[2]*v.z + kVal[3]*x2);
 }
 ////////////////////////////////////////////////////////////////////////////
@@ -701,7 +718,7 @@ void juliaBulb_IIM::Step(vec3 &v, vec3 &vp)
     };
 
     preStep(v);
-    const int rnd = xorshift64();
+    const int rnd = fFastRand::xorshift32();
     radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
 
 }
@@ -724,7 +741,7 @@ void juliaBulb4th_IIM::Step(vec3 &v, vec3 &vp)
 
     preStep(v);
     //const vec3 p(v.z, v.y, v.x);
-    radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), xorshift64() % degreeN, xorshift64() % degreeN);
+    radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), fFastRand::xorshift32() % degreeN, fFastRand::xorshift32() % degreeN);
 
 }
 
@@ -744,7 +761,7 @@ void quatJulia_IIM::Step(vec3 &v, vec3 &vp)
     };
 
     preStep(v);
-    const int rnd = xorshift64();
+    const int rnd = fFastRand::xorshift32();
     radiciEq(vec4(v, last4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f);
 
 }
@@ -995,6 +1012,18 @@ void AttractorsClass::selection(int i) {
     //restart();    
 }
 
+void AttractorsClass::selectToContinueDLA(int i) {
+    getThreadStep()->stopThread();
+    selection(i);
+    theApp->getMainDlg().getParticlesDlgClass().resetTreeParticlesFlags();
+    theApp->loadAttractor(attractorsList.getFileName().c_str());
+//    get()->initStep();
+
+    ((dla3D *)get())->resetIndexData();
+    get()->resetQueue();
+    get()->Insert(vec3(0.f));
+
+}
 
 void AttractorsClass::newStepThread(emitterBaseClass *e) 
 {

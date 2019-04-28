@@ -29,13 +29,6 @@ LAYUOT_BINDING(1) uniform sampler2D tex;
     subroutine uniform _pixelColor pixelColor;
 #endif
 
-LAYUOT_BINDING(4) uniform _tMat {
-    mat4 pMatrix;
-    mat4 mvMatrix;
-    mat4 mvpMatrix;
-} m;
-
-
 in vec4 mvVtxPos;
 
 in float pointDistance;

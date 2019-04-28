@@ -22,15 +22,7 @@ in vec2 vTexCoord;
 
 uniform vec4 aoVals; // x = Bias, y = Radius, z = darkness
 
-
-LAYUOT_BINDING(4) uniform _tMat {
-    mat4 pMatrix;
-    mat4 mvMatrix;
-    mat4 mvpMatrix;
-};
-
 uniform vec3 ssaoSamples[64];
-
 
 out vec4 outColor;
 
@@ -109,58 +101,31 @@ float getBlurredZ(ivec2 uv)
 
 void main()
 {
-    vec2 uv = gl_FragCoord.xy;
-    float depth = texelFetch(prevData,ivec2(uv), 0).w;
+    float depth = texelFetch(prevData,ivec2(gl_FragCoord.xy), 0).w;
     if(depth<=.01) { discard; outColor = vec4(0.0); return; }
 
     float z = getViewZ(depth);
     vec4 vtx = vec4(viewRay * z, z, 1.0);
 
-    float zEye  = form_01_to_m1p1(depth);
-    float gradA = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 1., 0.)), 0).w);
-    float gradB = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 0., 1.)), 0).w);
-
-    //float gradC = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2(-1., 0.)), 0).w);
-    //float gradD = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 0.,-1.)), 0).w);
-    //float gradE = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 1., 1.)), 0).w);
-    //float gradF = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2(-1.,-1.)), 0).w);
-    //float gradG = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 1.,-1.)), 0).w);
-    //float gradH = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2(-1., 1.)), 0).w);
-
-    vec2 m = (1. / u.scrnRes) * vec2(u.scrnRes.x/u.scrnRes.y * u.halfTanFOV, u.halfTanFOV);
-    //vec2 m = (1. / vec2(1920.,1080.)) * vec2(1920./1080. * 0.288675, 0.288675);
-
-    vec3 N0 = cross(vec3(vec2( 1., 0.)*m, (gradA-zEye)*z), vec3(vec2( 0., 1.)*m, (gradB-zEye)*z));
-    //vec3 N1 = cross(vec3(vec2(-1., 0.)*m, (gradC-zEye)*z), vec3(vec2( 0.,-1.)*m, (gradD-zEye)*z));
-    //vec3 N2 = cross(vec3(vec2( 1., 1.)*m, (gradE-zEye)*z), vec3(vec2(-1., 1.)*m, (gradH-zEye)*z));
-    //vec3 N3 = cross(vec3(vec2(-1.,-1.)*m, (gradF-zEye)*z), vec3(vec2( 1.,-1.)*m, (gradG-zEye)*z));
-
-            
-    vec4 N;
-    //N0    = normalize(dot(N0,N0)>dot(N1,N1) ? N0 : N1);
-    //N2    = normalize(dot(N2,N2)>dot(N3,N3) ? N2 : N3);
-    //N.xyz = normalize(dot(N0,N0)>dot(N2,N2) ? N0 : N2);
-    //N.xyz = normalize(min(N0, min(N1, min(N2,N3))));
-    N.xyz = normalize (N0);
-
+    vec3 N = getSimpleNormal(depth, z, prevData);
     
     float AO = 0.0;
     const int RAD = 64;
     float bias = aoVals.x;
-    float radius = aoVals.y;
+    float radius = aoVals.y * z;
     float darkness = aoVals.z;
 
     vec2 noiseScale = u.scrnRes * .25; // -> u.scrnRes/4.0
     vec3 randomVec = texture(noise, vTexCoord * noiseScale).xyz;
-    vec3 tangent   = normalize(randomVec - N.xyz * dot(randomVec, N.xyz));
-    vec3 bitangent = cross(N.xyz, tangent);
-    mat3 TBN       = mat3(tangent, bitangent, N.xyz);
+    vec3 tangent   = normalize(randomVec - N * dot(randomVec, N));
+    vec3 bitangent = cross(N, tangent);
+    mat3 TBN       = mat3(tangent, bitangent, N);
 
         for (int i = 0 ; i < RAD ; i++) {
             vec3 sampleP = TBN * ssaoSamples[i];
             sampleP = vtx.xyz + sampleP * radius; 
             vec4 offset = vec4(sampleP, 1.0);
-            offset = pMatrix * offset;
+            offset = m.pMatrix * offset;
             offset.xy /= -offset.w;
             offset.xy = offset.xy * 0.5 + 0.5;
 
@@ -172,7 +137,7 @@ void main()
 
     AO = 1.0 - AO/float(RAD);
 
-    outColor = vec4(N.xyz*.5 + .5 , AO);
+    outColor = vec4(vec3(1.0)/*N*.5 + .5 */, AO);
     //outColor = vec4(N.xyz*.5 + .5 , 1.0);
     //outColor = vec4( vec3(texelFetch(prevData,ivec2(uv), 0).w) , 1.0);
     //outColor = vec4(texelFetch(prevData,ivec2(uv               ) , 0).xyz , 1.0);

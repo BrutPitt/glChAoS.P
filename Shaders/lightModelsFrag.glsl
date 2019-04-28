@@ -49,6 +49,14 @@ LAYUOT_BINDING(2) uniform _particlesData {
     int pass;
 } u;
 
+LAYUOT_BINDING(4) uniform _tMat {
+    mat4 pMatrix;
+    mat4 mvMatrix;
+    mat4 mvpMatrix;
+    mat4 mvpLightM;
+} m;
+
+
 #define lightModelOFFSET 5
 #define idxPHONG     (lightModelOFFSET    )
 #define idxBLINPHONG (lightModelOFFSET + 1)
@@ -119,4 +127,56 @@ float specularGGX(vec3 V, vec3 L, vec3 N)
     float k2 = k * k;
 
     return dotNL * D * F / (dotLH*dotLH*(1.0-k2)+k2);
+}
+
+vec3 getSimpleNormal(float depth, float z, sampler2D depthData)
+{
+    float zEye  = form_01_to_m1p1(depth);
+    float gradA = form_01_to_m1p1(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 1., 0.)), 0).w);
+    float gradB = form_01_to_m1p1(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0., 1.)), 0).w);
+
+    vec2 m = (1. / u.scrnRes) * vec2(u.scrnRes.x/u.scrnRes.y * u.halfTanFOV, u.halfTanFOV);
+
+    vec3 N0 = cross(vec3(vec2( 1., 0.)*m, (gradA-zEye)*z), vec3(vec2( 0., 1.)*m, (gradB-zEye)*z));
+
+    return normalize (N0);
+}
+
+vec3 getSelectedNormal(float depth, float z, sampler2D depthData)
+{
+
+    float zEye  = form_01_to_m1p1(depth);
+    float gradA = form_01_to_m1p1(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 1., 0.)), 0).w);
+    float gradB = form_01_to_m1p1(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0., 1.)), 0).w);
+    float gradC = form_01_to_m1p1(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2(-1., 0.)), 0).w);
+    float gradD = form_01_to_m1p1(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0.,-1.)), 0).w);
+    //float gradE = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 1., 1.)), 0).w);
+    //float gradF = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2(-1.,-1.)), 0).w);
+    //float gradG = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 1.,-1.)), 0).w);
+    //float gradH = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2(-1., 1.)), 0).w);
+
+    vec2 m = (1. / u.scrnRes) * vec2(u.scrnRes.x/u.scrnRes.y * u.halfTanFOV, u.halfTanFOV);
+    //vec2 m = (1. / vec2(1920.,1080.)) * vec2(1920./1080. * 0.288675, 0.288675);
+
+    vec3 V1 = gradA>gradC ? vec3(vec2( 1., 0.)*m, (gradA-zEye)*z) : -vec3(vec2(-1., 0.)*m, (gradC-zEye)*z);
+    vec3 V2 = gradB>gradD ? vec3(vec2( 0., 1.)*m, (gradB-zEye)*z) : -vec3(vec2( 0.,-1.)*m, (gradD-zEye)*z);
+    vec3 N0 = cross(V1, V2);
+
+    //vec3 N0 = cross(vec3(vec2( 1., 0.)*m, (gradA-zEye)*z), vec3(vec2( 0., 1.)*m, (gradB-zEye)*z));
+    //vec3 N1 = cross(vec3(vec2(-1., 0.)*m, (gradC-zEye)*z), vec3(vec2( 0.,-1.)*m, (gradD-zEye)*z));
+    //vec3 N2 = cross(vec3(vec2( 0.,-1.)*m, (gradD-zEye)*z), vec3(vec2( 1., 0.)*m, (gradA-zEye)*z));
+    //vec3 N3 = cross(vec3(vec2( 0., 1.)*m, (gradB-zEye)*z), vec3(vec2(-1., 0.)*m, (gradC-zEye)*z));
+    //vec3 N2 = cross(vec3(vec2( 1., 1.)*m, (gradE-zEye)*z), vec3(vec2(-1., 1.)*m, (gradH-zEye)*z));
+    //vec3 N3 = cross(vec3(vec2(-1.,-1.)*m, (gradF-zEye)*z), vec3(vec2( 1.,-1.)*m, (gradG-zEye)*z));
+
+            
+    //N0    = normalize(dot(N0,N0)<dot(N1,N1) ? N0 : N1);
+    //N2    = normalize(dot(N2,N2)>dot(N3,N3) ? N2 : N3);
+    //N.xyz = normalize(dot(N0,N0)>dot(N2,N2) ? N0 : N2);
+    //N.xyz = normalize(min(N0, min(N1, min(N2,N3))));
+    //N.xyz = normalize(min(N0,N1));
+
+    return normalize (N0);
+
+
 }

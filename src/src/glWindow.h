@@ -41,8 +41,6 @@ class shaderPointClass;
 class shaderBillboardClass;
 
 
-void setViewOrtho();
-
 class vaoClass {
 public:
     vaoClass() {
@@ -482,6 +480,7 @@ public:
                 float zoomK = particles->getTMat()->getPOV().z - particles->getTMat()->getTrackball().getDollyPosition().z;
                 getAxes()->setZoomFactor(vec3(vec2(zoomK/10.f), zoomK/7.f) * particles->getTMat()->getPerspAngle()/30.f);
             }            
+            getTMat()->setLightView(particles->getLightDir());
             texRendered = particles->render(0, getEmitter());
 
             const GLuint fbo = (getMotionBlur()->Active() || particles->getFXAA()->isOn()) ? particles->getGlowRender()->getFBO().getFB(1) : 0;
@@ -508,9 +507,8 @@ public:
         }
 #else
         particlesBaseClass *particles = shaderPointClass::getPtr();
-        particles->render(getRenderFBO().getFB(0), getEmitter());
+        texRendered = particles->render(0, getEmitter());
         //particles->render(0, getEmitter());
-        texRendered = getRenderFBO().getTex(0);
     #if !defined(GLCHAOSP_NO_FXAA)
             if(particles->getFXAA()->isOn()) 
                 texRendered = particles->getFXAA()->render(getRenderFBO().getTex(0));                

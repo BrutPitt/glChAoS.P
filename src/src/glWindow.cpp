@@ -149,6 +149,7 @@ void glWindow::onRender()
 
         model->applyTransforms();
     }
+
     
     //  render Attractor
     //////////////////////////////////////////////////////////////////

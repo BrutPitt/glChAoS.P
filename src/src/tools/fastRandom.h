@@ -15,7 +15,7 @@
 //  
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  From George Marsaglia Algorithms <geo@stat.fsu.edu> 
+//  From George Marsaglia Algorithms
 //
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
@@ -24,15 +24,9 @@
 #include <chrono>
 #include <random>
 
+#define RANDOM(MIN, MAX) (fastRandom.floatRnd(MIN, MAX))
 
-uint32_t xorshift32();
-uint64_t xorshift64();
-
-#define RANDOM(MIN, MAX) (float(MIN) + float((MAX)-(MIN)) * float(fastRandom.rnd64())/float(fastRandom.rnd64.max()))
-#define FLOAT_RANDOM(MIN, MAX, VAL) (float(MIN) + float((MAX)-(MIN)) * float(VAL)/float(UINT64_MAX))
-
-
-class fastRandomClass {
+template <class T> class fastRandomClass {
 
 public:
      fastRandomClass()
@@ -42,40 +36,64 @@ public:
         rnd64.seed(seedVal);
         rnd32.seed(rnd64());
 
-        settable(rnd64(),
-                 rnd64(),
-                 rnd64(),
-                 rnd64(),
-                 rnd64(),
-                 rnd64());
+        settable(rnd64(), rnd64(), rnd64(),
+                 rnd64(), rnd64(), rnd64());
      }
 
-    uint64_t znew () { return (z=36969*(z&65535)+(z>>16));    }
-    uint64_t wnew () { return (w=18000*(w&65535)+(w>>16));    }
-    uint64_t MWC  () { return ((znew()<<16)+wnew() );         }
-    uint64_t CONG () { return (jcong=69069*jcong+1234567);    }
-    uint64_t FIB  () { return ((b=a+b),(a=b-a));              }
-    uint64_t KISS () { return ((MWC()^CONG())+SHR3());        }
-    uint64_t UNI  () { return (KISS()*2.328306e-10);          }
-    uint64_t VNI  () { return ((int64_t) KISS())*4.656613e-10;}
-    uint64_t SHR3 () { return (jsr^=(jsr<<17), jsr^=(jsr>>13), jsr^=(jsr<<5)); }
-    uint64_t LFIB4() { return (c++,t[c]=t[c]+t[uint8_t(c+58)]+t[uint8_t(c+119)]+t[uint8_t(c+178)]);}
-    uint64_t SWB  () { return (c++,bro=(x<y),t[c]=(x=t[uint8_t(c+34)])-(y=t[uint8_t(c+19)]+bro));  }
+    uint64_t znew () { return z=36969*(z&65535)+(z>>16); }
+    uint64_t wnew () { return w=18000*(w&65535)+(w>>16); }
+    uint64_t MWC  () { return (znew()<<16)+wnew()      ; }
+    uint64_t CONG () { return jcong=69069*jcong+1234567; }
+    uint64_t FIB  () { return (b=a+b),(a=b-a)          ; }
+    uint64_t KISS () { return (MWC()^CONG())+SHR3()    ; }
 
-    float floatRnd(float min, float max) { return min + (max-min) * float(KISS())/float(UINT64_MAX); }
+    uint64_t SHR3 () { return jsr^=(jsr<<17), jsr^=(jsr>>13), jsr^=(jsr<<5);                     }
+    uint64_t LFIB4() { return c++,t[c]=t[c]+t[uint8_t(c+58)]+t[uint8_t(c+119)]+t[uint8_t(c+178)];}
+    uint64_t SWB  () { return c++,bro=(x<y),t[c]=(x=t[uint8_t(c+34)])-(y=t[uint8_t(c+19)]+bro);  }
 
-    float xorshiftNorm32() { 
-        return 2.f*(float(xorshift32())/float(UINT32_MAX))-1.f; 
+    // UNI -> [0.0, 1.0]  /  VNI -> [-1.0, 1.0]
+    T UNI32() { return T(uint32_t(KISS())) * inv_uint32_max; }
+    T VNI32() { return T( int32_t(KISS())) * inv_int32_max ; }
+    T UNI64() { return T(         KISS() ) * inv_uint64_max; }
+    T VNI64() { return T( int64_t(KISS())) * inv_int64_max ; }
+
+    T floatRnd(T min, T max) { return min + (max-min) * T(KISS()) * inv_uint64_max; }
+
+    T xorshiftUNI32() { return T(        xorshift32() ) * inv_uint32_max; }
+    T xorshiftVNI32() { return T(int32_t(xorshift32())) * inv_int32_max ; }
+
+    static uint32_t xorshift32()
+    {
+        // Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" 
+        static uint32_t state = std::chrono::system_clock::now().time_since_epoch().count();
+        uint32_t x = state;
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        state = x;
+        return x;
     }
 
-    float xorshift32_01() { 
-        return float(xorshift32())/float(UINT32_MAX);
+    static uint64_t xorshift64()
+    {
+        // Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" 
+        static size_t state = std::chrono::system_clock::now().time_since_epoch().count();
+        uint64_t x = state;
+        x^= x << 13;
+        x^= x >> 7;
+        x^= x << 17;
+        state = x;
+        return x;
     }
 
     std::mt19937_64 rnd64;
-    std::mt19937_64 rnd32;
+    std::mt19937    rnd32;
 
 private:
+    const T inv_uint32_max = T(2.3283064365386962890625e-10);
+    const T inv_int32_max  = T(4.6566128730773925781250e-10);
+    const T inv_uint64_max = T(5.4210108624275221700372640043497e-20);
+    const T inv_int64_max  = T(1.0842021724855044340074528008699e-19);
 
     void settable(uint64_t i1,uint64_t i2,uint64_t i3,uint64_t i4,uint64_t i5, uint64_t i6)
     { 
@@ -86,11 +104,12 @@ private:
     uint64_t z=362436069, w=521288629, jsr=123456789, jcong=380116160;
     uint64_t a=224466889, b=7584631, t[256];
     uint64_t x=0,y=0,bro; unsigned char c=0;
-
-    
 };
 
-extern fastRandomClass fastRandom;
+using fFastRand = fastRandomClass<float>;
+using dFastRand = fastRandomClass<double>;
+
+extern fFastRand fastRandom;
 
 /*-----------------------------------------------------
 Write your own calling program and try one or more of

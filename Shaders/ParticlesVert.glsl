@@ -57,6 +57,7 @@ LAYUOT_BINDING(4) uniform _tMat {
     mat4 pMatrix;
     mat4 mvMatrix;
     mat4 mvpMatrix;
+    mat4 mvpLightM;
 } m;
 
 #ifndef GL_ES

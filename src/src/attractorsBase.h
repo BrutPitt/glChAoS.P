@@ -196,7 +196,7 @@ protected:
     deque<vec3> stepQueue;
 
     // limit random generators
-    float kMax, kMin, vMax, vMin;
+    float kMax = 1.f, kMin = -1.f, vMax = 1.f, vMin = -1.f;
 
     bool bDlgAdditionalDataVisible = false;
     
@@ -354,17 +354,7 @@ protected:
     virtual void preStep(vec3 &v) {
         if(depth++>maxDepth) {
             depth = 0;
-/*
-            last4D = dim4D +   FLOAT_RANDOM(vMin, vMax, fastRandom.SWB());
-            v = vVal[0] + vec3(FLOAT_RANDOM(vMin, vMax, fastRandom.SWB()),
-                               FLOAT_RANDOM(vMin, vMax, fastRandom.SWB()),
-                               FLOAT_RANDOM(vMin, vMax, fastRandom.SWB()));
-            
-            kRnd = vec4(FLOAT_RANDOM(kMin, kMax, fastRandom.SWB()),
-                        FLOAT_RANDOM(kMin, kMax, fastRandom.SWB()),
-                        FLOAT_RANDOM(kMin, kMax, fastRandom.SWB()),
-                        FLOAT_RANDOM(kMin, kMax, fastRandom.SWB()));
-*/
+
             last4D = dim4D +   fastRandom.floatRnd(vMin, vMax);
             v = vVal[0] + vec3(fastRandom.floatRnd(vMin, vMax),
                                fastRandom.floatRnd(vMin, vMax),
@@ -455,7 +445,7 @@ public:
 
     void radiciBicomplex(const vec4 &pt, vec3 &vp)
     {           
-        const int rnd = xorshift64();
+        const int rnd = fFastRand::xorshift32();
         const float sign1 = (rnd&1) ? 1.f : -1.f, sign2 = (rnd&2) ? 1.f : -1.f;
         const vec4 p(pt - ((vec4 &)*kVal.data()+kRnd));
 
@@ -1051,26 +1041,70 @@ protected:
 };
 
 #if !defined(GLAPP_DISABLE_DLA)
-#include <boost/function_output_iterator.hpp>
-#include <boost/geometry/geometry.hpp>
+
+//#define GLAPP_USE_BOOST_LIBRARY
 
 // number of dimensions (must be 2 or 3)
 #define DLA_DIM 3
 
 #define DLA_USE_FAST_RANDOM
 #ifdef DLA_USE_FAST_RANDOM
-    #define DLA_RANDOM_NORM fastRandom.xorshiftNorm32()
-    #define DLA_RANDOM_01   fastRandom.xorshift32_01()
+    #define DLA_RANDOM_NORM fastRandom.VNI32()
+    #define DLA_RANDOM_01   fastRandom.UNI32()
 #else
     #define DLA_RANDOM_NORM stdRandom(-1.f, 1.f)
     #define DLA_RANDOM_01   stdRandom( 0.f, 1.f)
 #endif
 
 // boost is used for its spatial index
-using BoostPoint = boost::geometry::model::point<float, DLA_DIM, boost::geometry::cs::cartesian>;
-using boostIndexValue = std::pair<BoostPoint, int>;
-using boostIndex = boost::geometry::index::rtree<boostIndexValue, boost::geometry::index::linear<4>>;
 
+#ifdef GLAPP_USE_BOOST_LIBRARY
+    #include <boost/function_output_iterator.hpp>
+    #include <boost/geometry/geometry.hpp>
+
+    using BoostPoint = boost::geometry::model::point<float, DLA_DIM, boost::geometry::cs::cartesian>;
+    using boostIndexValue = std::pair<BoostPoint, uint32_t>;
+    using boostIndex = boost::geometry::index::rtree<boostIndexValue, boost::geometry::index::linear<4>>;
+
+    #define parentPOINT(PARENT) m_Points[PARENT]
+    #define thisPOINT m_Points
+#else
+    #include <nanoflann/nanoflann.hpp>
+
+    #define parentPOINT(PARENT) m_Points.pts[PARENT]
+    #define thisPOINT m_Points.pts
+
+using tPrec = float;
+
+template <typename T> struct pointCloud
+{
+    
+    std::vector<glm::tvec3<T>> pts;
+    
+    // Must return the number of data points
+    inline size_t kdtree_get_point_count() const { return pts.size(); }
+    
+    // Returns the dim'th component of the idx'th point in the class:
+    // Since this is inlined and the "dim" argument is typically an immediate value, the
+    //  "if/else's" are actually solved at compile time.
+    inline T kdtree_get_pt(const size_t idx, const size_t dim) const
+    {
+        return pts[idx][dim];
+    }
+    
+    // Optional bounding-box computation: return false to default to a standard bbox computation loop.
+    //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
+    //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds)
+    template <class BBOX>
+    bool kdtree_get_bbox(BBOX& /* bb */) const { return false; }
+    
+};
+
+using tPointCloud =  pointCloud<tPrec>;
+
+using tKDTreeDistanceFunc = nanoflann::L2_Adaptor<tPrec, tPointCloud>;
+using tKDTree = nanoflann::KDTreeSingleIndexDynamicAdaptor<tKDTreeDistanceFunc, tPointCloud, 3>;
+#endif
 
 //  DLA3D base class
 ////////////////////////////////////////////////////////////////////////////
@@ -1082,7 +1116,6 @@ using boostIndex = boost::geometry::index::rtree<boostIndexValue, boost::geometr
 // ParticleSpacing       ==>    kVal[0]
 // AttractionDistance    ==>    kVal[1]
 // MinMoveDistance       ==>    kVal[2]
-// Stickiness            ==>    kVal[3]
 //
 // Description from author
 // -------------------------------------------------------------------------
@@ -1102,13 +1135,32 @@ public:
         inputKMin = 0.0001, inputKMax = 10000.0;
         isDLAtype = true;
     }
+#if !defined(GLAPP_USE_BOOST_LIBRARY)
+    ~dla3D() { delete m_Index; }
+#endif
 
+    void buildIndex();
+
+    inline void addLoadedPoint(const glm::vec3 &p) {
+        thisPOINT.push_back(p);
+        boundingRadius = std::max(boundingRadius, glm::length(p) + kVal[1]);
+    }
+
+
+    void resetIndexData() {
+        if(thisPOINT.size()) thisPOINT.clear();
+#ifdef GLAPP_USE_BOOST_LIBRARY
+        if(m_Index.size()) m_Index.clear();
+#else             
+        delete m_Index;
+        m_Index = new tKDTree(DLA_DIM, m_Points, nanoflann::KDTreeSingleIndexAdaptorParams(4 /* max leaf */) );
+#endif        
+        m_JoinAttempts.clear();
+        boundingRadius = 0.f;
+    }
 protected:
     void initStep() {
-        m_Points.clear();
-        m_JoinAttempts.clear();
-        if(m_Index.size()) m_Index.clear();
-        
+        resetIndexData();
         resetQueue();
         Insert(vec3(0.f));
         Add(glm::vec3(0.0));
@@ -1119,41 +1171,51 @@ protected:
     void additionalDataCtrls();
     void saveAdditionalData(Config &cfg);
     void loadAdditionalData(Config &cfg);
-/*
-    void stopThread() { 
-        threadStop = true; 
-    }
 
-    void mainThread() {
-        while(!threadStop) addedPoints.push_back(AddParticle());
-    }
-
-    void startThreads(int num) {
-        while(num--) {
-            addedPoints.push_back(AddParticle());
-            pointTread.emplace_back(std::thread(&dla3D::mainThread, this));
-        }
-    }
-*/
+#ifdef GLAPP_USE_BOOST_LIBRARY
     // Add adds a new particle with the specified parent particle
     void Add(const glm::vec3 &p) {
-        const int id = m_Points.size();
+        const uint32_t id = m_Points.size();
         m_Index.insert(std::make_pair(BoostPoint(p.x, p.y, p.z), id));
         m_Points.push_back(p);
         m_JoinAttempts.push_back(0);
         boundingRadius = std::max(boundingRadius, glm::length(p) + kVal[1]);
-        //std::cout << id << "," << p.x << "," << p.y << "," << p.z << std::endl;
     }
-
     // Nearest returns the index of the particle nearest the specified point
-    int Nearest(const glm::vec3 &point) const {
-        int result = -1;
+    uint32_t Nearest(const glm::vec3 &point) const {
+        uint32_t result = -1;
         m_Index.query(
             boost::geometry::index::nearest(BoostPoint(point.x,point.y,point.z), 1),
             boost::make_function_output_iterator([&result](const auto &value) {
                 result = value.second;
             }));
         return result;
+    }
+#else
+    void Add(const glm::vec3 &p) {
+        //my_kd_tree_t index(3 /*dim*/, m_Points, KDTreeSingleIndexAdaptorParams(10 /* max leaf */) );
+        size_t id = m_Points.pts.size();
+        m_Points.pts.push_back(p);
+        m_JoinAttempts.push_back(0);
+        m_Index->addPoints(id, id);
+        boundingRadius = std::max(boundingRadius, glm::length(p) + kVal[1]);
+    }
+
+    uint32_t Nearest(const glm::vec3 &point) const {
+        size_t ret_index;
+        tPrec out_dist_sqr;
+        nanoflann::KNNResultSet<tPrec> resultSet(1);
+        resultSet.init(&ret_index, &out_dist_sqr );
+        m_Index->findNeighbors(resultSet, (const tPrec *) &point, nanoflann::SearchParams(4));
+        return ret_index;
+    }
+
+#endif
+        //std::cout << id << "," << p.x << "," << p.y << "," << p.z << std::endl;
+
+    // PlaceParticle computes the final placement of the particle.
+    glm::vec3 PlaceParticle(const glm::vec3 &p, const uint32_t parent) const {
+        return lerp(parentPOINT(parent), p, kVal[0]);
     }
 
     // RandomStartingPosition returns a random point to start a new particle
@@ -1170,13 +1232,8 @@ protected:
     // ShouldJoin returns true if the point should attach to the specified
     // parent particle. This is only called when the point is already within
     // the required attraction distance.
-    bool ShouldJoin(const glm::vec3 &p, const int parent) {
-        return (m_JoinAttempts[parent]++ < m_Stubbornness) ? false : DLA_RANDOM_01 <= kVal[3];
-    }
-
-    // PlaceParticle computes the final placement of the particle.
-    glm::vec3 PlaceParticle(const glm::vec3 &p, const int parent) const {
-        return glm::mix(m_Points[parent], p, kVal[0]);
+    bool ShouldJoin(const glm::vec3 &p, const uint32_t parent) {
+        return (m_JoinAttempts[parent]++ < m_Stubbornness) ? false : DLA_RANDOM_01 <= m_Stickiness;
     }
 
     // MotionVector returns a vector specifying the direction that the
@@ -1200,19 +1257,20 @@ protected:
         // do the random walk
         while (true) {
             // get distance to nearest other particle
-            const int parent = Nearest(p);
-            const float d = glm::distance(p, m_Points[parent>m_Points.size() ? m_Points.size()-1 : parent]);
+            const uint32_t parent = Nearest(p);
+            const tPrec d = glm::distance(p, parentPOINT(parent));
 
             // check if close enough to join
             if (d < kVal[1]) {
                 if (!ShouldJoin(p, parent)) {
                     // push particle away a bit
-                    p = glm::mix(m_Points[parent], p, kVal[1] + kVal[2]);
+                    //p = lerp(parentPOINT(parent), p, kVal[1]+kVal[2]);
+                    p = lerp(parentPOINT(parent), p, kVal[1]);
                     continue;
                 } 
                 // adjust particle pos in relation to its parent and add the point
                 Add(PlaceParticle(p, parent));
-                return m_Points.back();
+                return thisPOINT.back();
             }
 
             // move randomly
@@ -1227,33 +1285,38 @@ protected:
     void startData();
 
 private:
-    float stdRandom(float lo, float hi) const {
+    tPrec stdRandom(tPrec lo, tPrec hi) const {
         static thread_local std::mt19937 gen(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-        std::uniform_real_distribution<float> dist(lo, hi); return dist(gen);
+        std::uniform_real_distribution<tPrec> dist(lo, hi); return dist(gen);
     }
 
+    glm::vec3 lerp(const glm::vec3 &a, const glm::vec3 &b, tPrec d) const {
+        return a + glm::normalize(b-a) * d;
+    }
+
+    //The probability that a particle will allow another particle to join to it.
+    tPrec m_Stickiness = 1.0;
     // m_Stubbornness defines how many interactions must occur before a
     // particle will allow another particle to join to it.
     int m_Stubbornness = 0;
 
     // m_BoundingRadius defines the radius of the bounding sphere that bounds
     // all of the particles
-    float boundingRadius = 0;
+    tPrec boundingRadius = 0;
 
-    // m_Points stores the final particle positions
-    std::vector<glm::vec3> m_Points;
-    
-/*    
-    std::vector<std::thread> pointTread;
-    std::deque<glm::vec3> addedPoints;
-    bool threadStop = false;
-*/
     // m_JoinAttempts tracks how many times other particles have attempted to
     // join with each finalized particle
-    std::vector<int> m_JoinAttempts;
+    std::vector<uint32_t> m_JoinAttempts;
 
+#ifdef GLAPP_USE_BOOST_LIBRARY
     // m_Index is the spatial index used to accelerate nearest neighbor queries
     boostIndex m_Index;
+    // m_Points stores the final particle positions
+    std::vector<glm::vec3> m_Points;
+#else
+    tPointCloud m_Points;
+    tKDTree *m_Index = nullptr;
+#endif
 };
 #endif
 
@@ -2043,12 +2106,10 @@ public:
     void restart();
 
     ~AttractorsClass() {
-
         while(!ptr.empty()) {
             delete ptr.back();
             ptr.pop_back();
         }
-
     }
 
     threadStepClass *getThreadStep() { return threadStep; }
@@ -2070,6 +2131,10 @@ public:
 
     bool getEndlessLoop() { return endlessLoop; }
 
+    bool continueDLA() { return wantContinueDLA; }
+    void continueDLA(bool b) { wantContinueDLA = b; }
+    void selectToContinueDLA(int i);
+
     //void lockStep() { mtxStep.lock(); }
     //void unlockStep() { mtxStep.unlock(); }
 private:
@@ -2081,6 +2146,7 @@ private:
     //bool breakLoop = false;
 
     bool endlessLoop = true;
+    bool wantContinueDLA = false;
 
     std::mutex stepMutex;
     std::condition_variable stepCondVar;

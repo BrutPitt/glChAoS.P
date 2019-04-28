@@ -424,7 +424,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     ptr->getUData().lightAmbInt   = c.get_or("lightAmbInt"     , ptr->getUData().lightAmbInt  );
     ptr->getUData().sstepColorMin = c.get_or("lightStepMin"    , ptr->getUData().sstepColorMin);
     ptr->getUData().sstepColorMax = c.get_or("lightStepMax"    , ptr->getUData().sstepColorMax);
-    ptr->getUData().lightModel    = c.get_or("lightModel"      , int(ptr->modelBlinnPhong));
+    ptr->getUData().lightModel    = c.get_or("lightModel"      , int(ptr->modelBlinnPhong-ptr->modelOffset));
     ptr->getUData().ggxRoughness  = c.get_or("ggxRoughness"    , ptr->getUData().ggxRoughness);
     ptr->getUData().ggxFresnel    = c.get_or("ggxFresnel"      , ptr->getUData().ggxFresnel);
 
@@ -487,7 +487,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     loadPalette(c, ptr);
 }
 
-void loadSettings(Config &cfg, particlesSystemClass *pSys) 
+void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = loadSettings::ignoreNone) 
 {
 
     vec3 v3;
@@ -501,18 +501,21 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys)
         pSys->getMergedRendering()->setMixingVal( c.get_or("mixingVal"    , pSys->getMergedRendering()->getMixingVal() ));
 #endif
 
-        pSys->getEmitter()->setSizeCircularBuffer(c.get_or("circBuff"     , pSys->getEmitter()->getSizeCircularBuffer()));
+        if(typeToIgnore != loadSettings::ignoreCircBuffer) {
+            pSys->getEmitter()->setSizeCircularBuffer(c.get_or("circBuff"     , pSys->getEmitter()->getSizeCircularBuffer()));
 #ifdef GLCHAOSP_LIGHTVER
-        pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeCircularBuffer()>>1);
+            pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeCircularBuffer()>>1);
 #endif
-        if(pSys->getEmitter()->getSizeCircularBuffer()>pSys->getEmitter()->getSizeAllocatedBuffer())
-            pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeAllocatedBuffer());
+            if(pSys->getEmitter()->getSizeCircularBuffer()>pSys->getEmitter()->getSizeAllocatedBuffer())
+                pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeAllocatedBuffer());
 
-        pSys->getEmitter()->restartCircBuff(      c.get_or("rstrtCircBuff", pSys->getEmitter()->restartCircBuff()      ));        
-        pSys->getEmitter()->stopFull(             c.get_or("stopCircBuff" , pSys->getEmitter()->stopFull()             ));
+            pSys->getEmitter()->restartCircBuff(      c.get_or("rstrtCircBuff", pSys->getEmitter()->restartCircBuff()      ));        
+            pSys->getEmitter()->stopFull(             c.get_or("stopCircBuff" , pSys->getEmitter()->stopFull()             ));
+
 #ifdef GLCHAOSP_LIGHTVER
-        if(theApp->isTabletMode()) pSys->getEmitter()->stopFull(true);
+            if(theApp->isTabletMode()) pSys->getEmitter()->stopFull(true);
 #endif
+        }
 
 
         if(getVec_asArray(c, "camPOV"        , v3)) pSys->getTMat()->setPOV(v3);
@@ -581,12 +584,12 @@ void mainGLApp::invertSettings()
 
 
 
-bool mainGLApp::loadSettings(const char *name) 
+bool mainGLApp::loadSettings(const char *name, const int typeToIgnore)
 {
     if(!fileExist(name)) return false;
     Config cfg = configuru::parse_file(name, JSON);
 
-    ::loadSettings(cfg, theWnd->getParticlesSystem());
+    ::loadSettings(cfg, theWnd->getParticlesSystem(), typeToIgnore);
 
     return true;
 }
@@ -695,7 +698,7 @@ void loadSettingsFile()
     char const * fileName = theApp->openFile(RENDER_CFG_PATH, patterns, 2);
 
     if(fileName!=nullptr) 
-        theApp->loadSettings(fileName);
+        theApp->loadSettings(fileName, loadSettings::ignoreCircBuffer);
 
     if(isOn) attractorsList.getThreadStep()->startThread();
 }
