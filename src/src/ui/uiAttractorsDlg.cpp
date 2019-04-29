@@ -441,8 +441,7 @@ const float border = 5;
     static const char *idCell = "XYZW";
     AttractorBase *att = attractorsList.get();
 
-    auto populateData = [&] (auto colWidth, int elem, int pos, int nCol, float minVal, float maxVal) {
-        const int typeVal = ImGui::GetColumnIndex();
+    auto populateData = [&] (auto colWidth, int elem, int pos, int nCol, float minVal, float maxVal, const int typeVal) {
         for(int i=0; i<elem ; i++) {
             float szItem;
             if(nCol != 1) {
@@ -520,9 +519,9 @@ const float border = 5;
         const float wCl = ImGui::GetContentRegionAvailWidth();
 
         const int nElem = att->getNumElements(AttractorBase::attLoadPtVal);
-        if(nElem > 1) { columnsHeader(wCl, "X", "Y", "Z"); populateData(wCl, nElem, border, 3, att->getInputVMin(), att->getInputVMax()); }
+        if(nElem > 1) { columnsHeader(wCl, "X", "Y", "Z"); populateData(wCl, nElem, border, 3, att->getInputVMin(), att->getInputVMax(), 0); }
         else          { columnHeader(wCl, "Start Pt"); 
-                        populateData(wCl, att->getPtSize(), border, 1, att->getInputVMin(), att->getInputVMax()); }
+                        populateData(wCl, att->getPtSize(), border, 1, att->getInputVMin(), att->getInputVMax(), 0); }
     }
 
     ImGui::SetCursorPosY(posY);
@@ -537,7 +536,7 @@ const float border = 5;
         if(nCol > 1) columnsHeader(wCl, "Kx", "Ky", "Kz");
         else         columnHeader(wCl, " K Vals ");
 
-        populateData(wCl, nElem, ImGui::GetCursorPosX()+border, nCol, att->getInputKMin(), att->getInputKMax());
+        populateData(wCl, nElem, ImGui::GetCursorPosX()+border, nCol, att->getInputKMin(), att->getInputKMax(), 1);
     }
 /*
     if(attractorsList.get()->getKType() == attractorsList.get()->attHaveKVect )
