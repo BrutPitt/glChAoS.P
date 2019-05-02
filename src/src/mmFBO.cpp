@@ -69,7 +69,7 @@ void mmFBO::deleteFBO()
     if(!isBuilded) return;
 
     glDeleteFramebuffers(m_NumFB,m_fb);
-    glDeleteTextures(m_NumFB, m_tex);
+    if(haveColors) glDeleteTextures(m_NumFB, m_tex);
     if(numMultiDraw) glDeleteTextures(numMultiDraw, multiDrawFB);
     if(haveRB) glDeleteRenderbuffers(m_NumFB, m_rb);
     if(!isBuiltIn) glDeleteTextures(m_NumFB, m_depth);
@@ -90,14 +90,14 @@ void mmFBO::reBuildFBO(int num, int sizeX, int sizeY, GLenum precision, int AA)
     secondaryBufferType tmpBufferType = dsBufferType;
 
     deleteFBO();
-    buildFBO(num, sizeX, sizeY, precision, AA);
+    if(haveColors) buildFBO(num, sizeX, sizeY, precision, AA);
+    else           buildOnlyFBO(num, sizeX, sizeY, precision);
     if(tmpHaveRB) attachSecondaryBuffer(tmpIsBuiltIn, tmpBufferType);
     if(tmpNumMultiDraw) attachMultiFB(tmpNumMultiDraw); 
 }
 
 void mmFBO::reSizeFBO(int sizeX, int sizeY)
 {
-
     if(!isBuilded) return;
 
     int tmpNumFB = m_NumFB;
@@ -109,7 +109,8 @@ void mmFBO::reSizeFBO(int sizeX, int sizeY)
     
 
     deleteFBO();
-    buildFBO(tmpNumFB, sizeX, sizeY, tmpPrecision, tmpAA);
+    if(haveColors) buildFBO(tmpNumFB,sizeX,sizeY,tmpPrecision,tmpAA);
+    else           buildOnlyFBO(tmpNumFB,sizeX,sizeY,tmpPrecision);
     if(tmpHaveRB) attachSecondaryBuffer(tmpIsBuiltIn, tmpBufferType);
     if(tmpNumMultiDraw) attachMultiFB(tmpNumMultiDraw); 
 }
@@ -134,23 +135,23 @@ void mmFBO::initFB(GLuint fbuff, GLuint iText)
 }
 
 
-void mmFBO::defineTexture(GLuint iTex, GLuint intFormat, GLuint format, GLuint type)
+void mmFBO::defineTexture(GLuint iTex, GLuint intFormat, GLuint format, GLuint type, GLuint interp, GLuint clamp)
 {
 #ifdef GLAPP_REQUIRE_OGL45
     glTextureStorage2D(iTex,1,intFormat,m_sizeX, m_sizeY);    
-    glTextureParameteri(iTex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTextureParameteri(iTex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(iTex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(iTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(iTex, GL_TEXTURE_MIN_FILTER, interp);
+    glTextureParameteri(iTex, GL_TEXTURE_MAG_FILTER, interp);
+    glTextureParameteri(iTex, GL_TEXTURE_WRAP_S, clamp);
+    glTextureParameteri(iTex, GL_TEXTURE_WRAP_T, clamp);
 #else
     //glActiveTexture(GL_TEXTURE0+iTex);
     glBindTexture(GL_TEXTURE_2D, iTex);
     glTexImage2D(GL_TEXTURE_2D, 0,  glPrecision , m_sizeX, m_sizeY, 0, format, type, NULL);
     //glTexStorage2D(GL_TEXTURE_2D,1,glPrecision,m_sizeX, m_sizeY);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interp);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interp);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
     glBindTexture(GL_TEXTURE_2D, 0);
 
 #endif
@@ -233,18 +234,18 @@ void mmFBO::attachSecondaryBuffer(bool builtIN, secondaryBufferType bufferType)
 {
     haveRB = true;
     isBuiltIn = builtIN;
-    m_depth = new GLuint[m_NumFB];
+    m_rb    = new GLuint[m_NumFB];
     dsBufferType = bufferType;
 
 #ifdef GLAPP_REQUIRE_OGL45
     glCreateRenderbuffers(m_NumFB, m_rb);
-    if(!isBuiltIn) glCreateTextures(GL_TEXTURE_2D ,m_NumFB, m_depth);
+    if(!isBuiltIn) { m_depth = new GLuint[m_NumFB]; glCreateTextures(GL_TEXTURE_2D ,m_NumFB, m_depth); }
 #else
     glGenRenderbuffers(m_NumFB, m_rb);
-    if(!isBuiltIn) glGenTextures(m_NumFB, m_depth);
+    if(!isBuiltIn) { m_depth = new GLuint[m_NumFB]; glGenTextures(m_NumFB, m_depth); }
 #endif
 
-    GLuint intFormat, attach, format, type;
+    GLuint intFormat, attach, format, type, interpol = GL_NEAREST, clamp = GL_CLAMP_TO_EDGE;
     if(bufferType == secondaryBufferType::depthBuffer) {
         intFormat = GL_DEPTH_COMPONENT32F; attach = GL_DEPTH_ATTACHMENT;
         format = GL_DEPTH_COMPONENT; type = GL_FLOAT;
@@ -285,18 +286,41 @@ void mmFBO::attachSecondaryBuffer(bool builtIN, secondaryBufferType bufferType)
     }
 }
 
-void mmFBO::buildFBO(int num, int sizeX, int sizeY, GLenum precision, int AA)
+void mmFBO::buildOnlyFBO(int num, int sizeX, int sizeY, GLenum precision)
 {
+    glPrecision = precision;
+    m_NumFB = num;
+    m_sizeX = sizeX;
+    m_sizeY = sizeY;
+    haveColors = false;
 
+    m_fb    = new GLuint[num];
+
+#ifdef GLAPP_REQUIRE_OGL45
+    glCreateFramebuffers(num, m_fb);
+#else
+    glGenFramebuffers(num, m_fb);
+#endif
+    isBuilded = true;
+}
+
+void mmFBO::declareFBO(int num, int sizeX, int sizeY, GLenum precision, int AA)
+{
     glPrecision = precision;
     m_NumFB = num;
     m_sizeX = sizeX;
     m_sizeY = sizeY;
     aaLevel = AA;
+    haveColors = true;
+
+}
+void mmFBO::buildFBO(int num, int sizeX, int sizeY, GLenum precision, int AA)
+{
+
+    declareFBO(num,sizeX,sizeY,precision,AA);
 
     m_fb    = new GLuint[num];
     m_tex   = new GLuint[num];
-    m_rb    = new GLuint[num];
 
 #ifdef GLAPP_REQUIRE_OGL45
     glCreateFramebuffers(num, m_fb);

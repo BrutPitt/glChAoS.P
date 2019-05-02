@@ -35,6 +35,9 @@ public:
     mmFBO()  { resetData(); }
     ~mmFBO() { deleteFBO(); }
 
+    void buildOnlyFBO(int num,int sizeX,int sizeY,GLenum precision);
+    
+    void declareFBO(int num, int sizeX, int sizeY, GLenum precision, int levelAA=0);
     void buildFBO(int num, int sizeX, int sizeY, GLenum precision, int levelAA=0);
     void reBuildFBO(int num, int sizeX, int sizeY, GLenum precision, int levelAA=0);
     void reSizeFBO(int sizeX, int sizeY);
@@ -53,7 +56,6 @@ public:
     int getSizeX() { return m_sizeX; }
     int getSizeY() { return m_sizeY; }
 
-    void defineTexture(GLuint iTex, GLuint intFormat, GLuint format = GL_RGBA, GLuint type = GL_FLOAT);
     void attachMultiFB(int num);
 
 // static members
@@ -75,12 +77,15 @@ private:
     void initFB(GLuint fbuff, GLuint iText);
     void attachSecondaryBuffer(bool builtIN, secondaryBufferType type); //depthBuffer + Stencil
     void CheckFramebufferStatus(GLenum status);
+    void defineTexture(GLuint iTex, GLuint intFormat, GLuint format = GL_RGBA, GLuint type = GL_FLOAT, 
+                       GLuint interp = GL_LINEAR, GLuint clamp = GL_CLAMP_TO_EDGE);
     void resetData();
 
     int m_NumFB, aaLevel = 0;
     bool isBuilded;
     bool haveRB = false;
     bool isBuiltIn = true;
+    bool haveColors = false;
 
 
     GLuint glPrecision;
