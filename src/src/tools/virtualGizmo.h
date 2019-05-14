@@ -472,7 +472,7 @@ public:
 
     //  Get pos... use as Zoom factor
     //////////////////////////////////////////////////////////////////
-    glm::tvec3<T> getPosition() { return tvec3<T>(pan.x, pan.y, dolly.z); }
+    glm::tvec3<T> getPosition() const { return glm::tvec3<T>(pan.x, pan.y, dolly.z); }
 private:
     // UI commands that this virtualGizmo responds to (defaults to left mouse button with no modifier key)
     vgButtons   dollyControlButton,    panControlButton;
