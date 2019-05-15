@@ -73,7 +73,7 @@
 		"camDolly":       [ 0.0, 0.0, -4.3399992 ],
 		"camPan":         [ 0.24, 0.05999995, 0.0 ],
 		"camRotCent":     [ 0.0, 0.0, 0.0 ],
-		"camRot":         [ 0.58426785, 0.60522807, -0.15348722, 0.5350287 ]
+		"camRot":         [ 0.35089648, 0.13702396, 0.41405573, 0.83913827 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":   1,
@@ -92,8 +92,8 @@
 		"dotsType":         0,
 		"AOenabled":        true,
 		"AObias":           0.026,
-		"AOradius":         0.23,
-		"AOdarkness":       0.36,
+		"AOradius":         0.6,
+		"AOdarkness":       0.08,
 		"depthRender":      true,
 		"drNearAdj":        0.0,
 		"ColorInt":         1.0,
@@ -108,7 +108,7 @@
 		"lightShinExp":     61.819004,
 		"lightDiffInt":     1.0,
 		"lightSpecInt":     0.73,
-		"lightAmbInt":      0.37,
+		"lightAmbInt":      0.56,
 		"lightStepMin":     0.1,
 		"lightStepMax":     1.1,
 		"lightModel":       2,

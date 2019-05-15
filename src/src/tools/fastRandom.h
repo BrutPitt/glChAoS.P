@@ -22,96 +22,186 @@
 
 #include <stdint.h>
 #include <chrono>
+#include <type_traits>
 #include <random>
 
-#define RANDOM(MIN, MAX) (fastRandom.floatRnd(MIN, MAX))
+namespace fstRnd {
 
-template <class T> class fastRandomClass {
+//#define FSTRND_USES_BUILT_TABLE   // uncomment to use 32Bit algorithms: LFI84 & SWB 
 
+//
+// fastRandom32Class 
+//
+// 32bit pseudo-random generator
+// All values are returned in interval [0, UINT32_MAX] 
+// to get values between [INT32_MIN, INT32_MAX] just cast result to int32_t
+///////////////////////////////////////////////////////////////////////////////
+class fastRandom32Class 
+{
 public:
-     fastRandomClass()
-     {
+    fastRandom32Class()
+    {
  // obtain a seed from the system clock:
-        uint64_t seedVal = std::chrono::system_clock::now().time_since_epoch().count();
-        rnd64.seed(seedVal);
-        rnd32.seed(rnd64());
+        rnd32.seed(uint32_t(std::chrono::system_clock::now().time_since_epoch().count()));
 
-        settable(rnd64(), rnd64(), rnd64(),
-                 rnd64(), rnd64(), rnd64());
-     }
+        initialize(rnd32(), rnd32(), rnd32(),
+                   rnd32(), rnd32(), rnd32());
+    }
 
-    uint64_t znew () { return z=36969*(z&65535)+(z>>16); }
-    uint64_t wnew () { return w=18000*(w&65535)+(w>>16); }
-    uint64_t MWC  () { return (znew()<<16)+wnew()      ; }
-    uint64_t CONG () { return jcong=69069*jcong+1234567; }
-    uint64_t FIB  () { return (b=a+b),(a=b-a)          ; }
-    uint64_t KISS () { return (MWC()^CONG())+SHR3()    ; }
+    inline uint32_t znew() { return z=36969*(z&65535)+(z>>16); }
+    inline uint32_t wnew() { return w=18000*(w&65535)+(w>>16); }
+    inline uint32_t MWC()  { return (znew()<<16)+wnew()      ; }
+    inline uint32_t CNG()  { return jcong=69069*jcong+1234567; }
+    inline uint32_t FIB()  { return (b=a+b),(a=b-a)          ; }
+    inline uint32_t XSH()  { return jsr^=(jsr<<17), jsr^=(jsr>>13), jsr^=(jsr<<5); }
 
-    uint64_t SHR3 () { return jsr^=(jsr<<17), jsr^=(jsr>>13), jsr^=(jsr<<5);                     }
-    uint64_t LFIB4() { return c++,t[c]=t[c]+t[uint8_t(c+58)]+t[uint8_t(c+119)]+t[uint8_t(c+178)];}
-    uint64_t SWB  () { return c++,bro=(x<y),t[c]=(x=t[uint8_t(c+34)])-(y=t[uint8_t(c+19)]+bro);  }
+    inline uint32_t KISS() { return (MWC()^CNG())+XSH(); } // period 2^123
 
-    // UNI -> [0.0, 1.0]  /  VNI -> [-1.0, 1.0]
-    T UNI32() { return T(uint32_t(KISS())) * inv_uint32_max; }
-    T VNI32() { return T( int32_t(KISS())) * inv_int32_max ; }
-    T UNI64() { return T(         KISS() ) * inv_uint64_max; }
-    T VNI64() { return T( int64_t(KISS())) * inv_int64_max ; }
+#ifdef FSTRND_USES_BUILT_TABLE
+    inline uint32_t LFIB4() { return c++,t[c]=t[c]+t[uint8_t(c+58)]+t[uint8_t(c+119)]+t[uint8_t(c+178)];}
+    inline uint32_t SWB()   { uint32_t bro; return c++,bro=(x<y),t[c]=(x=t[uint8_t(c+34)])-(y=t[uint8_t(c+19)]+bro); }
+#endif
 
-    T floatRnd(T min, T max) { return min + (max-min) * T(KISS()) * inv_uint64_max; }
-
-    T xorshiftUNI32() { return T(        xorshift32() ) * inv_uint32_max; }
-    T xorshiftVNI32() { return T(int32_t(xorshift32())) * inv_int32_max ; }
-
-    static uint32_t xorshift32()
+    inline static uint32_t xorShift() //period 2^32-1
     {
         // Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" 
-        static uint32_t state = std::chrono::system_clock::now().time_since_epoch().count();
+        static uint32_t state = uint32_t(std::chrono::system_clock::now().time_since_epoch().count());
         uint32_t x = state;
         x ^= x << 13;
         x ^= x >> 17;
-        x ^= x << 5;
-        state = x;
-        return x;
+        x ^= x << 5;        
+        return state = x;
     }
 
-    static uint64_t xorshift64()
-    {
-        // Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" 
-        static size_t state = std::chrono::system_clock::now().time_since_epoch().count();
-        uint64_t x = state;
-        x^= x << 13;
-        x^= x >> 7;
-        x^= x << 17;
-        state = x;
-        return x;
-    }
-
-    std::mt19937_64 rnd64;
-    std::mt19937    rnd32;
+    int sizeOfGenerator() { return sizeof(uint32_t); }
 
 private:
-    const T inv_uint32_max = T(2.3283064365386962890625e-10);
-    const T inv_int32_max  = T(4.6566128730773925781250e-10);
-    const T inv_uint64_max = T(5.4210108624275221700372640043497e-20);
-    const T inv_int64_max  = T(1.0842021724855044340074528008699e-19);
 
-    void settable(uint64_t i1,uint64_t i2,uint64_t i3,uint64_t i4,uint64_t i5, uint64_t i6)
+    void initialize(uint32_t i1,uint32_t i2,uint32_t i3,uint32_t i4,uint32_t i5, uint32_t i6)
     { 
         z+=i1; w+=i2; jsr+=i3; jcong+=i4; a=+i5; b=+i6;
-        for(int i=0;i<256;i=i+1) t[i]=rnd64();
+#ifdef FSTRND_USES_BUILT_TABLE
+        for(int i=0;i<256;i=i+1) t[i]=rnd32();
+#endif
     }
 
-    uint64_t z=362436069, w=521288629, jsr=123456789, jcong=380116160;
-    uint64_t a=224466889, b=7584631, t[256];
-    uint64_t x=0,y=0,bro; unsigned char c=0;
+    std::mt19937 rnd32;
+
+    uint32_t z=362436069, w=521288629, jsr=123456789, jcong=380116160;
+    uint32_t a=224466889, b=7584631;
+    uint32_t x=0,y=0; 
+
+#ifdef FSTRND_USES_BUILT_TABLE
+    uint32_t t[256];
+    unsigned char c=0;
+#endif
 };
 
-using fFastRand = fastRandomClass<float>;
-using dFastRand = fastRandomClass<double>;
+//
+// fastRandom64Class 
+//
+// 64bit pseudo-random generator
+// All values are returned in interval [0, UINT64_MAX] 
+// to get values between [INT64_MIN, INT64_MAX] just cast result to int64_t
+///////////////////////////////////////////////////////////////////////////////
+class fastRandom64Class 
+{
 
-extern fFastRand fastRandom;
+public:
+    fastRandom64Class()
+    {
+ // obtain a seed from the system clock:
+        rnd64.seed(uint64_t(std::chrono::system_clock::now().time_since_epoch().count()));
+
+        initialize(rnd64(), rnd64(), rnd64(), 
+                   rnd64(), rnd64(), rnd64());
+    }
+
+    inline uint64_t MWC() { uint64_t t; return t=(x<<58)+c, c=(x>>6), x+=t, c+=(x<t), x; }
+    inline uint64_t CNG() { return z=6906969069LL*z+1234567;            }
+    inline uint64_t XSH() { return y^=(y<<13), y^=(y>>17), y^=(y<<43);  }
+    inline uint64_t FIB() { return (b=a+b),(a=b-a);                     }
+
+    inline uint64_t KISS () { return MWC()+XSH()+CNG(); } //period 2^250
+
+    inline static uint64_t xorShift() //period 2^64-1
+    {
+        // Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" 
+        static uint64_t state = uint64_t(std::chrono::system_clock::now().time_since_epoch().count());
+        uint64_t x = state;
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        return state = x;
+    }
+
+    int sizeOfGenerator() { return sizeof(uint64_t); }
+    
+private:
+
+    void initialize(uint64_t i1, uint64_t i2, uint64_t i3, uint64_t i4, uint64_t i5, uint64_t i6)
+    { x+=i1; y+=i2; z+=i3; c+=i4; a=+i5; b=+i6; }
+
+    std::mt19937_64 rnd64;
+
+    uint64_t x=uint64_t(1234567890987654321ULL),c=uint64_t(123456123456123456ULL),
+             y=uint64_t(362436362436362436ULL ),z=uint64_t(1066149217761810ULL  );
+    uint64_t a=224466889,b=7584631;
+};
+
+using fastRand32 = fastRandom32Class;
+using fastRand64 = fastRandom64Class;
+
+
+template <typename fT, typename classT> class floatfastRandomClass
+{
+public:
+    floatfastRandomClass() : inv_2uiT_max(inv_uiT_max * fT(2.0)),
+                             inv_uiT_max (std::is_same<fastRand32, classT>::value ? 
+                                          fT(2.3283064365386962890625e-10) : 
+                                          fT(5.4210108624275221700372640043497e-20))
+    {}
+    
+    // period 2^123 / 2^250 (32/64 bit)
+    inline fT UNI() { return fT(          fastRandom.KISS())  * inv_uiT_max;  } // return [ 0.0, 1.0]
+    inline fT VNI() { return fT(((signed) fastRandom.KISS())) * inv_2uiT_max; } // return [-1.0, 1.0]
+    
+    // fastest but with period 2^32-1 / 2^64-1 (32/64 bit generator)
+    inline fT xshUNI() { return fT(          classT::xorShift() ) * inv_uiT_max;  }
+    inline fT xshVNI() { return fT(((signed) classT::xorShift())) * inv_2uiT_max; }
+
+    inline fT range(fT min, fT max) { return min + (max-min) * UNI(); }
+
+    inline auto KISS()     { return fastRandom.KISS();  }
+    inline auto xorShift() { return classT::xorShift(); }
+
+    int sizeOfGenerator() { return fastRandom.sizeOfInBits(); }
+    int sizeOfPrecision() { return sizeof(fT);                }
+
+private:
+    const fT inv_uiT_max;
+    const fT inv_2uiT_max;
+    classT fastRandom;
+};
+
+// single precision interface for 32 bit generator
+using fFastRand32 = floatfastRandomClass<float,  fastRand32>;
+// double precision interface for 32 bit generator
+using dFastRand32 = floatfastRandomClass<double, fastRand32>;
+
+// single precision interface for 64 bit generator
+using fFastRand64 = floatfastRandomClass<float,  fastRand64>;
+// double precision interface for 64 bit generator
+using dFastRand64 = floatfastRandomClass<double, fastRand64>;
+
+}; // end of namespace FstRnd 
+
+
+
 
 /*-----------------------------------------------------
+    32bit algorithms
+-------------------------------------------------------
 Write your own calling program and try one or more of
 the above, singly or in combination, when you run a
 simulation. You may want to change the simple 1-letter
@@ -269,4 +359,52 @@ names, to avoid conflict with your own choices. */
    times on my home PC, a Pentium 300MHz, in nanoseconds:
    FIB 49;LFIB4 77;SWB 80;CONG 80;SHR3 84;MWC 93;KISS 157;
    VNI 417;UNI 450;
+*/
+
+
+/*-----------------------------------------------------
+    64bit algorithms
+-------------------------------------------------------
+
+64-bit KISS RNGs
+https://www.thecodingforums.com/threads/64-bit-kiss-rngs.673657/
+
+Consistent with the Keep It Simple Stupid (KISS) principle,
+I have previously suggested 32-bit KISS Random Number
+Generators (RNGs) that seem to have been frequently adopted.
+
+Having had requests for 64-bit KISSes, and now that
+64-bit integers are becoming more available, I will
+describe here a 64-bit KISS RNG, with comments on
+implementation for various languages, speed, periods
+and performance after extensive tests of randomness.
+
+This 64-bit KISS RNG has three components, each nearly
+good enough to serve alone. The components are:
+Multiply-With-Carry (MWC), period (2^121+2^63-1)
+Xorshift (XSH), period 2^64-1
+Congruential (CNG), period 2^64
+
+Compact C and Fortran listings are given below. They
+can be cut, pasted, compiled and run to see if, after
+100 million calls, results agree with that provided
+by theory, assuming the default seeds.
+
+Users may want to put the content in other forms, and,
+for general use, provide means to set the 250 seed bits
+required in the variables x,y,z (64 bits) and c (58 bits)
+that have been given default values in the test versions.
+
+The C version uses #define macros to enumerate the few
+instructions that MWC, XSH and CNG require. The KISS
+macro adds MWC+XSH+CNG mod 2^64, so that KISS can be
+inserted at any place in a C program where a random 64-bit
+integer is required.
+Fortran's requirement that integers be signed makes the
+necessary code more complicated, hence a function KISS().
+
+
+64-bit xorShift
+https://en.wikipedia.org/wiki/Xorshift
+
 */

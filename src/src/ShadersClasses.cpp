@@ -227,8 +227,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
     if(isAO_RD && !showAxes())  {
         //float tN = getTMat()->getPerspNear()-.95;    
         //getUData().zNear = tN < 0.0 ? getTMat()->getPerspNear()-tN : getTMat()->getPerspNear();
-        float tN = .27;//+(getTMat()->getPOV()[2]-getTMat()->getTrackball().getDollyPosition()[2])*.01;
-        getUData().zNear = tN + dpAdjNearPlane();
+        float tN = .0;//+(getTMat()->getPOV()[2]-getTMat()->getTrackball().getDollyPosition()[2])*.01;
+        getUData().zNear += dpAdjNearPlane();
 
         //if(usingAO) {
             getAO()->bindRender();

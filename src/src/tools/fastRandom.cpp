@@ -21,5 +21,5 @@
 
 #include "fastRandom.h"
 
-fFastRand fastRandom;
+fstRnd::fFastRand32 fastRandom;
 

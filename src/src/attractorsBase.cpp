@@ -718,7 +718,7 @@ void juliaBulb_IIM::Step(vec3 &v, vec3 &vp)
     };
 
     preStep(v);
-    const int rnd = fFastRand::xorshift32();
+    const uint32_t rnd = fastRand32::xorShift();
     radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
 
 }
@@ -741,7 +741,7 @@ void juliaBulb4th_IIM::Step(vec3 &v, vec3 &vp)
 
     preStep(v);
     //const vec3 p(v.z, v.y, v.x);
-    radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), fFastRand::xorshift32() % degreeN, fFastRand::xorshift32() % degreeN);
+    radiciEq(v-((vec3 &)*kVal.data()+vec3(kRnd)), fastRand32::xorShift() % degreeN, fastRand32::xorShift() % degreeN);
 
 }
 
@@ -761,7 +761,7 @@ void quatJulia_IIM::Step(vec3 &v, vec3 &vp)
     };
 
     preStep(v);
-    const int rnd = fFastRand::xorshift32();
+    const uint32_t rnd = fastRand32::xorShift();
     radiciEq(vec4(v, last4D)-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f);
 
 }
@@ -868,7 +868,7 @@ void glynnJB_IIM::Step(vec3 &v, vec3 &vp)
 
     preStep(v);
     int nRad = numRadici();
-    int rnd = fastRandom.rnd64();
+    const uint32_t rnd = fastRandom.KISS();
     radiciEq(rnd & 3);
 
 }

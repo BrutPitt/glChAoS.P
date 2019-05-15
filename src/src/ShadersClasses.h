@@ -497,7 +497,7 @@ class fxaaClass : public mainProgramObj
 public:
     fxaaClass(renderBaseClass *ptrRE) { 
         renderEngine = ptrRE;
-        on();
+        fbo.declareFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0);
         create();
     }
 
@@ -569,6 +569,7 @@ public:
         blurIntensity = .5;
         isActive = false;
         
+        mBlurFBO.declareFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0);        
         create();
     }
 
@@ -631,6 +632,7 @@ public:
     mergedRenderingClass(renderBaseClass *ptrRE) { 
         renderEngine = ptrRE;
         mixingVal=0.0;
+        mergedFBO.declareFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0); 
         create();
     }
 

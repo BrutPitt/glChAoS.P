@@ -257,6 +257,10 @@
     <ExecutablePath>D:\Lang\DeV\Bin$(PlatformArchitecture);$(ExecutablePath)</ExecutablePath>
     <TargetName>glChAoSP</TargetName>
   </PropertyGroup>
+  <PropertyGroup Label="LLVM" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClangClAdditionalOptions>
+    </ClangClAdditionalOptions>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -511,6 +515,8 @@
       <FloatingPointExceptions>
       </FloatingPointExceptions>
       <MinimalRebuild>false</MinimalRebuild>
+      <MultiProcessorCompilation>
+      </MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -523,6 +529,10 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>NotSet</SubSystem>
     </Link>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|x64'">
     <ClCompile>
@@ -685,6 +695,7 @@
     <None Include="..\..\..\Shaders\postRenderingFrag.glsl" />
     <None Include="..\..\..\Shaders\postRenderingVert.glsl" />
     <None Include="..\..\..\Shaders\RadialBlur2PassFrag.glsl" />
+    <None Include="..\..\..\Shaders\shadowFrag.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\ReadMe.txt" />

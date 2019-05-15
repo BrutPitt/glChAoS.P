@@ -32,13 +32,11 @@
 using namespace glm;
 
 struct transfMatrix {
-    glm::mat4 vLightM   = glm::mat4(1.0f);
     glm::mat4 vMatrix   = glm::mat4(1.0f);
     glm::mat4 mMatrix   = glm::mat4(1.0f);
     glm::mat4 pMatrix   = glm::mat4(1.0f);      // Uniforms starts HERE!
     glm::mat4 mvMatrix  = glm::mat4(1.0f);
     glm::mat4 mvpMatrix = glm::mat4(1.0f);
-    glm::mat4 mvpLightM = glm::mat4(1.0f);
 };
 
 class transformsClass {
@@ -135,13 +133,14 @@ public:
                                   tgtVec,
                                   vec3(0.0f, 1.0f, 0.0f));
     }
+/*
     void setLightView(vec3 &lightPos) {
         tM.vLightM = glm::lookAt( lightPos,
                                   tgtVec+getTrackball().getRotationCenter(),
                                   vec3(0.0f, 1.0f, 0.0f));
         tM.mvpLightM = tM.vLightM * tM.mMatrix;
     }
-
+*/
 #define MIN_NEAR .01 //(_far*.01f)
     void setPerspective(float angle, float aspect, float _near, float _far) {        
         pAngle = angle; pAspect = aspect; pNear = _near <= MIN_NEAR ? MIN_NEAR : _near; pFar = _near>_far ? _near : _far;

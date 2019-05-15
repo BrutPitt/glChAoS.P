@@ -321,6 +321,9 @@
     <None Include="..\..\..\Shaders\ambientOcclusionFrag.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\..\..\Shaders\shadowFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\ReadMe.txt" />

@@ -49,6 +49,10 @@
 using namespace glm;
 using namespace std;
 using namespace configuru;
+using namespace fstRnd;
+
+#define RANDOM(MIN, MAX) (fastRandom.range(MIN, MAX))
+extern fFastRand32 fastRandom;
 
 
 #define BUFFER_DIM 100
@@ -355,15 +359,15 @@ protected:
         if(depth++>maxDepth) {
             depth = 0;
 
-            last4D = dim4D +   fastRandom.floatRnd(vMin, vMax);
-            v = vVal[0] + vec3(fastRandom.floatRnd(vMin, vMax),
-                               fastRandom.floatRnd(vMin, vMax),
-                               fastRandom.floatRnd(vMin, vMax));
+            last4D = dim4D +   fastRandom.range(vMin, vMax);
+            v = vVal[0] + vec3(fastRandom.range(vMin, vMax),
+                               fastRandom.range(vMin, vMax),
+                               fastRandom.range(vMin, vMax));
             
-            kRnd = vec4(fastRandom.floatRnd(kMin, kMax),
-                        fastRandom.floatRnd(kMin, kMax),
-                        fastRandom.floatRnd(kMin, kMax),
-                        fastRandom.floatRnd(kMin, kMax));
+            kRnd = vec4(fastRandom.range(kMin, kMax),
+                        fastRandom.range(kMin, kMax),
+                        fastRandom.range(kMin, kMax),
+                        fastRandom.range(kMin, kMax));
         } 
     }
 
@@ -445,7 +449,7 @@ public:
 
     void radiciBicomplex(const vec4 &pt, vec3 &vp)
     {           
-        const int rnd = fFastRand::xorshift32();
+        const int rnd = fastRand32::xorShift();
         const float sign1 = (rnd&1) ? 1.f : -1.f, sign2 = (rnd&2) ? 1.f : -1.f;
         const vec4 p(pt - ((vec4 &)*kVal.data()+kRnd));
 
@@ -1049,8 +1053,8 @@ protected:
 
 #define DLA_USE_FAST_RANDOM
 #ifdef DLA_USE_FAST_RANDOM
-    #define DLA_RANDOM_NORM fastRandom.VNI32()
-    #define DLA_RANDOM_01   fastRandom.UNI32()
+    #define DLA_RANDOM_NORM fastRandom.VNI()
+    #define DLA_RANDOM_01   fastRandom.UNI()
 #else
     #define DLA_RANDOM_NORM stdRandom(-1.f, 1.f)
     #define DLA_RANDOM_01   stdRandom( 0.f, 1.f)
@@ -1088,9 +1092,7 @@ template <typename T> struct pointCloud
     // Since this is inlined and the "dim" argument is typically an immediate value, the
     //  "if/else's" are actually solved at compile time.
     inline T kdtree_get_pt(const size_t idx, const size_t dim) const
-    {
-        return pts[idx][dim];
-    }
+    { return pts[idx][dim]; }
     
     // Optional bounding-box computation: return false to default to a standard bbox computation loop.
     //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
@@ -1153,7 +1155,7 @@ public:
         if(m_Index.size()) m_Index.clear();
 #else             
         delete m_Index;
-        m_Index = new tKDTree(DLA_DIM, m_Points, nanoflann::KDTreeSingleIndexAdaptorParams(4 /* max leaf */) );
+        m_Index = new tKDTree(DLA_DIM, m_Points, nanoflann::KDTreeSingleIndexAdaptorParams(10 /* max leaf */) );
 #endif        
         m_JoinAttempts.clear();
         boundingRadius = 0.f;
@@ -1194,19 +1196,23 @@ protected:
 #else
     void Add(const glm::vec3 &p) {
         //my_kd_tree_t index(3 /*dim*/, m_Points, KDTreeSingleIndexAdaptorParams(10 /* max leaf */) );
+        //static uint32_t count = 0;
+        //const int nPT = 16;
+
         size_t id = m_Points.pts.size();
-        m_Points.pts.push_back(p);
+        m_Points.pts.push_back(p);        
         m_JoinAttempts.push_back(0);
+        //if(!(count++&0xF)) m_Index->addPoints(id-nPT, id);
         m_Index->addPoints(id, id);
         boundingRadius = std::max(boundingRadius, glm::length(p) + kVal[1]);
     }
 
     uint32_t Nearest(const glm::vec3 &point) const {
         size_t ret_index;
-        tPrec out_dist_sqr;
+        tPrec out_dist_sqr = kVal[1]*.5;
         nanoflann::KNNResultSet<tPrec> resultSet(1);
         resultSet.init(&ret_index, &out_dist_sqr );
-        m_Index->findNeighbors(resultSet, (const tPrec *) &point, nanoflann::SearchParams(4));
+        m_Index->findNeighbors(resultSet, (const tPrec *) &point, nanoflann::SearchParams(1, kVal[1]));
         return ret_index;
     }
 
@@ -1244,9 +1250,14 @@ protected:
     }
 
     glm::vec3 RandomInUnitSphere() const {
-        return glm::vec3(DLA_RANDOM_NORM, 
-                         DLA_RANDOM_NORM, 
-                         DLA_RANDOM_NORM);
+        glm::vec3 p;
+        do {
+            p = glm::vec3(DLA_RANDOM_NORM, 
+                          DLA_RANDOM_NORM, 
+                          DLA_RANDOM_NORM);
+        } while(glm::length(p) >= 1.f);
+
+        return p;
     } 
 
     // AddParticle diffuses one new particle and adds it to the model

@@ -156,7 +156,7 @@ vec4 pixelColorSolid(vec4 color, vec4 N)
         vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,
                                     /*color.rgb + */
                                     color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
-                                    u.lightColor * specular * u.lightSpecInt  + 
+                                    u.lightColor * specular * u.lightSpecInt +
                                     (color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5); /* (color.rgb+u.lightAmbInt*0.1) * */
 
         return vec4(lColor.rgb , color.a);

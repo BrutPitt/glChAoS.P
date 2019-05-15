@@ -107,7 +107,7 @@ void main()
     float z = getViewZ(depth);
     vec4 vtx = vec4(viewRay * z, z, 1.0);
 
-    vec3 N = getSimpleNormal(depth, z, prevData);
+    vec3 N = getSimpleNormal(z, prevData);
     
     float AO = 0.0;
     const int RAD = 64;
