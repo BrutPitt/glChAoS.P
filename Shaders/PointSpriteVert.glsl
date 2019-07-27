@@ -23,28 +23,36 @@ out float pointDistance;
 out vec4 particleColor;
 out float particleSize;
 
-out vec3 viewportPixelCoord;
+out vec4 shadowlightView;
+
 
 void main()
 {
 
 
+#ifdef SHADOW_PASS
+    vec4 vtxPos =  m.mvLightM  * vec4(a_ActualPoint.xyz,1.f);
+    //gl_Position = m.pLightM * vtxPos;
+    //gl_PointSize = 1.0;
+#else
     vec4 vtxPos = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
+    vec4 shadowlightView = m.mvLightM * vec4(a_ActualPoint.xyz,1.f);
+#endif
+
+    #if defined(GL_ES) || defined(TEST_WGL)
+        particleColor = velColor();
+    #else
+        particleColor = colorResult();
+    #endif
     gl_Position = m.pMatrix * vtxPos;
 
     mvVtxPos = vec4(vtxPos.xyz,1.0);
-
-#if defined(GL_ES) || defined(TEST_WGL)
-    particleColor = velColor();
-#else
-    particleColor = colorResult();
-#endif
 
     pointDistance = gl_Position.w; //length(vtxPos.w);
 
     float ptAtten = exp(-0.01*sign(pointDistance)*pow(abs(pointDistance)+1.f, u.pointDistAtten*.1));
     float size = u.pointSize * ptAtten * u.ySizeRatio;
-    particleSize = size/u.scrnRes.y;
+    particleSize = size*u.invScrnRes.y;
 
     vec4 pt  = m.pMatrix * vec4(vtxPos.xy + vec2(size) * u.ptSizeRatio , vtxPos.zw);
 

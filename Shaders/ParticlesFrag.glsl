@@ -35,7 +35,10 @@ in float pointDistance;
 in vec4 particleColor;
 in float particleSize;
 
+in vec4 shadowlightView;
+
 layout (location = 0) out vec4 outColor;
+
 // multi out
 //layout (location = 1) out vec4 vtxOut;
 //layout (location = 2) out vec4 normOut;
@@ -55,44 +58,6 @@ float getAlpha(float alpha)
 
 }
 
-float linearizeDepth(float Z, float near, float far) 
-{
-    //if(-depth>far) discard;
-    float z = (-Z * 2.0 - (far+near))/(far-near); //-depth * 2.0 - (far - near);  // back to NDC -> -depth/(far - near) * 2.0 - 1.0
-    //float z = -depth/(far - near) * 2.0 - 1.0;
-    return ((2.0 * near * far) / ((far + near) - z * (far - near)));	
-    //return far*near/(far+near+depth);
-
-    //return z;
-}
-
-// linear depth (persective)
-float depthSample(float Z)
-{
-    //float nonLinearDepth =  (zFar + zNear + 2.0 * zNear * zFar / linearDepth) / (zFar - zNear);
-    float nonLinearDepth =  -(m.pMatrix[2].z + m.pMatrix[3].z / Z) * .5 +.5;
-    return nonLinearDepth;
-}
-
-float getDepth(float Z) 
-{
-    float n = u.zNear, f = u.zFar;
-    //return (( -Z * (f+n) - 2*f*n ) / (-Z * (f-n))  + 1.0) * .5; //non linear -> same of depthSample
-    //return ( (- 2.f * depth - (f+n))/(f-n) + 1.0) * .5; // linearize + depthSample -> linear
-    return ( ((u.zFar+u.zNear)/(u.zFar-u.zNear)) + ((2.0*u.zFar*u.zNear/(u.zFar-u.zNear)) / Z) ) * .5 + .5;
-
-}
-
-float logzbuf( float w ) {
-    float fc = 2.0/log2(u.zFar + 1.0);
-    return (log(1. + w) * fc - 1.) * w;
-}
-
-float logDepthSample(float Z)
-{
-    return log2(1.+Z) / log2(u.zFar + 1.0);
-}
-
 vec4 acquireColor(vec2 coord)
 {
     if(pointDistance<u.clippingDist) discard;    
@@ -102,35 +67,28 @@ vec4 acquireColor(vec2 coord)
     return vec4(color.rgb * u.colIntensity, getAlpha(color.a)) ;
 }
 
-vec4 getParticleNormal(vec2 coord)
-{
-    vec4 N;
-    N.xy = (coord - vec2(.5))*2.0;  // diameter ZERO centred -> radius
-    N.w = dot(N.xy, N.xy);          // magnitudo
-    N.z = sqrt(1.0-N.w);            // Z convexity
-    N.xyz = normalize(N.xyz); 
-    
-    return N;
-}
-
-#if !defined(GL_ES)
-float packColor(vec4 color)
-{
-    return uintBitsToFloat( packUnorm4x8(color) );
-}
-
-vec4 unPackColor(uint pkColor)
-{
-    return unpackUnorm4x8(floatBitsToUint(pkColor));
-}
-#endif
 
 vec4 newVertex;
+
+#if !defined(GL_ES)
+vec3 packing2Colors16bit(vec3 colorA, vec3 colorB)
+{
+    return vec3(packColor16(colorA.rg),
+                packColor16(vec2(colorA.b, colorB.r)),
+                packColor16(colorB.gb));
+}
+
+vec3 packing2Colors8bit(vec3 colorA, vec3 colorB)
+{
+    return vec3(packColor8(vec4(0.0,colorA.rgb)),
+                packColor8(vec4(0.0,colorB.rgb)), 0.0);
+}
+#endif
 
 #if !defined(__APPLE__)
 LAYUOT_INDEX(idxSOLID) SUBROUTINE(_pixelColor) 
 #endif
-vec4 pixelColorSolid(vec4 color, vec4 N)
+vec4 pixelColorDirect(vec4 color, vec4 N)
 {
     //if (color.a < u.alphaSkip) discard;   // kill pixels outside circle: r=1.0
     //else {
@@ -153,30 +111,56 @@ vec4 pixelColorSolid(vec4 color, vec4 N)
         float specular = lightModel(V, light, N.xyz);
 #endif
 
-        vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,
-                                    /*color.rgb + */
-                                    color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
-                                    u.lightColor * specular * u.lightSpecInt +
-                                    (color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5); /* (color.rgb+u.lightAmbInt*0.1) * */
+        vec3 lightColor = color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
+                        u.lightColor * specular * u.lightSpecInt;
 
-        return vec4(lColor.rgb , color.a);
+        vec3 ambColor = (color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5;
+
+        return vec4(smoothstep(u.sstepColorMin, u.sstepColorMax, lightColor + ambColor) , color.a);
+/*
+#if defined(GL_ES)
+        return vec4(smoothstep(u.sstepColorMin, u.sstepColorMax, lightColor + ambColor) , color.a);        
+#else
+        return u.pass>0 ? vec4(packing2Colors8bit(lightColor, color.rgb), getDepth(newVertex.z)) 
+                        : vec4(smoothstep(u.sstepColorMin, u.sstepColorMax, lightColor + ambColor), color.a);
+#endif
+*/
     //}
 }
 
 #if !defined(__APPLE__)
-LAYUOT_INDEX(idxSOLID_AO) SUBROUTINE(_pixelColor)  
+LAYUOT_INDEX(idxSOLID_AO) SUBROUTINE(_pixelColor) 
 #endif
 vec4 pixelColorAO(vec4 color, vec4 N)
 {
-   return vec4(pixelColorSolid(color, N).rgb, depthSample(newVertex.z)); 
+        vec3 light =  normalize(u.lightDir);  // +vtx
+    
+        float lambertian = max(0.0, dot(light, N.xyz)); 
+
+        vec3 V = normalize(newVertex.xyz);
+#if defined(GL_ES) || defined(__APPLE__)
+        float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
+#else
+        float specular = lightModel(V, light, N.xyz);
+#endif
+
+        vec3 lColor =  color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
+                       u.lightColor * specular * u.lightSpecInt;
+
+#if defined(GL_ES)
+        return vec4(lColor, getDepth(newVertex.z));
+#else
+        return vec4(packing2Colors16bit(lColor, color.rgb), getDepth(newVertex.z));
+#endif
+
 }
 
 #if !defined(__APPLE__)
-LAYUOT_INDEX(idxSOLID_DR) SUBROUTINE(_pixelColor)  
+LAYUOT_INDEX(idxSOLID_DR) SUBROUTINE(_pixelColor)
 #endif
 vec4 pixelColorDR(vec4 color, vec4 N)
 {
-   return vec4(color.xyz, depthSample(newVertex.z));
+   return vec4(color.xyz, getDepth(newVertex.z));
 }
 
 
@@ -207,7 +191,7 @@ vec4 mainFunc(vec2 ptCoord)
     vec4 color = acquireColor(ptCoord);
 
 #if defined(GL_ES) || defined(__APPLE__)
-    vec4 retColor = u.lightActive==uint(1) ? pixelColorSolid(color, N) : pixelColorBlending(color, N);
+    vec4 retColor = u.lightActive==uint(1) ? pixelColorDirect(color, N) : pixelColorBlending(color, N);
     #ifdef GL_ES
         return retColor;
     #else

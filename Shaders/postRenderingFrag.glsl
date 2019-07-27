@@ -20,11 +20,12 @@
 in vec2 viewRay;
 in vec2 vTexCoord;
 
-
 out vec4 outColor;
 
 LAYUOT_BINDING(5) uniform sampler2D prevData;
 LAYUOT_BINDING(6) uniform sampler2D aoTex;
+LAYUOT_BINDING(7) uniform sampler2D shadowTex;
+
 
 float f(vec2 uv) {
     return form_01_to_m1p1(texelFetch(prevData,ivec2(uv), 0).w) ;
@@ -124,7 +125,7 @@ vec4 SampleTextureCatmullRom( vec2 uv)
 }
 
 
-vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO)
+vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO, float shadow)
 {
 //    if (color.a < u.alphaSkip) discard;   // kill pixels outside circle: r=1.0
     //else {
@@ -149,8 +150,8 @@ vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO)
 
         float aoD = sqrt(AO);
         vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,
-                                    aoD*color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
-                                    u.lightColor * specular * u.lightSpecInt  + 
+                                    (color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
+                                    u.lightColor * specular * u.lightSpecInt) * shadow + 
                                     AO*(color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5 
                                  );
 
@@ -159,14 +160,92 @@ vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO)
 }
 
 
-float getBlurredAO(ivec2 uv)
+float getBlurredAO(vec2 uv)
 {
     float result = 0.0;
-    for (int x = -2; x <= 2; ++x) 
-        for (int y = -2; y <= 2; ++y) 
-            result += texelFetch(aoTex,uv+ivec2(x,y), 0).w;
+    for (int x = -2; x <= 2; x++) 
+        for (int y = -2; y <= 2; y++) 
+            result += texture(aoTex,uv+vec2(x,y)*u.invScrnRes).w;
     return result * .04; // -> result / 25.;
 }
+
+float getShadow(vec2 uv)
+{
+    return clamp(texture(aoTex,uv).x, 0.0, 1.0);
+}
+
+float buildSmoothShadow(vec4 frag)
+{
+/*
+    mat4 m1 = mat4(1.0);
+    m1[0].w = -u.POV.x ;
+    m1[1].w = -u.POV.y ;
+    m1[2].w = -u.POV.z ;
+    vec4 pt =  vec4(viewRay*-frag.z, frag.z, 1.0) * m1; 
+*/
+    vec4 pt = vec4(viewRay*-frag.z-u.POV.xy, frag.z-u.POV.z, 1.0);
+
+    mat4 tMat = m.pMatrix * m.mvLightM;
+           
+    vec4 fragPosLightSpace = tMat * pt;
+    // perform perspective divide and port to [0,1] range
+    vec3 projCoords = 0.5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
+
+    if(projCoords.z>1.0) return 0.0;
+    // get depth of current fragment from light's perspective    
+    float currentDepth = getViewZ(projCoords.z) + u.shadowBias;
+
+    vec2 stepTex = u.shadowGranularity*u.invScrnRes;
+
+    float shadow = 0.0;
+    int radius = int(u.shadowSmoothRadius);
+    float diam = float(radius) * 2. + 1;
+    float invDiv = 1.0/(diam * diam);
+    
+    for (int x = -radius; x <= radius ; x++) 
+        for (int y = -radius; y <= radius; y++) {
+            //vec4 pt = vec4((viewRay+vec2(x,y)*stepTex)*-frag.z-(u.POV.xy+vec2(x,y)*stepTex), frag.z-u.POV.z, 1.0);
+           
+            //vec4 fragPosLightSpace = tMat * pt;
+            //vec3 projCoords = .5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
+            //float closestDepth = getViewZ(texture(shadowTex, projCoords.xy).r);
+            //float currentDepth = getViewZ(projCoords.z) + u.shadowBias;
+
+            float closestDepth = getViewZ(texture(shadowTex, projCoords.xy+vec2(x,y)*stepTex).r);
+
+            shadow += currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv ;    // 1.0/9.0
+
+            vec4 pt = vec4((viewRay+vec2(x,y)*stepTex)*-frag.z-(u.POV.xy+vec2(x,y)*stepTex), frag.z-u.POV.z, 1.0);
+           
+            vec4 fragPosLightSpace = tMat * pt;
+            vec3 projCoords = .5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
+            closestDepth = getViewZ(texture(shadowTex, projCoords.xy).r);
+            float currentDepth = getViewZ(projCoords.z) + u.shadowBias;
+
+            shadow += currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv ;    // 1.0/9.0
+        }
+
+    return shadow * .5;
+}
+
+
+float getBlurredShadow(vec2 uv)
+{
+    
+    float result = 0.0;
+    const int radius = 1;//int(u.shadowSmoothRadius*.5);
+    const float diam = float(radius) * 2. + 1;
+    const float div = diam * diam;
+    for (int x = -radius; x <= radius ; x++) 
+        for (int y = -radius; y <= radius; y++) 
+            result += getShadow(uv+vec2(x,y)*u.invScrnRes);
+
+    result /= div;
+    return result;
+    //return result>.99 ? result : min(result*result*result, texture(aoTex,uv).x) ; // -> result / 25.;
+    //return result;
+}
+
 
 vec3 blurredNormals(vec2 uv)
 {
@@ -188,7 +267,7 @@ vec3 sampleCoord[9];
     vec3 N = vec3(0.0);
 
     for (int i = 0; i < 5; i++) 
-        N += texture(aoTex, (uv + vec2(sampleCoord[i].xy)) / u.scrnRes).xyz * sampleCoord[i].z;
+        N += texture(aoTex, (uv + vec2(sampleCoord[i].xy)) * u.invScrnRes).xyz * sampleCoord[i].z;
 
     return normalize(2.0 * N * colorDiv - 1.0);
 }
@@ -199,38 +278,53 @@ void main()
 
     //if(N.w > 1.0) discard;
     //if(u.lightActive==1) {
-        vec2 uv = gl_FragCoord.xy;
+        vec2 uv = gl_FragCoord.xy/u.scrnRes;
         //float test = getZ(texelFetch(prevData,ivec2(uv), 0).x);
         //if(test>.5) {
 //        if(zEye>=1.0) discard;
 
-        float depth = texelFetch(prevData,ivec2(uv), 0).w;
+        float depth = texture(prevData,uv).w;
         if(depth<=.01) { discard; outColor = vec4(0.0); return; }
 
+        float z = getViewZ(depth);
+        vec4 vtx = vec4(viewRay *z, z, 1.0);
+
         //float AO = bicubic(uv, 3); //texelFetch(aoTex,ivec2(uv), 0).w;
-        float AO = getBlurredAO(ivec2(uv));
-    if(u.pass >= 2) {
+        float AO = bool(u.pass&RENDER_AO) ? getBlurredAO(uv) : 1.0;
+        float shadow = bool(u.pass &  RENDER_SHADOW) ?  buildSmoothShadow(vtx) : 1.0;
+
+    if(bool(u.pass &  RENDER_DEF)) {
 
         //float zD = form_01_to_m1p1(depth);
-        float z = getViewZ(depth);
-        vec4 vtx = vec4(viewRay * z, z, 1.0);
 
         //vec3 N = blurredNormals(uv).xyz;
         //vec3 N = 2.0 * texelFetch(aoTex,ivec2(uv), 0).xyz - 1.0;
         vec3 N = getSelectedNormal(z, prevData);
         //vec3 N = getSimpleNormal(z, prevData);
 
-        vec4 color = texelFetch(prevData,ivec2(uv), 0);
+        vec4 color = texture(prevData,uv);
 
         
-        outColor = pixelColorLight(vtx.xyz, color, vec4(N, 1.0), u.pass==3 ? AO : 1.0);
+        outColor = pixelColorLight(vtx.xyz, color, vec4(N, 1.0), AO, shadow);
+
+        //outColor = vec4(AO);
 
     } else {
-        AO = max(.05,AO);
-        float newAO = 1.-AO;
-        outColor = vec4(texelFetch(prevData,ivec2(uv), 0).rgb* sqrt(AO) - 
-                        smoothstep(u.sstepColorMin, u.sstepColorMax, vec3(u.lightAmbInt)* .66 * newAO * newAO), 
-                        1.0);
+        //vec3 lightColor = texture(prevData,uv).rgb;
+
+        vec3 packedColor = texture(prevData,uv).rgb;
+        vec2 c = unPackColor16(packedColor.y);
+        vec3 lightColor = vec3(unPackColor16(packedColor.x), c.x);
+        vec3 baseColor  = vec3(c.y, unPackColor16(packedColor.z));
+/*
+        vec3 packedColor = texture(prevData,uv).rgb;
+        vec3 lightColor = unPackColor8(packedColor.x).yzw;
+        vec3 baseColor  = unPackColor8(packedColor.y).yzw;
+*/
+        lightColor = smoothstep(u.sstepColorMin, u.sstepColorMax, 
+                                lightColor * shadow + 
+                                AO * (baseColor*u.lightAmbInt + vec3(u.lightAmbInt)) * .5);
+        outColor = vec4(lightColor,  1.0) ;
 
     }
 
