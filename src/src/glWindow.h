@@ -414,6 +414,7 @@ public:
 
         getRenderFBO().reSizeFBO(w, h);
         getPostRendering()->getFBO().reSizeFBO(w, h);
+        getShadow()->getFBO().reSizeFBO(w, h);
         getAO()->getFBO().reSizeFBO(w, h);
         shaderPointClass::getGlowRender()->getFBO().reSizeFBO(w, h);
 #if !defined(GLCHAOSP_NO_FXAA)

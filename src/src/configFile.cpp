@@ -154,13 +154,25 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     }
     c["dotsType"        ] = ptr->getDotTex().getDotType();
 
+    c["ShadowEnabled"      ] = ptr->useShadow();
+    c["ShadowBias"         ] = ptr->getShadowBias();
+    c["ShadowDarkness"     ] = ptr->getShadowDarkness();
+    c["ShadowRadius"       ] = ptr->getShadowRadius();
+    c["ShadowGranularity"  ] = ptr->getShadowGranularity();
+    c["ShadowAutoLightDist"] = ptr->autoLightDist();
+
+
     c["AOenabled"       ] = ptr->useAO();
     c["AObias"          ] = ptr->getAOBias();
     c["AOradius"        ] = ptr->getAORadius();
     c["AOdarkness"      ] = ptr->getAODarkness();
+    c["AOmul"           ] = ptr->getAOMul();
+    c["AOmodulate"      ] = ptr->getAOModulate();
+
     
     c["depthRender"     ] = ptr->postRenderingActive();
-    c["drNearAdj"       ] = ptr->dpAdjNearPlane();
+    c["dpAdjConvex"     ] = ptr->dpAdjConvex();
+    c["dpNormalTune"    ] = ptr->dpNormalTune();
 
 
 //Colors
@@ -396,12 +408,25 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
                               c.get_or("dotsType"        , 0));
 
     ptr->useAO(                    c.get_or("AOenabled"   , false               ));
-    ptr->setAOBias(                c.get_or("AObias"      , ptr->getAOBias()    ));
+    ptr->setAOBias(                c.get_or("AObias"      , .2                  ));
     ptr->setAORadius(              c.get_or("AOradius"    , ptr->getAORadius()  ));
-    ptr->setAODarkness(            c.get_or("AOdarkness"  , ptr->getAODarkness()));
+    ptr->setAODarkness(            c.get_or("AOdarkness"  , .25                 ));
+    ptr->setAOMul(                 c.get_or("AOmul"       , 1.0                 ));
+    ptr->setAOModulate(            c.get_or("AOmodulate"  , 1.0                 ));
 
-    ptr->postRenderingActive(             c.get_or("depthRender" , false                    ));
-    ptr->dpAdjNearPlane(                  c.get_or("drNearAdj"   , 0.0                      ));
+
+    ptr->postRenderingActive(             c.get_or("depthRender" , false));
+    ptr->dpAdjConvex(                     c.get_or("dpAdjConvex" , 0.333));
+    ptr->dpNormalTune(                    c.get_or("dpNormalTune", 0.025));
+
+
+    ptr->useShadow(            c.get_or("ShadowEnabled"      , false ));
+    ptr->setShadowBias(        c.get_or("ShadowBias"         , 0.0   ));
+    ptr->setShadowDarkness(    c.get_or("ShadowDarkness"     , 0.0   ));
+    ptr->setShadowRadius(      c.get_or("ShadowRadius"       , 2.0   ));
+    ptr->setShadowGranularity( c.get_or("ShadowGranularity"  , 1.0   ));
+    ptr->autoLightDist(        c.get_or("ShadowAutoLightDist", true  ));
+
 
     ptr->dstBlendIdx(getBlendIdx(ptr->getDstBlend()));
     ptr->srcBlendIdx(getBlendIdx(ptr->getSrcBlend()));

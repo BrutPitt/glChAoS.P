@@ -129,7 +129,7 @@ public:
 
     void init() { last = prev = startAVG = glfwGetTime(); }
 
-    void tick() { /*prev = last;  last = glfwGetTime();*/  count++; }
+    void tick() { prev = last;  last = glfwGetTime();  count++; }
 
     float elapsed() { last = glfwGetTime(); return static_cast<float>(last-prev); }
     void start() { prev = last = glfwGetTime(); }

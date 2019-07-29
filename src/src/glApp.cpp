@@ -422,7 +422,6 @@ int mainGLApp::glfwExit()
 
 // need to test exit glfw ... now 0!
     return 0;
-
 }
 
 int mainGLApp::getModifier() {

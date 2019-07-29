@@ -143,15 +143,25 @@ void mmFBO::defineTexture(GLuint iTex, GLuint intFormat, GLuint format, GLuint t
     glTextureParameteri(iTex, GL_TEXTURE_MAG_FILTER, interp);
     glTextureParameteri(iTex, GL_TEXTURE_WRAP_S, clamp);
     glTextureParameteri(iTex, GL_TEXTURE_WRAP_T, clamp);
+    if(clamp == GL_CLAMP_TO_BORDER) {
+        float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        glTextureParameterfv(iTex, GL_TEXTURE_BORDER_COLOR, borderColor);
+    }
 #else
     //glActiveTexture(GL_TEXTURE0+iTex);
     glBindTexture(GL_TEXTURE_2D, iTex);
-    glTexImage2D(GL_TEXTURE_2D, 0,  glPrecision , m_sizeX, m_sizeY, 0, format, type, NULL);
-    //glTexStorage2D(GL_TEXTURE_2D,1,glPrecision,m_sizeX, m_sizeY);
+    glTexImage2D(GL_TEXTURE_2D, 0,  intFormat , m_sizeX, m_sizeY, 0, format, type, NULL);
+    //glTexStorage2D(GL_TEXTURE_2D,1,intFormat,m_sizeX, m_sizeY);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interp);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interp);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
+#if !defined(GLCHAOSP_LIGHTVER)
+    if(clamp == GL_CLAMP_TO_BORDER) {
+        float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    }
+#endif
     glBindTexture(GL_TEXTURE_2D, 0);
 
 #endif
@@ -230,7 +240,7 @@ void mmFBO::attachMultiFB(int num)
 
 }
 
-void mmFBO::attachSecondaryBuffer(bool builtIN, secondaryBufferType bufferType)
+void mmFBO::attachSecondaryBuffer(bool builtIN, secondaryBufferType bufferType, GLuint interpol, GLuint clamp)
 {
     haveRB = true;
     isBuiltIn = builtIN;
@@ -245,7 +255,7 @@ void mmFBO::attachSecondaryBuffer(bool builtIN, secondaryBufferType bufferType)
     if(!isBuiltIn) { m_depth = new GLuint[m_NumFB]; glGenTextures(m_NumFB, m_depth); }
 #endif
 
-    GLuint intFormat, attach, format, type, interpol = GL_NEAREST, clamp = GL_CLAMP_TO_EDGE;
+    GLuint intFormat, attach, format, type;
     if(bufferType == secondaryBufferType::depthBuffer) {
         intFormat = GL_DEPTH_COMPONENT32F; attach = GL_DEPTH_ATTACHMENT;
         format = GL_DEPTH_COMPONENT; type = GL_FLOAT;
@@ -265,17 +275,17 @@ void mmFBO::attachSecondaryBuffer(bool builtIN, secondaryBufferType bufferType)
 
             glNamedFramebufferRenderbuffer(m_fb[i], attach, GL_RENDERBUFFER, m_rb[i]);
         } else {
-            defineTexture(m_depth[i], intFormat, format, type);
+            defineTexture(m_depth[i], intFormat, format, type, interpol, clamp);
             glNamedFramebufferTexture(m_fb[i], attach, m_depth[i], 0);
         }
 #else
+        glBindFramebuffer(GL_FRAMEBUFFER, m_fb[i]);
         if(isBuiltIn) {
-            glBindFramebuffer(GL_FRAMEBUFFER, m_fb[i]);
             glBindRenderbuffer(GL_RENDERBUFFER, m_rb[i]);
             glRenderbufferStorage(GL_RENDERBUFFER, intFormat, m_sizeX, m_sizeY);
             glFramebufferRenderbuffer( GL_FRAMEBUFFER, attach, GL_RENDERBUFFER, m_rb[i]);
         } else {
-            defineTexture(m_depth[i], intFormat);
+            defineTexture(m_depth[i], intFormat, format, type, interpol, clamp);
 #if !defined(GLCHAOSP_LIGHTVER)
             glFramebufferTexture(GL_FRAMEBUFFER, attach, m_depth[i], 0);
 #else

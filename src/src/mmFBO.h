@@ -49,9 +49,9 @@ public:
     GLuint getDepth(int num) { return num<m_NumFB ? m_depth[num] : -1; }
     GLuint getTexMultiFB(int num) { return num<numMultiDraw ? multiDrawFB[num] : -1; }
 
-    void attachDB(bool builtIN)    { attachSecondaryBuffer(builtIN, depthBuffer); }
-    void attachSB(bool builtIN)    { attachSecondaryBuffer(builtIN, stencilBuffer); }
-    void attachDB_SB(bool builtIN) { attachSecondaryBuffer(builtIN, depthStencilBuffer); };
+    void attachDB   (bool builtIN, GLuint interpol = GL_NEAREST , GLuint clamp = GL_REPEAT) { attachSecondaryBuffer(builtIN, depthBuffer); }
+    void attachSB   (bool builtIN, GLuint interpol = GL_NEAREST, GLuint clamp = GL_REPEAT) { attachSecondaryBuffer(builtIN, stencilBuffer); }
+    void attachDB_SB(bool builtIN, GLuint interpol = GL_NEAREST, GLuint clamp = GL_REPEAT) { attachSecondaryBuffer(builtIN, depthStencilBuffer); };
 
     int getSizeX() { return m_sizeX; }
     int getSizeY() { return m_sizeY; }
@@ -75,10 +75,11 @@ static GLuint vbaID;
 
 private:
     void initFB(GLuint fbuff, GLuint iText);
-    void attachSecondaryBuffer(bool builtIN, secondaryBufferType type); //depthBuffer + Stencil
+    void attachSecondaryBuffer(bool builtIN, secondaryBufferType type, 
+                               GLuint interpol = GL_LINEAR, GLuint clamp = GL_CLAMP_TO_EDGE); //depthBuffer + Stencil
     void CheckFramebufferStatus(GLenum status);
     void defineTexture(GLuint iTex, GLuint intFormat, GLuint format = GL_RGBA, GLuint type = GL_FLOAT, 
-                       GLuint interp = GL_LINEAR, GLuint clamp = GL_CLAMP_TO_EDGE);
+                       GLuint interp = GL_NEAREST, GLuint clamp = GL_CLAMP_TO_EDGE);
     void resetData();
 
     int m_NumFB, aaLevel = 0;

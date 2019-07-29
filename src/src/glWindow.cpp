@@ -77,7 +77,8 @@ void glWindow::onInit()
     mmFBO::Init(theApp->GetWidth(), theApp->GetHeight()); 
 
     //load attractor file (if exist) and (if exist) override default parameters
-    attractorsList.setSelection(attractorsList.getSelection()); 
+    //attractorsList.setSelection(attractorsList.getSelection()); 
+    attractorsList.setSelection(30); 
 }
 
 // 

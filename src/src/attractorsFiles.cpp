@@ -544,7 +544,7 @@ void dla3D::saveAdditionalData(Config &cfg)
 void dla3D::loadAdditionalData(Config &cfg) 
 {
         m_Stubbornness = cfg.get_or("Stubbornness",0);
-        m_Stickiness   = cfg.get_or("attachChance",1);
+        m_Stickiness   = cfg.get_or("attachChance",1.0);
 }
 #endif
 

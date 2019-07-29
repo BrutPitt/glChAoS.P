@@ -288,6 +288,28 @@ class mergedRenderingClass;
 #endif
 
 //
+//  shadowClass
+//
+////////////////////////////////////////////////////////////////////////////////
+class shadowClass: public mainProgramObj
+{
+public:
+    shadowClass(renderBaseClass* ptrRE);
+
+    void create();
+
+    void bindRender();
+    void render();
+    void releaseRender();
+
+    mmFBO &getFBO() { return fbo; }
+
+private:
+    mmFBO fbo;
+    renderBaseClass *renderEngine;
+};
+
+//
 //  ambientOcclusionClass
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -314,14 +336,12 @@ private:
     std::vector<glm::vec3> ssaoKernel;
     GLuint noiseTexture;
     const int kernelSize = 64;
-    bool flagChanged = true;
-    GLuint locAOVals;
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locNoiseTexture, locPrevData;
 #endif
-
     friend particlesBaseClass;
 };
+
 //
 //  postRenderingClass
 //
@@ -343,6 +363,7 @@ public:
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint getLocPrevData() { return locPrevData; }
     GLuint getLocAOTex() { return locAOTex; }
+    GLuint getLocShadowTex() { return locShadowTex; }
     GLuint getSubIdx(int i) { return idxSubLightModel[i]; }
 #endif
 
@@ -351,7 +372,7 @@ private:
     renderBaseClass *renderEngine;
     GLuint locSubLightModel;
 #if !defined(GLAPP_REQUIRE_OGL45)
-    GLuint locAOTex, locPrevData;
+    GLuint locAOTex, locPrevData, locShadowTex;
     GLuint idxSubLightModel[3];
 #endif
 };
@@ -408,6 +429,7 @@ public:
     VertexShader* getCommonVShader() { return &commonVShader; }
     postRenderingClass* getPostRendering() { return postRendering; }
     ambientOcclusionClass* getAO() { return ambientOcclusion; }
+    shadowClass* getShadow() { return shadow; }
 
     
     int getBlendArrayElements() { return blendArray.size(); }
@@ -441,6 +463,7 @@ protected:
     VertexShader commonVShader;
     postRenderingClass *postRendering = nullptr;
     ambientOcclusionClass *ambientOcclusion = nullptr;
+    shadowClass* shadow = nullptr;
 
 
     std::vector<GLuint> blendArray;
@@ -795,7 +818,9 @@ struct uParticlesData {
     GLfloat lightDiffInt = 1.f;
     vec3    lightColor = vec3(1.f);           // align 16
     GLfloat lightSpecInt = .75f;
+    vec4    POV;
     vec2    scrnRes;
+    vec2    invScrnRes;
     GLfloat lightAmbInt = .1f;
     GLfloat lightShinExp = 10.f;
     GLfloat sstepColorMin = .1;
@@ -816,6 +841,18 @@ struct uParticlesData {
     GLfloat pointspriteMinSize = 1.0;
     GLfloat ggxRoughness = .75f;
     GLfloat ggxFresnel = .5f;
+    GLfloat shadowSmoothRadius = 2.f;
+    GLfloat shadowGranularity = 1.f;
+    GLfloat shadowBias = 0.0;
+    GLfloat shadowDarkness = 0.0;
+    GLfloat aoRadius =  .5;
+    GLfloat aoBias = .025;
+    GLfloat aoDarkness = .25;
+    GLfloat aoMul = 1.0;
+    GLfloat aoModulate = 1.0;
+    GLfloat dpAdjConvex = .333;
+    GLfloat dpNormalTune = .025;
+
     GLuint lightModel = modelBlinnPhong - modelOffset;
     GLuint lightActive = GLuint(on);
     GLint pass = 0;
@@ -825,7 +862,7 @@ struct uParticlesData {
 public:
     enum lightIDX { off, on };
     enum lightMDL { modelOffset = 5, modelPhong=modelOffset, modelBlinnPhong, modelGGX };
-    enum pixColIDX { pixOffset, pixBlendig=pixOffset, pixSolid, pixAO, pixDR };
+    enum pixColIDX { pixOffset, pixBlendig=pixOffset, pixDirect, pixAO, pixDR };
 
     particlesBaseClass ()  { 
 
@@ -858,10 +895,10 @@ public:
         locDotsTex    = getUniformLocation("tex"); 
     #if !defined(GLCHAOSP_LIGHTVER) 
         #if !defined(__APPLE__)
-            idxSubPixelColor[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorBlending");
-            idxSubPixelColor[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorSolid");
-            idxSubPixelColor[2] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorAO");
-            idxSubPixelColor[3] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorDR");
+            idxSubPixelColor[pixBlendig] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorBlending");
+            idxSubPixelColor[pixDirect ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorDirect");
+            idxSubPixelColor[pixAO     ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorAO");
+            idxSubPixelColor[pixDR     ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorDR");
 
             idxSubLightModel[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularPhong");
             idxSubLightModel[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularBlinnPhong");
@@ -960,8 +997,6 @@ public:
 
     bool postRenderingActive() { return isPostRenderingActive; }
     void postRenderingActive(bool b) { isPostRenderingActive = b; }
-    bool useAO() { return usingAO; }
-    void useAO(bool b) { usingAO = b; }
 
     dotsTextureClass& getDotTex() { return dotTex; }
 
@@ -970,20 +1005,49 @@ public:
 
     // Ambient Ocllusion
     /////////////////////////////////////////////
-    float getAORadius() { return aoRadius; }
-    void setAORadius(float f) { aoRadius = f; getAO()->flagChanged = true; }
+    bool useAO() { return usingAO; }
+    void useAO(bool b) { usingAO = b; }
 
-    float getAOBias() { return aoBias; }
-    void setAOBias(float f) { aoBias = f; getAO()->flagChanged = true; }
+    float getAORadius() { return uData.aoRadius; }
+    void  setAORadius(float f) { uData.aoRadius = f;  }
 
-    float getAODarkness() { return aoDarkness; }
-    void setAODarkness(float f) { aoDarkness = f; getAO()->flagChanged = true; }
+    float getAOBias() { return uData.aoBias; }
+    void  setAOBias(float f) { uData.aoBias = f; }
 
+    float getAODarkness() { return uData.aoDarkness; }
+    void  setAODarkness(float f) { uData.aoDarkness = f;  }
+
+    float getAOMul() { return uData.aoMul; }
+    void  setAOMul(float f) { uData.aoMul = f; }
+
+    float getAOModulate() { return uData.aoModulate; }
+    void  setAOModulate(float f) { uData.aoModulate = f; }
+    // Shadow
+    /////////////////////////////////////////////
+    bool useShadow() { return usingShadow; }
+    void useShadow(bool b) { usingShadow = b; }
+
+    float getShadowRadius() { return uData.shadowSmoothRadius; }
+    void  setShadowRadius(float f) { uData.shadowSmoothRadius = f; }
+
+    float getShadowGranularity() { return uData.shadowGranularity; }
+    void  setShadowGranularity(float f) { uData.shadowGranularity = f; }
+
+    float getShadowBias() { return uData.shadowBias; }
+    void  setShadowBias(float f) { uData.shadowBias = f; }
+
+    float getShadowDarkness() { return uData.shadowDarkness; }
+    void  setShadowDarkness(float f) { uData.shadowDarkness = f; }
+
+    bool autoLightDist() { return autoLight; }
+    void autoLightDist(bool b) { autoLight = b; }
     // Depth Rendering
     /////////////////////////////////////////////
-    float dpAdjNearPlane() { return dpNearPlaneAdjust; }
-    void dpAdjNearPlane(float f) { dpNearPlaneAdjust = f; }
+    float dpAdjConvex() { return uData.dpAdjConvex; }
+    void dpAdjConvex(float f) { uData.dpAdjConvex = f; }
 
+    float dpNormalTune() { return uData.dpNormalTune; }
+    void dpNormalTune(float f) { uData.dpNormalTune = f; }
 
 
 protected:
@@ -1016,8 +1080,8 @@ protected:
     bool blendActive = true;
     bool isPostRenderingActive = false;
     bool usingAO = false;
-    float aoRadius =  .5, aoBias = .025, aoDarkness = .25;
-    float dpNearPlaneAdjust = 0.0;
+    bool usingShadow = false;
+    bool autoLight = true;
 
 
 private:

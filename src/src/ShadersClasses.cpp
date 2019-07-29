@@ -114,7 +114,7 @@ void particlesBaseClass::clearScreenBuffers()
     if(depthBuffActive) {
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE);
-        GLfloat f=1.0f;
+        const GLfloat f=1.0f;
         glClearBufferfv(GL_DEPTH , 0, &f);
         //glClearBufferfi(GL_DEPTH_STENCIL , 0, 1.f, 0);
     }
@@ -138,20 +138,23 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
     auto updateCommons = [&] () {
         getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
+        getUData().invScrnRes = 1.f/getUData().scrnRes;
         getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getRenderFBO().getSizeY()/1024.0);
         getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
         getUData().velocity = getCMSettings()->getVelIntensity();
         getUData().lightDir = glm::vec3(getTMat()->tM.vMatrix * vec4(getLightDir(), 1.0));
     };
 
-    const bool isAO_RD = ( useAO() ||  postRenderingActive());
+    const bool isAO_RD_SHDW = ( useAO() ||  postRenderingActive() || useShadow());
+    const bool isAO_SHDW = ( useAO() || useShadow());
     const bool isSolid = ( getDepthState() ||  getLightState());
+    const bool isShadow = ( useShadow() && isSolid);
 
     auto selectSubroutines = [&]() {
         GLuint subIDX[2];        
         const int idxPixelColor  = (getBlendState() && !isSolid)       ? pixColIDX::pixBlendig :
-                                   !isAO_RD                            ? pixColIDX::pixSolid   :
-                                   (useAO() && !postRenderingActive()) ? pixColIDX::pixAO      :
+                                   getBlendState() || !isAO_RD_SHDW    ? pixColIDX::pixDirect  :
+                                   isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
                                                                          pixColIDX::pixDR      ;
 #ifdef GLAPP_REQUIRE_OGL45
         subIDX[locSubPixelColor] = idxPixelColor;
@@ -173,11 +176,42 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 #endif
 #endif
     };
-/*
-    GLint max_combined_texture_image_units;
-    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
-    cout << max_combined_texture_image_units << "\n";
-*/
+
+    if(checkFlagUpdate()) updateCommons();
+
+    getUData().zNear = getTMat()->getPerspNear();
+    getUData().zFar  = getTMat()->getPerspFar();
+
+    // Shadow pass
+    /////////////////////////////////////////////
+#if !defined(GLCHAOSP_LIGHTVER)
+    if(isShadow && !getBlendState()) {
+        if(autoLightDist()) {
+            glm::vec3 vL(glm::normalize(getLightDir()));
+            float dist = getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z;
+            setLightDir(vL * (dist*4.f + dist*.1f));
+        }
+
+        //tMat.setLightOrtho();
+        getShadow()->bindRender();
+
+        tMat.setLightView(getLightDir());
+        tMat.tM.mvLightM = tMat.tM.mvLightM * tMat.tM.mMatrix;
+
+
+        tMat.updateBufferData();
+        updateBufferData();
+
+        //render
+        emitter->renderEvents();
+
+        getShadow()->releaseRender();
+        //tMat.setPerspective();
+    }
+#endif
+
+    // Normal Render
+    /////////////////////////////////////////////
     bindPipeline();
 
     GLuint returnedTex = getRenderFBO().getTex(fbIdx);
@@ -192,7 +226,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 //    getUData().zFar = (getTMat()->getPerspFar() + (getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z)) * 2.0;
 
     tMat.updateBufferData();
-    getUData().pass = (isPostRenderingActive ? 2 : 0) + (usingAO ? 1 : 0);
+    getUData().pass = (isShadow ? 4:0) | (postRenderingActive() ? 2:0) | (useAO() ? 1:0);
+    getUData().POV = vec4(getTMat()->getTrackball().getPosition(), 0.0);
 
     updateBufferData();
        
@@ -201,7 +236,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, colorMap->getModfTex());
     glBindTextureUnit(1, texID);
-
 #else
     glActiveTexture(GL_TEXTURE0+colorMap->getModfTex());
     glBindTexture(GL_TEXTURE_2D,colorMap->getModfTex());
@@ -224,57 +258,58 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 #endif
 
 #if !defined(GLCHAOSP_LIGHTVER)
-    if(isAO_RD && !showAxes())  {
+    if(!getBlendState() && isAO_RD_SHDW && !showAxes())  {
         //float tN = getTMat()->getPerspNear()-.95;    
         //getUData().zNear = tN < 0.0 ? getTMat()->getPerspNear()-tN : getTMat()->getPerspNear();
-        float tN = .0;//+(getTMat()->getPOV()[2]-getTMat()->getTrackball().getDollyPosition()[2])*.01;
-        getUData().zNear += dpAdjNearPlane();
+        //float tN = .27;//+(getTMat()->getPOV()[2]-getTMat()->getTrackball().getDollyPosition()[2])*.01;
 
-        //if(usingAO) {
+        tMat.setLightView(getLightDir());
+        mat4 m(1.f);
+        m = translate(m,tMat.getTrackball().getPosition());
+        m = translate(m,tMat.getPOV());
+        tMat.tM.mvLightM = tMat.tM.mvLightM * m;
+
+        getUData().halfTanFOV = tanf(getTMat()->getPerspAngleRad()*.5);
+
+        if(useAO()) {
             getAO()->bindRender();
 
-            if(getAO()->flagChanged) {
-                getAO()->setUniform4f(getAO()->locAOVals, aoBias, aoRadius, aoDarkness, 0.0);
-            }
-
-
             tMat.updateBufferData();
-
-            //getUData().zNear = 1.f+getTMat()->getPOV().z;
-            //getUData().zFar  = getTMat()->getPerspFar();
-            //getUData().pass = usingAO ? 2 : 0;
-            getUData().halfTanFOV = tanf(getTMat()->getPerspAngleRad()*.5);
-
             updateBufferData();
+
 #ifdef GLAPP_REQUIRE_OGL45
             glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
+            glBindTextureUnit(7, getShadow()->getFBO().getDepth(0));
 #else
             glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTex(fbIdx));
             glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTex(fbIdx));
-
             glUniform1i(getAO()->getLocPrevData(), getRenderFBO().getTex(fbIdx));
+
+            glActiveTexture(GL_TEXTURE0 + getShadow()->getFBO().getDepth(0));
+            glBindTexture(GL_TEXTURE_2D,  getShadow()->getFBO().getDepth(0));
+
 #endif
 
             getAO()->render();
             getAO()->releaseRender();
             //returnedTex = getAO()->getFBO().getTex(0);
-        //}
+        }
 
         //if(postRenderingActive()) {
         //glBindProgramPipeline(0);
             getPostRendering()->bindRender();
 
             tMat.updateBufferData();
-
-            getUData().halfTanFOV = tanf(getTMat()->getPerspAngleRad()*.5);
-
             updateBufferData();
+
 #ifdef GLAPP_REQUIRE_OGL45
 
             GLuint subIDX = uData.lightModel + lightMDL::modelOffset; 
 
             glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
             glBindTextureUnit(6, getAO()->getFBO().getTex(0));
+            glBindTextureUnit(7, getShadow()->getFBO().getDepth(0));
+
 #else
             GLuint subIDX = getPostRendering()->getSubIdx(uData.lightModel);
 
@@ -284,7 +319,12 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
             glActiveTexture(GL_TEXTURE0 + getAO()->getFBO().getTex(0));
             glBindTexture(GL_TEXTURE_2D,  getAO()->getFBO().getTex(0));
-            glUniform1i(getPostRendering()->getLocAOTex(), getAO()->getFBO().getTex(0));           
+            glUniform1i(getPostRendering()->getLocAOTex(), getAO()->getFBO().getTex(0));
+
+            glActiveTexture(GL_TEXTURE0 + getShadow()->getFBO().getDepth(0));
+            glBindTexture(GL_TEXTURE_2D,  getShadow()->getFBO().getDepth(0));
+            glUniform1i(getPostRendering()->getLocShadowTex(), getShadow()->getFBO().getDepth(0));
+
 #endif
             glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
 
@@ -610,6 +650,7 @@ renderBaseClass::renderBaseClass()
     mergedRendering = new mergedRenderingClass(this);
     postRendering = new postRenderingClass(this);
     ambientOcclusion = new ambientOcclusionClass(this);
+    shadow  = new shadowClass(this);
 #endif
 }
 
@@ -900,6 +941,7 @@ void postRenderingClass::create() {
 #if !defined(GLAPP_REQUIRE_OGL45)
     useProgram();
     locAOTex = getUniformLocation("aoTex");
+    locShadowTex = getUniformLocation("shadowTex");
     locPrevData = getUniformLocation("prevData");
     uniformBlocksClass::bindIndex(getProgram(), "_particlesData");
     renderEngine->getTMat()->blockBinding(getProgram());
@@ -1014,7 +1056,6 @@ void ambientOcclusionClass::create() {
     renderEngine->getTMat()->blockBinding(getProgram());
 #endif
     setUniform3fv(getUniformLocation("ssaoSamples"), kernelSize, (const GLfloat*)ssaoKernel.data());
-    locAOVals = getUniformLocation("aoVals");
 }
 
 void ambientOcclusionClass::bindRender()
@@ -1046,5 +1087,64 @@ void ambientOcclusionClass::releaseRender()
 #if !defined(GLAPP_REQUIRE_OGL45)
     ProgramObject::reset();
 #endif
-    flagChanged =false;
 }
+
+//
+//  postRenderingClass
+//
+////////////////////////////////////////////////////////////////////////////////
+shadowClass::shadowClass(renderBaseClass *ptrRE) : renderEngine(ptrRE) 
+{
+    fbo.buildOnlyFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision());
+#if !defined(GLCHAOSP_LIGHTVER)
+    fbo.attachDB(false,GL_LINEAR,GL_CLAMP_TO_BORDER);
+#else
+    fbo.attachDB(false,GL_LINEAR,GL_CLAMP_TO_EDGE);
+#endif
+    create();
+}
+
+void shadowClass::create() {
+
+    useVertex();
+    useFragment();
+    std::string s("#define SHADOW_PASS\n");
+    vertObj->Load((theApp->get_glslVer() + theApp->get_glslDef() + s).c_str(), 2, SHADER_PATH "ParticlesVert.glsl", SHADER_PATH "PointSpriteVert.glsl");
+    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "lightModelsFrag.glsl", SHADER_PATH "shadowFrag.glsl");
+    addShader(vertObj);
+    addShader(fragObj);
+
+    link();
+}
+
+void shadowClass::bindRender()
+{
+    bindPipeline();
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+
+    const GLfloat f=1.0f;
+    glClearBufferfv(GL_DEPTH , 0, &f);
+
+
+#if !defined(GLAPP_REQUIRE_OGL45)
+    useProgram();
+    uniformBlocksClass::bindIndex(getProgram(), "_particlesData");
+    renderEngine->getTMat()->blockBinding(getProgram());
+#endif
+}
+
+void shadowClass::render()
+{
+}
+
+void shadowClass::releaseRender()
+{
+#if !defined(GLAPP_REQUIRE_OGL45)
+    ProgramObject::reset();
+#endif
+}
+
