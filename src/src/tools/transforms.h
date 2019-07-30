@@ -37,10 +37,11 @@ struct transfMatrix {
     glm::mat4 pMatrix   = glm::mat4(1.0f);      // Uniforms starts HERE!
     glm::mat4 mvMatrix  = glm::mat4(1.0f);
     glm::mat4 mvpMatrix = glm::mat4(1.0f);
+    glm::mat4 mvLightM  = glm::mat4(1.0f);
 };
 
 class transformsClass {
-#define SZ (sizeof(glm::mat4)*3)
+#define SZ (sizeof(glm::mat4)*4)
 public:
     transformsClass() {
         //setView(attractorsList.get()->getPOV(), attractorsList.get()->getTGT());         
@@ -133,14 +134,17 @@ public:
                                   tgtVec,
                                   vec3(0.0f, 1.0f, 0.0f));
     }
-/*
     void setLightView(vec3 &lightPos) {
-        tM.vLightM = glm::lookAt( lightPos,
-                                  tgtVec+getTrackball().getRotationCenter(),
+        //mat4 m(1.f);
+        //m = translate(m,getPOV());
+        //m = translate(m,getTrackball().getPosition());
+        tM.mvLightM = glm::lookAt(lightPos * .25f +povVec,
+                                  tgtVec, //getTrackball().getRotationCenter(),
                                   vec3(0.0f, 1.0f, 0.0f));
-        tM.mvpLightM = tM.vLightM * tM.mMatrix;
+        //tM.mvLightM = tM.mvLightM * m;
+        //tM.mvLightM =  tM.mMatrix * tM.mvLightM ;
     }
-*/
+
 #define MIN_NEAR .01 //(_far*.01f)
     void setPerspective(float angle, float aspect, float _near, float _far) {        
         pAngle = angle; pAspect = aspect; pNear = _near <= MIN_NEAR ? MIN_NEAR : _near; pFar = _near>_far ? _near : _far;
@@ -152,6 +156,10 @@ public:
         //tM.pMatrix  = glm::perspective(glm::radians(pAngle),pAspect,pNear, pFar); //the projection matrix
         tM.pMatrix  = glm::perspectiveFov(glm::radians(pAngle),float(theApp->GetWidth()), float(theApp->GetHeight()),pNear, pFar); //the projection matrix
     }
+    void setPerspective() {
+        //tM.pMatrix  = glm::perspective(glm::radians(pAngle),pAspect,pNear, pFar); //the projection matrix
+        tM.pMatrix  = glm::perspectiveFov(glm::radians(pAngle),float(theApp->GetWidth()), float(theApp->GetHeight()),pNear, pFar); //the projection matrix
+    }
     void setPerspective(float angle, float _near, float _far) {
         pAngle = angle; pNear = _near <= MIN_NEAR ? MIN_NEAR : _near; pFar = _near>_far ? _near : _far;
         //tM.pMatrix  = glm::perspective(glm::radians(pAngle),pAspect,pNear, pFar); //the projection matrix
@@ -159,6 +167,9 @@ public:
         
     }
 
+//    void setLightOrtho() {
+//        tM.pLightM = glm::ortho(-20.0f,20.0f,-20.0f,20.0f,pNear,pFar);
+//    }
     float getPerspAngleRad() { return glm::radians(pAngle); }
     float getPerspAngle() { return pAngle; }
     float getPerspNear() { return pNear; }

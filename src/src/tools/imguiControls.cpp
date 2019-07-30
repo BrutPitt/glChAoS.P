@@ -116,7 +116,7 @@ bool paletteButton(const char* label, int numCol, float *buff, const ImVec2 &siz
     // We could hash the size/uv to create a unique ID but that would prevent the user from animating UV.
     //PushID(label);
     const ImGuiID id = window->GetID(label);
-    const float lineH = window->DC.CurrentLineSize.y<=0 ? (window->DC.PrevLineSize.y <=0 ? size.y : window->DC.PrevLineSize.y) : window->DC.CurrentLineSize.y;
+    const float lineH = window->DC.CurrLineSize.y<=0 ? (window->DC.PrevLineSize.y <=0 ? size.y : window->DC.PrevLineSize.y) : window->DC.CurrLineSize.y;
     const ImVec2 padding = ImVec2(0,0);//(frame_padding >= 0) ? ImVec2((float)frame_padding, (float)frame_padding) : style.FramePadding;
     const ImRect bb(ImVec2(window->DC.CursorPos.x+ style.FramePadding.x,window->DC.CursorPos.y), ImVec2(window->DC.CursorPos.x + size.x - style.FramePadding.x*2,window->DC.CursorPos.y+lineH) );
     ItemSize(bb);
@@ -190,7 +190,7 @@ bool DragFloatEx(const char* label, float *v, float v_speed, float v_min, float 
     // Tabbing or CTRL-clicking on Drag turns it into an input box
     bool start_text_input = false;
     const bool tab_focus_requested = FocusableItemRegister(window, id);
-    if (tab_focus_requested || (hovered && (g.IO.MouseClicked[0] || g.IO.MouseDoubleClicked[0])) || g.NavActivateId == id || (g.NavInputId == id && g.ScalarAsInputTextId != id))
+    if (tab_focus_requested || (hovered && (g.IO.MouseClicked[0] || g.IO.MouseDoubleClicked[0])) || g.NavActivateId == id || (g.NavInputId == id && g.TempInputTextId != id))
     {
         SetActiveID(id, window);
         SetFocusID(id, window);
@@ -199,11 +199,11 @@ bool DragFloatEx(const char* label, float *v, float v_speed, float v_min, float 
         if (tab_focus_requested || g.IO.KeyCtrl || g.IO.MouseDoubleClicked[0] || g.NavInputId == id)
         {
             start_text_input = true;
-            g.ScalarAsInputTextId = 0;
+            g.TempInputTextId = 0;
         }
     }
-    if (start_text_input || (g.ActiveId == id && g.ScalarAsInputTextId == id))
-        return InputScalarAsWidgetReplacement(frame_bb, id, label, ImGuiDataType_Float, v, format);
+    if (start_text_input || (g.ActiveId == id && g.TempInputTextId == id))
+        return TempInputTextScalar(frame_bb, id, label, ImGuiDataType_Float, v, format);
 
     // Actual drag behavior
     ItemSize(total_bb, style.FramePadding.y);
@@ -238,7 +238,7 @@ bool DragFloatNEx(const char* label, float* v, int components, float v_speed, fl
     bool value_changed = false;
     BeginGroup();
     PushID(label);
-    PushMultiItemsWidths(components);
+    PushMultiItemsWidths(components, CalcItemWidth());
     size_t type_size = sizeof(float);
     for (int i = 0; i < components; i++)
     {
