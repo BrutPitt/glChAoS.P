@@ -66,7 +66,7 @@ inline void headerAdditionalDataCtrls(int numControls = 1)
 
     const float border = DLG_BORDER_SIZE;
 
-    const float w = ImGui::GetContentRegionAvailWidth();
+    const float w = ImGui::GetContentRegionAvail().x;
     const float wButt = (w - (border*6)) *.4 / float(numControls); // dim/5 * 2
 
     ImGui::SameLine();
@@ -268,7 +268,7 @@ void attractorDlgClass::view()
 
         // left
         ImGui::BeginGroup(); 
-            const float wGrp = ImGui::GetContentRegionAvailWidth();
+            const float wGrp = ImGui::GetContentRegionAvail().x;
 #if !defined(GLCHAOSP_LIGHTVER)
     const int sizeLeft = (ImGui::GetFrameHeightWithSpacing()*3+border*6);
 #else
@@ -323,7 +323,7 @@ void attractorDlgClass::view()
         ImGui::BeginGroup();
             ImGui::BeginChild("Parameters", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()*3-border)); // Leave room for 1 line below us            
                 
-                const float wCl = ImGui::GetContentRegionAvailWidth();
+                const float wCl = ImGui::GetContentRegionAvail().x;
                 ImGui::Columns(2);               
                 
                 
@@ -340,7 +340,7 @@ void attractorDlgClass::view()
                 ImGui::Separator();
             ImGui::EndChild();
             ImGui::BeginChild("buttons"); {
-                const float wDn = ImGui::GetContentRegionAvailWidth();
+                const float wDn = ImGui::GetContentRegionAvail().x;
                 const int buttW = wDn*.2;
                 if(!attractorsList.get()->dtType() && !attractorsList.get()->dlaType()) {
                     ImGui::PushItemWidth((wDn-border*3)*.5+.5); //wDn*.5-border
@@ -516,7 +516,7 @@ const float border = 5;
 
     const float posY = ImGui::GetCursorPosY();
     {
-        const float wCl = ImGui::GetContentRegionAvailWidth();
+        const float wCl = ImGui::GetContentRegionAvail().x;
 
         const int nElem = att->getNumElements(AttractorBase::attLoadPtVal);
         if(nElem > 1) { columnsHeader(wCl, "X", "Y", "Z"); populateData(wCl, nElem, border, 3, att->getInputVMin(), att->getInputVMax(), 0); }
@@ -529,7 +529,7 @@ const float border = 5;
     ImGui::NextColumn();
 
     {
-        const float wCl = ImGui::GetContentRegionAvailWidth();
+        const float wCl = ImGui::GetContentRegionAvail().x;
 
         const int nElem = att->getNumElements(AttractorBase::attLoadKtVal);
         const int nCol = att->getKType() == AttractorBase::attHaveKVect ? 3 : 1;

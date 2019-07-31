@@ -129,7 +129,7 @@ void paletteDlgClass::view()
     if(ImGui::Begin(getTitle(), (bool *) &isVisible, ImGuiTreeNodeFlags_DefaultOpen)) {
         const int border = DLG_BORDER_SIZE;
         ImGui::BeginChild("cm",ImVec2(0, hSz) ); { // Leave room for 1 line below us                            
-            const float w = ImGui::GetContentRegionAvailWidth(); //4/3
+            const float w = ImGui::GetContentRegionAvail().x; //4/3
             ImGui::Columns(2,"pals",false);
             //ImGui::SetColumnOffset(1, w*.25);
             ImGui::SetColumnWidth(0, w*.25);
@@ -160,7 +160,7 @@ void paletteDlgClass::view()
 
         } ImGui::EndChild();
 #if !defined(GLCHAOSP_LIGHTVER)
-        const float w = ImGui::GetContentRegionAvailWidth(); //4/3
+        const float w = ImGui::GetContentRegionAvail().x; //4/3
         const float wButt5 = (w - (border*6)) *.2;
         const float posB5 = border + wButt5 + border;
         const float posC5 = posB5  + wButt5 + border;
@@ -248,7 +248,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
     const ImU32 titleCol = ImGui::GetColorU32(ImGuiCol_PlotLines); 
 
-    const float w = ImGui::GetContentRegionAvailWidth();
+    const float w = ImGui::GetContentRegionAvail().x;
     const float wHalf = w*.5;
 
     const float posA = border;
@@ -295,7 +295,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
         if(isOpen) {
 #if !defined(GLCHAOSP_LIGHTVER)
-            const int numItems = 9;
+            const int numItems = 8;
 #else
             const int numItems = 7;
 #endif
@@ -330,9 +330,9 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 //ImGui::SetCursorPosX(INDENT(posA));
                 //ImGui::TextDisabled("PointSize"); //ImGui::SameLine(posB3);
                 //////////Linea 4//////////       
-                const float sz = wButt3-(ImGui::GetFrameHeightWithSpacing()+border)*.3333;
 
                 {
+                    const float sz = wButt3-(ImGui::GetFrameHeightWithSpacing()+border)*.3333;
                     char txt[32];
                     ImGui::SetCursorPosX(posA);
                     {
@@ -406,71 +406,29 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::PopItemWidth();
 
 #if !defined(GLCHAOSP_LIGHTVER)
-                if(particles->getDepthState() || particles->getLightState()) {
-                    ImGui::AlignTextToFramePadding();
+                if(!particles->getBlendState() && (particles->getDepthState() || particles->getLightState())) {
 
-                    bool b = particles->postRenderingActive();
-                    ImGui::TextDisabled("DRender");
-                    ImGui::SameLine();
-                    if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->postRenderingActive(b);
-                        
-                    if(particles->postRenderingActive()) {
-                        ImGui::SameLine();
-                        float aoW = w - (ImGui::GetCursorPosX()-posA);
-                        float aoSZ = (aoW - border*3.f) * .333;
-
-                        float start = ImGui::GetCursorPosX();
-                        ImGui::TextDisabled("Adj");
-                        ImGui::SameLine();
-                        float end = ImGui::GetCursorPosX();
-                        ImGui::PushItemWidth(aoSZ - (end-start));
-
-                        float f = particles->dpAdjNearPlane();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, -1.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->dpAdjNearPlane(f);
-                        ImGui::PopItemWidth();
+                    ImGui::SetCursorPosX(posA);
+                    {
+                        char txt[32];
+                        bool b = particles->postRenderingActive();
+                        sprintf(txt, b ? "DualPass " ICON_FA_CHECK_SQUARE_O "%s" : "DualPass " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
+                        if(colCheckButton(b , txt, wButt3)) particles->postRenderingActive(b^1);
                     }
-                    ImGui::AlignTextToFramePadding();
 
-                    ImGui::TextDisabled("AO");
-                    ImGui::SameLine();
-                    b = particles->useAO();
-                    if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useAO(b);
-
-                    if(particles->useAO()) {
+                    if(particles->postRenderingActive()) {
+                        ImGui::PushItemWidth(wButt3);
                         ImGui::SameLine();
-                        float aoW = w - (ImGui::GetCursorPosX()-posA);
-                        float aoSZ = (aoW - border*3.f) * .333;
-                    
-                        float start = ImGui::GetCursorPosX();
-                        ImGui::TextDisabled("Bias");
-                        ImGui::SameLine();
-                        float end = ImGui::GetCursorPosX();
-                        ImGui::PushItemWidth(aoSZ - (end-start));
-
-                        float f = particles->getAOBias();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOBias(f);
-                        ImGui::PopItemWidth();
+                        {
+                            float f = particles->dpAdjConvex();
+                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .001, .01, 1.0, "Adj: %.3f",1.f)) particles->dpAdjConvex(f);
+                        }
 
                         ImGui::SameLine();
-                        start = ImGui::GetCursorPosX();
-                        ImGui::TextDisabled("Rad");
-                        ImGui::SameLine();
-                        end = ImGui::GetCursorPosX();
-                        ImGui::PushItemWidth(aoSZ - (end-start));
-
-                        f = particles->getAORadius();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .01, 0.01, 5.0,  "%.2f",1.f,ImVec2(.93,0.5))) particles->setAORadius(f);
-                        ImGui::PopItemWidth();
-
-                        ImGui::SameLine();
-                        start = ImGui::GetCursorPosX();
-                        ImGui::TextDisabled("Dark");
-                        ImGui::SameLine();
-                        end = ImGui::GetCursorPosX();
-                        ImGui::PushItemWidth(aoSZ - (end-start));
-
-                        f = particles->getAODarkness();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .0025, 0.0, 1.0,  "%.2f",1.f,ImVec2(.93,0.5))) particles->setAODarkness(f);
+                        {
+                            float f = particles->dpNormalTune();
+                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .00025, 0.0, 1.0, "Norm: %.4f",1.f)) particles->dpNormalTune(f);
+                        }
                         ImGui::PopItemWidth();
                     }
                 }
@@ -491,7 +449,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGuiStyle& style = ImGui::GetStyle();
             const float buttY = style.FramePadding.y*2+(fontSize * io.FontGlobalScale);
 
-            const float w = ImGui::GetContentRegionAvailWidth()-border*2;
+            const float w = ImGui::GetContentRegionAvail().x-border*2;
 
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
             ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*7-ImGui::GetStyle().ItemSpacing.y*2), true);
@@ -655,7 +613,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::PopItemWidth();
                 ImGui::SameLine(); 
                 ImGui::TextDisabled("Dist"); ImGui::SameLine();
-                ImGui::PushItemWidth(w - (ImGui::GetCursorPosX()-posA));
+                ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
                 float dist = glm::length(vL);
                 if(ImGui::DragFloatEx(buildID(base, idA++, id), &dist ,0.01, 0.01f, 5000.f, "% .3f",1.0f,ImVec2(.93,0.5))) {
                     particles->setLightDir(glm::normalize(particles->getLightDir()) * dist);
@@ -729,11 +687,160 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
         }
     }
 #endif
+
+#if !defined(GLCHAOSP_LIGHTVER)
+    if(!particles->getBlendState() && (particles->getDepthState() || particles->getLightState())) {
+// Shadow settings
+////////////////////////////////////
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+            const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SIGN_LANGUAGE  " Shadows   " ICON_FA_COMMENT_O);
+            ImGui::PopStyleColor();
+            ShowHelpOnTitle(GLAPP_HELP_LIGHT_TREE);
+            if(isOpen) {
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
+
+                ImGui::SetCursorPosX(posA); 
+                {
+                    bool b = particles->useShadow();
+                    if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useShadow(b);
+                }
+
+                //if(particles->useShadow()) {
+                    ImGui::SameLine();
+                    float aoW = w - (ImGui::GetCursorPosX()-posA);
+
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
+                    {
+                        int i = int(particles->getShadowRadius());
+                        if(ImGui::DragInt(buildID(base, idA++, id), &i, .125, 0, 20, "Rad: %d")) particles->setShadowRadius(i);
+                    }
+                    ImGui::PopItemWidth();
+
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Ratio");
+                    ImGui::SameLine();
+
+                    ImGui::PushItemWidth(wButt3*2.0 - ImGui::GetCursorPosX());
+                    {
+                        int idx = int(1.f/particles->getShadowGranularity()+.5)-1;
+                        if (ImGui::Combo(buildID(base, idA++, id), &idx, "1:1\0"\
+                                                                         "1:2\0"\
+                                                                         "1:3\0"))
+                            {  particles->setShadowGranularity(1.f/float(idx+1)); }
+                    }
+                    ImGui::PopItemWidth();
+
+                    ImGui::SameLine();
+
+                    ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
+                    {
+                        float f = particles->getShadowBias();
+                        if(ImGui::DragFloat(buildID(base, idA++, id), &f, .001, -100.0, 100.0, "Bias: %.3f",1.f)) particles->setShadowBias(f);
+                    }
+                    ImGui::PopItemWidth();
+
+                    ImGui::PushItemWidth(wButt3);
+
+                    ImGui::SetCursorPosX(posA);
+                    {
+                        float f = particles->getShadowDarkness();
+                        if(ImGui::DragFloat(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "Dark: %.3f",1.f)) particles->setShadowDarkness(f);
+                    }
+                    ImGui::PopItemWidth();
+
+                    ImGui::SameLine();
+
+                    {
+                        char txt[48];
+                        bool b = particles->autoLightDist();
+                        sprintf(txt, b ? "Auto Light Distance " ICON_FA_CHECK_SQUARE_O "%s" : "Auto Light Distance " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
+                        if(colCheckButton(b , txt, w - (ImGui::GetCursorPosX() +border))) particles->autoLightDist(b^1);
+                    }
+                //}
+
+
+
+                ImGui::EndChild();
+                ImGui::PopStyleVar();
+            }
+        }
+// AO settings
+////////////////////////////////////
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+            const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SHIELD  " Ambient Occlusion   " ICON_FA_COMMENT_O);
+            ImGui::PopStyleColor();
+            ShowHelpOnTitle(GLAPP_HELP_LIGHT_TREE);
+            if(isOpen) {
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
+
+                    ImGui::SetCursorPosX(posA); 
+                    {
+                        bool b = particles->useAO();
+                        if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useAO(b);
+                    }
+
+                    //if(particles->useAO()) {
+                        ImGui::SameLine();
+                        float aoW = w - (ImGui::GetCursorPosX()-posA);
+                        float aoSZ = (aoW - border*3.f) * .333;
+
+                        ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
+                        {
+                            float f = particles->getAORadius();
+                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .01, 0.01, 20.0,  "Radius: %.2f",1.f)) particles->setAORadius(f);
+                        }
+                        ImGui::PopItemWidth();
+
+                    
+                        ImGui::SameLine();
+                        ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
+                        {
+                            float f = particles->getAOBias();
+                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "Bias: %.3f",1.f)) particles->setAOBias(f);
+                        }
+                        ImGui::PopItemWidth();
+
+
+                        ImGui::PushItemWidth(wButt3);
+                        ImGui::SetCursorPosX(posA);
+                        {
+                            float f = particles->getAODarkness();
+                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .0025, 0.0, 1.0,  "Dark: %.3f",1.f)) particles->setAODarkness(f);
+                        }
+
+                        ImGui::SameLine();
+                        {
+                            float f = particles->getAOMul();
+                            if(ImGui::DragFloat(buildID(base, idA++, id), &f,.01, 0.1, 2.0, "Mul: %.3f",1.0f)) particles->setAOMul(f);
+                        }
+
+                        ImGui::SameLine();
+                        {
+                            float f = particles->getAOModulate();
+                            if(ImGui::DragFloat(buildID(base, idA++, id), &f,.01, 0.1, 3.0, "Mod: %.3f",1.0f)) particles->setAOModulate(f);
+                        }
+
+                        ImGui::PopItemWidth();
+
+                    //}
+
+
+                ImGui::EndChild();
+                ImGui::PopStyleVar();
+            }
+        }
+    }
+#endif
     // Glow settings
     ////////////////////////////////////
     {
         ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
-        const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_EYE " Glow Effect   "  ICON_FA_COMMENT_O);
+        const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_LOW_VISION " Glow Effect   "  ICON_FA_COMMENT_O);
         ImGui::PopStyleColor();
         ShowHelpOnTitle(GLAPP_HELP_GLOW_TREE);
 
@@ -880,7 +987,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
     ////////////////////////////////////
     {
         ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
-        const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_EYE " FXAA Filter");
+        const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_MAGIC " FXAA Filter");
         ImGui::PopStyleColor();
         if(isOpen) {
         //////////Linea 7//////////        
@@ -1094,11 +1201,11 @@ void particlesDlgClass::view()
             ImGui::BeginChild("Settings", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()*5-border)); 
                 //static bool bBB=false, bPS=false;
 #if !defined(GLCHAOSP_LIGHTVER)
-                ImGui::SetNextTreeNodeOpen(psSelected || psTreeVisible);
+                ImGui::SetNextItemOpen(psSelected || psTreeVisible);
                 if(psTreeVisible = ImGui::CollapsingHeader(ICON_FA_SLIDERS " Pointsprite", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
                     viewSettings(pSys->shaderPointClass::getPtr(), 'P');   
                 }
-                ImGui::SetNextTreeNodeOpen(bbSelected || bbTreeVisible);
+                ImGui::SetNextItemOpen(bbSelected || bbTreeVisible);
                 if(bbTreeVisible = ImGui::CollapsingHeader(ICON_FA_SLIDERS " Billboard", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
                     viewSettings(pSys->shaderBillboardClass::getPtr(),'B');
                 }
@@ -1112,7 +1219,7 @@ void particlesDlgClass::view()
             ImGui::EndChild();  
 
             ImGui::BeginChild("Commons"); 
-                const float w = ImGui::GetContentRegionAvailWidth();
+                const float w = ImGui::GetContentRegionAvail().x;
                 const float wHalf = w*.5;
                 const float wButt = (w - border*3) *.33;
                 const float pos2 = border*2+wButt;
@@ -1335,9 +1442,9 @@ void progSettingDlgClass::view()
     //bool wndVisible;
     if(ImGui::Begin(getTitle(), &isVisible)) { 
 
-        const float w = ImGui::GetContentRegionAvailWidth();
+        const float w = ImGui::GetContentRegionAvail().x;
         const float border = DLG_BORDER_SIZE;
-        const float wButt = ImGui::GetContentRegionAvailWidth();
+        const float wButt = ImGui::GetContentRegionAvail().x;
         ImGuiStyle& style = ImGui::GetStyle();
 
         ImGui::Text(" Size and position");
@@ -1595,7 +1702,7 @@ void dataDlgClass::view()
     if(ImGui::Begin(getTitle(), &isVisible)) {
     
         const float border = DLG_BORDER_SIZE;
-        const float w = ImGui::GetContentRegionAvailWidth();
+        const float w = ImGui::GetContentRegionAvail().x;
         const float wH = w*.5f+border*2;
         const float wButt = w-border*2;
         const float wButtH = wButt * .5f;
@@ -1698,7 +1805,7 @@ void particleEditDlgClass::view()
 
 
     if(ImGui::Begin(getTitle(), &isVisible)) {
-        const float w = ImGui::GetContentRegionAvailWidth();
+        const float w = ImGui::GetContentRegionAvail().x;
         const float border = DLG_BORDER_SIZE;
         const float wButt = w;
         const float wButt3 = w*.3333;
@@ -1772,7 +1879,7 @@ void viewSettingDlgClass::view()
         particlesSystemClass *pSys = theWnd->getParticlesSystem();
         vfGizmo3DClass &tBall = pSys->getTMat()->getTrackball();
 
-        const float w = ImGui::GetContentRegionAvailWidth();
+        const float w = ImGui::GetContentRegionAvail().x;
         const float wHalf = w*.5;
         const float wButt2 = (wHalf-DLG_BORDER_SIZE*1.5);
 
@@ -2048,9 +2155,9 @@ void aboutDlgClass::view()
 
     if(ImGui::Begin(getTitle(), &isVisible)) {
     
-        const float w = ImGui::GetContentRegionAvailWidth();
+        const float w = ImGui::GetContentRegionAvail().x;
         const float border = DLG_BORDER_SIZE;
-        const float wButt = ImGui::GetContentRegionAvailWidth()-border*2;
+        const float wButt = ImGui::GetContentRegionAvail().x-border*2;
 
         //ImGui::SetCursorPosX(4*theDlg.getFontSize()*theDlg.getFontZoom()*.5);
         ImGui::TextUnformatted(GLAPP_HELP_ABOUT);
@@ -2197,9 +2304,11 @@ void infoDlgClass::view()
 
         if(metricW) ImGui::ShowMetricsWindow(&metricW);
 
+#if !defined(GLCHAOSP_LIGHTVER)
         if(ImGui::Button(" start/stop ")) {
             theApp->resetParticlesSystem();
         }
+#endif
     }
     ImGui::End();
 
@@ -2224,7 +2333,7 @@ void mainImGuiDlgClass::view()
 
     if(ImGui::Begin(getTitle(),  NULL ,ImGuiWindowFlags_NoResize)) {
 
-        const float w = ImGui::GetContentRegionAvailWidth();
+        const float w = ImGui::GetContentRegionAvail().x;
         const float border = DLG_BORDER_SIZE;
         const float wButt = w;
 
