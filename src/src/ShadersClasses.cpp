@@ -259,9 +259,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
 #if !defined(GLCHAOSP_LIGHTVER)
     if(!getBlendState() && isAO_RD_SHDW && !showAxes())  {
-        //float tN = getTMat()->getPerspNear()-.95;    
-        //getUData().zNear = tN < 0.0 ? getTMat()->getPerspNear()-tN : getTMat()->getPerspNear();
-        //float tN = .27;//+(getTMat()->getPOV()[2]-getTMat()->getTrackball().getDollyPosition()[2])*.01;
 
         tMat.setLightView(getLightDir());
         mat4 m(1.f);
