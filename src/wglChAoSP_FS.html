@@ -1,0 +1,138 @@
+﻿<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <title>wglChAoS.P / wglChAoSP</title>
+    <style>
+      .emscripten { 
+        position: absolute;
+            top: 0px;
+            left: 0px;
+            margin: 0px;
+            border: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: block;
+            image-rendering: optimizeSpeed;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -o-crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: optimize-contrast;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+            -ms-interpolation-mode: nearest-neighbor;
+        }
+      textarea.emscripten { font-family: monospace; width: 80%; }
+      div.emscripten { text-align: center; }
+      /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+      canvas.emscripten { border: 0px none; background-color: black; }
+
+    .spinner {
+        height: 27px;
+        width: 27px;
+        margin: 0px auto;
+        -webkit-animation: rotation .27s linear infinite;
+        -moz-animation: rotation .27s linear infinite;
+        -o-animation: rotation .27s linear infinite;
+        animation: rotation 0.27s linear infinite;
+        border-left: 7px solid rgb(0,150,240);
+        border-right: 7px solid rgb(0,150,240);
+        border-bottom: 7px solid rgb(0,150,240);
+        border-top: 7px solid rgb(0,100,200);
+        border-radius: 100%;
+        background-color: rgba(0,0,0,0);
+      }      
+      @-webkit-keyframes rotation {
+        from {-webkit-transform: rotate(0deg);}
+        to {-webkit-transform: rotate(360deg);}
+      }
+      @-moz-keyframes rotation {
+        from {-moz-transform: rotate(0deg);}
+        to {-moz-transform: rotate(360deg);}
+      }
+      @-o-keyframes rotation {
+        from {-o-transform: rotate(0deg);}
+        to {-o-transform: rotate(360deg);}
+      }
+      @keyframes rotation {
+        from {transform: rotate(0deg);}
+        to {transform: rotate(360deg);}
+      }
+
+    </style>
+  </head>
+  <body bgcolor="#001c2c">
+    <figure id="spinner" style="overflow: visible;"><div class="spinner">
+</div>
+<center style="margin-top: 0.5em; color:#99c8ff;"><strong>wglChAoS.P / wglChAoSP</strong></center>
+</figure>
+<div class="emscripten" id="status" style="color:#99c8ff;">Wait...</div>
+<div class="emscripten">
+      <progress hidden="1" id="progress" max="100" value="0"></progress>  
+    </div>
+<div class="emscripten_border">
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    </div>
+<div class="emscripten">
+    
+      <input onclick="Module.requestFullscreen(false, false)" type="button" value="Fullscreen" />
+    </div>
+<script type="text/javascript">
+      var statusElement = document.getElementById('status');
+      var progressElement = document.getElementById('progress');
+      var spinnerElement = document.getElementById('spinner');
+
+    var url_string = window.location.href;
+    var url = new URL(url_string);
+    var width = url.searchParams.get("width");
+    var height = url.searchParams.get("height");
+    var maxbuffer = url.searchParams.get("maxbuffer");
+    var lowprec = url.searchParams.get("lowprec");
+    var intbuffer = url.searchParams.get("intbuffer");
+    var tabletmode = url.searchParams.get("tabletmode");
+    var glowOFF = url.searchParams.get("glowOFF");
+    var lightGUI = url.searchParams.get("lightGUI");
+
+    var Module = {
+        arguments: [width == null ? '1024' : width,
+                    height == null ? '1024' : height,
+                    maxbuffer == null ? '10' : maxbuffer,
+                    lowprec == null ? '1' : lowprec,
+                    intbuffer == null ? '20' : intbuffer,
+                    tabletmode == null ? '0' : tabletmode,
+                    glowOFF == null ? '0' : glowOFF,
+                    lightGUI == null ? '0' : lightGUI],
+        preRun: [],
+        postRun: [],
+        print: (function() {
+            return function(text) {
+                text = Array.prototype.slice.call(arguments).join(' ');
+                console.log(text);
+            };
+        })(),
+        printErr: function(text) {
+            text = Array.prototype.slice.call(arguments).join(' ');
+            console.error(text);
+        },
+        canvas: (function() {
+            var canvas = document.getElementById('canvas');
+            //canvas.addEventListener("webglcontextlost", function(e) { alert('FIXME: WebGL context lost, please reload the page'); e.preventDefault(); }, false);
+            return canvas;
+        })(),
+        setStatus: function(text) {
+            console.log("status: " + text);
+        },
+        monitorRunDependencies: function(left) {
+            // no run dependencies to log
+        }
+      };
+      window.onerror = function() {
+        console.log("onerror: " + event);
+      };
+    </script>
+    <script async src=wglChAoSP.js></script>
+  </body>
+</html>

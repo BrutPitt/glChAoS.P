@@ -16,6 +16,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <glm/glm.hpp>
 
+#include <fastRandom.h>
 
 #include "glWindow.h"
 #include "ParticlesUtils.h"
@@ -78,7 +79,11 @@ void glWindow::onInit()
 
     //load attractor file (if exist) and (if exist) override default parameters
     //attractorsList.setSelection(attractorsList.getSelection()); 
-    attractorsList.setSelection(30); 
+    fstRnd::fFastRand32 fastRandom; 
+        
+    int listSize = attractorsList.getList().size()-1;
+    int index = int(fastRandom.UNI() * float(listSize));
+    attractorsList.setSelection(index); 
 }
 
 // 

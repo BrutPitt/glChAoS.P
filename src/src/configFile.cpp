@@ -163,6 +163,7 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
 
 
     c["AOenabled"       ] = ptr->useAO();
+    c["AOstrong"        ] = ptr->getAOStrong();
     c["AObias"          ] = ptr->getAOBias();
     c["AOradius"        ] = ptr->getAORadius();
     c["AOdarkness"      ] = ptr->getAODarkness();
@@ -408,6 +409,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
                               c.get_or("dotsType"        , 0));
 
     ptr->useAO(                    c.get_or("AOenabled"   , false               ));
+    ptr->setAOStrong(              c.get_or("AOstrong"    , 0.0                 ));
     ptr->setAOBias(                c.get_or("AObias"      , .2                  ));
     ptr->setAORadius(              c.get_or("AOradius"    , ptr->getAORadius()  ));
     ptr->setAODarkness(            c.get_or("AOdarkness"  , .25                 ));

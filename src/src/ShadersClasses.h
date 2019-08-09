@@ -850,6 +850,7 @@ struct uParticlesData {
     GLfloat aoDarkness = .25;
     GLfloat aoMul = 1.0;
     GLfloat aoModulate = 1.0;
+    GLfloat aoStrong = 0.0;
     GLfloat dpAdjConvex = .333;
     GLfloat dpNormalTune = .025;
 
@@ -1007,6 +1008,9 @@ public:
     /////////////////////////////////////////////
     bool useAO() { return usingAO; }
     void useAO(bool b) { usingAO = b; }
+
+    float getAOStrong() { return uData.aoStrong; }
+    void setAOStrong(float f)  { uData.aoStrong = f; }
 
     float getAORadius() { return uData.aoRadius; }
     void  setAORadius(float f) { uData.aoRadius = f;  }

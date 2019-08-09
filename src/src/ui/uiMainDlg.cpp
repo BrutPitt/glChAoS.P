@@ -712,18 +712,10 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     float aoW = w - (ImGui::GetCursorPosX()-posA);
 
                     ImGui::AlignTextToFramePadding();
-                    ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
-                    {
-                        int i = int(particles->getShadowRadius());
-                        if(ImGui::DragInt(buildID(base, idA++, id), &i, .125, 0, 20, "Rad: %d")) particles->setShadowRadius(i);
-                    }
-                    ImGui::PopItemWidth();
-
-                    ImGui::SameLine();
                     ImGui::TextDisabled("Ratio");
                     ImGui::SameLine();
 
-                    ImGui::PushItemWidth(wButt3*2.0 - ImGui::GetCursorPosX());
+                    ImGui::PushItemWidth(border + (wButt2 - ImGui::GetCursorPosX()));
                     {
                         int idx = int(1.f/particles->getShadowGranularity()+.5)-1;
                         if (ImGui::Combo(buildID(base, idA++, id), &idx, "1:1\0"\
@@ -735,30 +727,45 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                     ImGui::SameLine();
 
-                    ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
                     {
-                        float f = particles->getShadowBias();
-                        if(ImGui::DragFloat(buildID(base, idA++, id), &f, .001, -100.0, 100.0, "Bias: %.3f",1.f)) particles->setShadowBias(f);
+                        char txt[48];
+                        bool b = particles->autoLightDist();
+                        sprintf(txt, b ? "AutoLightDist " ICON_FA_CHECK_SQUARE_O "%s" : "AutoLightDist " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
+                        if(colCheckButton(b , txt, w - (ImGui::GetCursorPosX() +border))) particles->autoLightDist(b^1);
                     }
-                    ImGui::PopItemWidth();
 
-                    ImGui::PushItemWidth(wButt3);
-
+                    ImGui::AlignTextToFramePadding();
                     ImGui::SetCursorPosX(posA);
+                    ImGui::TextDisabled("Rad");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
                     {
-                        float f = particles->getShadowDarkness();
-                        if(ImGui::DragFloat(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "Dark: %.3f",1.f)) particles->setShadowDarkness(f);
+                        int i = int(particles->getShadowRadius());
+                        if(ImGui::DragInt(buildID(base, idA++, id), &i, .1, 0, 20, "%d")) particles->setShadowRadius(i);
                     }
                     ImGui::PopItemWidth();
 
                     ImGui::SameLine();
-
+                    ImGui::TextDisabled("Bias");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
                     {
-                        char txt[48];
-                        bool b = particles->autoLightDist();
-                        sprintf(txt, b ? "Auto Light Distance " ICON_FA_CHECK_SQUARE_O "%s" : "Auto Light Distance " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
-                        if(colCheckButton(b , txt, w - (ImGui::GetCursorPosX() +border))) particles->autoLightDist(b^1);
+                        float f = particles->getShadowBias();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, -100.0, 100.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setShadowBias(f);
                     }
+                    ImGui::PopItemWidth();
+
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Dark");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
+                    {
+                        float f = particles->getShadowDarkness();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setShadowDarkness(f);
+                    }
+
+                    ImGui::PopItemWidth();
+
                 //}
 
 
@@ -784,50 +791,72 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                         if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useAO(b);
                     }
 
-                    //if(particles->useAO()) {
-                        ImGui::SameLine();
-                        float aoW = w - (ImGui::GetCursorPosX()-posA);
-                        float aoSZ = (aoW - border*3.f) * .333;
+                    ImGui::SameLine();
 
-                        ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
-                        {
-                            float f = particles->getAORadius();
-                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .01, 0.01, 20.0,  "Radius: %.2f",1.f)) particles->setAORadius(f);
-                        }
-                        ImGui::PopItemWidth();
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("Mul");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
+                    {
+                        float f = particles->getAOMul();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.1, 2.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOMul(f);
+                    }
+                    ImGui::PopItemWidth();
 
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Diff");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
+                    ImGui::SameLine();
+                    {
+                        float f = particles->getAOModulate();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.1, 3.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOModulate(f);
+                    }
+                    ImGui::PopItemWidth();
                     
-                        ImGui::SameLine();
-                        ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
-                        {
-                            float f = particles->getAOBias();
-                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "Bias: %.3f",1.f)) particles->setAOBias(f);
-                        }
-                        ImGui::PopItemWidth();
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("More");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
+                    {
+                        float f = particles->getAOStrong();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOStrong(f);
+                    }
+                    ImGui::PopItemWidth();
 
 
-                        ImGui::PushItemWidth(wButt3);
-                        ImGui::SetCursorPosX(posA);
-                        {
-                            float f = particles->getAODarkness();
-                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .0025, 0.0, 1.0,  "Dark: %.3f",1.f)) particles->setAODarkness(f);
-                        }
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::SetCursorPosX(posA);
+                    ImGui::TextDisabled("Rad");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
+                    {
+                        float f = particles->getAORadius();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .01, 0.01, 20.0,  "%.2f",1.f,ImVec2(.93,0.5))) particles->setAORadius(f);
+                    }
+                    ImGui::PopItemWidth();
 
-                        ImGui::SameLine();
-                        {
-                            float f = particles->getAOMul();
-                            if(ImGui::DragFloat(buildID(base, idA++, id), &f,.01, 0.1, 2.0, "Mul: %.3f",1.0f)) particles->setAOMul(f);
-                        }
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Bias");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
+                    ImGui::SameLine();
+                    {
+                        float f = particles->getAOBias();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOBias(f);
+                    }
+                    ImGui::PopItemWidth();
 
-                        ImGui::SameLine();
-                        {
-                            float f = particles->getAOModulate();
-                            if(ImGui::DragFloat(buildID(base, idA++, id), &f,.01, 0.1, 3.0, "Mod: %.3f",1.0f)) particles->setAOModulate(f);
-                        }
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Dark");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
+                    {
+                        float f = particles->getAODarkness();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .0025, 0.0, 1.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAODarkness(f);
+                    }
 
-                        ImGui::PopItemWidth();
-
-                    //}
+                    ImGui::PopItemWidth();
 
 
                 ImGui::EndChild();
