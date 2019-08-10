@@ -124,6 +124,10 @@ vec4 SampleTextureCatmullRom( vec2 uv)
     return result;
 }
 
+float getStrognAO(float AO)
+{
+    return u.aoStrong<.001 ? 1.0 : pow(AO,u.aoStrong);
+}
 
 vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO, float shadow)
 {
@@ -148,9 +152,9 @@ vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO, float shadow)
         float specular = lightModel(V, light, N.xyz);
 #endif
 
-        float aoD = sqrt(AO);
+        float aoD = getStrognAO(AO);
         vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,
-                                    (color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
+                                    (aoD*color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
                                     u.lightColor * specular * u.lightSpecInt) * shadow + 
                                     AO*(color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5 
                                  );
@@ -321,8 +325,9 @@ void main()
         vec3 lightColor = unPackColor8(packedColor.x).yzw;
         vec3 baseColor  = unPackColor8(packedColor.y).yzw;
 */
+        float aoD = getStrognAO(AO);
         lightColor = smoothstep(u.sstepColorMin, u.sstepColorMax, 
-                                lightColor * shadow + 
+                                 aoD *lightColor * shadow + 
                                 AO * (baseColor*u.lightAmbInt + vec3(u.lightAmbInt)) * .5);
         outColor = vec4(lightColor,  1.0) ;
 

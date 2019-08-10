@@ -55,12 +55,13 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float aoDarkness;
     float aoMul;
     float aoModulate;
+    float aoStrong;
     float dpAdjConvex;
     float dpNormalTune;
     uint  lightModel;
     uint  lightActive;
     int   pass;
-} u;                    // 50*4
+} u;                    // 51*4
 
 LAYUOT_BINDING(4) uniform _tMat {
     mat4 pMatrix;

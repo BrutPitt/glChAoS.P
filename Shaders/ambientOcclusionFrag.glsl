@@ -222,10 +222,10 @@ void main()
             float sampleDepth = getViewZ(texture(prevData,offset.xy).w);
             //float sampleDepth = CalcViewZ(offset.xy);
 
-            AO += (sampleDepth >= sampleP.z + u.aoBias ? (1.0-u.aoDarkness) * u.aoMul : 0.0);
+            AO += sampleDepth >= sampleP.z + u.aoBias ? (1.0-u.aoDarkness) * u.aoMul : 0.0;
         }
 
-    AO = u.aoModulate - AO/float(RAD);
+    AO = u.aoModulate -  clamp(AO/float(RAD), 0.0, 1.0);
 
     //float shadow = bool(u.pass &  RENDER_SHADOW) ? buildSmoothShadow(vtx): 1.0;
 

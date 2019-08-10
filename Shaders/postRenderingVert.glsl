@@ -57,6 +57,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float aoDarkness;
     float aoMul;
     float aoModulate;
+    float aoStrong;
     float dpAdjConvex;
     float dpNormalTune;
     uint  lightModel;
