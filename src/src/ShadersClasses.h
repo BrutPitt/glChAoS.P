@@ -853,10 +853,13 @@ struct uParticlesData {
     GLfloat aoStrong = 0.0;
     GLfloat dpAdjConvex = .333;
     GLfloat dpNormalTune = .025;
-
+// __APPLE__ & GL_ES
     GLuint lightModel = modelBlinnPhong - modelOffset;
     GLuint lightActive = GLuint(on);
     GLint pass = 0;
+#ifdef __APPLE__
+    GLuint renderType = 0;
+#endif
 } uData;
 
 

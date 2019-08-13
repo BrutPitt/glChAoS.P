@@ -166,7 +166,9 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &subVtxIdx);
 #else
 #if !defined(GLCHAOSP_LIGHTVER)
-    #if !defined(__APPLE__)
+    #ifdef __APPLE__
+        uData.renderType = idxPixelColor;
+    #else
         subIDX[locSubPixelColor] = idxSubPixelColor[idxPixelColor-pixColIDX::pixOffset];
         subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel];
 
@@ -323,7 +325,9 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
             glUniform1i(getPostRendering()->getLocShadowTex(), getShadow()->getFBO().getDepth(0));
 
 #endif
+#if !defined(__APPLE__)
             glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
+#endif
 
             getPostRendering()->render();
             getPostRendering()->releaseRender();

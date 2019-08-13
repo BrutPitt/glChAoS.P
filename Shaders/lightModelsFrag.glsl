@@ -61,7 +61,10 @@ LAYUOT_BINDING(2) uniform _particlesData {
     uint  lightModel;
     uint  lightActive;
     int   pass;
-} u;                    // 51*4
+#ifdef __APPLE__
+    uint renderType;
+#endif
+} u;                    // 51*4 + APPLE
 
 LAYUOT_BINDING(4) uniform _tMat {
     mat4 pMatrix;

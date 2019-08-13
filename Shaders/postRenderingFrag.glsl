@@ -197,7 +197,14 @@ float buildSmoothShadow(vec4 frag)
 
     if(projCoords.z>1.0) return 0.0;
     // get depth of current fragment from light's perspective    
-    float currentDepth = getViewZ(projCoords.z) + u.shadowBias;
+
+
+    float bias = u.shadowBias;
+#ifdef __APPLE__
+    bias+=1.0;
+#endif
+
+    float currentDepth = getViewZ(projCoords.z) + bias;
 
     vec2 stepTex = u.shadowGranularity*u.invScrnRes;
 
@@ -223,8 +230,9 @@ float buildSmoothShadow(vec4 frag)
            
             vec4 fragPosLightSpace = tMat * pt;
             vec3 projCoords = .5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
+
             closestDepth = getViewZ(texture(shadowTex, projCoords.xy).r);
-            float currentDepth = getViewZ(projCoords.z) + u.shadowBias;
+            float currentDepth = getViewZ(projCoords.z) + bias;
 
             shadow += currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv ;    // 1.0/9.0
         }

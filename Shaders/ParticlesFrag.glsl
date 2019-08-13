@@ -191,15 +191,19 @@ vec4 mainFunc(vec2 ptCoord)
     vec4 color = acquireColor(ptCoord);
 
 #if defined(GL_ES) || defined(__APPLE__)
-    vec4 retColor = u.lightActive==uint(1) ? pixelColorDirect(color, N) : pixelColorBlending(color, N);
     #ifdef GL_ES
-        return retColor;
-    #else
-        return (u.pass >= uint(2)) ? vec4(color.xyz, depthSample(newVertex.z)) : (u.pass==uint(0) ? retColor : vec4(retColor.xyz, depthSample(newVertex.z))); 
+        return u.lightActive==uint(1) ? pixelColorDirect(color, N) : pixelColorBlending(color, N);
+    #else        
+        switch(u.renderType) {
+            default:
+            case 0 : return pixelColorBlending(color, N);
+            case 1 : return pixelColorDirect(color, N);
+            case 2 : return pixelColorAO(color, N);
+            case 3 : return pixelColorDR(color, N);             
+        }
+        //return (u.pass >= uint(2)) ? vec4(color.xyz, getDepth(newVertex.z)) : (u.pass==uint(0) ? retColor : vec4(retColor.xyz, getDepth(newVertex.z))); 
     #endif
 #else                          
-
-    return pixelColor(color, N); 
-
+        return pixelColor(color, N); 
 #endif
 }
