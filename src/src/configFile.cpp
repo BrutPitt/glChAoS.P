@@ -764,6 +764,8 @@ void mainGLApp::saveProgConfig()
     cfg["emitterType" ] = theApp->getEmitterType();
     cfg["auxStepBuffer" ] = theApp->getEmissionStepBuffer();
 
+    cfg["startWithAttractorIdx" ] = theApp->getStartWithAttractorIdx();
+
     dump_file(filename, cfg, JSON);
 
 }
@@ -821,6 +823,8 @@ bool mainGLApp::loadProgConfig()
 
     theApp->selectEmitterType(cfg.get_or("emitterType",int(emitter_separateThread_externalBuffer)));
     theApp->setEmissionStepBuffer(cfg.get_or("auxStepBuffer", theApp->getEmissionStepBuffer()));
+
+    theApp->setStartWithAttractorIdx(cfg.get_or("startWithAttractorIdx", -1));  // -1 Random start
 
     if(theApp->useLowPrecision()) theApp->setLowPrecision();
     else                          theApp->setHighPrecision();

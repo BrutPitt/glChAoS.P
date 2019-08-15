@@ -843,7 +843,7 @@ struct uParticlesData {
     GLfloat ggxFresnel = .5f;
     GLfloat shadowSmoothRadius = 2.f;
     GLfloat shadowGranularity = 1.f;
-    GLfloat shadowBias = 0.0;
+    GLfloat shadowBias = 0.02;
     GLfloat shadowDarkness = 0.0;
     GLfloat aoRadius =  .5;
     GLfloat aoBias = .025;
@@ -1123,7 +1123,6 @@ private:
 };
 
 #if !defined(GLCHAOSP_LIGHTVER)
-
 //
 // Billboard
 //

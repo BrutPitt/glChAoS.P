@@ -416,7 +416,6 @@ void mainGLApp::glfwInit()
 
 int mainGLApp::glfwExit()
 {
-
     glfwDestroyWindow(getGLFWWnd());
     glfwTerminate();
 

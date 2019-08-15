@@ -219,6 +219,10 @@ public:
     bool isParticlesSizeConstant() { return particlesSizeConstant; }
     void setParticlesSizeConstant(bool b) { particlesSizeConstant = b; }
 
+    int getStartWithAttractorIdx() { return startWithAttractorIdx; }
+    void setStartWithAttractorIdx(int v) { startWithAttractorIdx = v; }
+
+
     void setVSync(int v) { vSync = v; }
     int getVSync() { return vSync; }
 
@@ -323,6 +327,8 @@ private:
     bool tabletMode = false;
     bool lightGUI = false;
     bool initialGlowOFF = false;
+
+    int startWithAttractorIdx = -1; // -1 Random start
 
     int screenShotRequest;
     int vSync = 0;

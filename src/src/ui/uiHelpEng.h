@@ -242,6 +242,29 @@
     "      Checked - use 16bit floating point\n"\
     "    unChecked - use 32bit floating point (default)"\
 
+#define GLAPP_HELP_START_ATTRACTOR\
+    "With which attractor glChAoSP starts\n"\
+    "      Checked - always starts with current attractor\n"\
+    "    unChecked - starts with random selection (default)\n\n"\
+    " *unCheck and reCheck to select new one"\
+
+#define GLAPP_HELP_SHADOWS_TREE\
+    "Shadow settings\n\n"\
+    "   Rad - Smoothing shadow radius in pix (0 = noSmooth)\n"\
+    "   Ratio - expand smooth radius with subPixels\n"\
+    "   AutoLightDist - auto ligt distance extimation\n"\
+    "   Bias - Shadow adaptation\n"\
+    "   Dark - Shadow intensity"\
+
+#define GLAPP_HELP_AO_TREE\
+    "AO settings\n\n"\
+    "   Mul  - Magnitudo\n"\
+    "   Diff - Differential facyor\n"\
+    "   More - Influence in DIFFUSE Light/Color component\n"\
+    "   Rad  - Radius calculation\n"\
+    "   Bias - Adaptation\n"\
+    "   Dark - Intensity"\
+
 #define GLAPP_HELP_CAPTURE\
     "Select path where to save the screenShots\n"\
     "   Default: ./imgsCapture\n\n"\

@@ -290,7 +290,7 @@ void main()
 
     //if(N.w > 1.0) discard;
     //if(u.lightActive==1) {
-        vec2 uv = gl_FragCoord.xy/u.scrnRes;
+        vec2 uv = gl_FragCoord.xy*u.invScrnRes;
         //float test = getZ(texelFetch(prevData,ivec2(uv), 0).x);
         //if(test>.5) {
 //        if(zEye>=1.0) discard;
@@ -324,7 +324,7 @@ void main()
     } else {
         //vec3 lightColor = texture(prevData,uv).rgb;
 
-        vec3 packedColor = texture(prevData,uv).rgb;
+        vec3 packedColor = texelFetch(prevData,ivec2(gl_FragCoord.xy),0).rgb;
         vec2 c = unPackColor16(packedColor.y);
         vec3 lightColor = vec3(unPackColor16(packedColor.x), c.x);
         vec3 baseColor  = vec3(c.y, unPackColor16(packedColor.z));

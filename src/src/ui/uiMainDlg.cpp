@@ -696,7 +696,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
             const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SIGN_LANGUAGE  " Shadows   " ICON_FA_COMMENT_O);
             ImGui::PopStyleColor();
-            ShowHelpOnTitle(GLAPP_HELP_LIGHT_TREE);
+            ShowHelpOnTitle(GLAPP_HELP_SHADOWS_TREE);
             if(isOpen) {
                 ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
                 ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
@@ -780,7 +780,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
             const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SHIELD  " Ambient Occlusion   " ICON_FA_COMMENT_O);
             ImGui::PopStyleColor();
-            ShowHelpOnTitle(GLAPP_HELP_LIGHT_TREE);
+            ShowHelpOnTitle(GLAPP_HELP_AO_TREE);
             if(isOpen) {
                 ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
                 ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
@@ -1662,6 +1662,17 @@ void progSettingDlgClass::view()
             ShowHelpMarker(GLAPP_HELP_PRECISION);
         }
 
+        ImGui::NewLine();
+        {
+            ImGui::AlignTextToFramePadding();
+            bool b = bool(theApp->getStartWithAttractorIdx()>=0);
+            if(ImGui::Checkbox(" Start with current attractor", &b)) {
+                if(b) theApp->setStartWithAttractorIdx(attractorsList.getSelection());
+                else  theApp->setStartWithAttractorIdx(-1);
+            }
+            ImGui::SameLine();
+            ShowHelpMarker(GLAPP_HELP_START_ATTRACTOR);
+        }
 /*
         {
             ImGui::AlignTextToFramePadding();
