@@ -1,4 +1,4 @@
-# [**glChAoS.P / wglChAoS.P - Ver 1.2**](https://michelemorrone.eu/glchaosp)  ==> 1.3 (WiP)
+# [**glChAoS.P / wglChAoS.P - Ver 1.2**](https://michelemorrone.eu/glchaosp)  ==> 1.3 (beta)
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractor scout... and hypercompex fractals (new!) 
