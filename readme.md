@@ -9,7 +9,7 @@ A real time 3D strange attractor scout... and hypercompex fractals (new!)
 
 ### New 3D Diffusion Limited Aggregation (DLA 3D)
 [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/dla3D.jpg)](https://twitter.com/i/status/1162177866072805377)
-Personal adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman/dlaf), and possibility to export/reImport in PLY format.
+Personal adaptation and optimization from original code of [Michael Fogleman](https://github.com/BrutPitt/DLAf-optimized), and possibility to export/reImport in PLY format.
 
 DLA3D is also present in WebGL version: only visualization
 
