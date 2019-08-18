@@ -3,7 +3,7 @@
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractor scout... and hypercompex fractals (new!) 
 
-### New 3D Diffusion Limited Aggregation (DLA 3D)
+### New 3D DLA (Diffusion Limited Aggregation)  - [DLA3D Video Example](https://youtu.be/_R7akPh64XU)
 [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/dla3D.jpg)](https://youtu.be/_R7akPh64XU)
 Personal adaptation and optimization from original code of [Michael Fogleman](https://github.com/BrutPitt/DLAf-optimized), and possibility to export/reImport in PLY format.
 
@@ -27,8 +27,7 @@ With **Billboard** and **PointSprite** techniques
 
 (Aizawa attractor example)
 
-### Ver 1.3 with further rendering engine improvement
-**Video example**: **[https://youtu.be/mkX4fdv-kZU](https://youtu.be/mkX4fdv-kZU)**
+### Ver 1.3 with further rendering engine improvement - **[Rendering Video Example](https://youtu.be/mkX4fdv-kZU)**
 | DualPass rendering: Z-buffer surface reconstruction | DualPass + Ambient Occlusion |
 | :---: | :---: |
 | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55315.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55328.jpg)|
