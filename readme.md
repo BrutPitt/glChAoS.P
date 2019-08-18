@@ -5,11 +5,11 @@ A real time 3D strange attractor scout... and hypercompex fractals (new!)
 
 ### New 3D DLA (Diffusion Limited Aggregation)  - [DLA3D Video Example](https://youtu.be/_R7akPh64XU)
 [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/dla3D.jpg)](https://youtu.be/_R7akPh64XU)
-Personal adaptation and optimization from original code of [Michael Fogleman](https://github.com/BrutPitt/DLAf-optimized), and possibility to export/reImport in PLY format.
+Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman), with possibility to export/import/continue in PLY format.
 
 DLA3D is also present in WebGL version: only visualization and WITHOUT AmbientOcclusion and Shadows
 
-**Currently "beta" executables, with these and other new features, are available ONLY in master repository**
+*Currently **v1.3 beta executables**, with these and other new features, are available ONLY in master repository*
 
 ## Particle System rendering features
 - **Light Models**: Phong / Blinn-Phong / GGX
@@ -19,13 +19,11 @@ DLA3D is also present in WebGL version: only visualization and WITHOUT AmbientOc
 
 With **Billboard** and **PointSprite** techniques
 
-### Rendering models
+### Rendering models with Aizawa attractor - **[Video Example](https://youtu.be/mkX4fdv-kZU)**
 
 | Alpha Blending | Solid Dots |
 | :-----: | :----: |
 |![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_5533.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55251.jpg)|
-
-(Aizawa attractor example)
 
 ### Ver 1.3 with further rendering engine improvement - **[Rendering Video Example](https://youtu.be/mkX4fdv-kZU)**
 | DualPass rendering: Z-buffer surface reconstruction | DualPass + Ambient Occlusion |
@@ -373,7 +371,7 @@ It is not necessary to build the library, only headers files is enough. (more in
 colorMaps/jjg\_step.json → J.J. Green palettes (creative commons noncommercial license)
 [http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html](http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html)
 Conversion from gpf format to json 256 variations.
-(these are optional separate files to load for have more color maps)
+(these are optional separate files to load and to have more color maps)
 
 
 ## License
