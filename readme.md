@@ -28,6 +28,7 @@ With **Billboard** and **PointSprite** techniques
 (Aizawa attractor example)
 
 ### Ver 1.3 with further rendering engine improvement
+**Video example**: **[https://youtu.be/mkX4fdv-kZU](https://youtu.be/mkX4fdv-kZU)**
 | DualPass rendering: Z-buffer surface reconstruction | DualPass + Ambient Occlusion |
 | :---: | :---: |
 | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55315.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55328.jpg)|
@@ -35,6 +36,9 @@ With **Billboard** and **PointSprite** techniques
 | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55342.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55450.jpg)|
 
 (features NOT available in WebGL version: too many necessary resources)
+
+
+
 
 
 
