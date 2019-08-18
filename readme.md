@@ -24,6 +24,7 @@ With **Billboard** and **PointSprite** techniques
 | Alpha Blending | Solid Dots |
 | :-----: | :----: |
 |![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_5533.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55251.jpg)|
+
 (Aizawa attractor example)
 
 ### Ver 1.3 with further rendering engine improvement
@@ -32,6 +33,7 @@ With **Billboard** and **PointSprite** techniques
 | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55315.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55328.jpg)|
 | **DualPass + AO + Shadows** | **DualPass + AO + Shadows + mixed AlphaBlending** |
 | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55342.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55450.jpg)|
+
 (features NOT available in WebGL version: too many necessary resources)
 
 
