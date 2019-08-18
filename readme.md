@@ -3,18 +3,36 @@
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractor scout... and hypercompex fractals (new!) 
 
-### Towards Ver 1.3 with further rendering engine improvement: dual pass rendering with depth buffer surface reconstruction and ambient occlusion.
-![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/newRE2.jpg)
-(features not available in WebGL version: too many necessary resources)
-
 ### New 3D Diffusion Limited Aggregation (DLA 3D)
 [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/dla3D.jpg)](https://twitter.com/i/status/1162177866072805377)
 Personal adaptation and optimization from original code of [Michael Fogleman](https://github.com/BrutPitt/DLAf-optimized), and possibility to export/reImport in PLY format.
 
-DLA3D is also present in WebGL version: only visualization
+DLA3D is also present in WebGL version: only visualization and WITHOUT AmbientOcclusion and Shadows
 
-**Currently "beta" executables, with these and other new features, are available in master repository**
+**Currently "beta" executables, with these and other new features, are available ONLY in master repository**
 
+## Particle System rendering features
+- **Light Models**: Phong / Blinn-Phong / GGX
+- **Glow effects**: Gaussian Blur / deNoise bilateral with threshold / Gaussian + deNoise
+- **Anti-aliasing**: FXAA
+- **Image adjustment**: Bright / Contrast / Gamma / Exposure / ToneMapping
+
+With **Billboard** and **PointSprite** techniques
+
+### Rendering models
+
+| Alpha Blending | Solid Dots |
+| :-----: | :----: |
+|![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_5533.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55251.jpg)|
+(Aizawa attractor example)
+
+### Ver 1.3 with further rendering engine improvement
+| DualPass rendering: Z-buffer surface reconstruction | DualPass + Ambient Occlusion |
+| :---: | :---: |
+| ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55315.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55328.jpg)|
+| **DualPass + AO + Shadows** | **DualPass + AO + Shadows + mixed AlphaBlending** |
+| ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55342.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55450.jpg)|
+(features NOT available in WebGL version: too many necessary resources)
 
 
 
@@ -43,7 +61,7 @@ Yes, another attractor visualizer, but [**glChAoS.P**](https://michelemorrone.eu
 
 
 With several options: 
-- 100 Milion of particles in minus of 1.6 GByte of VRAM (**S**light (**dot**) **P**articles)
+- 100 Milion of particles in minus of 1.6 GByte of VRAM (**S**light (**dot**) **P**articles), until **265M** (4G VRAM)
 - Pointsprite and billboard particles type
 - 3D blended/solid/lighted particles
 - Distance and alpha attenuation
@@ -91,11 +109,12 @@ About the GPUs that support the OpenGL 4.5 (with appropriate drivers and OS perm
 Glow effects, mostly with sigma \> 5, requires expensive calculations in terms of performance
 
 If you have slow performance try, in this order:
+- Disable *DualPass* rendering and/or *AO* and/or *Shadows*
 - Disable *GlowEffects* and/or *FXAA* 
 - Prefer *Pointsprite* on AMD and Intel GPU (sensible difference of performance) 
 - Decrease number of particles buffer \< 3000
 - Decrease point size (if you can)
-- try squared 1024x1024 window size (from *Settings panel*)
+- try squared 1024x1024 (power of 2) window size (from *Settings panel*)
 
 
 ### Supported Operating systems:
