@@ -152,7 +152,7 @@ void BicomplexJExplorer::additionalDataCtrls()
     ImGui::DragInt("##indici3", &idx3, .1, 0, 7, str[idx3]); 
     ImGui::PopItemWidth();
 
-    ImGui::NewLine();
+    //ImGui::NewLine();
 
     fractalIIMBase::additionalDataCtrls();
 }

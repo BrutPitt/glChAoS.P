@@ -1,19 +1,19 @@
 # [**glChAoS.P / wglChAoS.P - Ver 1.2**](https://michelemorrone.eu/glchaosp)  ==> 1.3 (beta)
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
-A real time 3D strange attractor scout... and hypercompex fractals (new!) 
+A real time 3D strange attractors scout... and hypercompex fractals (new!) 
 
 ### New 3D DLA (Diffusion Limited Aggregation)  - [DLA3D Video Example](https://youtu.be/_R7akPh64XU)
 [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/dla3D.jpg)](https://youtu.be/_R7akPh64XU)
-Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman), with possibility to export/import/continue in PLY format.
+Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman), with possibility to export/import to/from PLY format and to continue a previous rendering.
 
-DLA3D is also present in WebGL version: only visualization and WITHOUT AmbientOcclusion and Shadows
+DLA3D is also present in WebGL version: only visualization WITHOUT AmbientOcclusion and Shadows
 
 *Currently **v1.3 beta executables**, with these and other new features, are available ONLY in master repository*
 
 ## Particle System rendering features
 - **Light Models**: Phong / Blinn-Phong / GGX
-- **Glow effects**: Gaussian Blur / deNoise bilateral with threshold / Gaussian + deNoise
+- **Glow effects**: Gaussian Blur / bilateral deNoise with threshold / Gaussian + deNoise
 - **Anti-aliasing**: FXAA
 - **Image adjustment**: Bright / Contrast / Gamma / Exposure / ToneMapping
 
@@ -64,12 +64,13 @@ Yes, another attractor visualizer, but [**glChAoS.P**](https://michelemorrone.eu
 
 
 With several options: 
-- 100 Milion of particles in minus of 1.6 GByte of VRAM (**S**light (**dot**) **P**articles), until **265M** (4G VRAM)
-- Pointsprite and billboard particles type
+- 100 Milion of particles in minus of 1.6 GByte of VRAM: **S**light (**dot**) **P**articles, and until **265M** (4G VRAM)
+- PointSprite and billboard particles types
 - 3D blended/solid/lighted particles
-- Distance and alpha attenuation
+- Shadows and AmbientOcclusion
+- Distance attenuation on Size an Alpha channel
 - Full customizable colors, with several color palettes
-- Customizable glow effects: gaussian/threshold/gaussian+threshold
+- Customizable glow effects: Gaussian Blur / bilateral deNoise with threshold / Gaussian + deNoise
 - Customizable FXAA filter
 - Motion blur
 - Post processing image correction:
@@ -109,12 +110,12 @@ About the GPUs that support the OpenGL 4.5 (with appropriate drivers and OS perm
 - CPU with 2 or more cores
 
 ### About performance
-Glow effects, mostly with sigma \> 5, requires expensive calculations in terms of performance
+Glow effects, mostly with sigma \> 5, and DualPass/Shadows/AO requires expensive calculations in terms of performance
 
 If you have slow performance try, in this order:
 - Disable *DualPass* rendering and/or *AO* and/or *Shadows*
 - Disable *GlowEffects* and/or *FXAA* 
-- Prefer *Pointsprite* on AMD and Intel GPU (sensible difference of performance) 
+- Prefer *Pointsprite*: on AMD and Intel GPU (sensible difference of performance) 
 - Decrease number of particles buffer \< 3000
 - Decrease point size (if you can)
 - try squared 1024x1024 (power of 2) window size (from *Settings panel*)
@@ -125,12 +126,15 @@ If you have slow performance try, in this order:
 - [x] Microsoft Windows
 - [x] Linux/Unix
 - [x] Mac OS X
+- [x] Android/iOS via webBrowser (**wglChAoS.P** WebGL/webAssembly, lightned version)
 
 **Tested Operating System Versions:**
 
 - Microsoft Windows 7/8.x/10
-- Linux distributions: Ubuntu 16.04/18.04, Fedora 27/28
+- Linux distributions: Ubuntu 16.04/18.04, Fedora 27/28/29
 - Mac OS X 10.14 (Mojave)
+- Android 5/6/7/8/9 with Firefox and Chrome
+- iOS 11/12 with Firefox and Chrome
 
 ### Executables
 
@@ -138,7 +142,7 @@ No installation program is provided: just clone it form github or download the a
 
 For Windows and Linux glChAoSP uses OpenGL 4.5 with AZDO (Approaching Zero Driver Overhead) and a separate thread (multithread) emitter/generator of particles with memory mapped directly on GPU vRAM.
 
-On Mac OS X, for a limitation of the OS (from Mojave Apple have deprecated OpenGL) there is a downgraded version that use OpenGL 4.1 (higher possible) with a separate thread emitter/generator that use the conventional CPU memory.
+On Mac OS X, for a limitation of the OS (from Mojave Apple have deprecated OpenGL) there is a downgraded version that use OpenGL 4.1 (higher possible) with a separate thread emitter/generator that uses the conventional CPU memory.
 
 Are provided executable for the followings OS:
 
@@ -167,13 +171,13 @@ Read Build/CMake sections for further information.
     - **wine**    
     The Windows executable, 32/64 bit, works fine also in wine 3.xx with no evident loss of performance
 
-*NOTE*: Ending support for Ubuntu 16.04 LTS (ended to April 2019): the distributed executable is no longer compatible, but compatibility remains: you can compile source code to build your executable.
+*NOTE*: Ending support for Ubuntu 16.04 LTS (ended to April 2019): the distributed executable is no longer compatible, but compile compatibility remains: you can compile source code to build your executable.
 - **OS X**\
 `glChAoSP_OSX`: native executable (64 bit) is provided for OpenGL 4.1
 \
 From *“Finder”* click on applescript: `glChAoSP_OSX.app`, or form command line type directly the command: `./glChAoSP_OSX`
 \
-This was tested on OS X ver 10.14 (Mojave) only, although with subsequent updates and different library versions you may need to rebuild it.
+It was tested on OS X ver 10.14 (Mojave) only, although with subsequent updates and different library versions you may need to rebuild it.
 Read Build/CMake sections for further information.
 \
 *Tested on 10.14 Mojave*
@@ -189,7 +193,7 @@ Read Build/CMake sections for further information.
 
 **Tested Compilers**
 
-- Microsoft Visual Studio 2017/2015 (Platform Toolset v.141/140: it does not work with previous versions)
+- Microsoft Visual Studio 2019/2017/2015 (Platform Toolset v.142/141/140: it does not work with previous versions)
 - CLang 5/6/7
 - GNU C++ 5/6/7/8
 
@@ -273,17 +277,17 @@ Use `buildGLFW.sh` from `./src` directory, or build GLFW directly from `./src/sr
 
 Mac users must have installed Xcode and the Command Line Tools, CMake 3.10 or higher.
 
-CMake use the enclosed built version of GLFW (actual development branch v.3.3)
+CMake uses the enclosed built version of GLFW (actual development branch v.3.3)
 
 To build glChAoSP on OS X, from `./src` folder, call `sh build_glChAoSP.sh OSX` (recommended use).
 
-If you need to build also GLFW the `buildOSX.sh` script is provided as helper: it call `buildGLFW.sh OSX` (to build/erbuild GLFW) and  `build_glChAoSP.sh OSX` sequentially.
+If you need to build GLFW too, the `buildOSX.sh` script is provided as helper: it calls `buildGLFW.sh OSX` (to build/erbuild GLFW) and  `build_glChAoSP.sh OSX` sequentially.
 
 Or use `sh buildGLFW.sh OSX` from ./src directory, or build GLFW directly from `./src/src/libs/glfw`
 
 (documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))
 
-Several warnings are visualized, it is normal: I'm not a mac guru (advice and suggestions are appreciated). I tested it only on OS X 10.14 Mojave (build and binary).
+Several warnings are visualized, it is normal. I tested it only on OS X 10.14 Mojave (build and binary).
 
 **WebGL via WebAssembly**
 

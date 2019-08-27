@@ -560,8 +560,12 @@ public:
     }
 
     void additionalDataCtrls();
-    virtual void initStep() {
-        fractalIIMBase::initStep();
+    void initStep() {
+        //fractalIIMBase::initStep();
+        resetQueue();
+        Insert(vVal[0]);
+        //stabilize(STABILIZE_DIM);
+
         a1[0] = a2[0] = a3[0] = a4[0] = &vVal[0].x;
         a1[1] = a2[1] = a3[1] = a4[1] = &vVal[0].y;
         a1[2] = a2[2] = a3[2] = a4[2] = &vVal[0].z;
@@ -2055,7 +2059,7 @@ public:
         PB(BicomplexJMod6_IIM , u8"\uf185" " biCplxJ m.6"        )
         PB(BicomplexJMod7_IIM , u8"\uf185" " biCplxJ m.7"        )
         PB(quatJulia_IIM      , u8"\uf185" " quatJulia"          )
-//        PB(BicomplexJExplorer , u8"\uf2dc" " biComplexJExplorer" )
+        //PB(BicomplexJExplorer , u8"\uf185" " biComplexJExplorer" )
             
 //        PB(glynnJB_IIM        , u8"\uf2dc" " Glynn JuliaBulb"    )
 //        PB(Hopalong        , "Hopalong"         )
