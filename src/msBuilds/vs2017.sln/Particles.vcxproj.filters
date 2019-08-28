@@ -48,6 +48,9 @@
     <Filter Include="3th party Libs\tinyPLY">
       <UniqueIdentifier>{5b720012-a29c-4444-bd2c-3551cb7b0bc7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3th party Libs\nanoflann">
+      <UniqueIdentifier>{be4e4b70-dd70-4a95-a82f-59d54c96e362}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\colorMaps.cpp">
@@ -258,6 +261,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\libs\tinyPLY\tinyply.h">
       <Filter>3th party Libs\tinyPLY</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\nanoflann\nanoflann.hpp">
+      <Filter>3th party Libs\nanoflann</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

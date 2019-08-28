@@ -22,6 +22,8 @@
 #define TINYPLY_IMPLEMENTATION
 #include <tinyPLY/tinyply.h>
 
+template <class T> bool getVec_asArray(Config& c,const char* name,T& outV);
+
 bool loadObjFile() 
 {  
     //string line;
@@ -505,6 +507,38 @@ void fractalIIMBase::loadAdditionalData(Config &cfg)
     maxDepth = cfg.get_or("maxDepth",    maxDepth);
     dim4D    = cfg.get_or("dim4D",       dim4D   );
     degreeN  = cfg.get_or("fractDegreeN",degreeN );
+}
+
+void BicomplexJExplorer::saveAdditionalData(Config &cfg) 
+{
+/*
+    cfg["bjeIDX0" ] = idx0;
+    cfg["bjeIDX1" ] = idx1;
+    cfg["bjeIDX2" ] = idx2;
+    cfg["bjeIDX3" ] = idx3;
+*/
+    std::vector<int> v{idx0, idx1, idx2, idx3};
+    cfg["bjeIDX"        ] = Config::array(v);
+}
+
+void BicomplexJExplorer::loadAdditionalData(Config &cfg) 
+{
+/*
+    idx0 = cfg.get_or("bjeIDX0", 4);
+    idx1 = cfg.get_or("bjeIDX1", 5);
+    idx2 = cfg.get_or("bjeIDX2", 6);
+    idx3 = cfg.get_or("bjeIDX3", 7);
+    //getVec_asArray
+*/
+    const char *name = "bjeIDX";
+    idx0 = 4, idx1 = 5, idx2 = 6, idx3 = 7 ;
+    //std::vector<int> v{ 4, 5, 6, 7};
+    if(cfg.has_key(name)) {
+        std::vector<int> v;
+        for (const Config& e : cfg[name].as_array()) v.push_back(e.as_integer<int>());
+        idx0 = v[0]; idx1 = v[1]; idx2 = v[2]; idx3 = v[3];
+    }
+    
 }
 
 

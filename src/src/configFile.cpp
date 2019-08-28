@@ -372,11 +372,10 @@ template <class T> bool getVec_asArray(Config& c, const char *name, T &outV)
         if(c.has_key(name)) {
             vector<float> v;
             for (const Config& e : c[name].as_array()) v.push_back(e.as_float());
-            outV = *((vec4 *)v.data());
+            outV = *((T *)v.data());
             return true;
         }
         return false;
-
 }
 
 void getRenderMode(Config &c, particlesBaseClass *ptr)

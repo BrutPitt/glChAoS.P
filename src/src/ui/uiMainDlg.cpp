@@ -396,7 +396,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     {
                         ImGui::SameLine(posB3);
                         float f = particles->getAlphaAtten();                   
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01,-0.0, 1000.0, "%.3f",DRAGFLOAT_POW_3,ImVec2(.93,0.5))) particles->setAlphaAtten(f);
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01,0.0, 1000.0, "%.3f",DRAGFLOAT_POW_3,ImVec2(.93,0.5))) particles->setAlphaAtten(f);
                     }
                     {
                         ImGui::SameLine(posC3);
@@ -513,12 +513,12 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 {
                     ImGui::SetCursorPosX(posA);
                     float f = cmSet->getRange(); 
-                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.0, 20.0, "% .3f",1.0f,ImVec2(.93,0.5))) cmSet->setRange(f);
+                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.0, 200.0, "% .3f",1.0f,ImVec2(.93,0.5))) cmSet->setRange(f);
                 }
                 {
                     ImGui::SameLine(posB4);
                     float f = cmSet->getOffsetPoint();
-                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, -10.0, 10.0, "% .3f",1.0f,ImVec2(.93,0.5))) cmSet->setOffsetPoint(f);
+                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, -100.0, 100.0, "% .3f",1.0f,ImVec2(.93,0.5))) cmSet->setOffsetPoint(f);
                 }
                 {
                     ImGui::SameLine(posC4);
@@ -529,7 +529,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 {
                     ImGui::SameLine(posD4);
                     float f = cmSet->getVelIntensity();
-                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.001, 100.0, "% .3f",1.0f,ImVec2(.93,0.5))) cmSet->setVelIntensity(f);
+                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.001, 10000.0, "% .3f",1.0f,ImVec2(.93,0.5))) cmSet->setVelIntensity(f);
                 }
                 ImGui::PopItemWidth();
                 
@@ -615,7 +615,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::TextDisabled("Dist"); ImGui::SameLine();
                 ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
                 float dist = glm::length(vL);
-                if(ImGui::DragFloatEx(buildID(base, idA++, id), &dist ,0.01, 0.01f, 5000.f, "% .3f",1.0f,ImVec2(.93,0.5))) {
+                if(ImGui::DragFloatEx(buildID(base, idA++, id), &dist ,0.01, 0.01f, 10000.f, "% .3f",1.0f,ImVec2(.93,0.5))) {
                     particles->setLightDir(glm::normalize(particles->getLightDir()) * dist);
                 }
 
@@ -623,12 +623,12 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                 ImGui::SetCursorPosX(posA); ImGui::TextDisabled("Diff"); ImGui::SameLine();
                 ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-posA));
-                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightDiffInt,0.01, 0.0, 1000.f, "% .3f",1.0f,ImVec2(.93,0.5));
+                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightDiffInt,0.001, 0.0, 1000.f, "% .3f",1.0f,ImVec2(.93,0.5));
                 ImGui::PopItemWidth();
 
                 ImGui::SameLine(wLightPos);     ImGui::TextDisabled("Ambt"); ImGui::SameLine();
                 ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-wLightPos));
-                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightAmbInt, 0.01, -1.0, 2.f, "% .3f",1.0f,ImVec2(.93,0.5));
+                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightAmbInt, 0.001, -1.0, 2.f, "% .3f",1.0f,ImVec2(.93,0.5));
                 ImGui::PopItemWidth();
                 
                 ImVec2 pos(ImGui::GetCursorPos());
@@ -648,7 +648,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                 ImGui::SetCursorPosX(posA); ImGui::TextDisabled("Spec");  ImGui::SameLine();
                 ImGui::PushItemWidth(wSZ - (ImGui::GetCursorPosX()-posA));
-                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightSpecInt,0.01, 0.0, 1000.f, "% .3f",1.0f,ImVec2(.93,0.5));
+                ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightSpecInt,0.001, 0.0, 1000.f, "% .3f",1.0f,ImVec2(.93,0.5));
                 ImGui::PopItemWidth();
                 
                 if(particles->getLightModel()==idxGGX) {
@@ -669,7 +669,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 } else {
                     ImGui::SameLine(wLightPos);     ImGui::TextDisabled("sExp");  ImGui::SameLine();
                     ImGui::PushItemWidth(sz - (ImGui::GetCursorPosX()-wLightPos));
-                    ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightShinExp, 0.01, .1, 1000.f, "%.3f", DRAGFLOAT_POW_3,ImVec2(.93,0.5));
+                    ImGui::DragFloatEx(buildID(base, idA++, id),&particles->getUData().lightShinExp, 0.001, .1, 1000.f, "%.3f", DRAGFLOAT_POW_3,ImVec2(.93,0.5));
                     ImGui::PopItemWidth();
                 }
 
@@ -678,7 +678,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::SetCursorPosX(posA); 
                 ImGui::TextDisabled("Modulate"); ImGui::SameLine();
                 ImGui::PushItemWidth((wLightButt+border)*2 - (ImGui::GetCursorPosX()));
-                ImGui::DragFloatRange2(buildID(base, idA++, id), &particles->getUData().sstepColorMin, &particles->getUData().sstepColorMax, .01, -1.0, 2.0);
+                ImGui::DragFloatRange2(buildID(base, idA++, id), &particles->getUData().sstepColorMin, &particles->getUData().sstepColorMax, .001, -1.0, 2.0);
                 ImGui::PopItemWidth();
 
 

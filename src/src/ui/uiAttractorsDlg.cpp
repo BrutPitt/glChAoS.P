@@ -146,10 +146,10 @@ void BicomplexJExplorer::additionalDataCtrls()
     headerAdditionalDataCtrls(4);
     ImGui::SameLine(DLG_BORDER_SIZE);
 
-    ImGui::DragInt("##indici0", &idx0, .1, 0, 7, str[idx0]); ImGui::SameLine();
-    ImGui::DragInt("##indici1", &idx1, .1, 0, 7, str[idx1]); ImGui::SameLine();
-    ImGui::DragInt("##indici2", &idx2, .1, 0, 7, str[idx2]); ImGui::SameLine();
-    ImGui::DragInt("##indici3", &idx3, .1, 0, 7, str[idx3]); 
+    ImGui::DragInt("##indici0", &idx0, .02, 0, 7, str[idx0]); ImGui::SameLine();
+    ImGui::DragInt("##indici1", &idx1, .02, 0, 7, str[idx1]); ImGui::SameLine();
+    ImGui::DragInt("##indici2", &idx2, .02, 0, 7, str[idx2]); ImGui::SameLine();
+    ImGui::DragInt("##indici3", &idx3, .02, 0, 7, str[idx3]); 
     ImGui::PopItemWidth();
 
     //ImGui::NewLine();

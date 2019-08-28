@@ -692,13 +692,15 @@ static void ImGui_ImplGlfw_UpdateMonitors()
         ImGuiPlatformMonitor monitor;
         int x, y;
         glfwGetMonitorPos(glfw_monitors[n], &x, &y);
-#ifdef __EMSCRIPTEN__
+/*
+//#ifdef __EMSCRIPTEN__
         int w, h;
         GLFWwindow* wnd = glfwGetCurrentContext();
         glfwGetWindowSize(wnd, &w, &h);
         monitor.MainPos = monitor.WorkPos =  ImVec2((float)x, (float)y);
         monitor.MainSize = monitor.WorkSize = ImVec2(w, h);
-#else
+//#else
+*/
         const GLFWvidmode* vid_mode = glfwGetVideoMode(glfw_monitors[n]);
 #if GLFW_HAS_MONITOR_WORK_AREA
         monitor.MainPos = ImVec2((float)x, (float)y);
@@ -711,7 +713,7 @@ static void ImGui_ImplGlfw_UpdateMonitors()
         monitor.MainPos = monitor.WorkPos = ImVec2((float)x, (float)y);
         monitor.MainSize = monitor.WorkSize = ImVec2((float)vid_mode->width, (float)vid_mode->height);
 #endif
-#endif
+//#endif
 #if GLFW_HAS_PER_MONITOR_DPI
         // Warning: the validity of monitor DPI information on Windows depends on the application DPI awareness settings, which generally needs to be set in the manifest or at runtime.
         float x_scale, y_scale;

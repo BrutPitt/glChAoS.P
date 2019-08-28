@@ -559,6 +559,9 @@ public:
         stepFn = (stepPtrFn) &BicomplexJExplorer::Step; 
     }
 
+    void saveAdditionalData(Config &cfg);
+    void loadAdditionalData(Config &cfg);
+
     void additionalDataCtrls();
     void initStep() {
         //fractalIIMBase::initStep();
@@ -2059,7 +2062,7 @@ public:
         PB(BicomplexJMod6_IIM , u8"\uf185" " biCplxJ m.6"        )
         PB(BicomplexJMod7_IIM , u8"\uf185" " biCplxJ m.7"        )
         PB(quatJulia_IIM      , u8"\uf185" " quatJulia"          )
-        //PB(BicomplexJExplorer , u8"\uf185" " biComplexJExplorer" )
+        PB(BicomplexJExplorer , u8"\uf185" " biComplexJExplorer" )
             
 //        PB(glynnJB_IIM        , u8"\uf2dc" " Glynn JuliaBulb"    )
 //        PB(Hopalong        , "Hopalong"         )
