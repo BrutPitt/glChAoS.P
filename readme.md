@@ -1,4 +1,4 @@
-# [**glChAoS.P / wglChAoS.P - Ver 1.2**](https://michelemorrone.eu/glchaosp)  ==> 1.3 (beta)
+# [**glChAoS.P / wglChAoS.P - Ver 1.3**](https://michelemorrone.eu/glchaosp)
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercompex fractals (new!) 
@@ -8,8 +8,6 @@ A real time 3D strange attractors scout... and hypercompex fractals (new!)
 Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman), with possibility to export/import to/from PLY format and to continue a previous rendering.
 
 DLA3D is also present in WebGL version: only visualization WITHOUT AmbientOcclusion and Shadows
-
-*Currently **v1.3 beta executables**, with these and other new features, are available ONLY in master repository*
 
 ## Particle System rendering features
 - **Light Models**: Phong / Blinn-Phong / GGX
