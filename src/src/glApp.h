@@ -340,7 +340,7 @@ private:
 #endif
 
 #if !defined(GLCHAOSP_USE_LOWPRECISION)
-    bool lowPrecision = true;
+    bool lowPrecision = false;
     GLenum fboInternalPrecision = GL_RGBA32F;
     GLenum palInternalPrecision = GL_RGB32F;
     GLenum texInternalPrecision = GL_R32F;

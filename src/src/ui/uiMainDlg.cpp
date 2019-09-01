@@ -294,11 +294,12 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
         ImGui::PopStyleColor();
 
         if(isOpen) {
-#if !defined(GLCHAOSP_LIGHTVER)
-            const int numItems = 8;
-#else
+#if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
             const int numItems = 7;
+#else
+            const int numItems = 8;
 #endif
+
 
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
             ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*numItems-ImGui::GetStyle().ItemSpacing.y*3), true); 
@@ -404,8 +405,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                         if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.0,  1.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAlphaSkip(f);
                     }
                 ImGui::PopItemWidth();
-
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
                 if(!particles->getBlendState() && (particles->getDepthState() || particles->getLightState())) {
 
                     ImGui::SetCursorPosX(posA);
@@ -433,7 +433,6 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     }
                 }
 #endif
-
             ImGui::EndChild();
             ImGui::PopStyleVar();
         }
@@ -688,7 +687,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
     }
 #endif
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
     if(!particles->getBlendState() && (particles->getDepthState() || particles->getLightState())) {
 // Shadow settings
 ////////////////////////////////////
@@ -1207,8 +1206,8 @@ void particlesDlgClass::view()
     bool bbSelected = theWnd->getParticlesSystem()->whichRenderMode==RENDER_USE_BILLBOARD || theWnd->getParticlesSystem()->getRenderMode() == RENDER_USE_BOTH;
     bool psSelected = theWnd->getParticlesSystem()->whichRenderMode==RENDER_USE_POINTS    || theWnd->getParticlesSystem()->getRenderMode() == RENDER_USE_BOTH;
 
-#if !defined(GLCHAOSP_LIGHTVER)
-    const int wSZ = 300, hSZ = 900;
+#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
+    const int wSZ = 300, hSZ = 1020;
 #else
     const int wSZ = theApp->isTabletMode() ? 300 : 270, hSZ = theApp->isTabletMode() ? 900 : 820;
 #endif
@@ -2478,6 +2477,10 @@ extern bool g_JustTouched[5];
 extern float g_touch_x, g_touch_y;
 
 #endif
+void mainImGuiDlgClass::postRenderImGui()
+{
+
+}
 
 void mainImGuiDlgClass::renderImGui()
 {

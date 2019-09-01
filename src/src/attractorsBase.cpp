@@ -1016,7 +1016,7 @@ void AttractorsClass::selectToContinueDLA(int i) {
     getThreadStep()->stopThread();
     selection(i);
     theApp->getMainDlg().getParticlesDlgClass().resetTreeParticlesFlags();
-    theApp->loadAttractor(attractorsList.getFileName().c_str());
+    theApp->loadAttractor(getFileName().c_str());
 //    get()->initStep();
 
     ((dla3D *)get())->resetIndexData();

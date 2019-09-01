@@ -70,7 +70,6 @@ vec4 acquireColor(vec2 coord)
 
 vec4 newVertex;
 
-#if !defined(GL_ES)
 vec3 packing2Colors16bit(vec3 colorA, vec3 colorB)
 {
     return vec3(packColor16(colorA.rg),
@@ -78,6 +77,7 @@ vec3 packing2Colors16bit(vec3 colorA, vec3 colorB)
                 packColor16(colorB.gb));
 }
 
+#if !defined(GL_ES)
 vec3 packing2Colors8bit(vec3 colorA, vec3 colorB)
 {
     return vec3(packColor8(vec4(0.0,colorA.rgb)),
@@ -116,16 +116,11 @@ vec4 pixelColorDirect(vec4 color, vec4 N)
 
         vec3 ambColor = (color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5;
 
-        return vec4(smoothstep(u.sstepColorMin, u.sstepColorMax, lightColor + ambColor) , color.a);
-/*
 #if defined(GL_ES)
-        return vec4(smoothstep(u.sstepColorMin, u.sstepColorMax, lightColor + ambColor) , color.a);        
+        return vec4(smoothstep(u.sstepColorMin-.1, u.sstepColorMax-.1, lightColor + ambColor) , color.a);
 #else
-        return u.pass>0 ? vec4(packing2Colors8bit(lightColor, color.rgb), getDepth(newVertex.z)) 
-                        : vec4(smoothstep(u.sstepColorMin, u.sstepColorMax, lightColor + ambColor), color.a);
+        return vec4(smoothstep(u.sstepColorMin, u.sstepColorMax, lightColor + ambColor) , color.a);
 #endif
-*/
-    //}
 }
 
 #if !defined(__APPLE__)
@@ -147,12 +142,7 @@ vec4 pixelColorAO(vec4 color, vec4 N)
         vec3 lColor =  color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
                        u.lightColor * specular * u.lightSpecInt;
 
-#if defined(GL_ES)
-        return vec4(lColor, getDepth(newVertex.z));
-#else
         return vec4(packing2Colors16bit(lColor, color.rgb), getDepth(newVertex.z));
-#endif
-
 }
 
 #if !defined(__APPLE__)
@@ -169,8 +159,8 @@ LAYUOT_INDEX(idxBLENDING) SUBROUTINE(_pixelColor)
 #endif
 vec4 pixelColorBlending(vec4 color, vec4 N)
 {
-    if(color.a < u.alphaSkip ) discard ;
-    return color;
+    if(color.a < u.alphaSkip ) { discard; return color; }
+    else return color;
 }
 
 vec4 mainFunc(vec2 ptCoord)
@@ -191,15 +181,15 @@ vec4 mainFunc(vec2 ptCoord)
     vec4 color = acquireColor(ptCoord);
 
 #if defined(GL_ES) || defined(__APPLE__)
-    #ifdef GL_ES
+    #if defined(GL_ES) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
         return u.lightActive==uint(1) ? pixelColorDirect(color, N) : pixelColorBlending(color, N);
     #else        
         switch(u.renderType) {
             default:
-            case 0 : return pixelColorBlending(color, N);
-            case 1 : return pixelColorDirect(color, N);
-            case 2 : return pixelColorAO(color, N);
-            case 3 : return pixelColorDR(color, N);             
+            case uint(0) : return pixelColorBlending(color, N);
+            case uint(1) : return pixelColorDirect(color, N);
+            case uint(2) : return pixelColorAO(color, N);
+            case uint(3) : return pixelColorDR(color, N);             
         }
         //return (u.pass >= uint(2)) ? vec4(color.xyz, getDepth(newVertex.z)) : (u.pass==uint(0) ? retColor : vec4(retColor.xyz, getDepth(newVertex.z))); 
     #endif

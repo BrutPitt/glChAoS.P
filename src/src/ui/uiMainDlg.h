@@ -223,6 +223,7 @@ public:
 
 
     void renderImGui();
+    void postRenderImGui();
     void view();
 
     void switchMode(int x, int y);

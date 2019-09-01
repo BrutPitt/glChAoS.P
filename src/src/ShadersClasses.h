@@ -334,10 +334,11 @@ private:
     mmFBO fbo;
     renderBaseClass *renderEngine;
     std::vector<glm::vec3> ssaoKernel;
+    GLuint ssaoKernelTex;
     GLuint noiseTexture;
     const int kernelSize = 64;
 #if !defined(GLAPP_REQUIRE_OGL45)
-    GLuint locNoiseTexture, locPrevData;
+    GLuint locNoiseTexture, locPrevData, locKernelTexture;
 #endif
     friend particlesBaseClass;
 };
@@ -857,9 +858,7 @@ struct uParticlesData {
     GLuint lightModel = modelBlinnPhong - modelOffset;
     GLuint lightActive = GLuint(on);
     GLint pass = 0;
-#ifdef __APPLE__
     GLuint renderType = 0;
-#endif
 } uData;
 
 

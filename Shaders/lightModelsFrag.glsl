@@ -60,10 +60,8 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float dpNormalTune;
     uint  lightModel;
     uint  lightActive;
-    int   pass;
-#ifdef __APPLE__
-    uint renderType;
-#endif
+    uint  pass;
+    uint  renderType;
 } u;                    // 51*4 + APPLE
 
 LAYUOT_BINDING(4) uniform _tMat {
@@ -84,27 +82,45 @@ LAYUOT_BINDING(4) uniform _tMat {
     subroutine uniform _lightModel lightModel;
 #endif
 
-#if !defined(GL_ES)
 float packColor16(vec2 color)
 {
     return uintBitsToFloat( packUnorm2x16(color) );
 }
+vec2 unPackColor16(float pkColor)
+{
+    return unpackUnorm2x16(floatBitsToUint(pkColor));
+}
+
+
+#if !defined(GL_ES)
+/*
+uint packUnorm4x8(vec4 v) 
+{
+    uint x = round(clamp(v.x, 0.0, 1.0) * 255.0);
+    uint y = round(clamp(v.y, 0.0, 1.0) * 255.0) * 0x100;
+    uint z = round(clamp(v.y, 0.0, 1.0) * 255.0) * 0x10000;
+    uint w = round(clamp(v.y, 0.0, 1.0) * 255.0) * 0x1000000;
+    return x+y+z+w; 
+}
+
+vec4 unpackUnorm4x8(uint i)
+{
+    return vec4(float(i         & 0xff) / 255.0,
+                float(i/0x100   & 0xff) / 255.0,
+                float(i/0x10000 & 0xff) / 255.0,
+                float(i/0x1000000     ) / 255.0);
+}
+*/
 
 float packColor8(vec4 color)
 {
     return uintBitsToFloat( packUnorm4x8(color) );
-}
-
-vec2 unPackColor16(float pkColor)
-{
-    return unpackUnorm2x16(floatBitsToUint(pkColor));
 }
 vec4 unPackColor8(float pkColor)
 {
     return unpackUnorm4x8(floatBitsToUint(pkColor));
 }
 #endif
-
 
 float getViewZ(float D)
 {
@@ -278,7 +294,7 @@ vec3 getSelectedNormal(float z, sampler2D depthData)
     return normalize (N0);
 }
 
-#define RENDER_AO 1
-#define RENDER_DEF 2
-#define RENDER_SHADOW 4
+#define RENDER_AO uint(1)
+#define RENDER_DEF uint(2)
+#define RENDER_SHADOW uint(4)
 

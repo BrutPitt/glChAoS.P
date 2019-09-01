@@ -22,15 +22,16 @@ in vec2 vTexCoord;
 
 uniform vec4 aoVals; // x = Bias, y = Radius, z = darkness
 
-uniform vec3 ssaoSamples[64];
+//uniform vec3 ssaoSamples[64];
 
 out vec4 outColor;
 
 LAYUOT_BINDING(5) uniform sampler2D prevData;
 LAYUOT_BINDING(6) uniform sampler2D noise;
-LAYUOT_BINDING(7) uniform sampler2D shadowTex;
+LAYUOT_BINDING(7) uniform sampler2D ssaoSample;
+//LAYUOT_BINDING(7) uniform sampler2D shadowTex;
 
-
+/*
 vec4 fn(vec2 uv) {
     return vec4(getViewZ(texture(shadowTex, uv).r));
     //return getZ(texture(depthTexture,uv).r);
@@ -126,27 +127,6 @@ vec4 SampleTextureCatmullRom( vec2 uv)
 }
 
 
-float buildShadow(vec4 frag)
-{
-    
-    vec4 pt = vec4(viewRay*-frag.z-u.POV.xy, frag.z-u.POV.z, 1.0);
-           
-    vec4 fragPosLightSpace = m.pMatrix * m.mvLightM  * pt;
-    //fragPosLightSpace = m.pMatrix * m.mvLightM * (vec4(viewLight*frag.z, frag.z, 1.0));
-    // perform perspective divide
-    vec3 projCoords = (fragPosLightSpace.xyz)/(fragPosLightSpace.w);
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5 + .5;
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    //float closestDepth = (SampleTextureCatmullRom(projCoords.xy).x);
-    float closestDepth = getViewZ(texture(shadowTex, projCoords.xy).r); 
-    // get depth of current fragment from light's perspective
-    float currentDepth = getViewZ(projCoords.z) + u.shadowBias;
-    // check whether current frag pos is in shadow
-    float shadow = currentDepth < closestDepth  ? 0.0 : 1.0;
-
-    return shadow;
-}  
 
 
 
@@ -169,7 +149,7 @@ float buildSmoothShadowB(vec4 frag)
 
     float shadow = 0.0;
     int radius = int(u.shadowSmoothRadius);
-    float diam = float(radius) * 2. + 1;
+    float diam = float(radius) * 2. + 1.0;
     float invDiv = 1.0/(diam * diam);
     
     for (int x = -radius; x <= radius ; x++) 
@@ -180,7 +160,7 @@ float buildSmoothShadowB(vec4 frag)
 
     return shadow;
 }  
-
+*/
 float getBlurredZ(ivec2 uv)
 {
     float result = 0.0;
@@ -206,13 +186,14 @@ void main()
     float radius = u.aoRadius;
 
     vec2 noiseScale = u.scrnRes * .25; // -> u.scrnRes/4.0
-    vec3 randomVec = texture(noise, vTexCoord * noiseScale).xyz;
+    vec3 randomVec = texture(noise, vTexCoord * noiseScale).xyz * 2.0 - 1.0;
     vec3 tangent   = normalize(randomVec - N * dot(randomVec, N));
     vec3 bitangent = cross(N, tangent);
     mat3 TBN       = mat3(tangent, bitangent, N);
 
         for (int i = 0 ; i < RAD ; i++) {
-            vec3 sampleP = TBN * ssaoSamples[i];
+            vec3 sampleP = TBN * texelFetch(ssaoSample, ivec2(i,0), 0).xyz;  // ssaoSamples[i];
+            //vec3 sampleP = TBN * ssaoSamples[i];
             sampleP = vtx.xyz + sampleP * radius; 
             vec4 offset = vec4(sampleP, 1.0);
             offset = m.pMatrix * offset;
@@ -229,7 +210,7 @@ void main()
 
     //float shadow = bool(u.pass &  RENDER_SHADOW) ? buildSmoothShadow(vtx): 1.0;
 
-    outColor = vec4(vec3(1.0)/*N*.5 + .5 */, clamp(AO, 0.0, 1.0));
+    outColor = vec4(vec3(1.0)/*N*.5 + .5 */, AO);
     //outColor = vec4(N.xyz*.5 + .5 , 1.0);
     //outColor = vec4( vec3(texelFetch(prevData,ivec2(uv), 0).w) , 1.0);
     //outColor = vec4(texelFetch(prevData,ivec2(uv               ) , 0).xyz , 1.0);

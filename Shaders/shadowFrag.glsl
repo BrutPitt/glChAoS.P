@@ -19,6 +19,10 @@
 in vec4 mvVtxPos;
 in float particleSize;
 
+#ifdef GL_ES
+out vec4 color;
+#endif
+
 void main()
 {
 
@@ -31,6 +35,9 @@ void main()
     //z = (z + u.zNear) / (u.zFar - u.zNear);
     gl_FragDepth = getDepth(z);
 
-    //gl_FragDepth = mvVtxPos.z + N.z * particleSize;
-
+// for Chrome76 message: "exture is not renderable" if only zBuffer... need ColorBuffer 
+// FireFox68 Works fine also only with zBuffer w/o ColorBuffer
+#ifdef GL_ES 
+    color = vec4(vec3(gl_FragDepth), 1.0);
+#endif
 } 

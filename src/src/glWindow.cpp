@@ -87,6 +87,7 @@ void glWindow::onInit()
         
         int index = int(fastRandom.UNI() * float(listSize));
         attractorsList.setSelection(index); 
+        //attractorsList.setSelection(30); 
     }
     else attractorsList.setSelection(theApp->getStartWithAttractorIdx()); 
     

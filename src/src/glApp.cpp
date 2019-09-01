@@ -351,6 +351,9 @@ void mainGLApp::glfwInit()
         glslDefines+= "#define LAYUOT_BINDING(X)\n"
                       "#define LAYUOT_INDEX(X)\n"
                       "#define SUBROUTINE(X)\n"
+#ifdef GLCHAOSP_LIGHTVER_EXPERIMENTAL
+                      "#define GLCHAOSP_LIGHTVER_EXPERIMENTAL\n"
+#endif
                       "#define CONST\n";
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //GLFW_OPENGL_ANY_PROFILE

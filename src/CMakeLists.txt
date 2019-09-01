@@ -144,11 +144,14 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
         endif()    
     endif()
 
+    set(M_EMCC_EMBED_ALL_ATTRACTORS "${CMAKE_SOURCE_DIR}/../ChaoticAttractors@ChaoticAttractors/")
+    set(M_EMCC_EMBED_FEW_ATTRACTORS "${CMAKE_SOURCE_DIR}/../selectedAttractors@ChaoticAttractors/")
+
 # grouped EMCC_OPTIONS
 #     --embed-file \"${CMAKE_SOURCE_DIR}/../ChaoticAttractors@ChaoticAttractors/\"\
 
     set(M_EMCC_EMBED_FILES "--preload-file \"${CMAKE_SOURCE_DIR}/../Shaders@Shaders/\"\
-     --preload-file \"${CMAKE_SOURCE_DIR}/../ChaoticAttractors@ChaoticAttractors/\"\
+     --preload-file \"${M_EMCC_EMBED_FEW_ATTRACTORS}\"\
      --preload-file \"${CMAKE_SOURCE_DIR}/../colorMaps/palettes.json@colorMaps/\"\
      --preload-file \"${CMAKE_SOURCE_DIR}/../Fonts@Fonts/\"\
      --preload-file \"${CMAKE_SOURCE_DIR}/../startData@startData/\"")

@@ -64,10 +64,8 @@ LAYUOT_BINDING(2) uniform _particlesData {
     float dpNormalTune;
     uint  lightModel;
     uint  lightActive;
-    int   pass;
-#ifdef __APPLE__
-    uint renderType;
-#endif
+    uint  pass;
+    uint  renderType;
 } u;
 
 LAYUOT_BINDING(4) uniform _tMat {

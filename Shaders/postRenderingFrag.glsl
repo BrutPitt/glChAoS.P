@@ -178,6 +178,29 @@ float getShadow(vec2 uv)
     return clamp(texture(aoTex,uv).x, 0.0, 1.0);
 }
 
+float buildShadow(vec4 frag)
+{
+    
+    vec4 pt = vec4(viewRay*-frag.z-u.POV.xy, frag.z-u.POV.z, 1.0);
+           
+    vec4 fragPosLightSpace = m.pMatrix * m.mvLightM  * pt;
+    //fragPosLightSpace = m.pMatrix * m.mvLightM * (vec4(viewLight*frag.z, frag.z, 1.0));
+    // perform perspective divide
+    vec3 projCoords = (fragPosLightSpace.xyz)/(fragPosLightSpace.w);
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + .5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    //float closestDepth = (SampleTextureCatmullRom(projCoords.xy).x);
+    float closestDepth = getViewZ(texture(shadowTex, projCoords.xy).r); 
+    // get depth of current fragment from light's perspective
+    float currentDepth = getViewZ(projCoords.z) + u.shadowBias;
+    // check whether current frag pos is in shadow
+    float shadow = currentDepth < closestDepth  ? 0.0 : 1.0;
+
+    return shadow;
+}  
+
+
 float buildSmoothShadow(vec4 frag)
 {
 /*
@@ -210,7 +233,7 @@ float buildSmoothShadow(vec4 frag)
 
     float shadow = 0.0;
     int radius = int(u.shadowSmoothRadius);
-    float diam = float(radius) * 2. + 1;
+    float diam = float(radius) * 2. + 1.0;
     float invDiv = 1.0/(diam * diam);
     
     for (int x = -radius; x <= radius ; x++) 
@@ -246,7 +269,7 @@ float getBlurredShadow(vec2 uv)
     
     float result = 0.0;
     const int radius = 1;//int(u.shadowSmoothRadius*.5);
-    const float diam = float(radius) * 2. + 1;
+    const float diam = float(radius) * 2. + 1.0;
     const float div = diam * diam;
     for (int x = -radius; x <= radius ; x++) 
         for (int y = -radius; y <= radius; y++) 
@@ -290,20 +313,21 @@ void main()
 
     //if(N.w > 1.0) discard;
     //if(u.lightActive==1) {
-        vec2 uv = gl_FragCoord.xy*u.invScrnRes;
-        //float test = getZ(texelFetch(prevData,ivec2(uv), 0).x);
-        //if(test>.5) {
+    vec2 uv = gl_FragCoord.xy*u.invScrnRes;
+    //float test = getZ(texelFetch(prevData,ivec2(uv), 0).x);
+    //if(test>.5) {
 //        if(zEye>=1.0) discard;
 
-        float depth = texture(prevData,uv).w;
-        if(depth<=.01) { discard; outColor = vec4(0.0); return; }
+    float depth = texture(prevData,uv).w;
+    if(depth<=.01) { discard; outColor = vec4(0.0); return; }
 
-        float z = getViewZ(depth);
-        vec4 vtx = vec4(viewRay *z, z, 1.0);
+    float z = getViewZ(depth);
+    vec4 vtx = vec4(viewRay *z, z, 1.0);
 
-        //float AO = bicubic(uv, 3); //texelFetch(aoTex,ivec2(uv), 0).w;
-        float AO = bool(u.pass&RENDER_AO) ? getBlurredAO(uv) : 1.0;
-        float shadow = bool(u.pass &  RENDER_SHADOW) ?  buildSmoothShadow(vtx) : 1.0;
+    //float AO = bicubic(uv, 3); //texelFetch(aoTex,ivec2(uv), 0).w;
+    float AO = bool(u.pass&RENDER_AO) ? getBlurredAO(uv) : 1.0;
+    float shadow = bool(u.pass &  RENDER_SHADOW) ?  buildSmoothShadow(vtx) : 1.0;
+
 
     if(bool(u.pass &  RENDER_DEF)) {
 
@@ -338,6 +362,7 @@ void main()
                                  aoD *lightColor * shadow + 
                                 AO * (baseColor*u.lightAmbInt + vec3(u.lightAmbInt)) * .5);
         outColor = vec4(lightColor,  1.0) ;
+        //outColor = vec4( 1.0) ;
 
     }
 

@@ -21,14 +21,6 @@
 
 //#define APP_DEBUG_GUI_INTERFACE
 
-// insieme
-//#define USE_THREAD_TO_FILL
-
-//#define USE_THREAD_TO_FILL
-//#define USE_MAPPED_BUFFER
-
-//#define GLAPP_DISABLE_DLA
-
 
 //#define GLAPP_IMGUI_VIEWPORT
 
@@ -38,12 +30,10 @@
     #define DOT_TEXT_SHFT 2
 #endif
 
-//#define GLCHAOSP_LIGHTVER
-//#define GLCHAOSP_USE_LOWPRECISION
-//#define __APPLE__
 
 #ifdef GLCHAOSP_LIGHTVER
 //FF !:! pixel -> layout.css.devPixelsPerPx = 1
+    #define GLCHAOSP_LIGHTVER_EXPERIMENTAL
     #define GLCHAOSP_NO_FXAA
     //#define GLCHAOSP_NO_DeL
     //#define GLCHAOSP_USE_LOWPRECISION
