@@ -1,12 +1,12 @@
-# [**glChAoS.P / wglChAoS.P - Ver 1.3.1**](https://michelemorrone.eu/glchaosp)
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.3.1</a></h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercompex fractals (new!) 
 
 ## All availabe 1.3.1 releases
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X**
-- **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebGL** via **webAssembly** - **live** / **online** using your browser
-- **[wglChAoS.P Experimental](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** - **WebGL** experimental release with new drender engine 
+- **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebGL** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
+- **[wglChAoS.P Experimental](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** - **WebGL** experimental release with new render engine 
 
 
 
@@ -45,27 +45,32 @@ With **Billboard** and **PointSprite** techniques
 
 
 
-## [wglChAoS.P / wglChAoSP - the WebGL2 online version (ver. 1.3.1)](https://michelemorrone.eu/glchaosp/webGL.html)
-This is a WebGL 2 / WebAssembly lightened **LIVE / ONLINE** version of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
+## wglChAoS.P - the WebGL2 online version (ver. 1.3.1)
 
-### Supports touch screen for mobile devices, smartphones and tablets 
+This is a **WebGL2** / **WebAssembly** lightened **LIVE / ONLINE** version of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
 
-
-
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
+| **Go to [wglChAoS.P - LIVE / ONLINE](https://michelemorrone.eu/glchaosp/webGL.html) starting page** |
 | :-----: |
+|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
 
-## [wglChAoS.P / wglChAoSP - WebGL2 Experimental with new features](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)
+***Supports touch screen for mobile devices, smartphones and tablets**
+
+## wglChAoS.P Experimental - WebGL2 with new rendering engine
+This is a **WebGL2** / **WebAssembly** lightened **LIVE** / **ONLINE** version with new rendering engine: dual pass accurate rendering, shadows and ambient occlusion
+
+<p align="center">
+<h3 align="center">Go to <a href="https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md">wglChAoS.P Experimental page</a></h3>
+</p>
+
+
+| ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot1.jpg) | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot2.jpg) |
+| :---: | :---: |
+| ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot3.jpg) | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot4.jpg)|
 
 **not availabe still for mobile devices*
 
-| ![[](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot1.jpg) | ![[](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot2.jpg)|
-| :---: | :---: |
-| ![[](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot3.jpg) | ![[](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot4.jpg)|
 
-
-
-## [Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html) like attractors via IIM (Inverse Iterations Method)
+## [Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html) like attractors - via IIM (Inverse Iterations Method)
 | hypercomplex fractals | hypercomplex fractals |
 | :-----: | :----: |
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
@@ -97,6 +102,8 @@ With several options:
 ... and more
 
 For more usage info: [**glChAoS.P info**](https://michelemorrone.eu/glchaosp/info.html)
+
+### Some screenshots from different operating systems
 
 | Windows | Windows Viewports |
 | :-----: | :----: |
