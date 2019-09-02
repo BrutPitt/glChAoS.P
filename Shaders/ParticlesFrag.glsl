@@ -116,11 +116,7 @@ vec4 pixelColorDirect(vec4 color, vec4 N)
 
         vec3 ambColor = (color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5;
 
-#if defined(GL_ES)
-        return vec4(smoothstep(u.sstepColorMin-.1, u.sstepColorMax-.1, lightColor + ambColor) , color.a);
-#else
         return vec4(smoothstep(u.sstepColorMin, u.sstepColorMax, lightColor + ambColor) , color.a);
-#endif
 }
 
 #if !defined(__APPLE__)

@@ -548,24 +548,43 @@ int main(int argc, char **argv)
     theApp = new mainGLApp;          
 
 #ifdef GLCHAOSP_LIGHTVER
-    if(argc>1 && argc!=8) {
+    if(argc>1 && argc!=8 ) {
         int w = atoi(argv[1]);
         int h = atoi(argv[2]);
         {// 3
             int sz = atoi(argv[3]);
-            theApp->setMaxAllocatedBuffer((sz<0 ? 10 : (sz>50) ? 50 : sz) * 1000 * 1000); }
+            theApp->setMaxAllocatedBuffer((sz<0 ? 10 : (sz>50) ? 50 : sz) * 1000 * 1000); 
+        }
         // 4
             if(atoi(argv[4])==1) theApp->setLowPrecision();
             else                 theApp->setHighPrecision();
         {// 5
             int sz = atoi(argv[5]);
-            theApp->setEmissionStepBuffer((sz<0 ? 20 : (sz>200) ? 200 : sz) * 1000); }
+            theApp->setEmissionStepBuffer((sz<0 ? 20 : (sz>200) ? 200 : sz) * 1000); 
+        }
         // 6
             theApp->setTabletMode(atoi(argv[6])==1 ? true : false);
         // 7
             theApp->startWithGlowOFF(atoi(argv[7])==1 ? true : false);
         // 8
             theApp->useLightGUI(atoi(argv[8])==1 ? true : false);
+        // 9        
+            std::string s(argv[9]);
+            printf("%s\n",argv[9]);
+
+            int index;
+            int listSize = attractorsList.getList().size()-1;
+
+            auto getRandomIDX = [&]() {
+                fstRnd::fFastRand32 fastRandom;
+                return int(fastRandom.UNI() * float(listSize));
+            };
+
+            if(s=="random") index = getRandomIDX();
+            else            index = attractorsList.getSelectionByName(s);
+
+            if(index<0 || index>listSize) index = getRandomIDX();            
+            theApp->setStartWithAttractorIdx(index);        
         
         theApp->onInit(w<256 ? 256 : (w>3840 ? 3840 : w), h<256 ? 256 : (h>2160 ? 2160 : h));
     } else
