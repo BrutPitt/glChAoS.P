@@ -41,11 +41,6 @@ With **Billboard** and **PointSprite** techniques
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
-
-
-
-
-
 ## wglChAoS.P - the WebGL2 online version (ver. 1.3.1)
 
 <p align="center">
@@ -59,17 +54,16 @@ This is a **WebGL2** / **WebAssembly** lightened **LIVE / ONLINE** version of **
 <p>&nbsp;<br>&nbsp;<br></p>
 
 ## wglChAoS.P Experimental - WebGL2 with new rendering engine
-This is a **WebGL2** / **WebAssembly** lightened **LIVE** / **ONLINE** version with new rendering engine: dual pass accurate rendering, shadows and ambient occlusion
+This is a **WebGL2** / **WebAssembly** lightened **LIVE** / **ONLINE** version with **new rendering engine**: dual pass accurate rendering, shadows and ambient occlusion
 
-<p align="center">
-</p>
+<p align="center"><b align="center">Go to <a href="https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md">wglChAoS.P Experimental</a> page</b></p>
 
 
 | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot1.jpg) | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot2.jpg) |
 | :---: | :---: |
 | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot3.jpg) | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot4.jpg)|
 
-**not availabe still for mobile devices*
+**Experimentale not availabe/tested still for mobile devices*
 <p>&nbsp;<br>&nbsp;<br></p>
 
 
