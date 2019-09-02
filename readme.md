@@ -37,8 +37,9 @@ With **Billboard** and **PointSprite** techniques
 | **DualPass + AO + Shadows** | **DualPass + AO + Shadows + mixed AlphaBlending** |
 | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55342.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55450.jpg)|
 
-(features NOT available in WebGL version: too many necessary resources)
+**features also available in WebGL EXPERIMENTAL version*
 
+<p>&nbsp;<br>&nbsp;<br></p>
 
 
 
@@ -47,19 +48,20 @@ With **Billboard** and **PointSprite** techniques
 
 ## wglChAoS.P - the WebGL2 online version (ver. 1.3.1)
 
-This is a **WebGL2** / **WebAssembly** lightened **LIVE / ONLINE** version of [**glChAoSP**](https://michelemorrone.eu/glchaosp)
+<p align="center">
+<img src="https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg">
+</p>
 
-| **Go to [wglChAoS.P - LIVE / ONLINE](https://michelemorrone.eu/glchaosp/webGL.html) starting page** |
-| :-----: |
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg)](https://michelemorrone.eu/glchaosp/webGL.html)|
+This is a **WebGL2** / **WebAssembly** lightened **LIVE / ONLINE** version of **glChAoSP** and Supports touch screen for mobile devices, smartphones and tablets
 
-***Supports touch screen for mobile devices, smartphones and tablets**
+<p align="center"><b align="center">Go to <a href="https://michelemorrone.eu/glchaosp/webGL.html">wglChAoS.P - LIVE / ONLINE</a> starting page</b></p>
+
+<p>&nbsp;<br>&nbsp;<br></p>
 
 ## wglChAoS.P Experimental - WebGL2 with new rendering engine
 This is a **WebGL2** / **WebAssembly** lightened **LIVE** / **ONLINE** version with new rendering engine: dual pass accurate rendering, shadows and ambient occlusion
 
 <p align="center">
-<h3 align="center">Go to <a href="https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md">wglChAoS.P Experimental page</a></h3>
 </p>
 
 
@@ -68,6 +70,7 @@ This is a **WebGL2** / **WebAssembly** lightened **LIVE** / **ONLINE** version w
 | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot3.jpg) | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot4.jpg)|
 
 **not availabe still for mobile devices*
+<p>&nbsp;<br>&nbsp;<br></p>
 
 
 ## [Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html) like attractors - via IIM (Inverse Iterations Method)
@@ -76,17 +79,18 @@ This is a **WebGL2** / **WebAssembly** lightened **LIVE** / **ONLINE** version w
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
 
 
+<p>&nbsp;<br>&nbsp;<br></p>
 
-### About glChAoS.P
-Yes, another attractor visualizer, but [**glChAoS.P**](https://michelemorrone.eu/glchaosp/screenshots.html#videoSS) allows you to explore interactively any attractor type, modifyng linearly the values and displaying the changes obtained, immediately, in 3D and in realtime.
+## glChAoS.P features
+glChAoS.P is a 3D realtime Particle System with some unique features:
 
-
-
-With several options: 
-- 100 Milion of particles in minus of 1.6 GByte of VRAM: **S**light (**dot**) **P**articles, and until **265M** (4G VRAM)
-- PointSprite and billboard particles types
+- **100M** of particles in minus of 1.6 GByte of VRAM.. until **265M** (4G VRAM): **S**light (**dot**) **P**articles
+  - only 4-float (vec4) per vertex: position and color
+- PointSprite and Billboard particles types
 - 3D blended/solid/lighted particles
+- Single dot or DualPass rendering (surface reconstruction from zBuffer)
 - Shadows and AmbientOcclusion
+- Light models: Phong / Blinn-Phong / GGX 
 - Distance attenuation on Size an Alpha channel
 - Full customizable colors, with several color palettes
 - Customizable glow effects: Gaussian Blur / bilateral deNoise with threshold / Gaussian + deNoise
@@ -97,21 +101,24 @@ With several options:
     - exposure
     - brightness 
     - contrast 
-    - toneMapping
+    - toneMapping / HDR
 
 ... and more
 
 For more usage info: [**glChAoS.P info**](https://michelemorrone.eu/glchaosp/info.html)
 
-### Some screenshots from different operating systems
+<p>&nbsp;<br>&nbsp;<br></p>
+
+## Some screenshots from different operating systems
 
 | Windows | Windows Viewports |
 | :-----: | :----: |
 |[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/osSS01.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ss001.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
-
 | Linux | Mac OS X |
-| :---: | :---: |
 | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/osSS09.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/osSS04.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
+
+<p>&nbsp;<br>&nbsp;<br></p>
+
 ### Hardware required:
 
 - GPU with OpenGL 4.1 or higher
@@ -202,6 +209,8 @@ It was tested on OS X ver 10.14 (Mojave) only, although with subsequent updates 
 Read Build/CMake sections for further information.
 \
 *Tested on 10.14 Mojave*
+
+<p>&nbsp;<br>&nbsp;<br></p>
 
 ## To build [**glChAoS.P**](https://michelemorrone.eu/glchaosp)
 
@@ -341,6 +350,7 @@ Then go to the folder of cmake ( `cd cmake-3.XX.XX-Linux-x86_64`) and from there
  sudo cp -r doc /usr/share/
  sudo cp -r man /usr/share/ 
  ```
+<p>&nbsp;<br>&nbsp;<br></p>
 
 ## 3rd party tools and color maps
 
@@ -390,7 +400,7 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
 - ~~boost Library in particular: *function_output_iterator* and *geometry* are necessary to build DLA3D (Diffusion Limited Aggregation) object exlploration in glChAoS.P (can be disabled). It's not included in the repository, but can be downloaded from [https://www.boost.org/](https://www.boost.org/)
 It is not necessary to build the library, only headers files is enough. (more information in: how to build)~~
 
-**Color Maps/Palettes**
+**External Color Maps/Palettes - (optional - to load)**
 
 - colorMaps/jjg\_gradient.json
 colorMaps/jjg\_step.json → J.J. Green palettes (creative commons noncommercial license)
@@ -398,6 +408,7 @@ colorMaps/jjg\_step.json → J.J. Green palettes (creative commons noncommercial
 Conversion from gpf format to json 256 variations.
 (these are optional separate files to load and to have more color maps)
 
+<p>&nbsp;<br></p>
 
 ## License
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) is licensed under the BSD 2-Clause License, see *license.txt* for more information.
