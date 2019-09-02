@@ -59,9 +59,9 @@ This is a WebGL 2 / WebAssembly lightened **LIVE / ONLINE** version of [**glChAo
 
 **not availabe still for mobile devices*
 
-| ![https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot1.jpg) | ![https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot2.jpg)|
+| ![[](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot1.jpg) | ![[](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot2.jpg)|
 | :---: | :---: |
-| ![https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot3.jpg) | ![https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot4.jpg)|
+| ![[](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot3.jpg) | ![[](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot4.jpg)|
 
 
 
