@@ -993,7 +993,6 @@ void postRenderingClass::bindRender()
 #else
         glActiveTexture(GL_TEXTURE0 + renderEngine->getAO()->getFBO().getTex(0));
         glBindTexture(GL_TEXTURE_2D,  renderEngine->getAO()->getFBO().getTex(0));
-        glUniform1i(getLocAOTex(), renderEngine->getAO()->getFBO().getTex(0));
 
 // for Chrome76 message: "texture is not renderable" if only zBuffer... need ColorBuffer 
 // FireFox68 Works fine also only with zBuffer w/o ColorBuffer
@@ -1004,7 +1003,6 @@ void postRenderingClass::bindRender()
     #else 
         glActiveTexture(GL_TEXTURE0 + renderEngine->getShadow()->getFBO().getTex(0));
         glBindTexture(GL_TEXTURE_2D,  renderEngine->getShadow()->getFBO().getTex(0));
-        glUniform1i(getLocShadowTex(), renderEngine->getShadow()->getFBO().getTex(0));
     #endif
 #endif
 
@@ -1113,6 +1111,9 @@ void ambientOcclusionClass::create() {
     locKernelTexture = getUniformLocation("ssaoSample");
     uniformBlocksClass::bindIndex(getProgram(), "_particlesData");
     renderEngine->getTMat()->blockBinding(getProgram());
+
+    glUniform1i(locKernelTexture, ssaoKernelTex);
+    glUniform1i(locNoiseTexture, noiseTexture);
 #endif
     //setUniform3fv(getUniformLocation("ssaoSamples"), kernelSize, (const GLfloat*)ssaoKernel.data());
 }
@@ -1136,8 +1137,6 @@ void ambientOcclusionClass::bindRender()
     glActiveTexture(GL_TEXTURE0 + ssaoKernelTex);
     glBindTexture(GL_TEXTURE_2D,  ssaoKernelTex);
     
-    glUniform1i(locKernelTexture, ssaoKernelTex);
-    glUniform1i(locNoiseTexture, noiseTexture);
 #endif
 }
 

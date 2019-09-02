@@ -422,7 +422,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
 
 
     ptr->useShadow(            c.get_or("ShadowEnabled"      , false ));
-    ptr->setShadowBias(        c.get_or("ShadowBias"         , 0.0   ));
+    ptr->setShadowBias(        c.get_or("ShadowBias"         , 0.015 ));
     ptr->setShadowDarkness(    c.get_or("ShadowDarkness"     , 0.0   ));
     ptr->setShadowRadius(      c.get_or("ShadowRadius"       , 2.0   ));
     ptr->setShadowGranularity( c.get_or("ShadowGranularity"  , 1.0   ));

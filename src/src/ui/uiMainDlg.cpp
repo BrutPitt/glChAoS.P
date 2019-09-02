@@ -1207,7 +1207,7 @@ void particlesDlgClass::view()
     bool psSelected = theWnd->getParticlesSystem()->whichRenderMode==RENDER_USE_POINTS    || theWnd->getParticlesSystem()->getRenderMode() == RENDER_USE_BOTH;
 
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-    const int wSZ = 300, hSZ = 1020;
+    const int wSZ = 270, hSZ = 1020;
 #else
     const int wSZ = theApp->isTabletMode() ? 300 : 270, hSZ = theApp->isTabletMode() ? 900 : 820;
 #endif

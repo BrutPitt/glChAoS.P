@@ -253,7 +253,11 @@ void attractorDlgClass::view()
         
     const float border = DLG_BORDER_SIZE;
     //const float oldWindowPadding = style.WindowPadding.x;
+#if !defined(GLCHAOSP_LIGHTVER)
     const int szX = 600, szY = 270;    
+#else
+    const int szX = 450, szY = 200;    
+#endif
     ImGui::SetNextWindowSize(ImVec2(szX, szY), ImGuiCond_FirstUseEver);
     {
         int w,h; glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
