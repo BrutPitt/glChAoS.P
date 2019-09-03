@@ -148,7 +148,7 @@ If you have slow performance try, in this order:
 - [x] Microsoft Windows
 - [x] Linux/Unix
 - [x] Mac OS X
-- [x] Android/iOS via webBrowser (**wglChAoS.P** WebGL/webAssembly, lightned version)
+- [x] Android via webBrowser (**wglChAoS.P** WebGL/webAssembly, lightned version)
 
 **Tested Operating System Versions:**
 
@@ -156,7 +156,7 @@ If you have slow performance try, in this order:
 - Linux distributions: Ubuntu 16.04/18.04, Fedora 27/28/29
 - Mac OS X 10.14 (Mojave)
 - Android 5/6/7/8/9 with Firefox and Chrome
-- iOS 11/12 with Firefox and Chrome
+
 
 ### Executables
 
