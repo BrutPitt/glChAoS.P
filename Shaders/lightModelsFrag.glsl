@@ -71,16 +71,18 @@ LAYUOT_BINDING(4) uniform _tMat {
     mat4 mvLightM;
 } m;
 
+#if !defined(GL_ES) && !defined(__APPLE__)
+    #define lightModelOFFSET 5
+    subroutine float _lightModel(vec3 V, vec3 L, vec3 N);
+    subroutine uniform _lightModel lightModel;
+#else
+    #define lightModelOFFSET 0
+#endif
 
-#define lightModelOFFSET 5
 #define idxPHONG     (lightModelOFFSET    )
 #define idxBLINPHONG (lightModelOFFSET + 1)
 #define idxGGX       (lightModelOFFSET + 2)
 
-#if !defined(GL_ES) && !defined(__APPLE__)
-    subroutine float _lightModel(vec3 V, vec3 L, vec3 N);
-    subroutine uniform _lightModel lightModel;
-#endif
 
 float packColor16(vec2 color)
 {

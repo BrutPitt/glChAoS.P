@@ -256,7 +256,7 @@ void attractorDlgClass::view()
 #if !defined(GLCHAOSP_LIGHTVER)
     const int szX = 600, szY = 270;    
 #else
-    const int szX = 450, szY = 200;    
+    const int szX = 500, szY = 200;    
 #endif
     ImGui::SetNextWindowSize(ImVec2(szX, szY), ImGuiCond_FirstUseEver);
     {

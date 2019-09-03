@@ -346,7 +346,7 @@ void oglAxes::render()
     vaoAxes->drawInstanced(GL_TRIANGLES);
 #endif
 
-    //reset();
+    reset();
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
