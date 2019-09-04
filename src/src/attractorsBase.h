@@ -1786,6 +1786,57 @@ protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
+//  SprottLinzF
+////////////////////////////////////////////////////////////////////////////
+class SprottLinzF : public attractorDtType
+{
+public:
+
+    SprottLinzF() {
+        stepFn = (stepPtrFn) &SprottLinzF::Step;
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+
+//  Coullet 
+////////////////////////////////////////////////////////////////////////////
+class Coullet : public attractorDtType
+{
+public:
+
+    Coullet() {
+        stepFn = (stepPtrFn) &Coullet::Step;
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+//  Coullet 
+////////////////////////////////////////////////////////////////////////////
+class Dadras : public attractorDtType
+{
+public:
+
+    Dadras() {
+        stepFn = (stepPtrFn) &Dadras::Step;
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
+ 
+
 
 
 //  Magnetic base class
@@ -2049,6 +2100,9 @@ public:
         PB(DequanLi           , u8"\uf192" " Dequan-Li"          )
         PB(MultiChuaII        , u8"\uf192" " Multi-Chua II"      )
         PB(ZhouChen           , u8"\uf192" " Zhou-Chen"          )
+        PB(SprottLinzF        , u8"\uf192" " Sprott-Linz F"      )
+        PB(Coullet            , u8"\uf192" " Coullet"            )
+        PB(Dadras             , u8"\uf192" " Dadras"             )
 //        PB(Robinson           , u8"\uf192" " Robinson"           )
         PB(juliaBulb_IIM      , u8"\uf185" " JuliaBulb"          )
         PB(juliaBulb4th_IIM   , u8"\uf185" " JuliaBulb Nth"      )

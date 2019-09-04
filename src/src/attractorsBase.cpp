@@ -590,16 +590,16 @@ void Halvorsen::Step(vec3 &v, vec3 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void Arneodo::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a,b,c
-	vp.x = v.x + dtStepInc*v.y;
- 	vp.y = v.y + dtStepInc*v.z; 
- 	vp.z = v.z + dtStepInc*(-kVal[0]*v.x - kVal[1]*v.y - v.z + kVal[2]*v.x*v.x*v.x);
+    vp.x = v.x + dtStepInc*v.y;
+    vp.y = v.y + dtStepInc*v.z; 
+    vp.z = v.z + dtStepInc*(-kVal[0]*v.x - kVal[1]*v.y - v.z + kVal[2]*v.x*v.x*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
 void Bouali::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a,b,c,s,alfa,beta
-	vp.x = v.x + dtStepInc*( v.x*(kVal[0] - v.y) + kVal[4]*v.z);
- 	vp.y = v.y + dtStepInc*(-v.y*(kVal[1] - v.x*v.x));
- 	vp.z = v.z + dtStepInc*(-v.x*(kVal[2] - kVal[3]*v.z) - kVal[5]*v.z);
+    vp.x = v.x + dtStepInc*( v.x*(kVal[0] - v.y) + kVal[4]*v.z);
+    vp.y = v.y + dtStepInc*(-v.y*(kVal[1] - v.x*v.x));
+    vp.z = v.z + dtStepInc*(-v.x*(kVal[2] - kVal[3]*v.z) - kVal[5]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
 void Hadley::Step(vec3 &v, vec3 &vp) 
@@ -618,66 +618,66 @@ void LiuChen::Step(vec3 &v, vec3 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void GenesioTesi::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a,b,c
-	vp.x = v.x + dtStepInc*v.y;
- 	vp.y = v.y + dtStepInc*v.z; 
- 	vp.z = v.z + dtStepInc*(-kVal[2]*v.x - kVal[1]*v.y - kVal[0]*v.z + v.x*v.x);
+    vp.x = v.x + dtStepInc*v.y;
+    vp.y = v.y + dtStepInc*v.z; 
+    vp.z = v.z + dtStepInc*(-kVal[2]*v.x - kVal[1]*v.y - kVal[0]*v.z + v.x*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
 void NewtonLeipnik::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a,b
-	vp.x = v.x + dtStepInc*(-kVal[0]*v.x + v.y + 10.f*v.y*v.z);
- 	vp.y = v.y + dtStepInc*(-v.x - 0.4f*v.y + 5.f*v.x*v.z);
- 	vp.z = v.z + dtStepInc*(kVal[1]*v.z - 5.f*v.x*v.y);
+    vp.x = v.x + dtStepInc*(-kVal[0]*v.x + v.y + 10.f*v.y*v.z);
+    vp.y = v.y + dtStepInc*(-v.x - 0.4f*v.y + 5.f*v.x*v.z);
+    vp.z = v.z + dtStepInc*(kVal[1]*v.z - 5.f*v.x*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
 void NoseHoover::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a
-	vp.x = v.x + dtStepInc*v.y;
- 	vp.y = v.y + dtStepInc*(-v.x + v.y*v.z); 
- 	vp.z = v.z + dtStepInc*(kVal[0] - v.y*v.y);
+    vp.x = v.x + dtStepInc*v.y;
+    vp.y = v.y + dtStepInc*(-v.x + v.y*v.z); 
+    vp.z = v.z + dtStepInc*(kVal[0] - v.y*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
 void RayleighBenard::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b, r
-	vp.x = v.x + dtStepInc*(-kVal[0]*(v.x - v.y));
- 	vp.y = v.y + dtStepInc*(kVal[2]*v.x - v.y - v.x*v.z); 
- 	vp.z = v.z + dtStepInc*(v.x*v.y - kVal[1]*v.z);
+    vp.x = v.x + dtStepInc*(-kVal[0]*(v.x - v.y));
+    vp.y = v.y + dtStepInc*(kVal[2]*v.x - v.y - v.x*v.z); 
+    vp.z = v.z + dtStepInc*(v.x*v.y - kVal[1]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
 void Sakarya::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b
-	vp.x = v.x + dtStepInc*(-v.x + v.y + v.y*v.z);
- 	vp.y = v.y + dtStepInc*(-v.x - v.y + kVal[0]*v.x*v.z); 
- 	vp.z = v.z + dtStepInc*(v.z - kVal[1]*v.x*v.y);
+    vp.x = v.x + dtStepInc*(-v.x + v.y + v.y*v.z);
+    vp.y = v.y + dtStepInc*(-v.x - v.y + kVal[0]*v.x*v.z); 
+    vp.z = v.z + dtStepInc*(v.z - kVal[1]*v.x*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
 void Robinson::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b, c, d, v
     const float x2 = v.x*v.x;
-	vp.x = v.x + dtStepInc*v.y;
- 	vp.y = v.y + dtStepInc*(v.x - 2.f*x2*v.x - kVal[0]*v.y + kVal[1]*x2*v.y - kVal[4]*v.y*v.z); 
- 	vp.z = v.z + dtStepInc*(-kVal[2]*v.z + kVal[3]*x2);
+    vp.x = v.x + dtStepInc*v.y;
+    vp.y = v.y + dtStepInc*(v.x - 2.f*x2*v.x - kVal[0]*v.y + kVal[1]*x2*v.y - kVal[4]*v.y*v.z); 
+    vp.z = v.z + dtStepInc*(-kVal[2]*v.z + kVal[3]*x2);
 }
 ////////////////////////////////////////////////////////////////////////////
 void Rossler::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b, c
-	vp.x = v.x + dtStepInc*(-v.y - v.z);
- 	vp.y = v.y + dtStepInc*(v.x + kVal[0]*v.y); 
- 	vp.z = v.z + dtStepInc*(kVal[1] + v.z*(v.x - kVal[2]));
+    vp.x = v.x + dtStepInc*(-v.y - v.z);
+    vp.y = v.y + dtStepInc*(v.x + kVal[0]*v.y); 
+    vp.z = v.z + dtStepInc*(kVal[1] + v.z*(v.x - kVal[2]));
 }
 ////////////////////////////////////////////////////////////////////////////
 void Rucklidge::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, k
-	vp.x = v.x + dtStepInc*(-kVal[1]*v.x + kVal[0]*v.y - v.y*v.z);
- 	vp.y = v.y + dtStepInc*v.x; 
- 	vp.z = v.z + dtStepInc*(-v.z + v.y*v.y);
+    vp.x = v.x + dtStepInc*(-kVal[1]*v.x + kVal[0]*v.y - v.y*v.z);
+    vp.y = v.y + dtStepInc*v.x; 
+    vp.z = v.z + dtStepInc*(-v.z + v.y*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
 void DequanLi::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, c, d, e, k, f
-	vp.x = v.x + dtStepInc*(kVal[0]*(v.y-v.x) + kVal[2]*v.x*v.z);
- 	vp.y = v.y + dtStepInc*(kVal[4]*v.x + kVal[5]*v.y - v.x*v.z); 
- 	vp.z = v.z + dtStepInc*(kVal[1]*v.z + v.x*v.y - kVal[3]*v.x*v.x);
+    vp.x = v.x + dtStepInc*(kVal[0]*(v.y-v.x) + kVal[2]*v.x*v.z);
+    vp.y = v.y + dtStepInc*(kVal[4]*v.x + kVal[5]*v.y - v.x*v.z); 
+    vp.z = v.z + dtStepInc*(kVal[1]*v.z + v.x*v.y - kVal[3]*v.x*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
 void MultiChuaII::Step(vec3 &v, vec3 &vp) 
@@ -689,16 +689,37 @@ void MultiChuaII::Step(vec3 &v, vec3 &vp)
         return kVal[startM+5]*x + sum*.5f;  
     };
 
-	vp.x = v.x + dtStepInc*(kVal[0]*(v.y-f(v.x)));
- 	vp.y = v.y + dtStepInc*(v.x - v.y + v.z); 
- 	vp.z = v.z + dtStepInc*(-kVal[1]*v.y);
+    vp.x = v.x + dtStepInc*(kVal[0]*(v.y-f(v.x)));
+    vp.y = v.y + dtStepInc*(v.x - v.y + v.z); 
+    vp.z = v.z + dtStepInc*(-kVal[1]*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
 void ZhouChen::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b, c, d, e, 
-	vp.x = v.x + dtStepInc*(kVal[0]*v.x + kVal[1]*v.y+ v.y*v.z);
- 	vp.y = v.y + dtStepInc*(kVal[2]*v.y - v.x*v.z - kVal[3]*v.y*v.z); 
- 	vp.z = v.z + dtStepInc*(kVal[4]*v.z - v.x*v.y);
+    vp.x = v.x + dtStepInc*(kVal[0]*v.x + kVal[1]*v.y+ v.y*v.z);
+    vp.y = v.y + dtStepInc*(kVal[2]*v.y - v.x*v.z - kVal[3]*v.y*v.z); 
+    vp.z = v.z + dtStepInc*(kVal[4]*v.z - v.x*v.y);
+}
+////////////////////////////////////////////////////////////////////////////
+void SprottLinzF::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a
+    vp.x = v.x + dtStepInc*(v.y + v.z);
+    vp.y = v.y + dtStepInc*(-v.x + kVal[0]*v.y); 
+    vp.z = v.z + dtStepInc*(v.x*v.x - v.z);
+}
+////////////////////////////////////////////////////////////////////////////
+void Coullet::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a, b, c, d
+    vp.x = v.x + dtStepInc*v.y;
+    vp.y = v.y + dtStepInc*v.z; 
+    vp.z = v.z + dtStepInc*(kVal[0]*v.x + kVal[1]*v.y + kVal[2]*v.z + kVal[3]*v.x*v.x*v.x);
+}
+////////////////////////////////////////////////////////////////////////////
+void Dadras::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> p, q, r, s, e
+    vp.x = v.x + dtStepInc*(v.y - kVal[0]*v.x + kVal[1]*v.y*v.z);
+    vp.y = v.y + dtStepInc*(kVal[2]*v.y - v.x*v.z + v.z); 
+    vp.z = v.z + dtStepInc*(kVal[3]*v.x*v.y - kVal[4]*v.z);
 }
 
 // stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set

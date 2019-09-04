@@ -2164,7 +2164,15 @@ void imGuIZMODlgClass::view()
 #endif
         glm::vec3 lL(-ligh);
         if(ImGui::gizmo3D("##aaa", qt, lL, sz))  { 
-            ligh = -lL;
+#if !defined(GLCHAOSP_LIGHTVER)
+            if(theWnd->getParticlesSystem()->getRenderMode()==RENDER_USE_BOTH) {
+                theWnd->getParticlesSystem()->shaderPointClass::setLightDir(-lL);
+                theWnd->getParticlesSystem()->shaderBillboardClass::setLightDir(-lL);
+
+            } else 
+#endif
+                ligh = -lL;
+
             theWnd->getParticlesSystem()->getTMat()->getTrackball().setRotation(qt);
             theWnd->getParticlesSystem()->setFlagUpdate();
         }

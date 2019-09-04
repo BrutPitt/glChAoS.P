@@ -17,6 +17,9 @@ Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, a
 DLA3D is also present in WebGL version: only visualization WITHOUT AmbientOcclusion and Shadows
 
 ## Particle System rendering features
+- **100M** of particles in minus of 1.6 GByte of VRAM.. until **265M** (4G VRAM): **S**light (**dot**) **P**articles
+  - only a **vec4** (4-float) per vertex for position and color
+- **Rendering**: RealTime Surface Reconstruction / Shadows / Ambient Occlusion 
 - **Light Models**: Phong / Blinn-Phong / GGX
 - **Glow effects**: Gaussian Blur / bilateral deNoise with threshold / Gaussian + deNoise
 - **Anti-aliasing**: FXAA
@@ -43,8 +46,8 @@ With **Billboard** and **PointSprite** techniques
 
 ## wglChAoS.P - the WebGL2 online version (ver. 1.3.1)
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg">
+<p align="center"><a href="https://michelemorrone.eu/glchaosp/webGL.html"> 
+<img src="https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg"></a>
 </p>
 
 This is a **WebGL2** / **WebAssembly** lightened **LIVE / ONLINE** version of **glChAoSP** and Supports touch screen for mobile devices, smartphones and tablets

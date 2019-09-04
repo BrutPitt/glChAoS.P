@@ -28,7 +28,7 @@
 		]
 	},
 	"Render":      {
-		"RenderMode":     1,
+		"RenderMode":     0,
 		"motionBlur":     false,
 		"blurIntensity":  0.5,
 		"mixingVal":      0.0,
@@ -41,7 +41,7 @@
 		"camDolly":       [ 0.0, 0.0, 0.21999778 ],
 		"camPan":         [ 0.27999994, 0.53000009, 0.0 ],
 		"camRotCent":     [ -0.33, 0.54, -0.61 ],
-		"camRot":         [ -0.5008654, -0.047608417, 0.84832466, 0.17745902 ]
+		"camRot":         [ 0.64065027, 0.019108593, -0.75269163, -0.16478252 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":      32772,

@@ -720,6 +720,41 @@ void ZhouChen::startData()
     Insert(vVal[0]);
 }
 
+void SprottLinzF::startData()
+{
+    vVal.push_back(vec3(.1f, 0.f, 0.f));
+
+    kVal.push_back(.5f);
+
+    Insert(vVal[0]);
+}
+
+void Coullet::startData()
+{
+    vVal.push_back(vec3(.1f, .41f, .31f));
+
+    kVal.push_back(.8f);
+    kVal.push_back(-1.1f);
+    kVal.push_back(-.45f);
+    kVal.push_back(-1.f);
+
+    Insert(vVal[0]);
+}
+
+void Dadras::startData()
+{
+    vVal.push_back(vec3(.1f, .1f, .1f));
+
+    kVal.push_back(3.f);
+    kVal.push_back(2.7f);
+    kVal.push_back(1.7f);
+    kVal.push_back(2.f);
+    kVal.push_back(9.f);
+
+    Insert(vVal[0]);
+}
+
+
 void Lorenz::startData()
 {
     //16.242, 29.4125, 1.16328, infinite loop
