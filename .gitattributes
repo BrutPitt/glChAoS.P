@@ -9,8 +9,8 @@
 *.a binary
 *.dylib binary 
 *.js linguist-language=cpp
-wglChAoSP/wglChAoSP.js binary
-wglChAoSP.Debug/wglChAoSP.js binary
 ParticlesLinux binary
 ParticlesOSX binary
 .suo binary
+wglChAoSP/ export-ignore
+wglChAoSP.Debug/ export-ignore
