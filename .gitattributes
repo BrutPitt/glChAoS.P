@@ -9,6 +9,8 @@
 *.a binary
 *.dylib binary 
 *.js binary
+wglChAoSP/wglChAoSP.js binary
+wglChAoSP.Debug/wglChAoSP.js binary
 ParticlesLinux binary
 ParticlesOSX binary
 .suo binary
