@@ -17,7 +17,6 @@
 #line 17    //#version dynamically inserted
 layout(std140) uniform;
 
-
 LAYUOT_BINDING(2) uniform _particlesData {
     vec3  lightDir;          // align 0
     float lightDiffInt;
@@ -132,9 +131,38 @@ float getViewZ(float D)
 }
 float getViewZ_(float D)
 {
-    //return -(pow(2.0, (2. * D - 1.) * log2(u.zFar + 1.0)) -1.) ;
-    return -pow(2.0, (2. * D - 1.) * log2(u.zFar/u.zNear)) * u.zNear ;
+    return -pow(2.0, (2. * D - 1.) * log2(u.zFar/u.zNear)) * u.zNear;
 }
+
+// linear depth (persective)
+float depthSampleA(float Z)
+{
+    //float nonLinearDepth =  (zFar + zNear + 2.0 * zNear * zFar / linearDepth) / (zFar - zNear);
+    float nonLinearDepth =  -(m.pMatrix[2].z + m.pMatrix[3].z / Z) * .5 +.5;
+    return nonLinearDepth;
+}
+
+float getDepth(float Z) 
+{
+    float n = u.zNear, f = u.zFar;
+    //return (( -Z * (f+n) - 2*f*n ) / (-Z * (f-n))  + 1.0) * .5; //non linear -> same of depthSample
+    //return ( (- 2.f * depth - (f+n))/(f-n) + 1.0) * .5; // linearize + depthSample -> linear
+    return ( ((u.zFar+u.zNear)/(u.zFar-u.zNear)) + ((2.0*u.zFar*u.zNear/(u.zFar-u.zNear)) / Z) ) * .5 + .5;
+
+}
+
+//https://stackoverflow.com/questions/18182139/logarithmic-depth-buffer-linearization/18187212#18187212
+//https://outerra.blogspot.com/2012/11/maximizing-depth-buffer-range-and.html
+
+float getDepth_(float Z)
+{
+    //float C = .001;
+    //return (2.*log(C*-Z + 1.) / log(C*u.zFar + 1.) - 1.) * Z;
+     //return (log2((Z+1) / u.zNear) / log2(u.zFar / u.zNear)) * .5 + .5;
+    return (log2(1.+Z) * (2.0 / log2(u.zFar + 1.0)) -1.0) * Z;
+
+}
+
 
 float form_01_to_m1p1(float f)  { return 2. * f - 1.; }
 float form_m1p1_to_01(float f)  { return  f*.5 + .5; }
@@ -191,29 +219,6 @@ float specularGGX(vec3 V, vec3 L, vec3 N)
     return dotNL * D * F / (dotLH*dotLH*(1.0-k2)+k2);
 }
 
-// linear depth (persective)
-float depthSampleA(float Z)
-{
-    //float nonLinearDepth =  (zFar + zNear + 2.0 * zNear * zFar / linearDepth) / (zFar - zNear);
-    float nonLinearDepth =  -(m.pMatrix[2].z + m.pMatrix[3].z / Z) * .5 +.5;
-    return nonLinearDepth;
-}
-
-float getDepth(float Z) 
-{
-    float n = u.zNear, f = u.zFar;
-    //return (( -Z * (f+n) - 2*f*n ) / (-Z * (f-n))  + 1.0) * .5; //non linear -> same of depthSample
-    //return ( (- 2.f * depth - (f+n))/(f-n) + 1.0) * .5; // linearize + depthSample -> linear
-    return ( ((u.zFar+u.zNear)/(u.zFar-u.zNear)) + ((2.0*u.zFar*u.zNear/(u.zFar-u.zNear)) / Z) ) * .5 + .5;
-
-}
-
-float getDepth_(float Z)
-{
-    //return (log2(1.-Z) / log2(u.zFar + 1.0)) * .5 + .5;
-     return (log2(-Z / u.zNear) / log2(u.zFar / u.zNear)) * .5 + .5;
-
-}
 
 /*
 float logzbuf( float z ) {

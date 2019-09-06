@@ -20,7 +20,7 @@ echo ""
 echo ""
 
 cmake -G Unix\ Makefiles -DCMAKE_INSTALL_PREFIX:String=$BUILD_TYPE -DGLFW_BUILD_EXAMPLES:Bool=OFF -DGLFW_BUILD_TESTS:Bool=OFF  -DGLFW_BUILD_DOCS:Bool=OFF -DBUILD_SHARED_LIBS:Bool=OFF -DCMAKE_BUILD_TYPE:String=Release
-make install
+make -j 8 install
 
 echo ""
 echo "          build GLFW shared Lib..."
@@ -28,7 +28,7 @@ echo ""
 echo ""
 
 cmake -G Unix\ Makefiles -DCMAKE_INSTALL_PREFIX:String=$BUILD_TYPE -DGLFW_BUILD_EXAMPLES:Bool=OFF -DGLFW_BUILD_TESTS:Bool=OFF  -DGLFW_BUILD_DOCS:Bool=OFF -DBUILD_SHARED_LIBS:Bool=ON -DCMAKE_BUILD_TYPE:String=Release
-make install
+make -j 8 install
 
 cd ../../..
 

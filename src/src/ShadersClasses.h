@@ -339,6 +339,7 @@ private:
     const int kernelSize = 64;
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locNoiseTexture, locPrevData, locKernelTexture;
+    GLuint bindIDX;
 #endif
     friend particlesBaseClass;
 };
@@ -386,6 +387,8 @@ class renderBaseClass
 {
 public:
     renderBaseClass();
+
+    void create();
 
     enum { noShowAxes, showAxesToViewCoR, showAxesToSetCoR };
 
@@ -489,8 +492,10 @@ public:
 #else
         glowFBO.buildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false);
 #endif
-        BlurBaseClass::create();
+        //BlurBaseClass::create();
     }
+
+    void create() { BlurBaseClass::create(); }
 
 
     void render(GLuint sourceTex, GLuint fbOut) {
@@ -664,12 +669,12 @@ public:
     void create();
 
     void Activate()   { 
-        renderEngine->getRenderFBO().reBuildFBO(2,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0);
+        renderEngine->getRenderFBO().reBuildFBO(2,renderEngine->getWidth(),renderEngine->getHeight(), GL_RGBA32F, 0);
         mergedFBO.reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0); 
         renderEngine->setFlagUpdate();
     }
     void Deactivate() { 
-        renderEngine->getRenderFBO().reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0);
+        renderEngine->getRenderFBO().reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), GL_RGBA32F, 0);
         mergedFBO.deleteFBO(); 
         renderEngine->setFlagUpdate();
     }
@@ -728,9 +733,7 @@ public:
         flagUpdate = true;
 
         //cmTex.buildMultiDrawFBO(1,256,1);
-        cmTex.buildFBO(1,256,1, theApp->getFBOInternalPrecision(), false);
-
-        create();
+        cmTex.buildFBO(1,256,1, theApp->getFBOInternalPrecision(), false);        
     }
 
     void create();
@@ -868,7 +871,7 @@ public:
     enum pixColIDX { pixOffset, pixBlendig=pixOffset, pixDirect, pixAO, pixDR };
 
     particlesBaseClass ()  { 
-
+        
         glowRender = new radialBlurClass(this);
         CHECK_GL_ERROR();
 
@@ -877,7 +880,16 @@ public:
         fxaaFilter = new fxaaClass(this);
 #endif
         dotTex.build(DOT_TEXT_SHFT, vec4(.7f, 0.f, .3f, 0.f), dotsTextureClass::dotsAlpha);
+        selectColorMap(0);
+
+#ifdef GLCHAOSP_LIGHTVER
+        renderBaseClass::create();
+#endif
+        glowRender->create();
+        colorMap->create();
     }
+
+
 
     ~particlesBaseClass ()  {  delete glowRender; delete colorMap;
 #if !defined(GLCHAOSP_NO_FXAA)

@@ -64,7 +64,7 @@
 #endif
 
 #if !defined(GLCHAOSP_LIGHTVER)
-    #define INIT_WINDOW_W 1024
+    #define INIT_WINDOW_W 1280
     #define INIT_WINDOW_H 1024
 #else
     #define INIT_WINDOW_W 1024

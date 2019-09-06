@@ -5,10 +5,10 @@ echo "    start to build Particles..."
 echo ""
 echo ""
 
-cmake -G Unix\ Makefiles -DCMAKE_BUILD_TYPE:String=Release
+cmake -DBUILD_wglChAoSP:BOOL=0 -G Unix\ Makefiles -DCMAKE_BUILD_TYPE:String=Release
 #-DOpenGL_GL_PREFERENCE="GLVND"
 #-DCMAKE_EXE_LINKER_FLAGS="-static"
-make
+make -j 8
 
 echo ""
 echo "    ... end Particles"

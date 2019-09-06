@@ -163,7 +163,7 @@ vec4 mainFunc(vec2 ptCoord)
 {
 
     vec4 N = getParticleNormal(ptCoord);
-    if(N.w > 1.0 || N.z < u.alphaSkip) { discard; return vec4(0.0); } //return black color and max depth
+    if(N.w >= 1.0 || N.z < u.alphaSkip) { discard; return vec4(0.0); } //return black color and max depth
 
     newVertex    = mvVtxPos + vec4(0., 0., N.z * particleSize, 0.);
 
@@ -172,7 +172,10 @@ vec4 mainFunc(vec2 ptCoord)
     //gl_FragDepth = depthSample(newVertex.z); // same but with zNear & zFar
 //logarithmic
     //vec4 pPos = m.pMatrix * newVertex;
-    //gl_FragDepth = logDepthSample(pPos.w);
+    //gl_FragDepth = getDepth_(pPos.w);
+//Outerra
+    //vec4 pPos = m.pMatrix * newVertex;
+    //gl_FragDepth =  getDepth_(pPos.w+1.);
 
     vec4 color = acquireColor(ptCoord);
 

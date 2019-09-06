@@ -25,7 +25,6 @@ out float particleSize;
 
 out vec4 shadowlightView;
 
-
 void main()
 {
 
@@ -60,4 +59,7 @@ void main()
     // AMD driver (some times) supports gl_PointSize from 0.1
     // Look in Info dialog: point Range and Granularity
     gl_PointSize = max(distance(gl_Position.xyz, pt.xyz)/max(abs(gl_Position.w),.0001), u.pointspriteMinSize);
+
+//    float fc = .5 * log2(u.zFar+1);
+//    gl_Position.z = gl_Position.w * (log2( max(.000001, 1.+gl_Position.w) ) * fc - 1.);
 }

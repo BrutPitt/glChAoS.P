@@ -17,13 +17,13 @@
 		"circBuff":       10000000,
 		"rstrtCircBuff":  false,
 		"stopCircBuff":   false,
-		"camPOV":         [ 0.0, 0.0, 8.83 ],
+		"camPOV":         [ 0.0, 0.0, 10.66 ],
 		"camTGT":         [ 0.0, 0.0, 0.0 ],
 		"camPerspective": [ 30.0, 0.447, 100.1 ],
 		"camDolly":       [ 0.0, 0.0, 0.0 ],
 		"camPan":         [ -0.54000074, 0.15999785, 0.0 ],
 		"camRotCent":     [ -1.19, 0.0, 0.0 ],
-		"camRot":         [ 0.041139558, -0.072538242, 0.68417352, 0.7273736 ]
+		"camRot":         [ -0.0039406582, -0.19629216, 0.6597181, 0.7282511 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":      32772,
@@ -928,7 +928,7 @@
 		"lightModel":          2,
 		"ggxRoughness":        0.453,
 		"ggxFresnel":          0.457,
-		"lightDir":            [ 21.619522, 8.5316448, 27.757244 ],
+		"lightDir":            [ 26.100126, 10.29981, 33.509876 ],
 		"lightColor":          [ 1.0, 1.0, 1.0 ],
 		"glowOn":              false,
 		"glowSelect":          2,

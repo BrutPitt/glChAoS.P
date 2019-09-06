@@ -21,7 +21,7 @@
 		"camTGT":         [ 0.0, 0.0, 0.0 ],
 		"camPerspective": [ 30.0, 0.107, 120.0 ],
 		"camDolly":       [ 0.0, 0.0, -0.14999999 ],
-		"camPan":         [ -1.9099998, -1.1199994, 0.0 ],
+		"camPan":         [ 0.24999978, -0.72999978, 0.0 ],
 		"camRotCent":     [ 0.0, 0.0, -7.15 ],
 		"camRot":         [ 0.64788175, 0.28424436, 0.029819515, -0.71244818 ]
 	},
@@ -897,7 +897,7 @@
 		"ShadowEnabled":       true,
 		"ShadowBias":          0.012,
 		"ShadowDarkness":      0.0,
-		"ShadowRadius":        2.0,
+		"ShadowRadius":        4.0,
 		"ShadowGranularity":   1.0,
 		"ShadowAutoLightDist": true,
 		"AOenabled":           true,

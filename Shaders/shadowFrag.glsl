@@ -35,6 +35,10 @@ void main()
     //z = (z + u.zNear) / (u.zFar - u.zNear);
     gl_FragDepth = getDepth(z);
 
+    //vec4 pPos = m.pMatrix * mvVtxPos;
+    //gl_FragDepth =  getDepth_(pPos.w);
+
+
 // for Chrome76 message: "exture is not renderable" if only zBuffer... need ColorBuffer 
 // FireFox68 Works fine also only with zBuffer w/o ColorBuffer
 #ifdef GL_ES 

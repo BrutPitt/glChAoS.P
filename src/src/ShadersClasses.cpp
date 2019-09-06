@@ -73,7 +73,7 @@ shaderPointClass::shaderPointClass()
 void shaderPointClass::initShader()
 {
     //palette.buildTex(colorMaps.getRGB_pf3(1), 256);
-    selectColorMap(0);
+    //selectColorMap(0);
     useVertex(); useFragment();
 
 	getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesVert.glsl", SHADER_PATH "PointSpriteVert.glsl");
@@ -359,7 +359,7 @@ shaderBillboardClass::shaderBillboardClass()
 void shaderBillboardClass::initShader()
 {
 
-    selectColorMap(1); //pal_magma_data
+    //selectColorMap(1); //pal_magma_data
     useAll(); 
 
 	getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesVert.glsl", SHADER_PATH "BillboardVert.glsl");
@@ -619,10 +619,10 @@ renderBaseClass::renderBaseClass()
 
     setRenderMode(RENDER_USE_POINTS);
 
-    commonVShader.Load( theApp->get_glslVer().c_str(), 1, SHADER_PATH "mmFBO_all_vert.glsl");
+    commonVShader.Load( (theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "mmFBO_all_vert.glsl");
 
 #if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision()); 
+    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F); 
 #else
     renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F);
 #endif
@@ -649,6 +649,16 @@ renderBaseClass::renderBaseClass()
     shadow  = new shadowClass(this);
     postRendering = new postRenderingClass(this);
 #endif
+#if !defined(GLCHAOSP_LIGHTVER)
+    create();
+#endif
+}
+
+void renderBaseClass::create()
+{
+    ambientOcclusion->create();
+    shadow->create();
+    postRendering->create();
 }
 
 renderBaseClass::~renderBaseClass()
@@ -700,11 +710,11 @@ void BlurBaseClass::create()    {
 #else
         useProgram();
         LOCorigTexture = getUniformLocation("origTexture");
-        LOCpass1Texture = getUniformLocation("pass1Texture");
 
 
         uniformBlocksClass::create(GLuint(sizeof(uBlurData)), (void *) &uData, getProgram(), "_blurData");
     #if !defined(GLCHAOSP_LIGHTVER)
+        LOCpass1Texture = getUniformLocation("pass1Texture");
         idxSubGlowType[idxSubroutine_ByPass            ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "byPass"                  );
         idxSubGlowType[idxSubroutine_BlurCommonPass1   ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass1"             );
         idxSubGlowType[idxSubroutine_BlurGaussPass2    ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass2"             );
@@ -739,16 +749,17 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
     useProgram();
     glActiveTexture(GL_TEXTURE0+sourceTex);
     glBindTexture(GL_TEXTURE_2D,sourceTex);
-    glActiveTexture(GL_TEXTURE0+glowFBO.getTex(RB_PASS_1));
-    glBindTexture(GL_TEXTURE_2D,  glowFBO.getTex(RB_PASS_1));
     glUniform1i(LOCorigTexture, sourceTex);
-    glUniform1i(LOCpass1Texture, glowFBO.getTex(RB_PASS_1));
-
-    updateData(subIndex);
 
 #if !defined(GLCHAOSP_LIGHTVER)
+    glActiveTexture(GL_TEXTURE0+glowFBO.getTex(RB_PASS_1));
+    glBindTexture(GL_TEXTURE_2D,  glowFBO.getTex(RB_PASS_1));
+    glUniform1i(LOCpass1Texture, glowFBO.getTex(RB_PASS_1));
+
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &idxSubGlowType[subIndex]);
 #endif
+    updateData(subIndex);
+
 #endif
 
     theWnd->getVAO()->draw();
@@ -924,7 +935,7 @@ postRenderingClass::postRenderingClass(renderBaseClass *ptrRE) : renderEngine(pt
     fbo.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision());
 
 
-    create();
+    //create();
 }
 
 void postRenderingClass::create() {
@@ -1087,13 +1098,14 @@ ambientOcclusionClass::ambientOcclusionClass(renderBaseClass *ptrRE) : renderEng
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 #endif
-    create();
+    //create();
 
 
 }
 
 void ambientOcclusionClass::create() {
 
+    //useVertex(renderEngine->getCommonVShader());
     useVertex();
     useFragment();
 
@@ -1109,7 +1121,7 @@ void ambientOcclusionClass::create() {
     locNoiseTexture = getUniformLocation("noise");
     locPrevData = getUniformLocation("prevData");
     locKernelTexture = getUniformLocation("ssaoSample");
-    uniformBlocksClass::bindIndex(getProgram(), "_particlesData");
+    bindIDX = uniformBlocksClass::bindIndex(getProgram(), "_particlesData");
     renderEngine->getTMat()->blockBinding(getProgram());
 
     glUniform1i(locKernelTexture, ssaoKernelTex);
@@ -1163,13 +1175,13 @@ shadowClass::shadowClass(renderBaseClass *ptrRE) : renderEngine(ptrRE)
 // FireFox68 Works fine also only with zBuffer w/o ColorBuffer
 ////////////////////////////////////////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER)
-    fbo.buildOnlyFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision());
+    fbo.buildOnlyFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F); //
     fbo.attachDB(mmFBO::depthTexture,GL_LINEAR,GL_CLAMP_TO_BORDER);
 #else
     fbo.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F);
     fbo.attachDB(mmFBO::depthBuiltIn, GL_NEAREST, GL_CLAMP_TO_EDGE);
 #endif
-    create();
+    //create();
 }
 
 void shadowClass::create() {

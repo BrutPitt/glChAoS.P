@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-
+SET(BUILD_wglChAoSP TRUE CACHE BOOL TRUE)
 ###########################################################
 #
 # *** CHANGES NOTE ***
@@ -29,23 +29,6 @@ set(OGL41 "")
 
 set(SRC "${CMAKE_SOURCE_DIR}/src")
 
-
-###########################################################
-#   EMSCRIPTEN setting
-###########################################################
-if (EMSCRIPTEN)
-    project(wglChAoSP)
-    set(OGL_EMITTER_TYPE ${OGL41})
-    
-    set(CMAKE_CXX_STANDARD 14)
-    find_package(OpenGL)
-
-    include_directories(${SRC})
-    include_directories(${SRC}/tools)
-    include_directories(${SRC}/libs)
-    include_directories($ENV{INCLUDE})
-    
-    
     set(SOURCE_FILES
         ${SRC}/libs/IconsFontAwesome/IconsFontAwesome.h
         ${SRC}/libs/ImGui/imconfig.h
@@ -87,8 +70,6 @@ if (EMSCRIPTEN)
         ${SRC}/attractorsStartVals.h
         ${SRC}/configFile.cpp
         ${SRC}/colorMaps.cpp
-        ${SRC}/emsTouch.cpp
-        ${SRC}/emsTouch.h
         ${SRC}/glApp.cpp
         ${SRC}/glApp.h
         ${SRC}/glWindow.cpp
@@ -103,6 +84,23 @@ if (EMSCRIPTEN)
         ${SRC}/ShadersClasses.h
         ${SRC}/vertexbuffer.cpp
         ${SRC}/vertexbuffer.h)
+
+###########################################################
+#   EMSCRIPTEN setting
+###########################################################
+if (BUILD_wglChAoSP)
+    project(wglChAoSP)
+    set(OGL_EMITTER_TYPE ${OGL41})
+    
+    set(CMAKE_CXX_STANDARD 14)
+    find_package(OpenGL)
+
+    include_directories(BEFORE SYSTEM ${EMSCRIPTEN_ROOT_PATH}/system/include)
+#    include_directories(BEFORE SYSTEM $ENV{EMSCRIPTEN}/system/include)
+    include_directories(${SRC})
+    include_directories(${SRC}/tools)
+    include_directories(AFTER ${SRC}/libs)
+    include_directories(AFTER $ENV{INCLUDE})
 
 # -o ${PROJECT_NAME}.html ->  CMAKE_EXECUTABLE_SUFFIX  .html .bc, .js (default), etc
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
@@ -169,7 +167,10 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${EMSOUT}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${M_GLOBAL_FLAGS} ${OGL_EMITTER_TYPE} ${M_EMCC_FLAGS} ${M_EMCC_OPTIONS} ${GLAPP_DISABLE_DLA} -Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value -Wdelete-non-virtual-dtor")
 
-    add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+    add_executable(${PROJECT_NAME} 
+                    ${SRC}/emsTouch.cpp
+                    ${SRC}/emsTouch.h
+                    ${SOURCE_FILES})
 
 
 ###########################################################
@@ -240,69 +241,16 @@ else()
     endif(WIN32)
 endif(APPLE)
 
-add_executable(${PROJECT_NAME}
-        src/libs/glad/glad.cpp
-        src/libs/glad/glad.h
-        src/libs/IconsFontAwesome/IconsFontAwesome.h
-        src/libs/ImGui/imconfig.h
-        src/libs/ImGui/imgui.cpp
-        src/libs/ImGui/imgui_widgets.cpp
-        src/libs/ImGui/imgui.h
-        src/libs/ImGui/imgui_draw.cpp
-        src/libs/ImGui/imgui_impl_glfw.cpp
-        src/libs/ImGui/imgui_impl_glfw.h
-        src/libs/ImGui/imgui_impl_opengl3.cpp
-        src/libs/ImGui/imgui_impl_opengl3.h
-        src/libs/ImGui/imgui_internal.h
-        src/libs/ImGui/imstb_rectpack.h
-        src/libs/ImGui/imstb_textedit.h
-        src/libs/ImGui/imstb_truetype.h
-        src/libs/lodePNG/lodepng.cpp
-        src/libs/lodePNG/lodepng.h
-        src/libs/tinyFileDialog/tinyfiledialogs.c
-        src/libs/tinyFileDialog/tinyfiledialogs.h
-        src/libs/configuru/configuru.hpp
-        src/tools/fastRandom.cpp
-        src/tools/fastRandom.h
-        src/tools/imGuIZMO.cpp
-        src/tools/imGuIZMO.h
-        src/tools/imguiControls.cpp
-        src/tools/imguiControls.h
-        src/tools/glslProgramObject.cpp
-        src/tools/glslProgramObject.h
-        src/tools/glslShaderObject.cpp
-        src/tools/glslShaderObject.h
-        src/tools/oglAxes.cpp
-        src/tools/oglAxes.h
-        src/tools/transforms.h
-        src/tools/virtualGizmo.h
-        src/ui/uiAttractorsDlg.cpp
-        src/ui/uiMainDlg.cpp
-        src/ui/uiMainDlg.h
-        src/ui/uiSettings.cpp
-        src/ui/uiSettings.h
-        src/appDefines.h
-        src/attractorsBase.cpp
-        src/attractorsBase.h
-        src/attractorsFiles.cpp
-        src/attractorsStartVals.cpp
-        src/attractorsStartVals.h
-        src/configFile.cpp
-        src/colorMaps.cpp
-        src/glApp.cpp
-        src/glApp.h
-        src/glWindow.cpp
-        src/glWindow.h
-        src/mmFBO.cpp
-        src/mmFBO.h
-        src/palettes.cpp
-        src/palettes.h
-        src/ParticlesUtils.cpp
-        src/ParticlesUtils.h
-        src/ShadersClasses.cpp
-        src/ShadersClasses.h
-        src/vertexbuffer.cpp
-        src/vertexbuffer.h)
+add_executable(${PROJECT_NAME} 
+        ${SRC}/libs/glad/glad.cpp
+        ${SRC}/libs/glad/glad.h
+        ${SRC}/libs/lodePNG/lodepng.cpp
+        ${SRC}/libs/lodePNG/lodepng.h
+        ${SRC}/libs/tinyFileDialog/tinyfiledialogs.c
+        ${SRC}/libs/tinyFileDialog/tinyfiledialogs.h
+        ${SRC}/tools/oglAxes.cpp
+        ${SRC}/tools/oglAxes.h
+        ${SOURCE_FILES})
 
 if(OPENGL_FOUND)
     if(APPLE)
