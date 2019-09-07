@@ -14,8 +14,6 @@ A real time 3D strange attractors scout... and hypercompex fractals (new!)
 [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/dla3D.jpg)](https://youtu.be/_R7akPh64XU)
 Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman), with possibility to export/import to/from PLY format and to continue a previous rendering.
 
-DLA3D is also present in WebGL version: only visualization WITHOUT AmbientOcclusion and Shadows
-
 ## Particle System rendering features
 - **100M** of particles in minus of 1.6 GByte of VRAM.. until **265M** (4G VRAM): **S**light (**dot**) **P**articles
   - only a **vec4** (4-float) per vertex for position and color
