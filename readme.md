@@ -118,7 +118,8 @@ For more usage info: [**glChAoS.P info**](https://michelemorrone.eu/glchaosp/inf
 
 ### Hardware required:
 
-- GPU with OpenGL 4.1 or higher
+- **glChAoS.P** - GPU with OpenGL 4.1 or higher
+- **wglChAoS.P** - Browser with WebGL2 capabilities (FireFox, Chrome or Chromium based browsers)
 
 Theoretically all graphics card that supports OpenGL 4.0 supports also OpenGL 4.5, depends only from drivers (and O.S.)
 
@@ -316,9 +317,9 @@ Or use `sh buildGLFW.sh OSX` from ./src directory, or build GLFW directly from `
 
 Several warnings are visualized, it is normal. I tested it only on OS X 10.14 Mojave (build and binary).
 
-**WebGL via WebAssembly**
+**WebGL via WebAssembly - EMSCRIPTEN**
 
-The CMake file is able to build also an [**EMSCRIPTEN**](https://kripken.github.io/emscripten-site/index.html) version, obviously you need to have installed EMSCRIPTEN SDK on your computer (~~1.38.20~~ 1.38.28 or higher).
+The CMake file is able to build also an [**EMSCRIPTEN**](https://kripken.github.io/emscripten-site/index.html) version, obviously you need to have installed EMSCRIPTEN SDK on your computer (~~1.38.20~~ ~~1.38.28~~ 1.38.40 or higher).
 Use `emsCMakeGen.cmd` or `emsCMakeGen.sh` from ./src directory, or look inside it, to pass appropriate defines/patameters to CMake command line.
 `emsCMakeGen` need to know the location of EMSDK, and the "build-type" object to create.
 
