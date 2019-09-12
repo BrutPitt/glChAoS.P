@@ -1,4 +1,4 @@
-<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.3.1</a></h1>
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.3.1</a> => 1.3.2</h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercompex fractals (new!) 
@@ -6,7 +6,7 @@ A real time 3D strange attractors scout... and hypercompex fractals (new!)
 ## All availabe 1.3.1 releases
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X**
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebGL** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
-- **[wglChAoS.P Experimental](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** - **WebGL** experimental release with new render engine 
+- **[wglChAoS.P Advanced Mode](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** - **WebGL** advanced mode release with new render engine 
 
 
 
@@ -42,7 +42,7 @@ With **Billboard** and **PointSprite** techniques
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
-## wglChAoS.P - the WebGL2 online version (ver. 1.3.1)
+## wglChAoS.P - the WebGL2 online version (ver. 1.3.2)
 
 <p align="center"><a href="https://michelemorrone.eu/glchaosp/webGL.html"> 
 <img src="https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg"></a>
@@ -54,17 +54,17 @@ This is a **WebGL2** / **WebAssembly** lightened **LIVE / ONLINE** version of **
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
-## wglChAoS.P Experimental - WebGL2 with new rendering engine
+## wglChAoS.P Advanced Mode - WebGL2 with new rendering engine
 This is a **WebGL2** / **WebAssembly** lightened **LIVE** / **ONLINE** version with **new rendering engine**: dual pass accurate rendering, shadows and ambient occlusion
 
-<p align="center"><b align="center">Go to <a href="https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md">wglChAoS.P Experimental</a> page</b></p>
+<p align="center"><b align="center">Go to <a href="https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md">wglChAoS.P Advanced Mode</a> page</b></p>
 
 
 | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot1.jpg) | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot2.jpg) |
 | :---: | :---: |
 | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot3.jpg) | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot4.jpg)|
 
-**Experimentale not availabe/tested still for mobile devices*
+**Advanced Mode not availabe/tested still for mobile devices*
 <p>&nbsp;<br>&nbsp;<br></p>
 
 
@@ -363,7 +363,7 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
 
 - libs/imGui → Dear ImGui
 [https://github.com/ocornut/imgui](https://github.com/ocornut/imgui)
-*(need version \>= 1.67)*
+*(need version \>= 1.72)*
 
 - libs/configuru → Configuru, an experimental JSON config library for C++
 [https://github.com/emilk/Configuru](https://github.com/emilk/Configuru)
