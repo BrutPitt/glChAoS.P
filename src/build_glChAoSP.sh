@@ -5,7 +5,7 @@ echo "    start to build Particles..."
 echo ""
 echo ""
 
-cmake -DBUILD_wglChAoSP:BOOL=0 -G Unix\ Makefiles -DCMAKE_BUILD_TYPE:String=Release
+cmake -DBUILD_wglChAoSP:BOOL=FALSE -G Unix\ Makefiles -DCMAKE_BUILD_TYPE:String=Release
 #-DOpenGL_GL_PREFERENCE="GLVND"
 #-DCMAKE_EXE_LINKER_FLAGS="-static"
 make -j 8

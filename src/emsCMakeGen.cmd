@@ -65,14 +65,14 @@ cd %EMS_DIR%
 echo.
 echo. Start cmake...
 echo.
-cmake -DCMAKE_TOOLCHAIN_FILE:STRING=%EMSCRIPTEN%\cmake\Modules\Platform\Emscripten.cmake -DCMAKE_BUILD_TYPE:STRING=%BUILD_TYPE% -G "MinGW Makefiles" ..
+cmake --target wglChAoSP -DCMAKE_TOOLCHAIN_FILE:STRING=%EMSCRIPTEN%\cmake\Modules\Platform\Emscripten.cmake -DCMAKE_BUILD_TYPE:STRING=%BUILD_TYPE% -DBUILD_wglChAoSp:BOOL=TRUE -G "MinGW Makefiles" ..
 echo.
 echo.
 
 echo.
 echo. Start mingw32-make... 
 echo.
-mingw32-make
+mingw32-make -j8 wglChAoSP
 echo.
 echo.
 

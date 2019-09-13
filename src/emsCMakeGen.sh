@@ -27,9 +27,8 @@ else
 
     cd $EMS_DIR
 
+    cmake --target wglChAoSP -DCMAKE_TOOLCHAIN_FILE:STRING=%EMSCRIPTEN%\cmake\Modules\Platform\Emscripten.cmake -DCMAKE_BUILD_TYPE:STRING=%BUILD_TYPE% -DBUILD_wglChAoSp:BOOL=TRUE -G "Unix Makefiles" ..
 
-    cmake -DCMAKE_TOOLCHAIN_FILE:STRING=$EMSCRIPTEN/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -G "Unix Makefiles" ..
-
-    make
+    make -j8 wglChAoSP
 fi
 

@@ -356,8 +356,8 @@ void attractorDlgClass::view()
                     ImGui::DragFloatRange2("##kR", &attractorsList.get()->kMin, &attractorsList.get()->kMax, 
                                                     0.0025f, -10.0f, 10.0f, 
                                                     "Min: %.4f", "Max: %.4f");
+                    ImGui::PopItemWidth();
                     if(!attractorsList.get()->fractalType()) {
-                        ImGui::PopItemWidth();
 
                         ImGui::SetCursorPosX(wDn-border-buttW);
                         if(ImGui::Button(ICON_FA_RANDOM " Generate",ImVec2(buttW,0)))  attractorsList.generateNewRandom();

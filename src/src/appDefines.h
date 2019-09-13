@@ -17,6 +17,8 @@
 #pragma once
 
 #define APP_USE_FBO
+//#define __APPLE__
+//#define GLAPP_NO_GLSL_PIPELINE
 
 
 //#define APP_DEBUG_GUI_INTERFACE

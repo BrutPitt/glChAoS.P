@@ -1953,7 +1953,7 @@ void viewSettingDlgClass::view()
         //  Gizmo
         ///////////////////////////////////////////////////////////////////////
         ImGui::NewLine();
-        ImGui::Text(" Object/Light Transformations");
+        ImGui::Text(" Model/Light Transformations");
         {
             //pSys->shaderPointClass::getPtr() whichRenderMode==RENDER_USE_BILLBOARD
 
@@ -1980,9 +1980,9 @@ void viewSettingDlgClass::view()
             }   
             imguiGizmo::restoreAxesSize();
 
-            ImGui::TextDisabled(" Rotation");
+            ImGui::TextDisabled(" Model");
             ImGui::SameLine(wHalf+DLG_BORDER_SIZE);
-            ImGui::TextDisabled(" Light Pos");
+            ImGui::TextDisabled(" Light");
 
             ImGui::PushItemWidth(wButt2);
             ImGui::DragFloat4("##Rot",value_ptr(q),.01,0.0,0.0);

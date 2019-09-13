@@ -99,8 +99,8 @@ if (BUILD_wglChAoSP)
 #    include_directories(BEFORE SYSTEM $ENV{EMSCRIPTEN}/system/include)
     include_directories(${SRC})
     include_directories(${SRC}/tools)
-    include_directories(AFTER ${SRC}/libs)
-    include_directories(AFTER $ENV{INCLUDE})
+    include_directories(${SRC}/libs)
+#    include_directories(AFTER $ENV{INCLUDE})
 
 # -o ${PROJECT_NAME}.html ->  CMAKE_EXECUTABLE_SUFFIX  .html .bc, .js (default), etc
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
@@ -118,7 +118,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 # emcc compiler options
     set(M_EMCC_FLAGS "-DGLAPP_NO_OGL_DSA -DGLFW_INCLUDE_ES3")
-    set(M_GLOBAL_FLAGS "-DIMGUI_IMPL_OPENGL_ES3 -DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
+    set(M_GLOBAL_FLAGS "-DIMGUI_IMPL_OPENGL_ES3 -DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
 
 # BUILD TYPE: [Debug|RelWithDebInfo|Release|MinSizeRel]    
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")

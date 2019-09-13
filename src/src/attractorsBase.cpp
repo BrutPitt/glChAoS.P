@@ -23,6 +23,18 @@
 AttractorsClass attractorsList; // need to resolve inlines
 //deque<glm::vec3> AttractorBase::stepQueue;
 
+#define PIQ 9.86960440108935861883f
+#define PIH 1.57079632679489661923f
+inline float sinAprx(float x) {
+    //x = mod(x,2.f*glm::pi<float>());
+    return (16.f*x*(glm::pi<float>()-x)) / (5.f*PIQ - 4.f*x*(glm::pi<float>() - x));
+}
+inline float cosAprx(float x) {
+    return  sinAprx(PIH-x);
+}
+#undef PIQ
+#undef PIH
+
 //  Attractor base class
 ////////////////////////////////////////////////////////////////////////////
 
