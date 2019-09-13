@@ -172,7 +172,6 @@ LAYUOT_INDEX(idxPHONG) SUBROUTINE(_lightModel)
 #endif
 float specularPhong(vec3 V, vec3 L, vec3 N)
 {
-    //vec3 V = normalize(mvVtxPos.xyz);
     vec3 R = reflect(L, N);
     float specAngle = max(dot(R, V), 0.0);
 
@@ -185,7 +184,6 @@ LAYUOT_INDEX(idxBLINPHONG) SUBROUTINE(_lightModel)
 float specularBlinnPhong(vec3 V, vec3 L, vec3 N)
 {
 // point on surface of sphere in eye space
-    //vec3 V = normalize(mvVtxPos.xyz);
     vec3 H = normalize(L - V);
     float specAngle = max(dot(H, N), 0.0);
 
@@ -201,7 +199,6 @@ float specularGGX(vec3 V, vec3 L, vec3 N)
     float alpha = u.ggxRoughness*u.ggxRoughness;
     float alphaSqr = alpha * alpha;
 
-    //vec3 V = normalize(mvVtxPos.xyz);
     vec3 H = normalize(L - V); // View = -
     float dotLH = max(0.0, dot(L,H));
     float dotNH = max(0.0, dot(N,H));
@@ -259,44 +256,14 @@ vec3 getSelectedNormal(float z, sampler2D depthData)
     float gradB = getViewZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0., 1.)), 0).w) - z;
     float gradC = z - getViewZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2(-1., 0.)), 0).w);
     float gradD = z - getViewZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0.,-1.)), 0).w);
-    //float gradE = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 1., 1.)), 0).w);
-    //float gradF = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2(-1.,-1.)), 0).w);
-    //float gradG = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2( 1.,-1.)), 0).w);
-    //float gradH = form_01_to_m1p1(texelFetch(prevData,ivec2(uv + vec2(-1., 1.)), 0).w);
 
     vec2 m = u.invScrnRes * -z; //vec2(u.scrnRes.x/u.scrnRes.y * u.halfTanFOV, u.halfTanFOV);
     float invTanFOV = u.dpAdjConvex/u.halfTanFOV;
-/*
-    const float eps = .00001;
-    gradA = max(abs(gradA),eps) * sign(gradA);
-    gradB = max(abs(gradB),eps) * sign(gradB);
-    gradC = max(abs(gradC),eps) * sign(gradC);
-    gradD = max(abs(gradD),eps) * sign(gradD);
-*/
-        //V1 = abs(gradA)<abs(gradC) ? vec3(vec2( 1., 0.)*m, gradA*invTanFOV) : vec3(vec2(1., 0.)*m, gradC*invTanFOV);
-        //V2 = abs(gradB)<abs(gradD) ? vec3(vec2( 0., 1.)*m, gradB*invTanFOV) : vec3(vec2(0., 1.)*m, gradD*invTanFOV);
+
     vec3 V1 = abs(gradA-gradC)>u.dpNormalTune && abs(gradA)<abs(gradC) ? vec3(vec2( 1., 0.)*m, gradA*invTanFOV) : vec3(vec2(1., 0.)*m, gradC*invTanFOV);
     vec3 V2 = abs(gradB-gradD)>u.dpNormalTune && abs(gradB)<abs(gradD) ? vec3(vec2( 0., 1.)*m, gradB*invTanFOV) : vec3(vec2(0., 1.)*m, gradD*invTanFOV);
     vec3 N0 = cross(V1, V2);
 
-/*
-    vec3 V1 = vec3(vec2( 1., 0.)*m, gradA*invTanFOV);
-    vec3 V2 = vec3(vec2( 0., 1.)*m, gradB*invTanFOV);
-    vec3 N0 = cross(V1, V2);
-*/
-    //vec3 N0 = cross(vec3(vec2( 1., 0.)*m, (gradA-zEye)*z), vec3(vec2( 0., 1.)*m, (gradB-zEye)*z));
-    //vec3 N1 = cross(vec3(vec2(-1., 0.)*m, (gradC-zEye)*z), vec3(vec2( 0.,-1.)*m, (gradD-zEye)*z));
-    //vec3 N2 = cross(vec3(vec2( 0.,-1.)*m, (gradD-zEye)*z), vec3(vec2( 1., 0.)*m, (gradA-zEye)*z));
-    //vec3 N3 = cross(vec3(vec2( 0., 1.)*m, (gradB-zEye)*z), vec3(vec2(-1., 0.)*m, (gradC-zEye)*z));
-    //vec3 N2 = cross(vec3(vec2( 1., 1.)*m, (gradE-zEye)*z), vec3(vec2(-1., 1.)*m, (gradH-zEye)*z));
-    //vec3 N3 = cross(vec3(vec2(-1.,-1.)*m, (gradF-zEye)*z), vec3(vec2( 1.,-1.)*m, (gradG-zEye)*z));
-
-            
-    //N0    = normalize(dot(N0,N0)<dot(N1,N1) ? N0 : N1);
-    //N2    = normalize(dot(N2,N2)>dot(N3,N3) ? N2 : N3);
-    //N.xyz = normalize(dot(N0,N0)>dot(N2,N2) ? N0 : N2);
-    //N.xyz = normalize(min(N0, min(N1, min(N2,N3))));
-    //N.xyz = normalize(min(N0,N1));
 
     return normalize (N0);
 }
@@ -304,4 +271,3 @@ vec3 getSelectedNormal(float z, sampler2D depthData)
 #define RENDER_AO uint(1)
 #define RENDER_DEF uint(2)
 #define RENDER_SHADOW uint(4)
-
