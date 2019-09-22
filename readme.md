@@ -3,6 +3,12 @@
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercompex fractals (new!) 
 
+
+# ** IMPORTANT ** Windows users with NVidia cards
+Please read this issue: [**fatal error C9999:** *** exception during compilation ***](https://github.com/BrutPitt/glChAoS.P/issues/3)
+
+It influence all version of **glChAoS.P**, also the previous ones
+
 ## All availabe 1.3.1 releases
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X**
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebGL** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
