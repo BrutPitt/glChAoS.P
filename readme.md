@@ -9,11 +9,12 @@ Please read this issue: [**fatal error C9999:** *** exception during compilation
 
 It influence all version of **glChAoS.P**, also the previous ones
 
-**Since NVidia has biblical times for an answer** I bypass momentarily the issue.
+**Since NVidia has biblical times to answer** I bypass momentarily the issue.
 
-I added `glChAoSP_NVidiaWorkaround.zip` Windows binaries, in the **[glChAoS.P Release Download](https://github.com/BrutPitt/glChAoS.P/releases)**: the package contains only two executable (32/64 bit), so you need to replace the original ones `glChAoSP.zip` files, inside **glChAoS.P** directory strucures. 
+I added `glChAoSP_NVidiaWorkaround.zip` Windows binaries, in the **[glChAoS.P Release Download](https://github.com/BrutPitt/glChAoS.P/releases)**: the package contains only two executable (32/64 bit), so you need to replace the original ones of `glChAoSP.zip` file, inside **glChAoS.P** directory strucure. 
 
-In this workaround I uses OpenGL 4.1, without Zero Drivers Overhead of OpenGL 4.5, without GLSL subroutines, with consequent slower performance.
+In this workaround I uses OpenGL 4.1, without Zero Drivers Overhead feature of OpenGL 4.5, without GLSL subroutines, with consequent slower performance.
+
 You can read more here: https://github.com/BrutPitt/glChAoS.P/issues/3#issuecomment-535753200
 
 ## All availabe 1.3.1 releases
