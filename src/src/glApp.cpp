@@ -1,19 +1,15 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #include <array>
 #include <vector>
 #include <ostream>
@@ -22,9 +18,6 @@
 #include "glWindow.h"
 
 #include "ShadersClasses.h"
-
-#include "ui/uiSettings.h"
-
 
 #if !defined (__EMSCRIPTEN__)
     GLFWmonitor* getCurrentMonitor(GLFWwindow *window);
@@ -321,15 +314,17 @@ void mainGLApp::glfwInit()
     #ifdef GLAPP_REQUIRE_OGL45
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
         glslVersion = "#version 450\n";
-        glslDefines = "#define LAYUOT_BINDING(X) layout (binding = X)\n"
-                      "#define LAYUOT_INDEX(X) layout(index = X)\n"
+        glslDefines = "#define LAYOUT_BINDING(X) layout (binding = X)\n"
+                      "#define LAYOUT_INDEX(X) layout(index = X)\n"
+                      "#define LAYOUT_LOCATION(X) layout(location = X)\n"
                       "#define SUBROUTINE(X) subroutine(X)\n"
                       "#define CONST const\n";
     #else
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
         glslVersion = "#version 410\n";
-        glslDefines = "#define LAYUOT_BINDING(X)\n"
-                      "#define LAYUOT_INDEX(X)\n"
+        glslDefines = "#define LAYOUT_BINDING(X)\n"
+                      "#define LAYOUT_LOCATION(X)\n"
+                      "#define LAYOUT_INDEX(X)\n"
                       "#define SUBROUTINE(X) subroutine(X)\n"
         #ifdef __APPLE__  // troubles on MAC with multiple subroutines
                       "#define __APPLE__\n"
@@ -348,8 +343,8 @@ void mainGLApp::glfwInit()
         glslVersion = "#version 300 es\n";
         if(useLowPrecision()) glslDefines = "precision mediump float;\n" "precision highp int;\n";
         else                  glslDefines = "precision highp float;\n"   "precision highp int;\n";
-        glslDefines+= "#define LAYUOT_BINDING(X)\n"
-                      "#define LAYUOT_INDEX(X)\n"
+        glslDefines+= "#define LAYOUT_BINDING(X)\n"
+                      "#define LAYOUT_INDEX(X)\n"
                       "#define SUBROUTINE(X)\n"
 #ifdef GLCHAOSP_LIGHTVER_EXPERIMENTAL
                       "#define GLCHAOSP_LIGHTVER_EXPERIMENTAL\n"
@@ -393,7 +388,6 @@ void mainGLApp::glfwInit()
     //emscripten_set_deviceorientation_callback(getEmsDevice(), true, emsMDeviceClass::devOrientation);
     //emscripten_set_orientationchange_callback(getEmsDevice(), true, emsMDeviceClass::devOrientChange);
     //emscripten_set_devicemotion_callback(getEmsDevice(), true, emsMDeviceClass::devMotion);
-
 #endif
 
     
@@ -466,6 +460,9 @@ void mainGLApp::onInit(int w, int h)
 #endif
 
     glfwInit();
+#ifdef __EMSCRIPTEN__
+    //initVR();
+#endif
 
 //Init OpenGL & engine
     glEngineWnd->onInit();
@@ -570,7 +567,7 @@ int main(int argc, char **argv)
             theApp->useLightGUI(atoi(argv[8])==1 ? true : false);
         // 9        
             std::string s(argv[9]);
-            printf("%s\n",argv[9]);
+            //printf("%s\n",argv[9]);
 
             int index;
             int listSize = attractorsList.getList().size()-1;

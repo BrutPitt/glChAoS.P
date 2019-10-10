@@ -1,3 +1,15 @@
+#------------------------------------------------------------------------------
+#  Copyright (c) 2018-2019 Michele Morrone
+#  All rights reserved.
+#
+#  https://michelemorrone.eu - https://BrutPitt.com
+#
+#  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+#
+#  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
+#  
+#  This software is distributed under the terms of the BSD 2-Clause license
+#------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.10)
 SET(BUILD_wglChAoSP TRUE CACHE BOOL TRUE)
 ###########################################################
@@ -47,8 +59,8 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/libs/configuru/configuru.hpp
         ${SRC}/tools/fastRandom.cpp
         ${SRC}/tools/fastRandom.h
-        ${SRC}/tools/imGuIZMO.cpp
-        ${SRC}/tools/imGuIZMO.h
+        ${SRC}/tools/imGuIZMOquat.cpp
+        ${SRC}/tools/imGuIZMOquat.h
         ${SRC}/tools/imguiControls.cpp
         ${SRC}/tools/imguiControls.h
         ${SRC}/tools/glslProgramObject.cpp
@@ -56,20 +68,19 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/tools/glslShaderObject.cpp
         ${SRC}/tools/glslShaderObject.h
         ${SRC}/tools/transforms.h
-        ${SRC}/tools/virtualGizmo.h
+        ${SRC}/tools/vGizmoMath.h
+        ${SRC}/tools/vGizmoConfig.h
+        ${SRC}/tools/vGizmo.h
         ${SRC}/ui/uiAttractorsDlg.cpp
         ${SRC}/ui/uiMainDlg.cpp
         ${SRC}/ui/uiMainDlg.h
         ${SRC}/ui/uiSettings.cpp
-        ${SRC}/ui/uiSettings.h
         ${SRC}/appDefines.h
         ${SRC}/attractorsBase.cpp
         ${SRC}/attractorsBase.h
         ${SRC}/attractorsFiles.cpp
         ${SRC}/attractorsStartVals.cpp
-        ${SRC}/attractorsStartVals.h
         ${SRC}/configFile.cpp
-        ${SRC}/colorMaps.cpp
         ${SRC}/glApp.cpp
         ${SRC}/glApp.h
         ${SRC}/glWindow.cpp
@@ -82,7 +93,6 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/ParticlesUtils.h
         ${SRC}/ShadersClasses.cpp
         ${SRC}/ShadersClasses.h
-        ${SRC}/vertexbuffer.cpp
         ${SRC}/vertexbuffer.h)
 
 ###########################################################
@@ -118,7 +128,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 # emcc compiler options
     set(M_EMCC_FLAGS "-DGLAPP_NO_OGL_DSA -DGLFW_INCLUDE_ES3")
-    set(M_GLOBAL_FLAGS "-DIMGUI_IMPL_OPENGL_ES3 -DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
+    set(M_GLOBAL_FLAGS "-DGLAPP_NO_GLSL_PIPELINE -DVGIZMO_USES_TEMPLATE -DIMGUI_IMPL_OPENGL_ES3 -DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
 
 # BUILD TYPE: [Debug|RelWithDebInfo|Release|MinSizeRel]    
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -213,10 +223,11 @@ endif(OPENGL_FOUND)
 # set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/builds")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/..")
 
+set(COMMON_DEFINES "-DVGIZMO_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL")
 if(APPLE)
-    set(COMMON_DEFINES "-DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses -framework Cocoa -framework IOKit -framework CoreVideo")
+    set(COMMON_DEFINES "${COMMON_DEFINES} -DGLAPP_NO_GLSL_PIPELINE -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses -framework Cocoa -framework IOKit -framework CoreVideo")
 else()
-    set(COMMON_DEFINES "-DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL")
+    set(COMMON_DEFINES "${COMMON_DEFINES} ")
 endif(APPLE)
 
 

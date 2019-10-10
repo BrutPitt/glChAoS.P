@@ -1,19 +1,20 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
 //
-//  me@michelemorrone.eu - brutpitt@gmail.com
-//  twitter: @BrutPitt - github: BrutPitt
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
 //  This software is distributed under the terms of the BSD 2-Clause license
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//------------------------------------------------------------------------------
 #include "glslProgramObject.h"
 
 ProgramObject::ProgramObject()
 {
-	program = 0;
+    program = 0;
 }
 
 ProgramObject::~ProgramObject()
@@ -46,13 +47,18 @@ void ProgramObject::deleteProgram()
 void ProgramObject::addShader(ShaderObject* shader)
 {
     if(!program) createProgram();
-	glAttachShader(program, shader->getShader());
+    glAttachShader(program, shader->getShader());
 }
 
 /////////////////////////////////////////////////
-void ProgramObject::removeShader(ShaderObject* shader)
+void ProgramObject::removeShader(ShaderObject* shader, bool wantDelete)
 {
-	if(shader!=nullptr) glDetachShader(program, shader->getShader());
+    if(shader!=nullptr)  { glDetachShader(program, shader->getShader()); if(wantDelete) deleteShader(shader); }
+}
+
+void ProgramObject::deleteShader(ShaderObject* shader)
+{
+    if(shader!=nullptr)  { glDeleteShader(shader->getShader()); shader->resetShader(); }
 }
 
 void checkProgram(GLuint program);

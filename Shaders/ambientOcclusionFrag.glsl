@@ -1,20 +1,16 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
-#line 17    //#version dynamically inserted
+//------------------------------------------------------------------------------
+#line 12    //#version dynamically inserted
 
 
 in vec2 viewRay;
@@ -26,10 +22,10 @@ uniform vec4 aoVals; // x = Bias, y = Radius, z = darkness
 
 out vec4 outColor;
 
-LAYUOT_BINDING(5) uniform sampler2D prevData;
-LAYUOT_BINDING(6) uniform sampler2D noise;
-LAYUOT_BINDING(7) uniform sampler2D ssaoSample;
-//LAYUOT_BINDING(7) uniform sampler2D shadowTex;
+LAYOUT_BINDING(5) uniform sampler2D prevData;
+LAYOUT_BINDING(6) uniform sampler2D noise;
+LAYOUT_BINDING(7) uniform sampler2D ssaoSample;
+//LAYOUT_BINDING(7) uniform sampler2D shadowTex;
 
 /*
 vec4 fn(vec2 uv) {
@@ -176,7 +172,7 @@ void main()
     float depth = texture(prevData,gl_FragCoord.xy*u.invScrnRes).w;
     if(depth<=.01) { discard; outColor = vec4(0.0); return; }
 
-    float z = getViewZ(depth);
+    float z = restoreZ(depth);
     vec4 vtx = vec4(viewRay * z, z, 1.0);
 
     vec3 N = getSimpleNormal(z, prevData);
@@ -200,7 +196,7 @@ void main()
             offset.xy /= -offset.w;
             offset.xy = offset.xy * 0.5 + 0.5;
 
-            float sampleDepth = getViewZ(texture(prevData,offset.xy).w);
+            float sampleDepth = restoreZ(texture(prevData,offset.xy).w);
             //float sampleDepth = CalcViewZ(offset.xy);
 
             AO += sampleDepth >= sampleP.z + u.aoBias ? (1.0-u.aoDarkness) * u.aoMul : 0.0;

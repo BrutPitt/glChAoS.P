@@ -16,8 +16,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #line 17    //#version dynamically inserted
 
-LAYUOT_BINDING(0) uniform sampler2D sourceRendered;
-LAYUOT_BINDING(1) uniform sampler2D accumMotion;
+LAYOUT_BINDING(0) uniform sampler2D sourceRendered;
+LAYOUT_BINDING(1) uniform sampler2D accumMotion;
 
 uniform float blurIntensity;
 

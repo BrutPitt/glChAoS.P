@@ -1,24 +1,17 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #pragma once
 //#define GLM_FORCE_SWIZZLE 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #if !defined(GLCHAOSP_LIGHTVER)
 #include "tools/oglAxes.h"
@@ -33,8 +26,6 @@
 #define PURE_VIRTUAL 0
 
 #include "mmFBO.h"
-
-using namespace glm;
 
 template<class T>
 inline T trim(T x, T inc, T min, T max) {
@@ -333,7 +324,7 @@ public:
 private:
     mmFBO fbo;
     renderBaseClass *renderEngine;
-    std::vector<glm::vec3> ssaoKernel;
+    std::vector<vec3> ssaoKernel;
     GLuint ssaoKernelTex;
     GLuint noiseTexture;
     const int kernelSize = 64;
@@ -423,6 +414,7 @@ public:
 
     void viewObjON()  { idxViewOBJ = GLuint(particlesViewColor::packedRGB); }
     void viewObjOFF() { idxViewOBJ = GLuint(particlesViewColor::paletteIndex); }
+    GLuint viewingObj() { return idxViewOBJ; }
 
     bool wantPlyObjColor() { return plyObjGetColor; }
     void wantPlyObjColor(bool b) { plyObjGetColor = b; }
@@ -557,7 +549,7 @@ public:
                                    1.f/reduceMul, 
                                    1.f/reduceMin, 
                                    span);
-        setUniform4fv(_fxaaData, 1, glm::value_ptr(fxaaData));    
+        setUniform4fv(_fxaaData, 1, value_ptr(fxaaData));    
     }
 
     mmFBO &getFBO() { return fbo; }
@@ -610,8 +602,8 @@ public:
 
     mmFBO &getFBO() { return mBlurFBO; };
 #if !defined(GLAPP_REQUIRE_OGL45)
-    void updateAccumMotionTex(GLuint tex)    { glUniform1i(LOCaccumMotion, tex); }
-    void updateSourceRenderedTex(GLuint tex) { glUniform1i(LOCsourceRendered, tex); }
+    void updateAccumMotionTex(GLuint tex)    { setUniform1i(LOCaccumMotion, tex); }
+    void updateSourceRenderedTex(GLuint tex) { setUniform1i(LOCsourceRendered, tex); }
 #endif
 
     void updateBlurIntensity() { setUniform1f(LOCblurIntensity, .5 + blurIntensity*.5); }
@@ -680,8 +672,8 @@ public:
     }
 
 #ifndef GLAPP_REQUIRE_OGL45
-    void updateBillboardTex(GLuint tex)    { glUniform1i(LOCbillboardTex, tex); }
-    void updatePointsTex(GLuint tex) { glUniform1i(LOCpointsTex, tex); }
+    void updateBillboardTex(GLuint tex)    { setUniform1i(LOCbillboardTex, tex); }
+    void updatePointsTex(GLuint tex)       { setUniform1i(LOCpointsTex, tex); }
 #endif
     void updatemixingVal()  { setUniform1f(LOCmixingVal, (mixingVal+1.0)*.5); }
 
@@ -882,14 +874,11 @@ public:
         dotTex.build(DOT_TEXT_SHFT, vec4(.7f, 0.f, .3f, 0.f), dotsTextureClass::dotsAlpha);
         selectColorMap(0);
 
-#ifdef GLCHAOSP_LIGHTVER
         renderBaseClass::create();
-#endif
+
         glowRender->create();
         colorMap->create();
     }
-
-
 
     ~particlesBaseClass ()  {  delete glowRender; delete colorMap;
 #if !defined(GLCHAOSP_NO_FXAA)
@@ -925,8 +914,6 @@ public:
 #endif
 
     }
-
-    void clearScreenBuffers();
 
 
 #ifndef GLAPP_REQUIRE_OGL45
@@ -1015,8 +1002,8 @@ public:
 
     dotsTextureClass& getDotTex() { return dotTex; }
 
-    glm::vec3& getLightDir() { return lightVec; }
-    void setLightDir(const glm::vec3& v) { lightVec = v; setFlagUpdate(); }
+    vec3& getLightDir() { return lightVec; }
+    void setLightDir(const vec3& v) { lightVec = v; setFlagUpdate(); }
 
     // Ambient Ocllusion
     /////////////////////////////////////////////
@@ -1092,7 +1079,7 @@ protected:
     GLuint idxSubPixelColor[4];
 #endif
     GLuint locSubLightModel, locSubPixelColor;
-    glm::vec3 lightVec = vec3(50.f, 15.f, 25.f);
+    vec3 lightVec = vec3(50.f, 15.f, 25.f);
 
     bool depthBuffActive = true;
     bool blendActive = true;
@@ -1103,6 +1090,9 @@ protected:
 
 
 private:
+    void clearScreenBuffers();
+    void restoreGLstate();
+
 
 
 friend class particlesDlgClass;

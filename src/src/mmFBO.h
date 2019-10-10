@@ -1,29 +1,22 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #ifndef _mm_FBO_
 #define _mm_FBO_
 
-#include "glm/vec2.hpp"
 #include <vector>
+#include <vGizmoMath.h>
 
 //#include "GPU.h"
-
-using namespace glm;
-
 
 
 class mmFBO 

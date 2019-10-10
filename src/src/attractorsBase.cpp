@@ -1,19 +1,15 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #include <iostream>
 
 #include "glWindow.h"
@@ -21,13 +17,12 @@
 #include "attractorsBase.h"
 
 AttractorsClass attractorsList; // need to resolve inlines
-//deque<glm::vec3> AttractorBase::stepQueue;
 
 #define PIQ 9.86960440108935861883f
 #define PIH 1.57079632679489661923f
 inline float sinAprx(float x) {
-    //x = mod(x,2.f*glm::pi<float>());
-    return (16.f*x*(glm::pi<float>()-x)) / (5.f*PIQ - 4.f*x*(glm::pi<float>() - x));
+    //x = mod(x,2.f*T_PI());
+    return (16.f*x*(T_PI-x)) / (5.f*PIQ - 4.f*x*(T_PI - x));
 }
 inline float cosAprx(float x) {
     return  sinAprx(PIH-x);
@@ -197,7 +192,7 @@ void AttractorBase::searchLyapunov()
                 nL++;
             }
 
-            ve = v + d0 * vd / dd;
+            ve = v + (vd * d0) / dd;
 
             //if(!(i%1000)) cout << "i: " <<  i << " - LExp: " << lyapunov/nL << " - L: " <<  nL << endl;
 
@@ -303,9 +298,9 @@ void Hopalong::Step(vec3 &v, vec3 &vp) {
                     _y = a*_r - oldX;
     float z = step;
 
-    vp.x = step*sin(2.f*pi<float>()*_x)*cos(2.f*pi<float>()*_y);
-    vp.y = step*sin(2.f*pi<float>()*_x)*sin(2.f*pi<float>()*_y);
-    vp.z = step*cos(2.f*pi<float>()*_x)                ;
+    vp.x = step*sin(2.f*T_PI*_x)*cos(2.f*pi<float>()*_y);
+    vp.y = step*sin(2.f*T_PI*_x)*sin(2.f*pi<float>()*_y);
+    vp.z = step*cos(2.f*T_PI*_x)                ;
 
     _zy = oldZ - sqrt(abs(kVal[4]*_r * v.x - kVal[5]*_r)) * (v.x > 0.f ? 1. : (v.x < 0.f ? -1.: 0)),
 
@@ -517,7 +512,7 @@ void dla3D::buildIndex() // for loaded data
     memset(m_JoinAttempts.data(), 0, id*sizeof(int));
 
 #ifdef GLAPP_USE_BOOST_LIBRARY
-    glm::vec3 *p = thisPOINT.data();
+    vec3 *p = thisPOINT.data();
     for(int i=0; i<id; i++, p++)
         m_Index.insert(std::make_pair(BoostPoint(p->x, p->y, p->z), i));
 #else
@@ -766,8 +761,8 @@ void juliaBulb4th_IIM::Step(vec3 &v, vec3 &vp)
         const int k1 = (absOrder - (p.z<0 ? 0 : 1)), k2 = (3*absOrder + (p.z<0 ? 4 : 2));
 
         const int dk = ((absOrder%2)==0 && (kPhi<<2)>k1 && (kPhi<<2)<k2) ? (sign(p.z) * ( (absOrder % 4) ? 1 : -1)) : 0;
-        const float theta  = (atan2f(p.y,p.x) + (2 * kTheta + dk) * glm::pi<float>()) / float(degreeN);
-        const float phi    = (asinf(p.z/r)    + (2 * kPhi   - dk) * glm::pi<float>()) / float(degreeN);
+        const float theta  = (atan2f(p.y,p.x) + (2 * kTheta + dk) * T_PI) / float(degreeN);
+        const float phi    = (asinf(p.z/r)    + (2 * kPhi   - dk) * T_PI) / float(degreeN);
         const float cosphi = cosf(phi);
         vp = powf(r, 1.0f/float(degreeN)) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi));
     };
@@ -874,8 +869,8 @@ void glynnJB_IIM::Step(vec3 &v, vec3 &vp)
             }
         }
 */
-        const float theta  = (atan2f(p.y,p.x)+ ktheta * glm::pi<float>())/n;
-        const float phi    = (acosf(p.z/(r == 0.f ? FLT_EPSILON : r))   + kphi   * glm::pi<float>())/n;
+        const float theta  = (atan2f(p.y,p.x)+ ktheta * T_PI)/n;
+        const float phi    = (acosf(p.z/(r == 0.f ? FLT_EPSILON : r))   + kphi   * T_PI)/n;
 
         const float cosphi = cosf(phi);
         vp = powf(r,1.0f/n) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi));
@@ -889,8 +884,8 @@ void glynnJB_IIM::Step(vec3 &v, vec3 &vp)
         const int k1 = (dN - (p.z<0 ? 0 : 1)), k2 = (3*dN + (p.z<0 ? 4 : 2));
 
         const int dk = ((kPhi*4.f)>k1 && (kPhi*4.f)<k2) ? (sign(p.z) * 1 ) : 0;
-        const float theta  = (atan2f(p.y,p.x) + (2 * kTheta + dk) * glm::pi<float>()) / float(dN);
-        const float phi    = (asinf(p.z/r)    + (2 * kPhi   - dk) * glm::pi<float>()) / float(dN);
+        const float theta  = (atan2f(p.y,p.x) + (2 * kTheta + dk) * T_PI) / float(dN);
+        const float phi    = (asinf(p.z/r)    + (2 * kPhi   - dk) * T_PI) / float(dN);
         const float cosphi = cosf(phi);
         vp = powf(r, 1.0f/float(dN)) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi));
     };
@@ -962,8 +957,8 @@ const vec3 Magnetic::tryed(const vec3 &vx, int i)
 {
     switch(i%3) {
         case 0 :  return vx;
-        case 1 :  return vec3(vx.x,sinf(vx.y/pi<float>()),cosf(vx.z/pi<float>()));
-        case 2 :  return vec3(vx.x,cosf(vx.y/pi<float>()),sinf(vx.z/pi<float>())); 
+        case 1 :  return vec3(vx.x,sinf(vx.y/T_PI),cosf(vx.z/pi<float>()));
+        case 2 :  return vec3(vx.x,cosf(vx.y/T_PI),sinf(vx.z/pi<float>())); 
     }
     return vx;
 }

@@ -1,19 +1,15 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #pragma once
 #include "appDefines.h"
 //#include "glUtilities.h"
@@ -25,8 +21,6 @@
 #include <iomanip>
 #include <iostream>
 #include <GLFW/glfw3.h>
-
-
 
 enum ScreeShotReq {
     ScrnSht_NO_REQUEST,     //0x00
@@ -90,8 +84,6 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 #else
     #error "Environment not 32 or 64-bit."
 #endif
-
-
 
 
 #ifdef NDEBUG

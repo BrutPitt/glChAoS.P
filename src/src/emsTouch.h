@@ -1,23 +1,23 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #pragma once
 
 #include "appDefines.h"
-#include <glm/glm.hpp>
+#include <float.h>
+
+extern "C" {
+extern void initVR();
+}
 
 class emsMDeviceClass
 {
@@ -49,6 +49,5 @@ enum touchAct {
     float touchX = -FLT_MAX, touchY = -FLT_MAX;
     float oldTouchX = -FLT_MAX, oldTouchY = -FLT_MAX;
 
-    glm::vec2 pinchPoints[2]; 
 };
 

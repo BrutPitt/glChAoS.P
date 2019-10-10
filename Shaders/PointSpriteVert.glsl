@@ -1,29 +1,25 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
-#line 17    //#version dynamically inserted
+//------------------------------------------------------------------------------
+#line 12    //#version dynamically inserted
 
 out vec4 mvVtxPos;
-//out vec4 mvVtxLightPos;
-
+#ifdef SHADOW_PASS
+out vec4 solidVtx;
+#endif
 out float pointDistance;
 out vec4 particleColor;
 out float particleSize;
 
-out vec4 shadowlightView;
 
 void main()
 {
@@ -31,11 +27,9 @@ void main()
 
 #ifdef SHADOW_PASS
     vec4 vtxPos =  m.mvLightM  * vec4(a_ActualPoint.xyz,1.f);
-    //gl_Position = m.pLightM * vtxPos;
-    //gl_PointSize = 1.0;
+    solidVtx = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
 #else
     vec4 vtxPos = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
-    vec4 shadowlightView = m.mvLightM * vec4(a_ActualPoint.xyz,1.f);
 #endif
 
     #if defined(GL_ES) || defined(TEST_WGL)

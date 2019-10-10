@@ -1,22 +1,18 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
-#line 17    //#version dynamically inserted
+//------------------------------------------------------------------------------
+#line 14    //#version dynamically inserted
 
-LAYUOT_BINDING(1) uniform sampler2D tex;
+LAYOUT_BINDING(1) uniform sampler2D tex;
 
 #define pixelColorOFFSET 0
 #define idxBLENDING (pixelColorOFFSET    )
@@ -26,7 +22,7 @@ LAYUOT_BINDING(1) uniform sampler2D tex;
 
 #if !defined(GL_ES) && !defined(__APPLE__)
     subroutine vec4 _pixelColor(vec4 color, vec4 N);
-    subroutine uniform _pixelColor pixelColor;
+    LAYOUT_LOCATION(1) subroutine uniform _pixelColor pixelColor;
 #endif
 
 in vec4 mvVtxPos;
@@ -35,7 +31,7 @@ in float pointDistance;
 in vec4 particleColor;
 in float particleSize;
 
-in vec4 shadowlightView;
+//in vec4 shadowlightView;
 
 layout (location = 0) out vec4 outColor;
 
@@ -60,8 +56,6 @@ float getAlpha(float alpha)
 
 vec4 acquireColor(vec2 coord)
 {
-    if(pointDistance<u.clippingDist) discard;    
-
     vec4 color = particleColor * texture(tex, coord).r;
 
     return vec4(color.rgb * u.colIntensity, getAlpha(color.a)) ;
@@ -86,96 +80,83 @@ vec3 packing2Colors8bit(vec3 colorA, vec3 colorB)
 #endif
 
 #if !defined(__APPLE__)
-LAYUOT_INDEX(idxSOLID) SUBROUTINE(_pixelColor) 
+LAYOUT_INDEX(idxSOLID) SUBROUTINE(_pixelColor) 
 #endif
 vec4 pixelColorDirect(vec4 color, vec4 N)
 {
-    //if (color.a < u.alphaSkip) discard;   // kill pixels outside circle: r=1.0
-    //else {
-        //vec3 N;
-        //N.xy = (coord - vec2(.5))*2.0; // xy = radius in 0
-        //float mag = dot(N.xy, N.xy);
-        //N.z = sqrt(1.0-mag);
-    
-        //N.xyz = normalize(N.xyz); 
 
-        //Light @ vertex position
-        vec3 light =  normalize(u.lightDir);  // +vtx
+    //Light @ vertex position
+    vec3 light =  normalize(u.lightDir);  // +vtx
     
-        float lambertian = max(0.0, dot(light, N.xyz)); 
+    float lambertian = max(0.0, dot(light, N.xyz)); 
 
-        vec3 V = normalize(newVertex.xyz);
+    vec3 V = normalize(newVertex.xyz);
 #if defined(GL_ES) || defined(__APPLE__)
-        float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
+    float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
 #else
-        float specular = lightModel(V, light, N.xyz);
+    float specular = lightModel(V, light, N.xyz);
 #endif
 
-        vec3 lightColor = color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
-                        u.lightColor * specular * u.lightSpecInt;
+    vec3 lightColor = color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
+                    u.lightColor * specular * u.lightSpecInt;
 
-        vec3 ambColor = (color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5;
+    vec3 ambColor = (color.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5;
 
-        return vec4(smoothstep(u.sstepColorMin, u.sstepColorMax, lightColor + ambColor) , color.a);
+    return vec4(smoothstep(u.sstepColorMin, u.sstepColorMax, lightColor + ambColor) , color.a);
 }
 
 #if !defined(__APPLE__)
-LAYUOT_INDEX(idxSOLID_AO) SUBROUTINE(_pixelColor) 
+LAYOUT_INDEX(idxSOLID_AO) SUBROUTINE(_pixelColor) 
 #endif
 vec4 pixelColorAO(vec4 color, vec4 N)
 {
-        vec3 light =  normalize(u.lightDir);  // +vtx
+    vec3 light =  normalize(u.lightDir);  // +vtx
     
-        float lambertian = max(0.0, dot(light, N.xyz)); 
+    float lambertian = max(0.0, dot(light, N.xyz)); 
 
-        vec3 V = normalize(newVertex.xyz);
+    vec3 V = normalize(newVertex.xyz);
 #if defined(GL_ES) || defined(__APPLE__)
-        float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
+    float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
 #else
-        float specular = lightModel(V, light, N.xyz);
+    float specular = lightModel(V, light, N.xyz);
 #endif
 
-        vec3 lColor =  color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
-                       u.lightColor * specular * u.lightSpecInt;
+    vec3 lColor =  color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
+                    u.lightColor * specular * u.lightSpecInt;
 
-        return vec4(packing2Colors16bit(lColor, color.rgb), getDepth(newVertex.z));
+    return vec4(packing2Colors16bit(lColor, color.rgb), getFragDepth(newVertex.z));
 }
 
 #if !defined(__APPLE__)
-LAYUOT_INDEX(idxSOLID_DR) SUBROUTINE(_pixelColor)
+LAYOUT_INDEX(idxSOLID_DR) SUBROUTINE(_pixelColor)
 #endif
 vec4 pixelColorDR(vec4 color, vec4 N)
 {
-   return vec4(color.xyz, getDepth(newVertex.z));
+   return vec4(color.xyz, getFragDepth(newVertex.z));
 }
 
 
 #if !defined(__APPLE__)
-LAYUOT_INDEX(idxBLENDING) SUBROUTINE(_pixelColor)  
+LAYOUT_INDEX(idxBLENDING) SUBROUTINE(_pixelColor)  
 #endif
 vec4 pixelColorBlending(vec4 color, vec4 N)
 {
-    if(color.a < u.alphaSkip ) { discard; return color; }
-    else return color;
+    if(color.a < u.alphaSkip ) { discard; return vec4(0.0); }  //returm need for Angle error
+    return color;
 }
 
 vec4 mainFunc(vec2 ptCoord)
 {
 
     vec4 N = getParticleNormal(ptCoord);
-    if(N.w >= 1.0 || N.z < u.alphaSkip) { discard; return vec4(0.0); } //return black color and max depth
+        //if(pointDistance<u.clippingDist) discard;
 
-    newVertex    = mvVtxPos + vec4(0., 0., N.z * particleSize, 0.);
+    newVertex = mvVtxPos + vec4(0., 0., N.z * particleSize, 0.);
+    float clipDistance = -dot(newVertex, ClipPlane);
 
-//linear
-    gl_FragDepth = getDepth(newVertex.z);
-    //gl_FragDepth = depthSample(newVertex.z); // same but with zNear & zFar
-//logarithmic
-    //vec4 pPos = m.pMatrix * newVertex;
-    //gl_FragDepth = getDepth_(pPos.w);
-//Outerra
-    //vec4 pPos = m.pMatrix * newVertex;
-    //gl_FragDepth =  getDepth_(pPos.w+1.);
+    if(N.w >= 1.0 || N.z < u.alphaSkip || -newVertex.z<u.clippingDist /*|| clipDistance<0.0*/) { discard;  vec4(0.0); } //returm need for Angle error
+
+    gl_FragDepth = getFragDepth(newVertex.z);
 
     vec4 color = acquireColor(ptCoord);
 

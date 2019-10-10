@@ -40,7 +40,7 @@ layout(std140) uniform;
 #endif
 
 
-LAYUOT_BINDING(2) uniform _blurData {
+LAYOUT_BINDING(2) uniform _blurData {
     vec4 sigma;
     float threshold;
     bool toneMap;
@@ -55,12 +55,12 @@ LAYUOT_BINDING(2) uniform _blurData {
     int blurCallType;
 };
 
-LAYUOT_BINDING(0) uniform sampler2D origTexture;
-LAYUOT_BINDING(1) uniform sampler2D pass1Texture;
+LAYOUT_BINDING(0) uniform sampler2D origTexture;
+LAYOUT_BINDING(1) uniform sampler2D pass1Texture;
 
-//LAYUOT_BINDING(3) uniform sampler2D depthTexture;
-//LAYUOT_BINDING(4) uniform sampler2D vtxTex;
-//LAYUOT_BINDING(5) uniform sampler2D normTex;
+//LAYOUT_BINDING(3) uniform sampler2D depthTexture;
+//LAYOUT_BINDING(4) uniform sampler2D vtxTex;
+//LAYOUT_BINDING(5) uniform sampler2D normTex;
 
 
 //in vec2 vTexCoord;
@@ -282,14 +282,14 @@ vec4 qualitySetting(vec4 col)
 
 //  Pass1 Gauss Blur
 ////////////////////////////////////////////////////////////////////////////
-LAYUOT_INDEX(1) SUBROUTINE(_radialPass) vec4 radialPass1()
+LAYOUT_INDEX(1) SUBROUTINE(_radialPass) vec4 radialPass1()
 {
     return gPass(origTexture, vec2(1.0, 0.0));
 }
 
 //  Pass2 Gauss Blur
 ////////////////////////////////////////////////////////////////////////////
-LAYUOT_INDEX(2) SUBROUTINE(_radialPass) vec4 radialPass2()
+LAYOUT_INDEX(2) SUBROUTINE(_radialPass) vec4 radialPass2()
 {
     vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y; //origTex * intensity
     vec4 blurred = gPass(pass1Texture, vec2(0.0, 1.0))* texControls.x;                //blur * intensity
@@ -302,7 +302,7 @@ LAYUOT_INDEX(2) SUBROUTINE(_radialPass) vec4 radialPass2()
 
 //  Pass2 Gauss Blur + threshold -> reduced (1/4) bilateral
 ////////////////////////////////////////////////////////////////////////////
-LAYUOT_INDEX(3) SUBROUTINE(_radialPass) vec4 radialPass2withBilateral()
+LAYOUT_INDEX(3) SUBROUTINE(_radialPass) vec4 radialPass2withBilateral()
 {
     vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y;
     vec4 blurred = gPass(pass1Texture, vec2(0.0, 1.0))* texControls.x;
@@ -317,7 +317,7 @@ LAYUOT_INDEX(3) SUBROUTINE(_radialPass) vec4 radialPass2withBilateral()
 
 //  Bilateral onePass
 ////////////////////////////////////////////////////////////////////////////
-LAYUOT_INDEX(4) SUBROUTINE(_radialPass) vec4 bilateralSmooth()
+LAYOUT_INDEX(4) SUBROUTINE(_radialPass) vec4 bilateralSmooth()
 {
     vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y; //origTex intensity
     vec4 newBlur = bilateralSmartSmoothOK() * texControls.z;
@@ -407,7 +407,7 @@ vec2 scale (vec2 p, float s) {
 
 //  bypass, only image adjust
 ////////////////////////////////////////////////////////////////////////////
-LAYUOT_INDEX(0) SUBROUTINE(_radialPass) vec4 byPass()
+LAYOUT_INDEX(0) SUBROUTINE(_radialPass) vec4 byPass()
 {
     return qualitySetting(min(texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y, 1.0f));
 }

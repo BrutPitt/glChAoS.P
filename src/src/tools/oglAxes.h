@@ -1,19 +1,15 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #pragma once
 
 #include <vector>
@@ -22,22 +18,19 @@
 #include "../glApp.h"
 #include "transforms.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 //#define GLAPP_MINIMIZE_VERTEX
 
 
 #ifdef GLAPP_MINIMIZE_VERTEX
-void buildConeFan(std::vector<glm::vec3> &vtx, const float x0, const float x1, const float radius, const int slices);
-void buildCylStrip(std::vector<glm::vec3> &vtx, const float x0, const float x1, const float radius, const int slices);
-void buildCapFan(std::vector<glm::vec3> &coneVtx, const float x0, const float radius, const int slices);
+void buildConeFan(std::vector<vec3> &vtx, const float x0, const float x1, const float radius, const int slices);
+void buildCylStrip(std::vector<vec3> &vtx, const float x0, const float x1, const float radius, const int slices);
+void buildCapFan(std::vector<vec3> &coneVtx, const float x0, const float radius, const int slices);
 #else
-void buildCone(std::vector<glm::vec3> &vtx, const float x0, const float x1, const float radius, const int slices);
-void buildCyl (std::vector<glm::vec3> &vtx, const float x0, const float x1, const float radius, const int slices);
-void buildCap (std::vector<glm::vec3> &vtx, const float x0, const float x1, const float radius, const int slices);
+void buildCone(std::vector<vec3> &vtx, const float x0, const float x1, const float radius, const int slices);
+void buildCyl (std::vector<vec3> &vtx, const float x0, const float x1, const float radius, const int slices);
+void buildCap (std::vector<vec3> &vtx, const float x0, const float x1, const float radius, const int slices);
 #endif
-void buildCube(std::vector<glm::vec3> &vtx, const float size);
+void buildCube(std::vector<vec3> &vtx, const float size);
 
 
 template <class T> class vaoAxesClass {
@@ -107,8 +100,14 @@ private:
 
 
 
-class oglAxes : public mainProgramObj
+class oglAxes : public mainProgramObj, public uniformBlocksClass
 {
+struct uAxesData {
+    mat4 pMat;
+    mat4 mvMat;
+    vec3 zoomF;
+} uData;
+
 public:
 
     oglAxes(bool cube = false, bool fullAxes = true) : showFullAxes(fullAxes), showCube(cube) { 
@@ -116,7 +115,7 @@ public:
         transforms = new transformsClass;
 
         transforms->setView(vec3(0.f, 0.f, 5.0f), vec3(0.f, 0.f, .0f)); 
-        transforms->setPerspective(30.f, theApp->GetHeight() != 0 ? float(theApp->GetWidth())/float(theApp->GetHeight()) : 1.0, 0.f, 30.f);
+        transforms->setPerspective(30.f, theApp->GetHeight() != 0 ? float(theApp->GetWidth())/float(theApp->GetHeight()) : 1.f, 0.f, 30.f);
 
         startArrow = showCube ? cubeSize : cylRadius;
 
@@ -145,7 +144,7 @@ public:
 #endif
 
         
-        //vaoTriangle = new vaoClass<float>(glm::value_ptr(triangle[0]), sizeof(triangle), 2);
+        //vaoTriangle = new vaoClass<float>(value_ptr(triangle[0]), sizeof(triangle), 2);
         //vaoCyl =  new vaoClass<float>(cylVtx.data(), cylVtx.size(), 3, 1);
         //vaoConeBase = new vaoClass<float>(coneVtx[SOLID_BASE].data(), coneVtx[SOLID_BASE].size(), 3, 1);
 
@@ -165,7 +164,7 @@ public:
         delete transforms;
     }
 
-    void initShaders(const char *vtxDefs="", const char *fragDefs="");
+    void initShaders(const char *vtxDefs="",  const char *fragDefs="");
     void render();
     void renderOnFB(GLuint frameBuffer) {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frameBuffer);
@@ -174,13 +173,15 @@ public:
 
     transformsClass *getTransforms() { return transforms; }
 
-    void setBackgroundColor(const glm::vec4 &bg) { bgColor = bg; }
+    void setBackgroundColor(const vec4 &bg) { bgColor = bg; }
 
     vec3 &getZoom() { return axesZoom; }
     void setZoom(vec3 v) { axesZoom = v; }
 
     vec3 &getZoomFactor() { return zoomFactor; }
     void setZoomFactor(vec3 v) { zoomFactor = v; }
+
+    uAxesData &getUData() { return uData; }
 
 
 private:
@@ -198,17 +199,18 @@ private:
     GLuint _pMat, _mvMat, _zoomF;
     bool showFullAxes = true, showCube = false;
 
-    glm::vec4 bgColor = glm::vec4(0.0f);
+
+    vec4 bgColor = vec4(0.0f);
  
     vec3 axesZoom = vec3(1.f);
     vec3 zoomFactor = vec3(1.f);
 
 #ifdef GLAPP_MINIMIZE_VERTEX
     vaoAxesClass<float> *vaoCone, *vaoConeCap, *vaoCyl, *vaoCube;
-    std::vector<glm::vec3> coneVtx, capVtx, cylVtx, cubeVtx;
+    std::vector<vec3> coneVtx, capVtx, cylVtx, cubeVtx;
 #else
     vaoAxesClass<float> *vaoAxes = nullptr;
-    std::vector<glm::vec3> allAxes;
+    std::vector<vec3> allAxes;
 #endif
 
 

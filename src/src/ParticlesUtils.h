@@ -1,34 +1,24 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
-#ifndef PARTICLES_UTILS_H
-#define PARTICLES_UTILS_H
+//------------------------------------------------------------------------------
+#pragma once
 
 #include <vector>
 
-#include <glm/glm.hpp>
-#include <glm/ext/scalar_constants.hpp>
+#include <vGizmoMath.h>
 
 #include "glApp.h"
 #include "glslProgramObject.h"
 #include "glslShaderObject.h"
-
-
-using namespace glm;
-
 
 
 class textureBaseClass 
@@ -47,17 +37,15 @@ protected:
     bool generated = false;
     void genTex();
     void assignAttribs(GLint filterMin, GLint filterMag, GLint wrap);
-
 };
-
-
 
 class RandomTexture : public textureBaseClass
 {
 public:
 
-    RandomTexture();
-    ~RandomTexture();
+    RandomTexture() { srand( (unsigned)time( NULL ) ); }
+
+    ~RandomTexture() {}
     void buildTex(int size);
 
 
@@ -67,27 +55,17 @@ public:
 
 private:
 
-    int texIndex;
-
+    int texIndex = 0;
 };
 
 class HLSTexture  : public textureBaseClass
 {
 public:
 
-    HLSTexture();
-    ~HLSTexture();
+    HLSTexture() {}
+    ~HLSTexture() {}
     void buildTex(int size);
-
-
-private:
-
 };
-extern HLSTexture hlsTexture;
-
-
-
-
 
 class paletteTexClass : public textureBaseClass
 {
@@ -96,21 +74,24 @@ public:
     paletteTexClass() {  /*texID=hlsTexture.getTexID();*/ }
     void buildTex(unsigned char *buffer, int size);
     void buildTex(float *buffer, int size);
-
 };
-
-
 
 class TextureView
 {
 public:
 
-    TextureView(int x, int y, float r);
-    void SetOrtho();    
-    void End(int w, int h);
+    TextureView(int x, int y, float r) : texSize(ivec2(x, y)), reduction(r) { onReshape(x, y); }
 
-    void onReshape(int w, int h);
+    void SetOrtho() {}    
+    void End(int w, int h) {}
+
     void onReshape() { onReshape(winSize.x, winSize.y); }
+    void onReshape(int w, int h) {
+        winSize = ivec2(w,h);   
+        texInvSize = vec2(1.0/(float)w,1.0/(float)h) / reduction;
+        wAspect = (w<h) ? vec2(1.0,(float)h/(float)w) : 
+                          vec2((float)w/(float)h, 1.0);
+    }
     
     void setReduction(float r) { reduction = r; }
     float getReduction() { return reduction; }
@@ -129,9 +110,6 @@ public:
 
     void setTexSize(int x, int y) { texSize = ivec2(x,y); }
 
-
-
-
 private:
     vec2 wAspect;     
     vec2 texInvSize;
@@ -140,11 +118,7 @@ private:
     ivec2 texSize;
 
     float reduction;
-
 };
-
-
-
  
 template <class T> class gaussianMap
 {
@@ -211,8 +185,6 @@ private:
     T *M;
     int size, totSize;
     T factor;
-
-
 };
 
 //  Particles Texture
@@ -222,11 +194,7 @@ class dotsTextureClass
 public:
     enum { dotsAlpha, dotsSolid };
 
-    dotsTextureClass()  
-    {
-
-
-    }
+    dotsTextureClass()  {}
 
     void build(int shift, const vec4 &v, int t)
     {
@@ -248,13 +216,10 @@ public:
         }
 #endif
         build(shift, v, t);
-
     }
-
 
     void build()
     {
-
         gaussianMap<GLfloat> gMap(texSize);
 
         gMap.generateMap(hermiteVals, 1, dotType); 
@@ -327,10 +292,5 @@ protected:
     int shiftBaseSize = 0;
     vec4 hermiteVals = vec4(.7f, 0.f, .3f, 0.f);
     int dotType;
-
-
 };
 
-
-
-#endif //PARTICLES_UTILS_H

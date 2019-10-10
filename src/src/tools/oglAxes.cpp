@@ -1,28 +1,19 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
+//------------------------------------------------------------------------------
 #include "oglAxes.h"
 
 #include "../glApp.h"
 #include "../glWindow.h"
-
-using namespace glm;
 
 
 #define SHADER_PATH "Shaders/"
@@ -32,7 +23,7 @@ using namespace glm;
 //  Cone
 //
 ////////////////////////////////////////////////////////////////////////////
-void buildConeFan(std::vector<glm::vec3> &coneVtx, const float x0, const float x1, const float radius, const int slices)
+void buildConeFan(std::vector<vec3> &coneVtx, const float x0, const float x1, const float radius, const int slices)
 {
     const float height = x1-x0 ;
 
@@ -43,12 +34,12 @@ void buildConeFan(std::vector<glm::vec3> &coneVtx, const float x0, const float x
     const float sinn =  radius / sq;
 
 
-    const float incAngle = 2*glm::pi<float>()/(float)( slices );
+    const float incAngle = 2*T_PI/(float)( slices );
     float angle = 0;
 
     const float xt0 = x0 * cosn; 
 
-#   define V(x,y,z) coneVtx.push_back(glm::vec3(x, y, z))
+#   define V(x,y,z) coneVtx.push_back(vec3(x, y, z))
 #   define N(x,y,z) V(x,y,z)
 
     V(0.f, 0.f, x1); N(0.f, 0.f, xt0);
@@ -67,15 +58,15 @@ void buildConeFan(std::vector<glm::vec3> &coneVtx, const float x0, const float x
 }
 
 
-void buildCapFan(std::vector<glm::vec3> &coneVtx, const float x0, const float radius, const int slices)
+void buildCapFan(std::vector<vec3> &coneVtx, const float x0, const float radius, const int slices)
 {
 
 
-    const float incAngle = 2*glm::pi<float>()/(float)( slices );
+    const float incAngle = 2*T_PI/(float)( slices );
     float angle = 0;
 
 
-#   define V(x,y,z) coneVtx.push_back(glm::vec3(x, y, z))
+#   define V(x,y,z) coneVtx.push_back(vec3(x, y, z))
 #   define N(x,y,z) V(x,y,z)
 
     V(0.f, 0.f, x0); N(0.f, 0.f, -1.f);
@@ -95,18 +86,18 @@ void buildCapFan(std::vector<glm::vec3> &coneVtx, const float x0, const float ra
 //  Cylinder
 //      Draw w/o up/dw caps
 ////////////////////////////////////////////////////////////////////////////
-void buildCylStrip(std::vector<glm::vec3> &cylVtx, const float z0, const float z1, const float radius, const int slices)
+void buildCylStrip(std::vector<vec3> &cylVtx, const float z0, const float z1, const float radius, const int slices)
 {
 
     float x1 = 1.0f, xr1 = radius;
     float y1 = 0.0f, yr1 = 0.0f; // * radius
 
     
-    const float incAngle = 2.0f*glm::pi<float>()/(float)( slices );
+    const float incAngle = 2.0f*T_PI/(float)( slices );
     float angle = incAngle;
 
 
-#   define V(x,y,z) cylVtx.push_back(glm::vec3(x, y, z))
+#   define V(x,y,z) cylVtx.push_back(vec3(x, y, z))
 #   define N(x,y,z) V(x,y,z)
 
     //V(xr0, yr0, z0); N( x0,  y0,  0.f);
@@ -129,7 +120,7 @@ void buildCylStrip(std::vector<glm::vec3> &cylVtx, const float z0, const float z
 //  Cone
 //
 ////////////////////////////////////////////////////////////////////////////
-void buildCone(std::vector<glm::vec3> &coneVtx, const float z0, const float z1, const float radius, const int slices)
+void buildCone(std::vector<vec3> &coneVtx, const float z0, const float z1, const float radius, const int slices)
 {
     const float height = z1-z0 ;
 
@@ -140,7 +131,7 @@ void buildCone(std::vector<glm::vec3> &coneVtx, const float z0, const float z1, 
     const float sinn =  radius / sq;
 
 
-    const float incAngle = 2*glm::pi<float>()/(float)( slices );
+    const float incAngle = 2*T_PI/(float)( slices );
     float angle = incAngle;
 
     float xt1 = sinn,  x1 = radius;// cos(0) * sinn ... cos(0) * radius 
@@ -148,7 +139,7 @@ void buildCone(std::vector<glm::vec3> &coneVtx, const float z0, const float z1, 
 
     const float zt0 = z0 * cosn, zt1 = z1 * cosn; 
 
-#   define V(x,y,z) coneVtx.push_back(glm::vec3(x, y, z))
+#   define V(x,y,z) coneVtx.push_back(vec3(x, y, z))
 #   define N(x,y,z) V(x,y,z)
 
     for (int j=0; j<slices; j++, angle+=incAngle)
@@ -177,18 +168,18 @@ void buildCone(std::vector<glm::vec3> &coneVtx, const float z0, const float z1, 
 //  Cylinder
 //      Draw w/o up/dw caps
 ////////////////////////////////////////////////////////////////////////////
-void buildCyl(std::vector<glm::vec3> &cylVtx, const float z0, const float z1, const float radius, const int slices)
+void buildCyl(std::vector<vec3> &cylVtx, const float z0, const float z1, const float radius, const int slices)
 {
 
     float x1 = 1.0f, xr1 = radius;
     float y1 = 0.0f, yr1 = 0.0f; // * radius
 
     
-    const float incAngle = 2.0f*glm::pi<float>()/(float)( slices );
+    const float incAngle = 2.0f*T_PI/(float)( slices );
     float angle = incAngle;
 
 
-#   define V(x,y,z) cylVtx.push_back(glm::vec3(x, y, z))
+#   define V(x,y,z) cylVtx.push_back(vec3(x, y, z))
 #   define N(x,y,z) V(x,y,z)
 
 
@@ -226,18 +217,18 @@ void buildCyl(std::vector<glm::vec3> &cylVtx, const float z0, const float z1, co
 //  Cap (circle)
 //      for full axes need only one Cap
 ////////////////////////////////////////////////////////////////////////////
-void buildCap(std::vector<glm::vec3> &vtx, const float z0, const float z1, const float radius, const int slices)
+void buildCap(std::vector<vec3> &vtx, const float z0, const float z1, const float radius, const int slices)
 {
 
     float x1 = 1.0f, xr1 = radius;
     float y1 = 0.0f, yr1 = 0.0f; // * radius
 
     
-    const float incAngle = 2.0f*glm::pi<float>()/(float)( slices );
+    const float incAngle = 2.0f*T_PI/(float)( slices );
     float angle = incAngle;
 
 
-#   define V(x,y,z) vtx.push_back(glm::vec3(x, y, z))
+#   define V(x,y,z) vtx.push_back(vec3(x, y, z))
 #   define N(x,y,z) V(x,y,z)
 
     for (int j=0; j<slices; j++, angle+=incAngle) {
@@ -267,10 +258,10 @@ void buildCap(std::vector<glm::vec3> &vtx, const float z0, const float z1, const
 //  Cube
 //      Draw only 2 squared opposed faces, and then instance them
 ////////////////////////////////////////////////////////////////////////////
-void buildCube(std::vector<glm::vec3> &cubeVtx, const float size)
+void buildCube(std::vector<vec3> &cubeVtx, const float size)
 {
-#define V(x,y,z) cubeVtx.push_back(glm::vec3(x size, y size, z size))
-#define N(x,y,z) cubeVtx.push_back(glm::vec3(x, y, z))
+#define V(x,y,z) cubeVtx.push_back(vec3(x size, y size, z size))
+#define N(x,y,z) cubeVtx.push_back(vec3(x, y, z))
 
     V(+,+,+); N( 0.0, 0.0, 1.0); V(-,-,+); N( 0.0, 0.0, 1.0); V(-,+,+); N( 0.0, 0.0, 1.0); 
     V(+,-,+); N( 0.0, 0.0, 1.0); V(-,-,+); N( 0.0, 0.0, 1.0); V(+,+,+); N( 0.0, 0.0, 1.0); 
@@ -283,8 +274,9 @@ void buildCube(std::vector<glm::vec3> &cubeVtx, const float size)
 }
 
 
-void oglAxes::initShaders(const char *vtxDefs, const char *fragDefs) 
+void oglAxes::initShaders(const char *vtxDefs,  const char *fragDefs) 
 {
+
     useVertex(); useFragment();
 
 	getVertex()->Load(vtxDefs, 1, SHADER_PATH "oglAxesVert.glsl");
@@ -296,15 +288,14 @@ void oglAxes::initShaders(const char *vtxDefs, const char *fragDefs)
 
 	link();
 
-    bindPipeline();
+    removeAllShaders(true);
 
-    useProgram();
+    USE_PROGRAM
 
     _pMat  = getUniformLocation("pMat");
     _mvMat = getUniformLocation("mvMat");
     _zoomF = getUniformLocation("zoomF");    
     
-    reset();
 }
 
 void oglAxes::render() 
@@ -323,18 +314,16 @@ void oglAxes::render()
     GLfloat f=1.0f;
     glClearBufferfv(GL_DEPTH, 0, &f);    
 
-    glClearBufferfv(GL_COLOR, 0, glm::value_ptr(bgColor));    
-
-
+    glClearBufferfv(GL_COLOR, 0, value_ptr(bgColor));    
 
     bindPipeline();
-    useProgram();
 
-    getTransforms()->updatePmatrix(_pMat );
-    getTransforms()->updateMVmatrix(_mvMat);
-    glm::vec3 zoom(axesZoom*zoomFactor);
-    glUniform3fv(_zoomF, 1, glm::value_ptr(zoom));
-        
+    vec3 zoom(axesZoom*zoomFactor);
+    USE_PROGRAM
+    setUniform3fv(_zoomF, 1, value_ptr(zoom));
+    setUniformMatrix4fv(_pMat , 1, GL_FALSE, value_ptr(getTransforms()->tM.pMatrix) );
+    setUniformMatrix4fv(_mvMat, 1, GL_FALSE, value_ptr(getTransforms()->tM.mvMatrix));
+
     //glFrontFace(GL_CCW); 
 #ifdef GLAPP_MINIMIZE_VERTEX
     vaoCone->drawInstanced(GL_TRIANGLE_FAN);
@@ -346,7 +335,9 @@ void oglAxes::render()
     vaoAxes->drawInstanced(GL_TRIANGLES);
 #endif
 
-    reset();
+#ifdef GLAPP_NO_GLSL_PIPELINE
+    //reset();
+#endif
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);

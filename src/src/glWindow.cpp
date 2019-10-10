@@ -1,20 +1,16 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
-#include <glm/glm.hpp>
+//------------------------------------------------------------------------------
+#include <vGizmoMath.h>
 
 #include <fastRandom.h>
 
@@ -56,7 +52,7 @@ void glWindow::onInit()
     //start new thread (if aux thread enabled)
     attractorsList.newStepThread(particlesSystem->getEmitter());    
 
-    vfGizmo3DClass &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
+    vg::vGizmo3D &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
 
     particlesSystem->getTMat()->setPerspective(30.f, float(theApp->GetWidth())/float(theApp->GetHeight()), 0.f, 100.f);
     particlesSystem->getTMat()->setView(attractorsList.get()->getPOV(), attractorsList.get()->getTGT());
@@ -136,7 +132,7 @@ void glWindow::onRender()
 
         // get rotation & translation of model w/o pan & dolly
         quat q =   model->getTrackball().getRotation() ;
-        model->tM.mMatrix = glm::mat4_cast(q) * glm::translate(mat4(1.f), model->getTrackball().getRotationCenter());
+        model->tM.mMatrix = mat4_cast(q) * translate(mat4(1.f), model->getTrackball().getRotationCenter());
         model->build_MV_MVP();
 
         // apply rotation to matrix... then subtract prevous model translation

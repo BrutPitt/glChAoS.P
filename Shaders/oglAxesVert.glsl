@@ -1,20 +1,17 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
-#line 17    //#version dynamically inserted
+//------------------------------------------------------------------------------
+#line 14    //#version dynamically inserted
+
 
 layout (location = 1) in vec3 vPos;
 layout (location = 2) in vec3 normal;
@@ -55,7 +52,6 @@ const vec4 blue  = vec4(0.10, 0.10, 0.70, 1.0);
 const vec4 green = vec4(0.10, 0.70, 0.10, 1.0);
 const vec4 red   = vec4(0.70, 0.10, 0.10, 1.0);
 
-
 //fast 90' rotation around fixzed axis
 vec3 rotOnX(vec3 v) { return vec3(v.x, v.z, -v.y); }
 vec3 rotOnY(vec3 v) { return vec3(v.z, v.y, -v.x); }
@@ -75,5 +71,4 @@ void main(void)
     vsNormal = normalize(mat3(mvMat) * newNorm);
     
     gl_Position = position;
-    //gl_Position = 
 }

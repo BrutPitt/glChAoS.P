@@ -22,9 +22,9 @@ in vec2 vTexCoord;
 
 out vec4 outColor;
 
-LAYUOT_BINDING(5) uniform sampler2D prevData;
-LAYUOT_BINDING(6) uniform sampler2D aoTex;
-LAYUOT_BINDING(7) uniform sampler2D shadowTex;
+LAYOUT_BINDING(5) uniform sampler2D prevData;
+LAYOUT_BINDING(6) uniform sampler2D aoTex;
+LAYOUT_BINDING(7) uniform sampler2D shadowTex;
 
 
 float f(vec2 uv) {
@@ -191,9 +191,9 @@ float buildShadow(vec4 frag)
     projCoords = projCoords * 0.5 + .5;
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
     //float closestDepth = (SampleTextureCatmullRom(projCoords.xy).x);
-    float closestDepth = getViewZ(texture(shadowTex, projCoords.xy).r); 
+    float closestDepth = restoreZ(texture(shadowTex, projCoords.xy).r); 
     // get depth of current fragment from light's perspective
-    float currentDepth = getViewZ(projCoords.z) + u.shadowBias;
+    float currentDepth = restoreZ(projCoords.z) + u.shadowBias;
     // check whether current frag pos is in shadow
     float shadow = currentDepth < closestDepth  ? 0.0 : 1.0;
 
@@ -227,7 +227,7 @@ float buildSmoothShadow(vec4 frag)
     bias+=1.0;
 #endif
 
-    float currentDepth = getViewZ(projCoords.z) + bias;
+    float currentDepth = restoreZ(projCoords.z) + bias;
 
     vec2 stepTex = u.shadowGranularity*u.invScrnRes;
 
@@ -245,7 +245,7 @@ float buildSmoothShadow(vec4 frag)
             //float closestDepth = getViewZ(texture(shadowTex, projCoords.xy).r);
             //float currentDepth = getViewZ(projCoords.z) + u.shadowBias;
 
-            float closestDepth = getViewZ(texture(shadowTex, projCoords.xy+vec2(x,y)*stepTex).r);
+            float closestDepth = restoreZ(texture(shadowTex, projCoords.xy+vec2(x,y)*stepTex).r);
 
             shadow += currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv ;    // 1.0/9.0
 
@@ -254,8 +254,8 @@ float buildSmoothShadow(vec4 frag)
             vec4 fragPosLightSpace = tMat * pt;
             vec3 projCoords = .5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
 
-            closestDepth = getViewZ(texture(shadowTex, projCoords.xy).r);
-            float currentDepth = getViewZ(projCoords.z) + bias;
+            closestDepth = restoreZ(texture(shadowTex, projCoords.xy).r);
+            float currentDepth = restoreZ(projCoords.z) + bias;
 
             shadow += currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv ;    // 1.0/9.0
         }
@@ -321,7 +321,7 @@ void main()
     float depth = texture(prevData,uv).w;
     if(depth<=.01) { discard; outColor = vec4(0.0); return; }
 
-    float z = getViewZ(depth);
+    float z = restoreZ(depth);
     vec4 vtx = vec4(viewRay *z, z, 1.0);
 
     //float AO = bicubic(uv, 3); //texelFetch(aoTex,ivec2(uv), 0).w;

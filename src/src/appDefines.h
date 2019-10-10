@@ -1,30 +1,27 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #pragma once
 
 #define APP_USE_FBO
 //#define __APPLE__
+
 //#define GLAPP_NO_GLSL_PIPELINE
 
 
 //#define APP_DEBUG_GUI_INTERFACE
 
 
-//#define GLAPP_IMGUI_VIEWPORT
+#define GLAPP_IMGUI_VIEWPORT
 
 #ifdef __EMSCRIPTEN__
     #define DOT_TEXT_SHFT 1

@@ -20,7 +20,7 @@ layout(std140) uniform;
 
 layout (location = 0) in vec2 vPos;
 
-LAYUOT_BINDING(2) uniform _particlesData {
+LAYOUT_BINDING(2) uniform _particlesData {
     vec3  lightDir;          // align 0
     float lightDiffInt;
     vec3  lightColor;        // align 16

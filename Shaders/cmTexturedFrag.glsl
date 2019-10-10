@@ -25,10 +25,10 @@ uniform sampler2D paletteTex;
 #else
 layout (location = 0) out vec4 color;
 
-LAYUOT_BINDING(0) uniform sampler2D paletteTex;
+LAYOUT_BINDING(0) uniform sampler2D paletteTex;
 #endif
 
-LAYUOT_BINDING(2) uniform _cmData {
+LAYOUT_BINDING(2) uniform _cmData {
     vec3 hslData;
     float offsetPoint;
     float palRange;

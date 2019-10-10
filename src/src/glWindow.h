@@ -1,19 +1,15 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #pragma once
 
 #include <vector>
@@ -341,7 +337,7 @@ public:
 
         bindPipeline();
 
-	    useProgram();
+	    USE_PROGRAM
 
         vec4 v(0.0f);
         for(int i=0; i<InsertVbo->getNumComponents(); i++) InsertVbo->getBuffer()[i] = 0.f;
@@ -437,10 +433,10 @@ public:
 
         //getShader()->renderOfflineFeedback(attractorsList.get());
 /*
-        glm::vec3 head = attractorsList.get()->getCurrent();
+        vec3 head = attractorsList.get()->getCurrent();
 
-        glm::vec3 vecA = (attractorsList.get()->getAt(10)-head)*.5f;
-        glm::vec3 vecB = (attractorsList.get()->getAt(40)-head)*.5f;
+        vec3 vecA = (attractorsList.get()->getAt(10)-head)*.5f;
+        vec3 vecB = (attractorsList.get()->getAt(40)-head)*.5f;
         getTMat()->setView(head+vecB, head+vecA);
 
         static int sel = attractorsList.getSelection(), oldSel = -1;
@@ -449,10 +445,10 @@ public:
 
         if(oldSel!=sel) {
             getTMat()->setPerspective(90.f, float(theApp->GetWidth())/float(theApp->GetHeight()), 0.f, 100.f);
-            getTMat()->getTrackball().setRotation(glm::quat(1.0f,0.0f, 0.0f, 0.0f));
-            getTMat()->getTrackball().setDollyPosition(glm::vec3(0.f));
-            getTMat()->getTrackball().setPanPosition(glm::vec3(0.f));
-            getTMat()->getTrackball().setRotationCenter(glm::vec3(0.f));
+            getTMat()->getTrackball().setRotation(quat(1.0f,0.0f, 0.0f, 0.0f));
+            getTMat()->getTrackball().setDollyPosition(vec3(0.f));
+            getTMat()->getTrackball().setPanPosition(vec3(0.f));
+            getTMat()->getTrackball().setRotationCenter(vec3(0.f));
             getTMat()->applyTransforms();
         }
         oldSel = sel;

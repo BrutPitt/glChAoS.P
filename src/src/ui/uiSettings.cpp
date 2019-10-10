@@ -1,26 +1,22 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #include "../glApp.h"
 #include <IconsFontAwesome/IconsFontAwesome.h>
 
 #include <ImGui/imgui.h>
 
 
-void darkCyanYellow()
+void lightCyanYellow()
 {
     ImGuiStyle& style = ImGui::GetStyle();
 
@@ -576,7 +572,7 @@ void colorTheme6()
     style.Colors[ImGuiCol_ModalWindowDimBg]     = ImVec4(0.20f, 0.22f, 0.27f, 0.73f);
 }
 
-void lightCyanYellow()
+void darkCyanYellow()
 {
     ImGuiStyle& style = ImGui::GetStyle();
 
@@ -588,8 +584,8 @@ void lightCyanYellow()
     style.Colors[ImGuiCol_Border]               = ImVec4(0.70f, 0.70f, 0.70f, 0.65f);
     style.Colors[ImGuiCol_BorderShadow]         = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     style.Colors[ImGuiCol_FrameBg]              = ImVec4(0.00f, 0.00f, 0.01f, 1.00f);
-    style.Colors[ImGuiCol_FrameBgHovered]       = ImVec4(0.90f, 0.80f, 0.80f, 0.40f);
-    style.Colors[ImGuiCol_FrameBgActive]        = ImVec4(0.90f, 0.65f, 0.65f, 0.45f);
+    style.Colors[ImGuiCol_FrameBgHovered]       = ImVec4(0.60f, 0.60f, 0.60f, 0.15f);
+    style.Colors[ImGuiCol_FrameBgActive]        = ImVec4(0.60f, 0.60f, 0.60f, 0.30f);
     style.Colors[ImGuiCol_TitleBg]              = ImVec4(0.00f, 0.00f, 0.00f, 0.83f);
     style.Colors[ImGuiCol_TitleBgCollapsed]     = ImVec4(0.40f, 0.40f, 0.80f, 0.20f);
     style.Colors[ImGuiCol_TitleBgActive]        = ImVec4(0.00f, 0.00f, 0.00f, 0.87f);
@@ -615,8 +611,60 @@ void lightCyanYellow()
     style.Colors[ImGuiCol_ResizeGripActive]     = ImVec4(1.00f, 1.00f, 1.00f, 0.90f);
     style.Colors[ImGuiCol_PlotLines]            = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     style.Colors[ImGuiCol_PlotLinesHovered]     = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-    style.Colors[ImGuiCol_PlotHistogram]        = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-    style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_PlotHistogram]        = ImVec4(0.70f, 0.50f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.90f, 0.50f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_TextSelectedBg]       = ImVec4(0.00f, 0.00f, 1.00f, 0.35f);
+    style.Colors[ImGuiCol_ModalWindowDimBg]     = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
+}
+
+
+void darkBlackGrayRed()
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+
+    const ImVec4 chk(.6, 0.0, 0.0, 1.00f);
+    const ImVec4 ch1(.4, 0.0, 0.0, 1.00f);
+    const ImVec4 ch2(.5, 0.0, 0.0, 1.00f);
+    const ImVec4 but(0.40f, 0.50f, 0.75f, 1.00f);
+
+
+    style.Colors[ImGuiCol_Text]                 = ImVec4(0.90f, 0.90f, 0.90f, 0.90f);
+    style.Colors[ImGuiCol_TextDisabled]         = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+    style.Colors[ImGuiCol_WindowBg]             = ImVec4(0.09f, 0.09f, 0.15f, 1.00f);
+    style.Colors[ImGuiCol_ChildBg]              = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    style.Colors[ImGuiCol_PopupBg]              = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_Border]               = ImVec4(0.70f, 0.70f, 0.70f, 0.65f);
+    style.Colors[ImGuiCol_BorderShadow]         = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    style.Colors[ImGuiCol_FrameBg]              = ImVec4(0.00f, 0.00f, 0.01f, 1.00f);
+    style.Colors[ImGuiCol_FrameBgHovered]       = ImVec4(0.70f, 0.70f, 0.70f, 0.20f);
+    style.Colors[ImGuiCol_FrameBgActive]        = ImVec4(0.90f, 0.00f, 0.00f, 0.75f);
+    style.Colors[ImGuiCol_TitleBg]              = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_TitleBgCollapsed]     = ImVec4(but.x, but.y, but.z, 0.35f);
+    style.Colors[ImGuiCol_TitleBgActive]        = ImVec4(0.30f, 0.30f, 0.37f, 0.70f);
+    style.Colors[ImGuiCol_MenuBarBg]            = ImVec4(0.01f, 0.01f, 0.02f, 0.80f);
+    style.Colors[ImGuiCol_ScrollbarBg]          = ImVec4(0.20f, 0.25f, 0.30f, 0.60f);
+    style.Colors[ImGuiCol_ScrollbarGrab]        = ImVec4(0.55f, 0.53f, 0.55f, 0.51f);
+	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ch1;
+	style.Colors[ImGuiCol_ScrollbarGrabActive]  = ch2;
+	style.Colors[ImGuiCol_CheckMark]            = ImVec4(chk.x, chk.y, chk.z, 1.00f);
+	style.Colors[ImGuiCol_SliderGrab]           = ch1;
+	style.Colors[ImGuiCol_SliderGrabActive]     = ch2;
+    style.Colors[ImGuiCol_Button]               = ImVec4(0.50f, 0.50f, 0.50f, 0.50f);
+    style.Colors[ImGuiCol_ButtonHovered]        = ImVec4(but.x, but.y, but.z, 1.00f);
+    style.Colors[ImGuiCol_ButtonActive]         = ImVec4(0.60f, 0.00f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_Header]               = ImVec4(but.x, but.y, but.z, 0.30f);
+    style.Colors[ImGuiCol_HeaderHovered]        = ImVec4(but.x, but.y, but.z, 0.75f);
+    style.Colors[ImGuiCol_HeaderActive]         = ImVec4(but.x, but.y, but.z, 0.50f);
+    style.Colors[ImGuiCol_Separator]            = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+    style.Colors[ImGuiCol_SeparatorHovered]     = ImVec4(0.70f, 0.60f, 0.60f, 1.00f);
+    style.Colors[ImGuiCol_SeparatorActive]      = ImVec4(0.90f, 0.70f, 0.70f, 1.00f);
+    style.Colors[ImGuiCol_ResizeGrip]           = ImVec4(0.50f, 0.50f, 0.50f, 0.50f);
+	style.Colors[ImGuiCol_ResizeGripHovered]    = ch1;
+	style.Colors[ImGuiCol_ResizeGripActive]     = ch2;
+    style.Colors[ImGuiCol_PlotLines]            = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    style.Colors[ImGuiCol_PlotLinesHovered]     = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+	style.Colors[ImGuiCol_PlotHistogram]        = ch1;
+	style.Colors[ImGuiCol_PlotHistogramHovered] = ch2;
     style.Colors[ImGuiCol_TextSelectedBg]       = ImVec4(0.00f, 0.00f, 1.00f, 0.35f);
     style.Colors[ImGuiCol_ModalWindowDimBg]     = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 }
@@ -832,7 +880,7 @@ void selectTheme(int style_idx)
 
 #ifdef __EMSCRIPTEN__
         if(theApp->useLightGUI()) lightGrayScale();
-        else                      darkDefaultTheme(theDlg.getGuiThemeBaseColor());
+        else                      darkBlackGrayRed(); //darkDefaultTheme(theDlg.getGuiThemeBaseColor());
 #else
         switch (style_idx)
         {
@@ -844,13 +892,14 @@ void selectTheme(int style_idx)
             case  4: SetupImGuiStyle2(); break;
             case  5: colorTheme6(); break;
                   
-            case  6: lightCyanYellow(); break;
-            case  7: darkCyanYellow(); break;
-            case  8: lightGrayScale(); break;
+            case  6: darkCyanYellow(); break;
+            case  7: darkBlackGrayRed(); break;
+            case  8: lightCyanYellow(); break;
+            case  9: lightGrayScale(); break;
 
-            case  9: ImGui::StyleColorsClassic(); break;
-            case 10: ImGui::StyleColorsDark(); break;
-            case 11: ImGui::StyleColorsLight(); break;
+            case 10: ImGui::StyleColorsClassic(); break;
+            case 11: ImGui::StyleColorsDark(); break;
+            case 12: ImGui::StyleColorsLight(); break;
         }
 #endif
 }
@@ -873,6 +922,7 @@ int ShowStyleSelector(const float wB)
                                          "SetupStyle\0"\
                                          "Cyan/White on Grey (dark)\0"\
                                          "Cyan/Yellow on Gray/Black (dark)\0"\
+                                         "Red on Gray/Black (dark)\0"\
                                          "Cyan/Yellow on White (light)\0"\
                                          "Grey scale on White (light)\0"\
                                          "ImGui Classic\0"\

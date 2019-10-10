@@ -15,6 +15,7 @@
 //  
 ////////////////////////////////////////////////////////////////////////////////
 #include "emsTouch.h"
+#include <emscripten/val.h>
 
 #include "glApp.h"
 #include "glWindow.h"
@@ -37,7 +38,51 @@ EM_JS(int, get_orientation, (), {
     else return -1;
 });
 
+//emscripten::val pincopallino=null;
+//emscripten::val xrSession;
+/*
+EM_JS(void, onSessionStarted, (int session) {
+  // Store the session for use later.
+  var xrSession = session;
 
+  xrSession.requestReferenceSpace('local')
+  .then((referenceSpace) => {
+    xrReferenceSpace = referenceSpace;
+  })
+  .then(setupWebGLLayer) // Create a compatible XRWebGLLayer
+  .then(() => {
+    // Start the render loop
+    xrSession.requestAnimationFrame(onDrawFrame);
+  });
+});
+
+EM_JS(void, beginXRSession, (), {
+  // requestSession must be called within a user gesture event
+  // like click or touch when requesting an immersive session.
+  navigator.xr.requestSession('immersive-vr')
+      .then(_onSessionStarted)
+      .catch(err => {
+        // May fail for a variety of reasons. Probably just want to
+        // render the scene normally without any tracking at this point.
+        window.requestAnimationFrame(onDrawFrame);
+      });
+});
+
+EM_JS(void, initVR, (), {
+    console.log("TEST: ");
+
+    navigator.xr.supportsSession('immersive-vr').then(() => {
+        var enterXrBtn = document.createElement("button");
+        enterXrBtn.innerHTML = "Enter VR";
+        enterXrBtn.addEventListener("click", _beginXRSession);
+        document.body.appendChild(enterXrBtn);        
+        console.log("Immersive VR is supported: ");
+    }).catch((err) => {
+        console.log("Immersive VR is not supported: " + err);
+    });
+});
+
+*/
 bool emsMDeviceClass::isDoubleTap(float x, float y, double ms)
 {
     static auto before = std::chrono::system_clock::now();
@@ -146,8 +191,8 @@ EM_BOOL emsMDeviceClass::touchStart(int eventType, const EmscriptenTouchEvent *e
     }
 
     if(e->numTouches==2) {
-        t.prevDist = glm::distance(glm::vec2(e->touches[0].targetX, e->touches[0].targetY),
-                                   glm::vec2(e->touches[1].targetX, e->touches[1].targetY));
+        t.prevDist = distance(vec2(e->touches[0].targetX, e->touches[0].targetY),
+                                   vec2(e->touches[1].targetX, e->touches[1].targetY));
             
         t.pinchStart = true;
         return true;
@@ -191,9 +236,9 @@ EM_BOOL emsMDeviceClass::touchMove(int eventType, const EmscriptenTouchEvent *e,
 
         if(t.dblTouch) {
             const float scl = .25;
-            vfGizmo3DClass &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
+            vg::vGizmo3D &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
 
-            glm::vec3 pan = T.getPanPosition();
+            vec3 pan = T.getPanPosition();
             pan.x += (t.touchX-t.oldTouchX) * T.getPanScale() * scl;
             pan.y -= (t.touchY-t.oldTouchY) * T.getPanScale() * scl;
             T.setPanPosition(pan);
@@ -206,10 +251,10 @@ EM_BOOL emsMDeviceClass::touchMove(int eventType, const EmscriptenTouchEvent *e,
             theWnd->onMotion(e->touches[0].targetX, e->touches[0].targetY);
         } else if(t.pinchStart && e->numTouches==2) { // pinch
 
-            float d = glm::distance(glm::vec2(e->touches[0].targetX, e->touches[0].targetY), 
-                                    glm::vec2(e->touches[1].targetX, e->touches[1].targetY));
+            float d = distance(vec2(e->touches[0].targetX, e->touches[0].targetY), 
+                                    vec2(e->touches[1].targetX, e->touches[1].targetY));
 
-            vfGizmo3DClass &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
+            vg::vGizmo3D &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
             if(abs(t.prevDist-d)>4) {
                 T.setDollyPosition(T.getDollyPosition().z + T.getDollyScale() * (d-t.prevDist));
                 t.prevDist = d;
@@ -241,7 +286,7 @@ EM_BOOL emsMDeviceClass::devMotion(int eventType, const EmscriptenDeviceMotionEv
 {
     const float tollerance = 3.5;
     emsMDeviceClass &t = *((emsMDeviceClass *) userData);
-    vfGizmo3DClass &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
+    vg::vGizmo3D &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
 
     auto getAccel = [&] (double accel, float sign) -> double {
         return pow((abs(accel)-tollerance)*1.5, 2.0) * sign * (accel>0 ? -T.getPanScale() : T.getPanScale());
@@ -262,7 +307,7 @@ EM_BOOL emsMDeviceClass::devMotion(int eventType, const EmscriptenDeviceMotionEv
 
     }
 
-    glm::vec3 pan = T.getPanPosition();
+    vec3 pan = T.getPanPosition();
 
     if(abs(accX)>tollerance) pan.x += getAccel(accX, signX);        
     if(abs(accY)>tollerance) pan.y += getAccel(accY, signY);

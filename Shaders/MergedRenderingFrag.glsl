@@ -16,8 +16,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #line 17    //#version dynamically inserted
 
-LAYUOT_BINDING(0) uniform sampler2D billboardTex;
-LAYUOT_BINDING(1) uniform sampler2D pointTex;
+LAYOUT_BINDING(0) uniform sampler2D billboardTex;
+LAYOUT_BINDING(1) uniform sampler2D pointTex;
 
 uniform float mixingVal;
 

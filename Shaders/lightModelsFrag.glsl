@@ -1,23 +1,19 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
-#line 17    //#version dynamically inserted
+//------------------------------------------------------------------------------
+#line 14    //#version dynamically inserted
 layout(std140) uniform;
 
-LAYUOT_BINDING(2) uniform _particlesData {
+LAYOUT_BINDING(2) uniform _particlesData {
     vec3  lightDir;          // align 0
     float lightDiffInt;
     vec3  lightColor;        // align 16
@@ -63,7 +59,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     uint  renderType;
 } u;                    // 51*4 + APPLE
 
-LAYUOT_BINDING(4) uniform _tMat {
+LAYOUT_BINDING(4) uniform _tMat {
     mat4 pMatrix;
     mat4 mvMatrix;
     mat4 mvpMatrix;
@@ -73,7 +69,7 @@ LAYUOT_BINDING(4) uniform _tMat {
 #if !defined(GL_ES) && !defined(__APPLE__)
     #define lightModelOFFSET 5
     subroutine float _lightModel(vec3 V, vec3 L, vec3 N);
-    subroutine uniform _lightModel lightModel;
+    LAYOUT_LOCATION(0) subroutine uniform _lightModel lightModel;
 #else
     #define lightModelOFFSET 0
 #endif
@@ -123,44 +119,74 @@ vec4 unPackColor8(float pkColor)
 }
 #endif
 
-float getViewZ(float D)
+float getLinearZ(float D)
 {
     float denom = u.zFar-u.zNear;
     return (-2.0*u.zFar*u.zNear/denom) / (-(2. * D - 1.) + ((u.zFar+u.zNear)/denom));
-    //return (pMatrix[3].z / (-(2.* D -1) - pMatrix[2].z));
 }
-float getViewZ_(float D)
+
+float getLogZ(float D)
 {
-    return -pow(2.0, (2. * D - 1.) * log2(u.zFar/u.zNear)) * u.zNear;
+    //return -pow(2.0, (2. * D - 1.) * log2(u.zFar/u.zNear)) * u.zNear;
+    
+    float C = u.zNear/u.zFar;
+    //return (exp(-(2. * D - 1.)*log(C*u.zFar+1.)) - 1.)/C;
+
+    //return (-exp((2. * D - 1.)*log(u.zFar / u.zNear)))*u.zNear;
+
+    float FC = 1.0/log(u.zFar*C + 1.);
+    return -(exp((2. * D - 1.)/FC)-1.0)/C;
+
 }
 
 // linear depth (persective)
-float depthSampleA(float Z)
+float getLinearDepth_(float Z)
 {
     //float nonLinearDepth =  (zFar + zNear + 2.0 * zNear * zFar / linearDepth) / (zFar - zNear);
     float nonLinearDepth =  -(m.pMatrix[2].z + m.pMatrix[3].z / Z) * .5 +.5;
     return nonLinearDepth;
 }
 
-float getDepth(float Z) 
+float getLinearDepth(float Z) 
 {
-    float n = u.zNear, f = u.zFar;
-    //return (( -Z * (f+n) - 2*f*n ) / (-Z * (f-n))  + 1.0) * .5; //non linear -> same of depthSample
-    //return ( (- 2.f * depth - (f+n))/(f-n) + 1.0) * .5; // linearize + depthSample -> linear
     return ( ((u.zFar+u.zNear)/(u.zFar-u.zNear)) + ((2.0*u.zFar*u.zNear/(u.zFar-u.zNear)) / Z) ) * .5 + .5;
-
 }
 
 //https://stackoverflow.com/questions/18182139/logarithmic-depth-buffer-linearization/18187212#18187212
 //https://outerra.blogspot.com/2012/11/maximizing-depth-buffer-range-and.html
 
-float getDepth_(float Z)
+float getLogDepth(float z)
 {
     //float C = .001;
-    //return (2.*log(C*-Z + 1.) / log(C*u.zFar + 1.) - 1.) * Z;
-     //return (log2((Z+1) / u.zNear) / log2(u.zFar / u.zNear)) * .5 + .5;
-    return (log2(1.+Z) * (2.0 / log2(u.zFar + 1.0)) -1.0) * Z;
 
+    float C = u.zNear/u.zFar;
+    //return (log(C * z + 1.) / log(C * u.zFar + 1.) * w) * .5 + .5;
+
+    float FC = 1.0/log(u.zFar*C + 1.);
+    float logz = log(z*C + 1.)*FC  * .5 + .5;
+    return logz;
+
+}
+
+//#define LOG_ZBUFF
+
+float getFragDepth(float z)
+{
+#ifdef LOG_ZBUFF
+    //vec4 pPos = m.pMatrix * vtx;
+    return getLogDepth(-z);
+#else
+    return getLinearDepth(z);
+#endif
+}
+
+float restoreZ(float D)
+{
+#ifdef LOG_ZBUFF
+    return getLogZ(D);
+#else
+    return getLinearZ(D);
+#endif
 }
 
 
@@ -168,7 +194,7 @@ float form_01_to_m1p1(float f)  { return 2. * f - 1.; }
 float form_m1p1_to_01(float f)  { return  f*.5 + .5; }
 
 #if !defined(__APPLE__)
-LAYUOT_INDEX(idxPHONG) SUBROUTINE(_lightModel) 
+LAYOUT_INDEX(idxPHONG) SUBROUTINE(_lightModel) 
 #endif
 float specularPhong(vec3 V, vec3 L, vec3 N)
 {
@@ -179,7 +205,7 @@ float specularPhong(vec3 V, vec3 L, vec3 N)
 }
 
 #if !defined(__APPLE__)
-LAYUOT_INDEX(idxBLINPHONG) SUBROUTINE(_lightModel) 
+LAYOUT_INDEX(idxBLINPHONG) SUBROUTINE(_lightModel) 
 #endif
 float specularBlinnPhong(vec3 V, vec3 L, vec3 N)
 {
@@ -192,7 +218,7 @@ float specularBlinnPhong(vec3 V, vec3 L, vec3 N)
 }
 
 #if !defined(__APPLE__)
-LAYUOT_INDEX(idxGGX) SUBROUTINE(_lightModel) 
+LAYOUT_INDEX(idxGGX) SUBROUTINE(_lightModel) 
 #endif
 float specularGGX(vec3 V, vec3 L, vec3 N) 
 {
@@ -217,14 +243,6 @@ float specularGGX(vec3 V, vec3 L, vec3 N)
 }
 
 
-/*
-float logzbuf( float z ) {
-    z = -z;
-    float fc = 2.0/log2(u.zFar + 1.0);
-    return (log(1. + z) * fc - 1.) * z;
-}
-
-  */
 vec4 getParticleNormal(vec2 coord)
 {
     vec4 N;
@@ -238,8 +256,8 @@ vec4 getParticleNormal(vec2 coord)
 
 vec3 getSimpleNormal(float z, sampler2D depthData)
 {
-    float gradA = getViewZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 1., 0.)), 0).w) - z;
-    float gradB = getViewZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0., 1.)), 0).w) - z;
+    float gradA = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 1., 0.)), 0).w) - z;
+    float gradB = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0., 1.)), 0).w) - z;
 
     vec2 m = u.invScrnRes * -z;// * vec2(u.scrnRes.x/u.scrnRes.y * u.halfTanFOV, u.halfTanFOV);
     float invTanFOV = u.dpAdjConvex/u.halfTanFOV;
@@ -252,10 +270,10 @@ vec3 getSimpleNormal(float z, sampler2D depthData)
 vec3 getSelectedNormal(float z, sampler2D depthData)
 {
 
-    float gradA = getViewZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 1., 0.)), 0).w) - z;
-    float gradB = getViewZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0., 1.)), 0).w) - z;
-    float gradC = z - getViewZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2(-1., 0.)), 0).w);
-    float gradD = z - getViewZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0.,-1.)), 0).w);
+    float gradA = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 1., 0.)), 0).w) - z;
+    float gradB = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0., 1.)), 0).w) - z;
+    float gradC = z - restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2(-1., 0.)), 0).w);
+    float gradD = z - restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0.,-1.)), 0).w);
 
     vec2 m = u.invScrnRes * -z; //vec2(u.scrnRes.x/u.scrnRes.y * u.halfTanFOV, u.halfTanFOV);
     float invTanFOV = u.dpAdjConvex/u.halfTanFOV;
@@ -271,3 +289,5 @@ vec3 getSelectedNormal(float z, sampler2D depthData)
 #define RENDER_AO uint(1)
 #define RENDER_DEF uint(2)
 #define RENDER_SHADOW uint(4)
+
+vec4 ClipPlane = vec4(0.0, -.1, .1, .5);

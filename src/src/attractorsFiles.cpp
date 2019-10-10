@@ -67,8 +67,8 @@ bool loadObjFile()
         *ptr++ = pt.z;
 
         const uint iCol = 0xff000000 | (uint(col.b*255.f) << 16) | (uint(col.g*255.f) << 8) | uint(col.r*255.f);
-        *ptr++ = glm::uintBitsToFloat( iCol );
-        //*ptr++ = glm::dot(lum, col);
+        *ptr++ = uintBitsToFloat( iCol );
+        //*ptr++ = dot(lum, col);
 
     }  
     theWnd->getParticlesSystem()->getEmitter()->getVBO()->uploadSubBuffer(j,theWnd->getParticlesSystem()->getEmitter()->getSizeCircularBuffer());
@@ -130,13 +130,13 @@ bool importPLY(bool wantColors, bool isDLA)
         }
 
         
-        glm::vec4 *mappedBuffer;
+        vec4 *mappedBuffer;
         if(e->useMappedMem())   // USE_MAPPED_BUFFER
-            mappedBuffer = (glm::vec4 *) e->getVBO()->getBuffer();
+            mappedBuffer = (vec4 *) e->getVBO()->getBuffer();
         else
-            mappedBuffer = new glm::vec4[nVtx];
+            mappedBuffer = new vec4[nVtx];
 
-        glm::vec4 *ptr = mappedBuffer;
+        vec4 *ptr = mappedBuffer;
 
         uint iCol;
         for(int i=0; i<nVtx; i++, ptr++) {
@@ -157,9 +157,9 @@ bool importPLY(bool wantColors, bool isDLA)
                     const uint b = *bClr++;
                     iCol = 0xff000000 | (b << 16) | (g << 8) | r;
                 }         
-                ptr->w = glm::uintBitsToFloat( iCol );            
+                ptr->w = uintBitsToFloat( iCol );            
             } else {
-                ptr->w = isDLA ? glm::length(vec3(*ptr)) : ((i>0) ? glm::distance(vec3(*ptr), vec3(*(ptr-1))) : 0.f);
+                ptr->w = isDLA ? length(vec3(*ptr)) : ((i>0) ? distance(vec3(*ptr), vec3(*(ptr-1))) : 0.f);
                 if(attractorsList.continueDLA()) ((dla3D *)attractorsList.get())->addLoadedPoint(vec3(*ptr));
             }
 
@@ -191,7 +191,7 @@ bool importPLY(bool wantColors, bool isDLA)
 }
 
 
-uint8_t *getColorBuffer(glm::vec4 *map, const uint32_t sizeBuff)
+uint8_t *getColorBuffer(vec4 *map, const uint32_t sizeBuff)
 {
     particlesBaseClass *pSys = theWnd->getParticlesSystem()->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? 
         (particlesBaseClass *) theWnd->getParticlesSystem()->shaderBillboardClass::getPtr() : 
@@ -208,26 +208,25 @@ uint8_t *getColorBuffer(glm::vec4 *map, const uint32_t sizeBuff)
 //        glGetTextureImage(theWnd->getParticlesSystem()->shaderPointClass::getCMSettings()->getModfTex(),
 //                          0, GL_RGB, GL_UNSIGNED_BYTE, 256, palBuff);
 
-    const float vel = pSys->getCMSettings()->getVelIntensity();
+    if(pSys->wantPlyObjColor() && pSys->viewingObj()) { // packed color data
+        for(unsigned i=sizeBuff; i>0; i--, map++) {
+            const uint32_t c = floatBitsToUint(map->w);
+            uint8_t *p = (uint8_t *) &c;
+            *clr++ =  *p++;
+            *clr++ =  *p++;
+            *clr++ =  *p;
+        }
+    } else { // color  = speed + palette
+        const float vel = pSys->getCMSettings()->getVelIntensity();
 
-    for(unsigned i=sizeBuff; i>0; i--, map++) {
-        const int32_t offset = int(map->w*vel*255.f+.5);
-        uint8_t *p = (uint8_t *)(palBuff + (offset>255 ? 255 : (offset <= 0 ? 0 : offset)));
-        *clr++ =  *p++;
-        *clr++ =  *p++;
-        *clr++ =  *p;
+        for(unsigned i=sizeBuff; i>0; i--, map++) {
+            const int32_t offset = int(map->w*vel*255.f+.5);
+            uint8_t *p = (uint8_t *)(palBuff + (offset>255 ? 255 : (offset <= 0 ? 0 : offset)));
+            *clr++ =  *p++;
+            *clr++ =  *p++;
+            *clr++ =  *p;
 
-/*
-        // to import old OBJ saved -> above func loadOBJFile()
-
-        uint packCol = glm::floatBitsToUint(map->w);
-        glm::vec4 col = glm::unpackUnorm4x8(packCol) * 255.f;
-        //emitterWasOn, glm::vec4(0.0), glm::vec4(1.0))*255.f;
-        *clr++ = col.x;
-        *clr++ = col.y;
-        *clr++ = col.z;
-*/
-
+        }
     }
 
     delete [] palBuff;
@@ -235,41 +234,41 @@ uint8_t *getColorBuffer(glm::vec4 *map, const uint32_t sizeBuff)
     return clrBuff;
 }
 
-glm::vec3 *getVertexBuffer(glm::vec4 *map, const uint32_t sizeBuff, bool bCoR)
+vec3 *getVertexBuffer(vec4 *map, const uint32_t sizeBuff, bool bCoR)
 {
-    glm::vec3 *vtxBuff = new glm::vec3[sizeBuff];
-    glm::vec3 *vtx = vtxBuff;
+    vec3 *vtxBuff = new vec3[sizeBuff];
+    vec3 *vtx = vtxBuff;
 
-    const glm::vec3 CoR = theWnd->getParticlesSystem()->getTMat()->getTrackball().getRotationCenter();
+    const vec3 CoR = theWnd->getParticlesSystem()->getTMat()->getTrackball().getRotationCenter();
     for(unsigned i=sizeBuff; i>0; i--, map++) *vtx++ = bCoR ? vec3(*map) + CoR : vec3(*map);
 
     return vtxBuff;
 }
 
-glm::vec3 *getNormalBuffer(glm::vec4 *map, const uint32_t sizeBuff, const bool isNormalized, normalType type)
+vec3 *getNormalBuffer(vec4 *map, const uint32_t sizeBuff, const bool isNormalized, normalType type)
 {
-    glm::vec3 *nrmBuff = new glm::vec3[sizeBuff];
-    glm::vec3 *nrm = nrmBuff;
+    vec3 *nrmBuff = new vec3[sizeBuff];
+    vec3 *nrm = nrmBuff;
 
-    glm::vec3 CoR = theWnd->getParticlesSystem()->getTMat()->getTrackball().getRotationCenter();
+    vec3 CoR = theWnd->getParticlesSystem()->getTMat()->getTrackball().getRotationCenter();
 
     if(type == normalType::ptCoR) {
         for(unsigned i=sizeBuff; i>0; i--) {
-            const glm::vec3 v = CoR+glm::vec3(*map++);
-            *nrm++ = isNormalized ? glm::normalize(v) : v;
+            const vec3 v = CoR+vec3(*map++);
+            *nrm++ = isNormalized ? normalize(v) : v;
         }
     } else if(type == normalType::ptPt1) {
         for(unsigned i=sizeBuff-1; i>0; i--,map++) {
-            const glm::vec3 v = glm::vec3(*(map+1) + *map);
-            *nrm++ = isNormalized ? glm::normalize(v) : v;
+            const vec3 v = vec3(*(map+1) + *map);
+            *nrm++ = isNormalized ? normalize(v) : v;
         }
-        *nrm = isNormalized ? glm::normalize(*map) : *map;
+        *nrm = isNormalized ? normalize(*map) : *map;
     } else { // normalType::ptPt1CoR
         for(unsigned i=sizeBuff-1; i>0; i--,map++) {
-            const glm::vec3 v = CoR+glm::vec3(*(map+1) + *map);
-            *nrm++ = isNormalized ? glm::normalize(v) : v;
+            const vec3 v = CoR+vec3(*(map+1) + *map);
+            *nrm++ = isNormalized ? normalize(v) : v;
         }
-        *nrm = isNormalized ? glm::normalize(CoR+glm::vec3(*map)) : CoR+glm::vec3(*map);
+        *nrm = isNormalized ? normalize(CoR+vec3(*map)) : CoR+vec3(*map);
     }
 
     return nrmBuff;
@@ -291,18 +290,18 @@ void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool bCoR, bo
 
 
         std::filebuf fbOut;
-	    fbOut.open(filename, wantBinary ? std::ios::out | std::ios::binary : std::ios::out);
+        fbOut.open(filename, wantBinary ? std::ios::out | std::ios::binary : std::ios::out);
         std::ostream os(&fbOut);
-	    if (os.fail()) throw std::runtime_error("failed to open " + filename);
+        if (os.fail()) throw std::runtime_error("failed to open " + filename);
 
         const uint32_t sizeBuff = e->getSizeCircularBuffer()>e->getVBO()->getVertexUploaded() ? 
                                   e->getVBO()->getVertexUploaded() : e->getSizeCircularBuffer();
 
-        glm::vec4 *mappedBuffer = nullptr;
+        vec4 *mappedBuffer = nullptr;
         if(e->useMappedMem())   // USE_MAPPED_BUFFER
-            mappedBuffer = (glm::vec4 *) e->getVBO()->getBuffer();
+            mappedBuffer = (vec4 *) e->getVBO()->getBuffer();
         else {
-            mappedBuffer = new glm::vec4[sizeBuff];
+            mappedBuffer = new vec4[sizeBuff];
 #ifdef GLAPP_REQUIRE_OGL45
             glGetNamedBufferSubData(e->getVBO()->getVBO(), 0, sizeBuff * e->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
 #else
@@ -311,9 +310,9 @@ void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool bCoR, bo
 #endif
         }
 
-        glm::vec3 *vtxBuff = getVertexBuffer(mappedBuffer, sizeBuff, bCoR);
+        vec3 *vtxBuff = getVertexBuffer(mappedBuffer, sizeBuff, bCoR);
         uint8_t *clrBuff = nullptr;
-        glm::vec3 *nrmBuff = nullptr;
+        vec3 *nrmBuff = nullptr;
 
         PlyFile ply;
         ply.add_properties_to_element("vertex", { "x", "y", "z" }, 
@@ -421,7 +420,7 @@ void AttractorBase::saveVals(Config &cfg)
 {
     vector<float> v((vVal.size()*3));
 
-    memcpy(v.data(), vVal.data(), vVal.size()*sizeof(glm::vec3));
+    memcpy(v.data(), vVal.data(), vVal.size()*sizeof(vec3));
 
     cfg["Name"] = getNameID();
     saveAdditionalData(cfg);
@@ -448,7 +447,7 @@ void AttractorBase::loadVals(Config &cfg)
     const int vSize = v.size()/3;
     vVal.resize(vSize);
 
-    memcpy(vVal.data(), v.data(), vSize*sizeof(glm::vec3));
+    memcpy(vVal.data(), v.data(), vSize*sizeof(vec3));
 
     loadKVals(cfg);
 
@@ -480,7 +479,7 @@ void attractorVectorK::loadKVals(Config &cfg)
 
     kVal.resize(kSize);
 
-    memcpy(kVal.data(), k.data(), kSize*sizeof(glm::vec3));
+    memcpy(kVal.data(), k.data(), kSize*sizeof(vec3));
 
 }
 
@@ -488,7 +487,7 @@ void attractorVectorK::saveKVals(Config &cfg)
 {
 vector<float>  k((kVal.size()*3));
 
-    memcpy(k.data(), kVal.data(), kVal.size()*sizeof(glm::vec3));
+    memcpy(k.data(), kVal.data(), kVal.size()*sizeof(vec3));
 
     cfg["kData"] = Config::array(k); 
 }

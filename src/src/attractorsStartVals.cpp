@@ -1,19 +1,15 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #include "attractorsBase.h"
 
 
@@ -91,7 +87,7 @@ void Magnetic::startData()
 
 void Hopalong::startData()
 {
-    vVal.push_back(glm::vec3(0.f));
+    vVal.push_back(vec3(0.f));
 
     kVal.push_back(0.4249092);
     kVal.push_back(8.0294190);
@@ -147,7 +143,7 @@ void PowerN3D::startData()
 
 void SinCos::startData()
 {
-    vVal.push_back(glm::vec3(0.f));
+    vVal.push_back(vec3(0.f));
 
     kVal.push_back( 0.8068027);
     kVal.push_back(-0.1956844);
@@ -165,7 +161,7 @@ void SinCos::startData()
 void Pickover::startData()
 {
 
-    vVal.push_back(glm::vec3(0.f));
+    vVal.push_back(vec3(0.f));
 
     kVal.push_back(-1.80355f);
     kVal.push_back(-1.30641f);
@@ -383,7 +379,7 @@ void KingsDream::startData()
 }
 void Mira3D::startData()
 {
-    vVal.push_back(glm::vec3(0.f, 12.f, 0.0f));
+    vVal.push_back(vec3(0.f, 12.f, 0.0f));
 
     kVal.push_back( 0.2);
     kVal.push_back( 1.0);
@@ -402,7 +398,7 @@ void Mira3D::startData()
 void dla3D::startData()
 {
     //staring point: Center
-    vVal.push_back(glm::vec3(0.f));
+    vVal.push_back(vec3(0.f));
 
     // m_ParticleSpacing defines the distance between particles that are
     // joined together
@@ -421,7 +417,7 @@ void dla3D::startData()
 
 void ChenLee::startData()
 {
-    vVal.push_back(glm::vec3(1.f, 0.0f, 4.5f));
+    vVal.push_back(vec3(1.f, 0.0f, 4.5f));
 
     kVal.push_back( 5.0);
     kVal.push_back(-10);
@@ -432,7 +428,7 @@ void ChenLee::startData()
 
 void TSUCS::startData()
 {
-    vVal.push_back(glm::vec3(.1f, 1.0f, -.1f));
+    vVal.push_back(vec3(.1f, 1.0f, -.1f));
 
     kVal.push_back( 40);
     kVal.push_back( 0.f);
@@ -446,7 +442,7 @@ void TSUCS::startData()
 
 void Aizawa::startData()
 {
-    vVal.push_back(glm::vec3(0.1f, 0.0f, 0.0f));
+    vVal.push_back(vec3(0.1f, 0.0f, 0.0f));
 
     kVal.push_back( .95f);
     kVal.push_back( .7f);
@@ -460,7 +456,7 @@ void Aizawa::startData()
 
 void YuWang::startData()
 {
-    vVal.push_back(glm::vec3(2.2f, 2.4f, 28.0f));
+    vVal.push_back(vec3(2.2f, 2.4f, 28.0f));
 
     kVal.push_back( 10.f );
     kVal.push_back( 40.f );
@@ -472,7 +468,7 @@ void YuWang::startData()
 
 void FourWing::startData()
 {
-    vVal.push_back(glm::vec3(.1f, .1f, .1f));
+    vVal.push_back(vec3(.1f, .1f, .1f));
 
     kVal.push_back(  4.f);
     kVal.push_back(  6.f);
@@ -485,7 +481,7 @@ void FourWing::startData()
 
 void FourWing2::startData()
 {
-    vVal.push_back(glm::vec3(4.0f, 1.0f, 1.0f));
+    vVal.push_back(vec3(4.0f, 1.0f, 1.0f));
 
     kVal.push_back(-14.f);
     kVal.push_back(  5.f);
@@ -499,7 +495,7 @@ void FourWing2::startData()
 
 void FourWing3::startData()
 {
-    vVal.push_back(glm::vec3(1.0f, -2.0f, 1.0f));
+    vVal.push_back(vec3(1.0f, -2.0f, 1.0f));
 
     kVal.push_back(  1.f);
     kVal.push_back(  1.f);

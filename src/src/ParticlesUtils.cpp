@@ -1,34 +1,25 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
 
-
 #include "ParticlesUtils.h"
 #include "palettes.h"
-
-
 
 #define unsesto  .166666666666666666667
 #define unterzo  .333333333333333333333
 #define dueterzi .666666666666666666667
-
-
 
 //-----------------------------------------------------------------------------
 // Name: getRandomMinMax()
@@ -56,7 +47,7 @@ vec3 getRandomVector( void )
     float radius = (float)sqrt(1 - vVector.z * vVector.z);
 
     // Pick a random point on a circle.
-    float t = getRandomMinMax( -glm::pi<float>(), glm::pi<float>() );
+    float t = getRandomMinMax( -T_PI, T_PI );
 
     // Compute matching X and Y for our Z.
     vVector.x = (float)cosf(t) * radius;
@@ -64,7 +55,6 @@ vec3 getRandomVector( void )
 
 	return vVector;
 }
-
 
 vec3 HLStoRGB( vec3 HLS)
 {
@@ -93,13 +83,10 @@ vec3 HLStoRGB( vec3 HLS)
     else                        return vec3(v1,
                                              v1,
                                              v1 + v2_v1*(unterzo-HLS.x));
-
- }
-
+}
 
 void textureBaseClass::genTex()
 {
-
     if(generated) {
 #if !defined(GLCHAOSP_LIGHTVER)
         glDeleteTextures(1,&texID);
@@ -134,28 +121,8 @@ void textureBaseClass::assignAttribs(GLint filterMin, GLint filterMag, GLint wra
 #endif
 }
 
-/*
-void textureBaseClass::buildTex2D()
-{
-
-    if(texID!=-1) {
-        glDeleteTextures(1,&texID);
-        CHECK_GL_ERROR();
-    }
-
-    glGenTextures(1, &texID);					// Generate OpenGL texture IDs
-
-    glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-}
-*/
 void HLSTexture::buildTex(int size)
 {
-
-
     genTex();
     vec3 *buffer = new vec3[size];
 
@@ -174,26 +141,11 @@ void HLSTexture::buildTex(int size)
     texSize = size;
 
     delete[] buffer;
-
-}
-
-
-
-HLSTexture::HLSTexture()
-{
-    
-
-}
-
-HLSTexture::~HLSTexture()
-{
-
 }
 
 void RandomTexture::buildTex(int size)
 {
     genTex();
-
     vec3 *buffer = new vec3[size];
 
     for(int i=0;i<size; i++) buffer[i] = (getRandomVector() + vec3(1.0f)) * .5f;
@@ -212,23 +164,7 @@ void RandomTexture::buildTex(int size)
     texSize = size;
 
     delete[] buffer;
-
 }
-
-
-RandomTexture::RandomTexture()
-{
-    srand( (unsigned)time( NULL ) );
-
-    texIndex = 0;
-
-}
-
-RandomTexture::~RandomTexture()
-{
-
-}
-
 
 void paletteTexClass::buildTex(unsigned char *buffer, int size)
 {
@@ -264,53 +200,4 @@ void paletteTexClass::buildTex(float *buffer, int size)
     CHECK_GL_ERROR();
 
     texSize = size;
-}
-
-
-
-TextureView::TextureView(int x, int y, float r)
-{
-    texSize = ivec2(x, y);
-
-    setReduction(r);
-
-    onReshape(x, y);
-   
-}
-
-void TextureView::SetOrtho()
-{
-/*
-    glMatrixMode(GL_PROJECTION);
-    //glPushMatrix();
-    glLoadIdentity();
-    glViewport(0,0,winSize.x, winSize.y);
-    //glViewport(0,0,1024,1024);
-    glOrtho(-1.0, 1.0, -1.0, 1.0, -2.0, 2.0);
-
-    glMatrixMode(GL_MODELVIEW);
-    //glPushMatrix();
-    glLoadIdentity();
-    gluLookAt (0.f, 0.f, 1.f,
-               0.f, 0.f, 0.f,
-               0.f, 1.f, 0.f);
-*/
-}
-
-
-void TextureView::End(int w, int h)
-{
-}
-
-
-
-void TextureView::onReshape(int w, int h)
-{
-    winSize = ivec2(w,h);   
-
-    texInvSize = vec2(1.0/(float)w,1.0/(float)h) / reduction;
-
-    wAspect = (w<h) ? vec2(1.0,(float)h/(float)w) : 
-                      vec2((float)w/(float)h, 1.0);
-   
 }

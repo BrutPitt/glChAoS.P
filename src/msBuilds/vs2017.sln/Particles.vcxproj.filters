@@ -53,9 +53,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\colorMaps.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\glApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -72,9 +69,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\ShadersClasses.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\vertexbuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\ui\uiMainDlg.cpp">
@@ -134,14 +128,14 @@
     <ClCompile Include="..\..\src\tools\imguiControls.cpp">
       <Filter>Tools\imguiTools</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\tools\imGuIZMO.cpp">
-      <Filter>Tools\imguiTools</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\tools\fastRandom.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\emsTouch.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tools\imGuIZMOquat.cpp">
+      <Filter>Tools\imguiTools</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -170,9 +164,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\ui\uiMainDlg.h">
-      <Filter>User Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\ui\uiSettings.h">
       <Filter>User Interface</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\libs\glad\glad.h">
@@ -214,9 +205,6 @@
     <ClInclude Include="..\..\src\attractorsBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\attractorsStartVals.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\libs\imGui\imgui_impl_opengl3.h">
       <Filter>3th party Libs\ImGui</Filter>
     </ClInclude>
@@ -247,9 +235,6 @@
     <ClInclude Include="..\..\src\tools\imguiControls.h">
       <Filter>Tools\imguiTools</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\tools\imGuIZMO.h">
-      <Filter>Tools\imguiTools</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\tools\fastRandom.h">
       <Filter>Tools</Filter>
     </ClInclude>
@@ -264,6 +249,15 @@
     </ClInclude>
     <ClInclude Include="..\..\src\libs\nanoflann\nanoflann.hpp">
       <Filter>3th party Libs\nanoflann</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\imGuIZMOquat.h">
+      <Filter>Tools\imguiTools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\vGizmoConfig.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\vGizmoMath.h">
+      <Filter>Tools</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

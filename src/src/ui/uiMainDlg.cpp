@@ -1,19 +1,15 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #include <sstream>
 #include "../glApp.h"
 #include "../glWindow.h"
@@ -21,7 +17,7 @@
 #include "../ShadersClasses.h"
 
 #include <imguiControls.h>
-#include <imGuIZMO.h>
+#include <imGuIZMOquat.h>
 
 #include "uiMainDlg.h"
 #include "uiHelpEng.h"
@@ -488,7 +484,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ////////////////////////////////////
                 ImGui::SameLine(posB4);
                 //if(ImGui::colormapButton("pippo", ImVec2(w-10,12), 256, particles->getSelectedColorMap_pf3()))
-                if(ImGui::ImageButton(reinterpret_cast<ImTextureID>(cmSet->getOrigTex()), ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
+                if(ImGui::ImageButton(reinterpret_cast<ImTextureID>((int64) cmSet->getOrigTex()), ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
                 //if(ImGui::Button("paletteAAA", ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
                     theDlg.paletteDlg.visible( theDlg.paletteDlg.visible()^1);
                 }
@@ -536,7 +532,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 // Image Palette
                 ////////////////////////////////////
                 ImGui::SetCursorPosX(border);
-                ImGui::Image(reinterpret_cast<ImTextureID>(cmSet->getModfTex()), ImVec2(w,buttY));
+                ImGui::Image(reinterpret_cast<ImTextureID>((int64) cmSet->getModfTex()), ImVec2(w,buttY));
 
 
                 // HLSL Controls
@@ -594,11 +590,11 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                 //ImGui::PushItemWidth(wButt4);
                 //ImGui::AlignTextToFramePadding();
-                glm::vec3 lCol = particles->getLightColor();
-                glm::vec3 vL(-particles->getLightDir());
+                vec3 lCol = particles->getLightColor();
+                vec3 vL(-particles->getLightDir());
 
                 ImGui::SetCursorPosX(posA); 
-                if(ImGui::ColorEdit3(buildID(base, idA++, id),glm::value_ptr(lCol),ImGuiColorEditFlags_NoInputs)) particles->setLightColor(lCol); 
+                if(ImGui::ColorEdit3(buildID(base, idA++, id),value_ptr(lCol),ImGuiColorEditFlags_NoInputs)) particles->setLightColor(lCol); 
                 ImGui::SameLine(); 
                 ImGui::TextDisabled(" Model"); ImGui::SameLine();
                 ImGui::PushItemWidth(wLightButt*1.67 - (ImGui::GetCursorPosX()-posA));
@@ -613,9 +609,9 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::SameLine(); 
                 ImGui::TextDisabled("Dist"); ImGui::SameLine();
                 ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
-                float dist = glm::length(vL);
+                float dist = length(vL);
                 if(ImGui::DragFloatEx(buildID(base, idA++, id), &dist ,0.01, 0.01f, 10000.f, "% .3f",1.0f,ImVec2(.93,0.5))) {
-                    particles->setLightDir(glm::normalize(particles->getLightDir()) * dist);
+                    particles->setLightDir(normalize(particles->getLightDir()) * dist);
                 }
 
                 ImGui::AlignTextToFramePadding();
@@ -1218,12 +1214,13 @@ void particlesDlgClass::view()
 
     ImGui::SetNextWindowSize(ImVec2(wSZ, hSZ), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+    const float szMin = 270.f;
+    ImGui::SetNextWindowSizeConstraints(ImVec2(szMin, 0), ImVec2(FLT_MAX, FLT_MAX));
         
     const char *particlesWndName = getTitle();
     if(ImGui::Begin(particlesWndName, &isVisible)) {
 
-        const float szMin = 270.f;
-        if( ImGui::GetWindowWidth() < szMin) ImGui::SetWindowSize(particlesWndName,ImVec2(szMin,0));
+        //if( ImGui::GetWindowWidth() < szMin) ImGui::SetWindowSize(particlesWndName,ImVec2(szMin,0));
 
         ImGui::BeginGroup(); 
             ImGui::BeginChild("Settings", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()*5-border)); 
@@ -1852,7 +1849,7 @@ void particleEditDlgClass::view()
         ImGui::Text("Hermite coefficients");
         ImGui::PushItemWidth(wButt);
 
-        if(ImGui::DragFloat4("##parED",glm::value_ptr(pSys->getHermiteVals()), .01, 0.0, 1.0,"%.2f")) {
+        if(ImGui::DragFloat4("##parED",value_ptr(pSys->getHermiteVals()), .01, 0.0, 1.0,"%.2f")) {
             pSys->getDotTex().build();
         }
         ImGui::PopItemWidth();
@@ -1860,7 +1857,7 @@ void particleEditDlgClass::view()
         dotsTextureClass *dots = &pSys->getDotTex();
 
         //ImGui::SetCursorPosX(border);
-        ImGui::Image(reinterpret_cast<ImTextureID>(dots->getTexID()), ImVec2(wButt,wButt));
+        ImGui::Image(reinterpret_cast<ImTextureID>((int64) dots->getTexID()), ImVec2(wButt,wButt));
         char txt[32];
 
 
@@ -1916,7 +1913,7 @@ void viewSettingDlgClass::view()
     if(ImGui::Begin(getTitle(), &isVisible)) { 
         
         particlesSystemClass *pSys = theWnd->getParticlesSystem();
-        vfGizmo3DClass &tBall = pSys->getTMat()->getTrackball();
+        vg::vGizmo3D &tBall = pSys->getTMat()->getTrackball();
 
         const float w = ImGui::GetContentRegionAvail().x;
         const float wHalf = w*.5;
@@ -2118,7 +2115,7 @@ void imGuIZMODlgClass::view()
     ImGuiStyle& style = ImGui::GetStyle();
 
     //quaternionf qt = theWnd->getTrackball().getRotation();
-    glm::quat qt = theWnd->getParticlesSystem()->getTMat()->getTrackball().getRotation();
+    quat qt = theWnd->getParticlesSystem()->getTMat()->getTrackball().getRotation();
 
     float sz=180+ ImGui::GetStyle().ItemSpacing.x*2;
     ImGui::SetNextWindowSize(ImVec2(sz, (sz+2*ImGui::GetFrameHeightWithSpacing())), ImGuiCond_Always);
@@ -2162,7 +2159,7 @@ void imGuIZMODlgClass::view()
 #else
         vec3 &ligh = theWnd->getParticlesSystem()->shaderPointClass::getLightDir();
 #endif
-        glm::vec3 lL(-ligh);
+        vec3 lL(-ligh);
         if(ImGui::gizmo3D("##aaa", qt, lL, sz))  { 
 #if !defined(GLCHAOSP_LIGHTVER)
             if(theWnd->getParticlesSystem()->getRenderMode()==RENDER_USE_BOTH) {
@@ -2178,7 +2175,7 @@ void imGuIZMODlgClass::view()
         }
         ImGui::PushItemWidth(sz);
         style.Colors[ImGuiCol_Text].x = style.Colors[ImGuiCol_Text].y = 1.0, style.Colors[ImGuiCol_Text].z =0.f;
-        ImGui::DragFloat3("##uL3",glm::value_ptr(ligh),0.01f);
+        ImGui::DragFloat3("##uL3",value_ptr(ligh),0.01f);
         style.Colors[ImGuiCol_Text] = oldTex;
         ImGui::PopItemWidth();
 

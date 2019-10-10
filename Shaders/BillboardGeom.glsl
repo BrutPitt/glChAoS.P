@@ -32,10 +32,9 @@ out vec2 texCoord;
 out vec4 particleColor;
 out float pointDistance;
 out float particleSize;
-out vec4 shadowlightView;
 
 
-LAYUOT_BINDING(4) uniform _tMat {
+LAYOUT_BINDING(4) uniform _tMat {
     mat4 pMatrix;
     mat4 mvMatrix;
     mat4 mvpMatrix;
@@ -60,7 +59,6 @@ void main(void)
 {
     pointDistance = pointDist[0];
     particleColor = vertParticleColor[0];
-    shadowlightView = vertShadowlightView[0];
 
     float sz = gl_in[0].gl_PointSize;
     particleSize = sz;

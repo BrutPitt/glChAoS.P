@@ -1,19 +1,15 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #pragma once
 
 #include <stdlib.h>
@@ -30,23 +26,13 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-//#include <omp.h>
-
-//#include "nv/nvMath.h"
-//#define GLM_FORCE_SWIZZLE 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <configuru/configuru.hpp>
 
 #include <fastRandom.h>
-#include "attractorsStartVals.h"
 
+#include <vGizmoMath.h>
 
-//void resetVBOindexes();
-
-
-using namespace glm;
 using namespace std;
 using namespace configuru;
 using namespace fstRnd;
@@ -455,7 +441,7 @@ public:
 
         const std::complex<float> z1(p.x, p.y), z2(-p.w, p.z);
         const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
-        vp = .5f * vec3(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag()/*, w1.real()-w2.real()*/);
+        vp = vec3(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag()/*, w1.real()-w2.real()*/)*.5f;
         last4D =  .5f * (w1.real()-w2.real());
     };
 
@@ -1018,8 +1004,8 @@ public:
     SinCos() {
         stepFn = (stepPtrFn) &SinCos::Step;
 
-        kMin = -glm::pi<float>();
-        kMax =  glm::pi<float>();
+        kMin = -T_PI;
+        kMax =  T_PI;
         vMin = -1.0; vMax = 1.0;
 
         m_POV = vec3( 0.f, 0, 12.f);
@@ -1085,12 +1071,12 @@ protected:
     #define parentPOINT(PARENT) m_Points.pts[PARENT]
     #define thisPOINT m_Points.pts
 
-using tPrec = float;
+using tPrec = VG_T_TYPE;
 
-template <typename T> struct pointCloud
+TEMPLATE_TYPENAME_T struct pointCloud
 {
     
-    std::vector<glm::tvec3<T>> pts;
+    std::vector<vec3> pts;
     
     // Must return the number of data points
     inline size_t kdtree_get_point_count() const { return pts.size(); }
@@ -1150,9 +1136,9 @@ public:
 
     void buildIndex();
 
-    inline void addLoadedPoint(const glm::vec3 &p) {
+    inline void addLoadedPoint(const vec3 &p) {
         thisPOINT.push_back(p);
-        boundingRadius = std::max(boundingRadius, glm::length(p) + kVal[1]);
+        boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
     }
 
 
@@ -1172,7 +1158,7 @@ protected:
         resetIndexData();
         resetQueue();
         Insert(vec3(0.f));
-        Add(glm::vec3(0.0));
+        Add(vec3(0.0));
         //addedPoints.clear();
         //startThreads(4);
     }
@@ -1183,15 +1169,15 @@ protected:
 
 #ifdef GLAPP_USE_BOOST_LIBRARY
     // Add adds a new particle with the specified parent particle
-    void Add(const glm::vec3 &p) {
+    void Add(const vec3 &p) {
         const uint32_t id = m_Points.size();
         m_Index.insert(std::make_pair(BoostPoint(p.x, p.y, p.z), id));
         m_Points.push_back(p);
         m_JoinAttempts.push_back(0);
-        boundingRadius = std::max(boundingRadius, glm::length(p) + kVal[1]);
+        boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
     }
     // Nearest returns the index of the particle nearest the specified point
-    uint32_t Nearest(const glm::vec3 &point) const {
+    uint32_t Nearest(const vec3 &point) const {
         uint32_t result = -1;
         m_Index.query(
             boost::geometry::index::nearest(BoostPoint(point.x,point.y,point.z), 1),
@@ -1201,7 +1187,7 @@ protected:
         return result;
     }
 #else
-    void Add(const glm::vec3 &p) {
+    void Add(const vec3 &p) {
         //my_kd_tree_t index(3 /*dim*/, m_Points, KDTreeSingleIndexAdaptorParams(10 /* max leaf */) );
         //static uint32_t count = 0;
         //const int nPT = 16;
@@ -1211,10 +1197,10 @@ protected:
         m_JoinAttempts.push_back(0);
         //if(!(count++&0xF)) m_Index->addPoints(id-nPT, id);
         m_Index->addPoints(id, id);
-        boundingRadius = std::max(boundingRadius, glm::length(p) + kVal[1]);
+        boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
     }
 
-    uint32_t Nearest(const glm::vec3 &point) const {
+    uint32_t Nearest(const vec3 &point) const {
         size_t ret_index;
         tPrec out_dist_sqr = kVal[1]*.5;
         nanoflann::KNNResultSet<tPrec> resultSet(1);
@@ -1227,56 +1213,56 @@ protected:
         //std::cout << id << "," << p.x << "," << p.y << "," << p.z << std::endl;
 
     // PlaceParticle computes the final placement of the particle.
-    glm::vec3 PlaceParticle(const glm::vec3 &p, const uint32_t parent) const {
+    vec3 PlaceParticle(const vec3 &p, const uint32_t parent) const {
         return lerp(parentPOINT(parent), p, kVal[0]);
     }
 
     // RandomStartingPosition returns a random point to start a new particle
-    glm::vec3 RandomStartingPosition() const {
-        return glm::normalize(RandomInUnitSphere()) * boundingRadius;
+    vec3 RandomStartingPosition() const {
+        return normalize(RandomInUnitSphere()) * boundingRadius;
     }
 
     // ShouldReset returns true if the particle has gone too far away and
     // should be reset to a new random starting position
-    bool ShouldReset(const glm::vec3 &p) const {
-        return glm::length(p) > boundingRadius * 2;
+    bool ShouldReset(const vec3 &p) const {
+        return length(p) > boundingRadius * 2;
     }
 
     // ShouldJoin returns true if the point should attach to the specified
     // parent particle. This is only called when the point is already within
     // the required attraction distance.
-    bool ShouldJoin(const glm::vec3 &p, const uint32_t parent) {
+    bool ShouldJoin(const vec3 &p, const uint32_t parent) {
         return (m_JoinAttempts[parent]++ < m_Stubbornness) ? false : DLA_RANDOM_01 <= m_Stickiness;
     }
 
     // MotionVector returns a vector specifying the direction that the
     // particle should move for one iteration. The distance that it will move
     // is determined by the algorithm.
-    glm::vec3 MotionVector(const glm::vec3 &p) const {
+    vec3 MotionVector(const vec3 &p) const {
         return RandomInUnitSphere();
     }
 
-    glm::vec3 RandomInUnitSphere() const {
-        glm::vec3 p;
+    vec3 RandomInUnitSphere() const {
+        vec3 p;
         do {
-            p = glm::vec3(DLA_RANDOM_NORM, 
+            p = vec3(DLA_RANDOM_NORM, 
                           DLA_RANDOM_NORM, 
                           DLA_RANDOM_NORM);
-        } while(glm::length(p) >= 1.f);
+        } while(length(p) >= 1.f);
 
         return p;
     } 
 
     // AddParticle diffuses one new particle and adds it to the model
-    glm::vec3 &AddParticle() {
+    vec3 &AddParticle() {
         // compute particle starting location
-        glm::vec3 p = RandomStartingPosition();
+        vec3 p = RandomStartingPosition();
 
         // do the random walk
         while (true) {
             // get distance to nearest other particle
             const uint32_t parent = Nearest(p);
-            const tPrec d = glm::distance(p, parentPOINT(parent));
+            const tPrec d = distance(p, parentPOINT(parent));
 
             // check if close enough to join
             if (d < kVal[1]) {
@@ -1292,7 +1278,7 @@ protected:
             }
 
             // move randomly
-            p += glm::normalize(MotionVector(p)) * std::max(kVal[2], d - kVal[1]);
+            p += normalize(MotionVector(p)) * std::max(kVal[2], d - kVal[1]);
 
             // check if particle is too far away, reset if so
             if (ShouldReset(p)) p = RandomStartingPosition();
@@ -1308,8 +1294,8 @@ private:
         std::uniform_real_distribution<tPrec> dist(lo, hi); return dist(gen);
     }
 
-    glm::vec3 lerp(const glm::vec3 &a, const glm::vec3 &b, tPrec d) const {
-        return a + glm::normalize(b-a) * d;
+    vec3 lerp(const vec3 &a, const vec3 &b, tPrec d) const {
+        return a + normalize(b-a) * d;
     }
 
     //The probability that a particle will allow another particle to join to it.
@@ -1330,7 +1316,7 @@ private:
     // m_Index is the spatial index used to accelerate nearest neighbor queries
     boostIndex m_Index;
     // m_Points stores the final particle positions
-    std::vector<glm::vec3> m_Points;
+    std::vector<vec3> m_Points;
 #else
     tPointCloud m_Points;
     tKDTree *m_Index = nullptr;
@@ -1377,7 +1363,7 @@ public:
 
     }
 
-    float getDistance(int i=0, int j=1) { return  glm::distance(stepQueue[i], stepQueue[j]); }
+    float getDistance(int i=0, int j=1) { return  distance(stepQueue[i], stepQueue[j]); }
 
 };
 
@@ -2076,33 +2062,33 @@ public:
 #if !defined(GLAPP_DISABLE_DLA)
         PB(dla3D              , u8"\uf2dc" " DLA 3D"             )
 #endif
-        PB(Lorenz             , u8"\uf192" " Lorenz"             )
-        PB(ChenLee            , u8"\uf192" " Chen-Lee"           )
-        PB(TSUCS              , u8"\uf192" " TSUCS 1&2"          )
         PB(Aizawa             , u8"\uf192" " Aizawa"             )
-        PB(YuWang             , u8"\uf192" " Yu-Wang"            )
+        PB(Arneodo            , u8"\uf192" " Arneodo"            )
+        PB(Bouali             , u8"\uf192" " Bouali"             )
+        PB(ChenLee            , u8"\uf192" " Chen-Lee"           )
+        PB(Coullet            , u8"\uf192" " Coullet"            )
+        PB(Dadras             , u8"\uf192" " Dadras"             )
+        PB(DequanLi           , u8"\uf192" " Dequan-Li"          )
         PB(FourWing           , u8"\uf192" " FourWing"           )
         PB(FourWing2          , u8"\uf192" " FourWing 2"         )
         PB(FourWing3          , u8"\uf192" " FourWing 3"         )
-        PB(Thomas             , u8"\uf192" " Thomas"             )
-        PB(Halvorsen          , u8"\uf192" " Halvorsen"          )
-        PB(Arneodo            , u8"\uf192" " Arneodo"            )
-        PB(Bouali             , u8"\uf192" " Bouali"             )
-        PB(Hadley             , u8"\uf192" " Hadley"             )
-        PB(LiuChen            , u8"\uf192" " Liu-Chen"           )
         PB(GenesioTesi        , u8"\uf192" " Genesio-Tesi"       )
+        PB(Halvorsen          , u8"\uf192" " Halvorsen"          )
+        PB(Hadley             , u8"\uf192" " Hadley"             )
+        PB(Lorenz             , u8"\uf192" " Lorenz"             )
+        PB(LiuChen            , u8"\uf192" " Liu-Chen"           )
+        PB(MultiChuaII        , u8"\uf192" " Multi-Chua II"      )
         PB(NewtonLeipnik      , u8"\uf192" " Newton-Leipnik"     )
         PB(NoseHoover         , u8"\uf192" " Nose-Hoover"        )
         PB(RayleighBenard     , u8"\uf192" " Rayleigh-Benard"    )
-        PB(Sakarya            , u8"\uf192" " Sakarya"            )
         PB(Rossler            , u8"\uf192" " Rossler"            )
         PB(Rucklidge          , u8"\uf192" " Rucklidge"          )
-        PB(DequanLi           , u8"\uf192" " Dequan-Li"          )
-        PB(MultiChuaII        , u8"\uf192" " Multi-Chua II"      )
-        PB(ZhouChen           , u8"\uf192" " Zhou-Chen"          )
+        PB(Sakarya            , u8"\uf192" " Sakarya"            )
         PB(SprottLinzF        , u8"\uf192" " Sprott-Linz F"      )
-        PB(Coullet            , u8"\uf192" " Coullet"            )
-        PB(Dadras             , u8"\uf192" " Dadras"             )
+        PB(Thomas             , u8"\uf192" " Thomas"             )
+        PB(TSUCS              , u8"\uf192" " TSUCS 1&2"          )
+        PB(YuWang             , u8"\uf192" " Yu-Wang"            )
+        PB(ZhouChen           , u8"\uf192" " Zhou-Chen"          )
 //        PB(Robinson           , u8"\uf192" " Robinson"           )
         PB(juliaBulb_IIM      , u8"\uf185" " JuliaBulb"          )
         PB(juliaBulb4th_IIM   , u8"\uf185" " JuliaBulb Nth"      )

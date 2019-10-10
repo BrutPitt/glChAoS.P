@@ -1,44 +1,29 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #pragma once
-#include <glm/glm.hpp>
 #include <vector>
 #include <array>
 #include <string>
+
+#include <vGizmoMath.h>
+
 #include "ParticlesUtils.h"
 #include "libs/configuru/configuru.hpp"
 
 using namespace std;
-using namespace glm;
 using namespace configuru;
 
-
-
-
 typedef vector<float> CMap3;
-
-/*
-extern unsigned char palAsteria[];
-extern unsigned char palNbvroy[];
-extern unsigned char palMax__[];
-extern unsigned char palCmyw[];
-extern unsigned char palAzzurro[];
-*/
-
 
 extern CMap3 cm_viridis;
 extern CMap3 cm_plasma ;
@@ -46,26 +31,7 @@ extern CMap3 cm_inferno;
 extern CMap3 cm_magma  ;
 extern CMap3 cm_parula ;
 extern CMap3 cm_thermal;
-/*
 
-
-extern CMap3 cm_Algae  ;
-extern CMap3 cm_Phase  ;
-extern CMap3 cm_dense  ;
-extern CMap3 cm_haline ;
-extern CMap3 cm_ice    ;
-extern CMap3 cm_jeans  ;
-extern CMap3 cm_matter ;
-extern CMap3 cm_solar  ;
-extern CMap3 cm_speed  ;
-extern CMap3 cm_tempo  ;
-extern CMap3 cm_turbid ;
-extern CMap3 cm_amp    ;
-extern CMap3 cm_balance;
-extern CMap3 cm_curl   ;
-extern CMap3 cm_deep   ;
-extern CMap3 cm_delta  ;
-*/
 #define BUILT_IN_STRING "BuiltIn"
 class cmContainerClass 
 {
@@ -76,7 +42,6 @@ public:
                  type.push_back(BUILT_IN_STRING);
 
     cmContainerClass() {
-        //rgb.resize(50);
         if(!loadColorMaps("colorMaps/palettes.json")) {
             PB(cm_viridis);
             PB(cm_parula );
@@ -86,24 +51,6 @@ public:
             PB(cm_magma  );
         }
 #undef PB
-/*
-        PUSH_BACK(cm_Algae  );
-        PUSH_BACK(cm_Phase  );
-        PUSH_BACK(cm_dense  );
-        PUSH_BACK(cm_haline );
-        PUSH_BACK(cm_ice    );
-        PUSH_BACK(cm_jeans  );
-        PUSH_BACK(cm_matter );
-        PUSH_BACK(cm_solar  );
-        PUSH_BACK(cm_speed  );
-        PUSH_BACK(cm_tempo  );
-        PUSH_BACK(cm_turbid );
-        PUSH_BACK(cm_amp    );
-        PUSH_BACK(cm_balance);
-        PUSH_BACK(cm_curl   );
-        PUSH_BACK(cm_deep   );
-        PUSH_BACK(cm_delta  );
-*/
         
     }
     ~cmContainerClass() {
@@ -190,8 +137,6 @@ public:
             addNewPal(cfg);
         }
         return true;
-
-
     }
 
 public:

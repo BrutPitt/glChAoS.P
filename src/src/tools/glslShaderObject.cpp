@@ -1,20 +1,21 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
 //
-//  me@michelemorrone.eu - brutpitt@gmail.com
-//  twitter: @BrutPitt - github: BrutPitt
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
 //  This software is distributed under the terms of the BSD 2-Clause license
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//------------------------------------------------------------------------------
 #include "glslShaderObject.h"
 
 #define ANSI
-#ifdef ANSI             /* ANSI compatible version          */
+#ifdef ANSI             // ANSI compatible version
 #include <stdarg.h>
-#else                   /* UNIX compatible version          */
+#else                   // UNIX compatible version
 #include <varargs.h>
 #endif
 
@@ -68,7 +69,7 @@ void getCompilerLog(GLuint handle, GLint blen, bool isShader)
 
             cout << compilerLog << "\n" << endl;
 
-            delete compilerLog;
+            delete[] compilerLog;
         }
 
         //cout << "compiler_log: \n", compiler_log);
@@ -77,7 +78,7 @@ void getCompilerLog(GLuint handle, GLint blen, bool isShader)
 
 void checkShader(GLuint shader)
 {
-	GLint compiled;
+    GLint compiled;
     glGetShaderiv( shader, GL_COMPILE_STATUS, &compiled );
 
     if(compiled == GL_FALSE) {
@@ -90,7 +91,7 @@ void checkShader(GLuint shader)
 
 void checkProgram(GLuint program)
 {
-	GLint linked;
+    GLint linked;
     glGetProgramiv( program, GL_LINK_STATUS, &linked );	
     //CHECK_GL_ERROR(); 
 
@@ -103,27 +104,14 @@ void checkProgram(GLuint program)
 
 
 
-ShaderObject::ShaderObject()
-{
-
-}
-
-ShaderObject::~ShaderObject()
-{
-	glDeleteShader(shader);
-}
-
 
 void ShaderObject::Load(const char *name)
 {
     string str;
 
-	// Load shader source code
-	getFileContents(name, str);
+    // Load shader source code
+    getFileContents(name, str);
     Compile((GLchar *) str.data());
-
-
-
 }
 
 void ShaderObject::Load(const char *defines, int numShaders, ...) 
@@ -131,7 +119,7 @@ void ShaderObject::Load(const char *defines, int numShaders, ...)
     va_list argList;
     va_start( argList, numShaders);
 
-	// Load shader source code
+    // Load shader source code
 
     string str;
 
@@ -144,7 +132,6 @@ void ShaderObject::Load(const char *defines, int numShaders, ...)
     Compile((GLchar *) str.data());
 
     va_end(argList);
-
 }
 
 
@@ -152,22 +139,21 @@ void ShaderObject::Load(const char *defines, int numShaders, ...)
 void ShaderObject::Compile(const GLchar *code)
 {
 
-	// Load source code into shaders
-    glShaderSource(shader, 1, &code, NULL);
+    // Load source code into shaders
+    glShaderSource(shaderID, 1, &code, NULL);
     CHECK_GL_ERROR();
 
-  	// Compile the shader 
-    glCompileShader(shader);
+    // Compile the shader 
+    glCompileShader(shaderID);
     
-    checkShader(shader);
-
+    checkShader(shaderID);
 }
 
 
 
 GLuint& ShaderObject::getShader()
 {
-	return(shader);
+    return(shaderID);
 }
 
 //#define USE_STDIO_TO_LOAD_SHADERS
@@ -175,44 +161,44 @@ GLuint& ShaderObject::getShader()
 #ifndef USE_STDIO_TO_LOAD_SHADERS
 void ShaderObject::getFileContents(const char* fileName, string &str)
 {
-	std::streamoff length;
-	char* buffer;
+    std::streamoff length;
+    char* buffer;
 
 #if !defined(NDEBUG)
     cout << fileName << "..."<< endl;
 #endif
 
-	// Load the file
-	ifstream input(fileName,std::ifstream::binary);
+    // Load the file
+    ifstream input(fileName,std::ifstream::binary);
 
-	// Check to see that the file is open
-	if (!input.is_open()) {
+    // Check to see that the file is open
+    if (!input.is_open()) {
 #if !defined(NDEBUG)
     cout << fileName << "NOT OPEN..."<< endl;
 #endif
         return;
     }
 
-	// Get length of file:
-	input.seekg(0, ios::end);
-	length = input.tellg();
-	input.seekg(0, ios::beg);
+    // Get length of file:
+    input.seekg(0, ios::end);
+    length = input.tellg();
+    input.seekg(0, ios::beg);
 
-	// Allocate memory:
-	buffer = new char[length+1];
+    // Allocate memory:
+    buffer = new char[length+1];
 
-	// Read data as a block:
-	//input.getline(buffer, length, '\0');
+    // Read data as a block:
+    //input.getline(buffer, length, '\0');
 
     input.read(buffer, length);
     buffer[length]=0;
     str+=buffer;
 
-	// Close the input file
-	input.close();
+    // Close the input file
+    input.close();
 
-	// Return the shader code
-	delete buffer;
+    // Return the shader code
+    delete[] buffer;
 }
 
 
@@ -221,39 +207,39 @@ void ShaderObject::getFileContents(const char* fileName, string &str)
 #include <stdlib.h>
 void ShaderObject::getFileContents(const char* fileName, string &str)
 {
-	int length;
-	char* buffer;
+    int length;
+    char* buffer;
     FILE* pf;
 
 #if !defined(NDEBUG)
     cout << fileName << "..."<< endl;
 #endif
 
-	// Load the file
-	pf = fopen(fileName, "rb");
+    // Load the file
+    pf = fopen(fileName, "rb");
 
-	// Check to see that the file is open
-	//if (pf==NULL) return(NULL);
+    // Check to see that the file is open
+    //if (pf==NULL) return(NULL);
 
-	// Get length of file:
-	fseek(pf, 0, SEEK_END);
-	length = ftell(pf);
+    // Get length of file:
+    fseek(pf, 0, SEEK_END);
+    length = ftell(pf);
     fseek(pf, 0, SEEK_SET);
 
-	// Allocate memory:
-	buffer = new char[length+5];
+    // Allocate memory:
+    buffer = new char[length+5];
 
-	// Read data as a block:
-	fread(buffer, 1, length, pf);
+    // Read data as a block:
+    fread(buffer, 1, length, pf);
     buffer[length]=0;
 
     str+=buffer;
 
-	// Close the input file
-	fclose(pf);
+    // Close the input file
+    fclose(pf);
 
-	// Return the shader code
-	delete buffer;
+    // Return the shader code
+    delete buffer;
 }
 #endif
 

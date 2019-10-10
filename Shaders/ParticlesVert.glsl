@@ -1,28 +1,24 @@
-////////////////////////////////////////////////////////////////////////////////
-//
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2019 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
+//  https://michelemorrone.eu - https://BrutPitt.com
+//
+//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//
+//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
 //  
-//  https://github.com/BrutPitt
-//
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
-//
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
-#line 17    //#version dynamically inserted
+//------------------------------------------------------------------------------
+#line 12    //#version dynamically inserted
 
 layout(std140) uniform;
 
 layout (location = 0) in vec4 a_ActualPoint;
 
-LAYUOT_BINDING(0) uniform sampler2D paletteTex;
+LAYOUT_BINDING(0) uniform sampler2D paletteTex;
 
-LAYUOT_BINDING(2) uniform _particlesData {
+LAYOUT_BINDING(2) uniform _particlesData {
     vec3  lightDir;          // align 0
     float lightDiffInt;
     vec3  lightColor;        // align 16
@@ -68,7 +64,7 @@ LAYUOT_BINDING(2) uniform _particlesData {
     uint  renderType;
 } u;
 
-LAYUOT_BINDING(4) uniform _tMat {
+LAYOUT_BINDING(4) uniform _tMat {
     mat4 pMatrix;
     mat4 mvMatrix;
     mat4 mvpMatrix;
@@ -80,6 +76,7 @@ out gl_PerVertex
 {
     vec4 gl_Position;
     float gl_PointSize;
+    //float gl_ClipDistance[1];
 };
 #endif
 
@@ -91,7 +88,7 @@ out gl_PerVertex
 
 // Load OBJ
 #ifndef GL_ES
-LAYUOT_INDEX(1) SUBROUTINE(_colorResult) vec4 objColor()
+LAYOUT_INDEX(1) SUBROUTINE(_colorResult) vec4 objColor()
 {
     uint packCol = floatBitsToUint(a_ActualPoint.w);
     vec4 col = unpackUnorm4x8(packCol);
@@ -100,7 +97,7 @@ LAYUOT_INDEX(1) SUBROUTINE(_colorResult) vec4 objColor()
 }
 #endif
 
-LAYUOT_INDEX(0) SUBROUTINE(_colorResult) vec4 velColor()
+LAYOUT_INDEX(0) SUBROUTINE(_colorResult) vec4 velColor()
 {
     float vel = a_ActualPoint.w*u.velIntensity;
     return vec4(texture(paletteTex, vec2(vel,0.f)).rgb,1.0);
