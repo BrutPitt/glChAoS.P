@@ -1,4 +1,4 @@
-<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.3.1</a> => 1.3.2</h1>
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.3.1</a> ==> 1.4.0 (WiP)</h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercompex fractals (new!) 
@@ -374,6 +374,7 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
 - libs/glm → OpenGL Mathematics
 [https://glm.g-truc.net](https://glm.g-truc.net/)
 *(need version \>= 0.9.9)*
+  - Not striclty (more) necessary, now my integraded tools [**vitualGizmo3D**](https://github.com/BrutPitt/virtualGizmo3D) and [**imGuIZMO.quat**](https://github.com/BrutPitt/imGuIZMO.quat) have (inside them) a sub-set of **glm** types and funtions (**vGizmoMath**), with a studied **interface** that permits to switch between **glm** and **vGizmoMath** only via compiler defines.
 
 - libs/imGui → Dear ImGui
 [https://github.com/ocornut/imgui](https://github.com/ocornut/imgui)
@@ -405,10 +406,12 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
 [https://github.com/glfw/glfw](https://github.com/glfw/glfw)
 *(need version \>= 3.3, recommended enclosed pre-built)*
 
-- libs/nanoflann -> header-only library for KD-Trees of datasets point clouds [https://github.com/jlblancoc/nanoflann](https://github.com/jlblancoc/nanoflann)
+- libs/nanoflann -> header-only library for KD-Trees of datasets point clouds [https://github.com/jlblancoc/nanoflann](https://github.com/jlblancoc/nanoflann) (need only for DLA3D, in alternative you can use **Boost Library** compiling with `GLAPP_USE_BOOST_LIBRARY` define)
 
-- ~~boost Library in particular: *function_output_iterator* and *geometry* are necessary to build DLA3D (Diffusion Limited Aggregation) object exlploration in glChAoS.P (can be disabled). It's not included in the repository, but can be downloaded from [https://www.boost.org/](https://www.boost.org/)
-It is not necessary to build the library, only headers files is enough. (more information in: how to build)~~
+
+### Alternatives and optional, not strictly necessary
+
+Below there are some used components, which differ from **MIT** / **BSD 2-Clause** / **Zlib** license. 
 
 **External Color Maps/Palettes - (optional - to load)**
 
@@ -417,6 +420,12 @@ colorMaps/jjg\_step.json → J.J. Green palettes (creative commons noncommercial
 [http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html](http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html)
 Conversion from gpf format to json 256 variations.
 (these are optional separate files to load and to have more color maps)
+
+**Alternative Library**
+
+- **Boost Library** in particular: *function_output_iterator* and *geometry* are necessary **as alternative** (to nanoflann) to build DLA3D (Diffusion Limited Aggregation) object exlploration in glChAoS.P (can be disabled). It's not included in the repository, but can be downloaded from [https://www.boost.org/](https://www.boost.org/)
+It is not necessary to build the library, only headers files is enough. (more information in: how to build)
+  - Compile with `GLAPP_USE_BOOST_LIBRARY` define, to use instead of **nanoflann** lib
 
 <p>&nbsp;<br></p>
 
