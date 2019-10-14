@@ -198,7 +198,7 @@ public:
         //glBufferData(GL_ARRAY_BUFFER, storageSize, nullptr, GL_DYNAMIC_DRAW ); // ); //
         //vtxBuffer = (GLfloat *) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE  );   //| GL_MAP_COHERENT_BIT
 #endif
-        FORCE_CHECK_GL_ERROR();
+        CHECK_GL_ERROR();
         buildVertexAttrib();
     }
 
@@ -225,7 +225,7 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER,vbo);        
         glBufferData(GL_ARRAY_BUFFER,storageSize,nullptr,GL_DYNAMIC_DRAW);
 #endif
-        FORCE_CHECK_GL_ERROR();
+        CHECK_GL_ERROR();
 
         buildVertexAttrib();
     }
