@@ -23,9 +23,9 @@ LAYOUT_BINDING(2) uniform _particlesData {
     float lightDiffInt;
     vec3  lightColor;        // align 16
     float lightSpecInt;
-    vec4  POV;
     vec2  scrnRes;
     vec2  invScrnRes;
+    vec3  rotCenter;
     float lightAmbInt ;
     float lightShinExp;
     float sstepColorMin;
@@ -50,6 +50,7 @@ LAYOUT_BINDING(2) uniform _particlesData {
     float shadowGranularity;
     float shadowBias;
     float shadowDarkness;
+    float shadowDetail;
     float aoRadius;
     float aoBias;
     float aoDarkness;
@@ -64,7 +65,20 @@ LAYOUT_BINDING(2) uniform _particlesData {
     uint  renderType;
 } u;
 
+LAYOUT_BINDING(9) uniform _clippingPlanes {
+    vec4  clipPlane[3];
+    vec4  boundaryColor[3];
+    uvec4 planeActive;
+    uvec4 colorActive;
+    float thickness;
+    bool  additiveSpace;
+    bool  atLeastOneActive;
+} pl;
+
 LAYOUT_BINDING(4) uniform _tMat {
+    mat4 mMatrix;
+    mat4 vMatrix;
+    mat4 invMV  ;
     mat4 pMatrix;
     mat4 mvMatrix;
     mat4 mvpMatrix;

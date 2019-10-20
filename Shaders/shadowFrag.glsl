@@ -30,10 +30,9 @@ void main()
     vec2 ptCoord = vec2(gl_PointCoord.x,1.0-gl_PointCoord.y);
     vec4 N = getParticleNormal(ptCoord);
 
-    float clipDistance = -dot(solidVtx, ClipPlane);  //shadow clipped
-    if(N.w > 1.0 || N.z < u.alphaSkip /*|| clipDistance<0.0*/) { discard; } //return black color and max depth
+    if(N.w > 1.0 || N.z < u.alphaSkip || clippedPoint(solidVtx)) { discard; } //return black color and max depth
 
-    gl_FragDepth = getFragDepth(mvVtxPos.z + N.z * particleSize);
+    gl_FragDepth = getFragDepth(mvVtxPos.z + N.z * particleSize*u.shadowDetail);
 
 // for Chrome76 message: "exture is not renderable" if only zBuffer... need ColorBuffer 
 // FireFox68 Works fine also only with zBuffer w/o ColorBuffer

@@ -41,6 +41,7 @@ enum enumEmitterType { emitter_singleThread_externalBuffer,    // webGL
 #define PALETTE_PATH "ColorMaps/"
 #define STRATT_PATH "ChaoticAttractors/"
 #define CAPTURE_PATH "imgsCapture/"
+#define EXPORT_PLY_PATH CAPTURE_PATH
 #define RENDER_CFG_PATH "renderCfg/"
 
 #define GLAPP_PROG_CONFIG "glChAoSP.cfg"
@@ -107,8 +108,8 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 enum loadSettings { ignoreNone, ignoreCircBuffer };
 
 
-void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool bCoR, bool normalized = true, normalType nType = normalType::ptCoR);
-bool importPLY(bool wantColors, bool isDLA);
+void exportPLY(bool wantBinary, bool wantColors, bool alphaDist, bool wantNormals, bool bCoR, bool wantNormalized, normalType nType = normalType::ptCoR);
+bool importPLY(bool wantColors, int velType);
 
 
 class particlesBaseClass;
@@ -211,6 +212,9 @@ public:
     bool isParticlesSizeConstant() { return particlesSizeConstant; }
     void setParticlesSizeConstant(bool b) { particlesSizeConstant = b; }
 
+    bool useDetailedShadows() { return detailedShadows; }
+    void useDetailedShadows(bool b) { detailedShadows = b; }
+
     int getStartWithAttractorIdx() { return startWithAttractorIdx; }
     void setStartWithAttractorIdx(int v) { startWithAttractorIdx = v; }
 
@@ -223,6 +227,12 @@ public:
 
     std::string &getCapturePath() { return capturePath; }
     void setCapturePath(const char * const s) { capturePath = s; }
+
+    std::string &getPlyPath() { return exportPlyPath; }
+    void setPlyPath(const char * const s) { exportPlyPath = s; }
+
+    std::string &getRenderCfgPath() { return renderCfgPath; }
+    void setRenderCfgPath(const char * const s) { renderCfgPath = s; }
 
     void setPalInternalPrecision(GLenum e) { palInternalPrecision = e; }
     GLenum getPalInternalPrecision() { return palInternalPrecision; }
@@ -255,7 +265,7 @@ public:
     void startWithGlowOFF(bool b) {  initialGlowOFF = b; }
 
 
-    void selectCaptureFolder();
+    void selectFolder(std::string &s);
 
     
     mainImGuiDlgClass &getMainDlg() { return mainImGuiDlg; }
@@ -319,6 +329,7 @@ private:
     bool tabletMode = false;
     bool lightGUI = false;
     bool initialGlowOFF = false;
+    bool detailedShadows = false;
 
     int startWithAttractorIdx = -1; // -1 Random start
 
@@ -345,6 +356,8 @@ private:
 
     std::string lastAttractor = std::string("");
     std::string capturePath = std::string(CAPTURE_PATH);
+    std::string exportPlyPath = std::string(EXPORT_PLY_PATH);
+    std::string renderCfgPath = std::string(RENDER_CFG_PATH);
     
     GLFWwindow* mainGLFWwnd = nullptr;
     glWindow *glEngineWnd = nullptr;

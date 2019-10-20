@@ -25,9 +25,9 @@ LAYOUT_BINDING(2) uniform _particlesData {
     float lightDiffInt;
     vec3  lightColor;        // align 16
     float lightSpecInt;
-    vec4  POV;
     vec2  scrnRes;
     vec2  invScrnRes;
+    vec3  rotCenter;
     float lightAmbInt ;
     float lightShinExp;
     float sstepColorMin;
@@ -52,6 +52,7 @@ LAYOUT_BINDING(2) uniform _particlesData {
     float shadowGranularity;
     float shadowBias;
     float shadowDarkness;
+    float shadowDetail;
     float aoRadius;
     float aoBias;
     float aoDarkness;
@@ -66,7 +67,18 @@ LAYOUT_BINDING(2) uniform _particlesData {
     uint  renderType;
 } u;
 
+LAYOUT_BINDING(9) uniform _clippingPlanes {
+    vec4  clipPlane[3];
+    vec4  boundaryColor[3];
+    uvec4 planeActive;       //AMD => bvec* != uvec* .... NVidia => bvec* == uvec*
+    uvec4 colorActive;
+    float thickness;
+    bool  additiveSpace;
+    bool  atLeastOneActive;
+} pl;
+
 out vec2 viewRay;
+out vec2 viewRayLight;
 
 #ifdef GL_ES
 #else
@@ -84,5 +96,5 @@ void main(void)
     vTexCoord = texCoord[gl_VertexID];
     gl_Position = vec4(vPos.xy,.0f,1.f);
     viewRay = vPos.xy * vec2(u.scrnRes.x*u.invScrnRes.y * u.halfTanFOV, u.halfTanFOV);
-
+    viewRayLight = vPos.xy * vec2(u.scrnRes.x*u.invScrnRes.y * tan(radians(45.0)*.5), tan(radians(45.0)*.5));
 }

@@ -355,10 +355,16 @@ void mainGLApp::loadQuikViewSelection(int idx)
 }
 
 
-void mainGLApp::selectCaptureFolder() {        
+void mainGLApp::selectFolder(string &s) {        
 #if !defined(GLCHAOSP_LIGHTVER)
-    const char *path = tinyfd_selectFolderDialog("Select folder...", getCapturePath().c_str());
-    if(path != NULL) { setCapturePath(path); capturePath += "/"; }
+    string tmpS = s;
+#if defined (_WIN32) || defined (_WIN64)
+    replace(tmpS.begin(), tmpS.end(), '/', '\\');
+#else
+    replace(tmpS.begin(), tmpS.end(), '\\', '/');
+#endif
+    const char *path = tinyfd_selectFolderDialog("Select folder...", tmpS.c_str());
+    if(path != NULL) { s = path; replace(s.begin(), s.end(), '\\', '/'); s += "/"; }
 #endif
 }
 
@@ -702,7 +708,7 @@ void saveSettingsFile()
     if(isOn) attractorsList.getThreadStep()->stopThread();
 
     char const * patterns[] = { "*.cfg", "*.sca" };        
-    char const * fileName = theApp->saveFile(RENDER_CFG_PATH, patterns, 2);
+    char const * fileName = theApp->saveFile(theApp->getRenderCfgPath().c_str(), patterns, 2);
 
     if(fileName!=nullptr) 
         theApp->saveSettings(fileName);
@@ -717,7 +723,7 @@ void loadSettingsFile()
     if(isOn) attractorsList.getThreadStep()->stopThread();
 
     char const * patterns[] = { "*.cfg", "*.sca" };
-    char const * fileName = theApp->openFile(RENDER_CFG_PATH, patterns, 2);
+    char const * fileName = theApp->openFile(theApp->getRenderCfgPath().c_str(), patterns, 2);
 
     if(fileName!=nullptr) 
         theApp->loadSettings(fileName, loadSettings::ignoreCircBuffer);
@@ -753,8 +759,11 @@ void mainGLApp::saveProgConfig()
     cfg["partSizeConst"] =  theApp->isParticlesSizeConstant();
 
     cfg["useLowPrecision"] =  theApp->useLowPrecision();
+    cfg["useDetailedShadows"] =  theApp->useDetailedShadows();
 
     cfg["capturePath" ] = capturePath;
+    cfg["exportPlyPath" ] = exportPlyPath;
+    cfg["renderCfgPath" ] = renderCfgPath;
 
     cfg["emitterType" ] = theApp->getEmitterType();
     cfg["auxStepBuffer" ] = theApp->getEmissionStepBuffer();
@@ -815,6 +824,7 @@ bool mainGLApp::loadProgConfig()
     theApp->setParticlesSizeConstant(cfg.get_or("partSizeConst", false));
 
     theApp->useLowPrecision(cfg.get_or("useLowPrecision", false));
+    theApp->useDetailedShadows(cfg.get_or("useDetailedShadows", false));
 
     theApp->selectEmitterType(cfg.get_or("emitterType",int(emitter_separateThread_externalBuffer)));
     theApp->setEmissionStepBuffer(cfg.get_or("auxStepBuffer", theApp->getEmissionStepBuffer()));
@@ -824,7 +834,9 @@ bool mainGLApp::loadProgConfig()
     if(theApp->useLowPrecision()) theApp->setLowPrecision();
     else                          theApp->setHighPrecision();
 
-    capturePath = cfg.get_or("capturePath", capturePath);
+    capturePath = cfg.get_or("capturePath", CAPTURE_PATH);
+    exportPlyPath = cfg.get_or("exportPlyPath", EXPORT_PLY_PATH);
+    renderCfgPath = cfg.get_or("renderCfgPath", RENDER_CFG_PATH);
 
     return true; // config file exist
 }

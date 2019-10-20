@@ -1039,6 +1039,8 @@ protected:
 
 #if !defined(GLAPP_DISABLE_DLA)
 
+using tPrec = VG_T_TYPE;
+
 //#define GLAPP_USE_BOOST_LIBRARY
 
 // number of dimensions (must be 2 or 3)
@@ -1071,7 +1073,6 @@ protected:
     #define parentPOINT(PARENT) m_Points.pts[PARENT]
     #define thisPOINT m_Points.pts
 
-using tPrec = VG_T_TYPE;
 
 TEMPLATE_TYPENAME_T struct pointCloud
 {
@@ -1138,7 +1139,7 @@ public:
 
     inline void addLoadedPoint(const vec3 &p) {
         thisPOINT.push_back(p);
-        boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
+        boundingRadius = max(boundingRadius, length(p) + kVal[1]);
     }
 
 
@@ -1174,7 +1175,7 @@ protected:
         m_Index.insert(std::make_pair(BoostPoint(p.x, p.y, p.z), id));
         m_Points.push_back(p);
         m_JoinAttempts.push_back(0);
-        boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
+        boundingRadius = max(boundingRadius, length(p) + kVal[1]);
     }
     // Nearest returns the index of the particle nearest the specified point
     uint32_t Nearest(const vec3 &point) const {
@@ -1187,6 +1188,7 @@ protected:
         return result;
     }
 #else
+    std::vector<vec3> tmp;
     void Add(const vec3 &p) {
         //my_kd_tree_t index(3 /*dim*/, m_Points, KDTreeSingleIndexAdaptorParams(10 /* max leaf */) );
         //static uint32_t count = 0;
@@ -1195,8 +1197,23 @@ protected:
         size_t id = m_Points.pts.size();
         m_Points.pts.push_back(p);        
         m_JoinAttempts.push_back(0);
-        //if(!(count++&0xF)) m_Index->addPoints(id-nPT, id);
-        m_Index->addPoints(id, id);
+
+        static int count =0;
+        static int next = 1;
+        static int limit = 1024;
+        static int block = 0xff;
+        if(next<limit) {
+            if(!(id%next)) { m_Index->addPoints(id-count, id); count = 0; next = (1+(id>>4)); }
+            else count++;
+            //m_Index->addPoints(id, id);
+        } else {
+            if(!(id&block)) { 
+                m_Index->addPoints(id-count, id); count = 0; int blk = 512 / (1+(id>>16)); next = blk<1 ? 1 : blk; 
+            }
+            else count++;
+        } 
+        //m_Index->addPoints(id,id);
+        
         boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
     }
 
@@ -1245,9 +1262,7 @@ protected:
     vec3 RandomInUnitSphere() const {
         vec3 p;
         do {
-            p = vec3(DLA_RANDOM_NORM, 
-                          DLA_RANDOM_NORM, 
-                          DLA_RANDOM_NORM);
+            p = vec3(DLA_RANDOM_NORM, DLA_RANDOM_NORM, DLA_RANDOM_NORM);
         } while(length(p) >= 1.f);
 
         return p;
@@ -1278,7 +1293,7 @@ protected:
             }
 
             // move randomly
-            p += normalize(MotionVector(p)) * std::max(kVal[2], d - kVal[1]);
+            p += normalize(MotionVector(p)) * max(kVal[2], d - kVal[1]);
 
             // check if particle is too far away, reset if so
             if (ShouldReset(p)) p = RandomStartingPosition();

@@ -152,13 +152,15 @@ vec4 mainFunc(vec2 ptCoord)
         //if(pointDistance<u.clippingDist) discard;
 
     newVertex = mvVtxPos + vec4(0., 0., N.z * particleSize, 0.);
-    float clipDistance = -dot(newVertex, ClipPlane);
 
-    if(N.w >= 1.0 || N.z < u.alphaSkip || -newVertex.z<u.clippingDist /*|| clipDistance<0.0*/) { discard;  vec4(0.0); } //returm need for Angle error
+    if(N.w >= 1.0 || N.z < u.alphaSkip || -newVertex.z<u.clippingDist || clippedPoint(newVertex)) { discard;   } //returm need for Angle error
 
     gl_FragDepth = getFragDepth(newVertex.z);
 
     vec4 color = acquireColor(ptCoord);
+
+    vec4 bound = colorBoundary(newVertex, 0) + colorBoundary(newVertex, 1) + colorBoundary(newVertex, 2);
+    color.xyz = mix(color.xyz, bound.xyz, bound.a);
 
 #if defined(GL_ES) || defined(__APPLE__)
     #if defined(GL_ES) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
@@ -173,7 +175,8 @@ vec4 mainFunc(vec2 ptCoord)
         }
         //return (u.pass >= uint(2)) ? vec4(color.xyz, getDepth(newVertex.z)) : (u.pass==uint(0) ? retColor : vec4(retColor.xyz, getDepth(newVertex.z))); 
     #endif
-#else                          
+#else   
         return pixelColor(color, N); 
+        
 #endif
 }

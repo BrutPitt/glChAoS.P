@@ -36,6 +36,7 @@ public:
 
     GLuint  getHandle() { return program; }
     GLuint  getProgram() { return program; }
+    GLuint  getPipeline() { return pipeline; }
 
 #ifdef GLAPP_NO_GLSL_PIPELINE
 #define USE_PROGRAM useProgram();
@@ -177,8 +178,8 @@ protected:
 class mainProgramObj : public ProgramObject
 {
 public:
-    mainProgramObj() { } 
-    virtual ~mainProgramObj() { removeAllShaders(); deleteAllShaders(); }
+    mainProgramObj() { createProgram(); } 
+    virtual ~mainProgramObj() { removeAllShaders(true); deleteAllShaders(); }
 
     void useVertex(VertexShader *VS) { vertObj = VS; vsCloned = true; }
     void useVertex()   { vertObj = new VertexShader; }
@@ -189,8 +190,8 @@ public:
     void removeFragment(bool wantDelete = false)   { removeShader(fragObj, wantDelete); }
     void removeAllShaders(bool wantDelete = false) { removeVertex(wantDelete); removeFragment(wantDelete); removeGeometry(wantDelete); }
 
-    void deleteVertex()     { if(!vsCloned) { delete vertObj; vertObj = nullptr; } }
-    void deleteFragment()   { delete fragObj; fragObj = nullptr; }
+    void deleteVertex()     { if(!vsCloned) { deleteShader(vertObj); delete vertObj; vertObj = nullptr; } }
+    void deleteFragment()   { deleteShader(fragObj); delete fragObj; fragObj = nullptr; }
     void deleteAllShaders() { deleteVertex(); deleteFragment(); deleteGeometry(); }
 
     void addVertex()      { addShader(vertObj); }
@@ -204,7 +205,7 @@ public:
 #if !defined(__EMSCRIPTEN__)
     void useGeometry()       { geomObj = new GeometryShader; }
     void removeGeometry(bool wantDelete = false)    { removeShader(geomObj, wantDelete); }
-    void deleteGeometry() { delete geomObj; geomObj = nullptr; }
+    void deleteGeometry() { deleteShader(geomObj); delete geomObj; geomObj = nullptr; }
 
     void addGeometry()       { addShader(geomObj); }
 
@@ -236,20 +237,21 @@ public:
         if(realDataSize%uBufferMinSize) uBlockSize += uBufferMinSize;
     }
 
-    static GLuint bindIndex(GLuint prog, const char *nameUBlock)
+    static GLuint bindIndex(GLuint prog, const char *nameUBlock, GLuint idx)
     {
         GLuint blockIndex = glGetUniformBlockIndex(prog, nameUBlock);
-        glUniformBlockBinding(prog, blockIndex, bind::bindIdx);
+        glUniformBlockBinding(prog, blockIndex, idx);
 
         return blockIndex;
     }
 
 #ifdef GLAPP_REQUIRE_OGL45
-    void create(GLuint size, void *pData)
+    void create(GLuint size, void *pData, GLuint idx = GLuint(bind::bindIdx)) 
 #else
-    void create(GLuint size, void *pData, GLuint prog, const char *nameUBlock)
+    void create(GLuint size, void *pData, GLuint prog, const char *nameUBlock, GLuint idx = GLuint(bind::bindIdx))
 #endif
     {
+        bindingLocation = idx;
         realDataSize = size;
         ptrData = pData;
 
@@ -261,7 +263,7 @@ public:
         glNamedBufferSubData(uBuffer, 0, realDataSize, ptrData);
 #else
         glGenBuffers(1,    &uBuffer);
-        GLuint blockIndex = bindIndex(prog, nameUBlock);
+        GLuint blockIndex = bindIndex(prog, nameUBlock, bindingLocation);
 //get min size block sending
         GLint minBlockSize;
         glGetActiveUniformBlockiv(prog, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &minBlockSize);
@@ -280,12 +282,13 @@ public:
         glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, realDataSize, ptrData); 
 #endif
-        glBindBufferBase(GL_UNIFORM_BUFFER, bind::bindIdx, uBuffer);
+        glBindBufferBase(GL_UNIFORM_BUFFER, bindingLocation, uBuffer);
     }
 
+    enum bind { bindIdx=2 };  //internal binding indel location
 private:
     void *ptrData;
-    enum bind { bindIdx=2 };
+    GLuint bindingLocation;
     GLuint uBuffer;
     GLuint realDataSize, uBlockSize; 
 };

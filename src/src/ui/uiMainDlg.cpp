@@ -713,9 +713,11 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     ImGui::PushItemWidth(border + (wButt2 - ImGui::GetCursorPosX()));
                     {
                         int idx = int(1.f/particles->getShadowGranularity()+.5)-1;
-                        if (ImGui::Combo(buildID(base, idA++, id), &idx, "1:1\0"\
-                                                                         "1:2\0"\
-                                                                         "1:3\0"))
+                        if (ImGui::Combo(buildID(base, idA++, id), &idx, "rad:1\0"\
+                                                                         "rad:2\0"\
+                                                                         "rad:3\0"\
+                                                                         "rad:4\0"\
+                                                                         "rad:5\0"))
                             {  particles->setShadowGranularity(1.f/float(idx+1)); }
                     }
                     ImGui::PopItemWidth();
@@ -1643,9 +1645,6 @@ void progSettingDlgClass::view()
             ImGui::SameLine();
             ShowHelpMarker(GLAPP_HELP_PART_SZ_CONST);
         }
-
-        ImGui::NewLine();
-
         {
             ImGui::AlignTextToFramePadding();
             bool b = bool(theApp->useLowPrecision());
@@ -1657,8 +1656,6 @@ void progSettingDlgClass::view()
             ImGui::SameLine();
             ShowHelpMarker(GLAPP_HELP_PRECISION);
         }
-
-        ImGui::NewLine();
         {
             ImGui::AlignTextToFramePadding();
             bool b = bool(theApp->getStartWithAttractorIdx()>=0);
@@ -1668,6 +1665,16 @@ void progSettingDlgClass::view()
             }
             ImGui::SameLine();
             ShowHelpMarker(GLAPP_HELP_START_ATTRACTOR);
+        }
+        {
+            ImGui::AlignTextToFramePadding();
+            bool b = theApp->useDetailedShadows();
+            if(ImGui::Checkbox(" Detailed shadow", &b)) {
+                theApp->useDetailedShadows(b);
+                theApp->resetParticlesSystem();
+            }
+            ImGui::SameLine();
+            ShowHelpMarker(GLAPP_HELP_DETAILED_SHADOW);
         }
 /*
         {
@@ -1684,20 +1691,33 @@ void progSettingDlgClass::view()
 */
         ImGui::NewLine();
 
-        ImGui::Text(" ScreenShots location");
+        ImGui::Text(" Preferred paths");
         ImGui::SameLine();
         ShowHelpMarker(GLAPP_HELP_CAPTURE);
 
         ImGui::AlignTextToFramePadding();
-        if(ImGui::Button("...")) theApp->selectCaptureFolder();
+        if(ImGui::Button("...##02")) theApp->selectFolder(theApp->getPlyPath());
         ImGui::SameLine();
 
-        ImGui::TextDisabled(" Path: ");
+        ImGui::TextDisabled(" Imp/Exp PLY: ");
+        ImGui::SameLine();
+        ImGui::Text(theApp->getPlyPath().c_str());
+
+        ImGui::AlignTextToFramePadding();
+        if(ImGui::Button("...##03")) theApp->selectFolder(theApp->getRenderCfgPath());
+        ImGui::SameLine();
+
+        ImGui::TextDisabled(" Render CFGs: ");
+        ImGui::SameLine();
+        ImGui::Text(theApp->getRenderCfgPath().c_str());
+
+        ImGui::AlignTextToFramePadding();
+        if(ImGui::Button("...##01")) theApp->selectFolder(theApp->getCapturePath());
+        ImGui::SameLine();
+
+        ImGui::TextDisabled(" ScreenShots: ");
         ImGui::SameLine();
         ImGui::Text(theApp->getCapturePath().c_str());
-
-
-
 
         //const float kC = .2f;
         //ImVec4 c = ImVec4(mainColorTheme.x/kC, mainColorTheme.y/kC, mainColorTheme.z/kC, 1.0f);
@@ -1745,12 +1765,13 @@ void dataDlgClass::view()
 
         static bool bBinary = true;
         static bool bColors = true;
+        static bool bAlphaDist = false;
         static bool bNormals = true;
         static bool bNormalized = true;
         static bool bCoR = true;
         static int idxNorm = 0;
+        static int idxDistType = 0;
 
-        static bool bDLA = false;
 
 
         ImGui::Text(" " ICON_FA_FLOPPY_O "  Export vertex data");
@@ -1759,9 +1780,13 @@ void dataDlgClass::view()
 
         ImGui::Checkbox("Binary fileType", &bBinary);
         ImGui::Checkbox("Colors##E", &bColors);
+        if(bColors) {
+            ImGui::SameLine(wH);
+            ImGui::Checkbox("alpha have dist##", &bAlphaDist);        
+        }
+        ImGui::Checkbox("Normals", &bNormals);
             ImGui::SameLine(wH);
         ImGui::Checkbox("Use CoR", &bCoR);
-        ImGui::Checkbox("Normals", &bNormals);
         if(bNormals) {
             ImGui::TextDisabled(" Normals type");
             ImGui::PushItemWidth(wButtH);
@@ -1778,7 +1803,7 @@ void dataDlgClass::view()
         }
 
 
-        if(ImGui::Button(ICON_FA_FLOPPY_O " Export PLY", ImVec2(w,0))) exportPLY(bBinary, bColors, bNormals, bCoR, bNormalized, (normalType) idxNorm);
+        if(ImGui::Button(ICON_FA_FLOPPY_O " Export PLY", ImVec2(w,0))) exportPLY(bBinary, bColors, bAlphaDist, bNormals, bCoR, bNormalized, (normalType) idxNorm);
 
         ImGui::NewLine();
         ImGui::Text(" " ICON_FA_FOLDER_OPEN_O "  Import vertex data");
@@ -1787,11 +1812,14 @@ void dataDlgClass::view()
         bool b = theWnd->getParticlesSystem()->wantPlyObjColor();
         if(ImGui::Checkbox("PLY Colors##I", &b)) theWnd->getParticlesSystem()->wantPlyObjColor(b);
         if(!b) {            
-            ImGui::Checkbox("radial dist", &bDLA);
+            ImGui::PushItemWidth(wButtH);
+            ImGui::Combo("##DistType", &idxDistType, "points distance\0"\
+                                                     "radial distance\0"\
+                                                     "alpha have dist\0");
             ImGui::SameLine(wH);
             bool b = attractorsList.continueDLA();
             if(ImGui::Checkbox("continue DLA", &b)) attractorsList.continueDLA(b);
-
+            ImGui::PopItemWidth();
         } else {
             ImGui::NewLine();
         }
@@ -1801,7 +1829,7 @@ void dataDlgClass::view()
                 const int i = attractorsList.getSelectionByName("dla3D");
                 if(i>0) attractorsList.selectToContinueDLA(i);
             }
-            if(importPLY(b, bDLA)) theWnd->getParticlesSystem()->viewObjON();
+            if(importPLY(b, idxDistType)) theWnd->getParticlesSystem()->viewObjON();
         }
 //        ImGui::SameLine(wH);
 
@@ -1902,7 +1930,7 @@ void viewSettingDlgClass::view()
     const int posW = 190;
 #else
     const int posH = 385;
-    const int szH = 365;
+    const int szH = 146+ImGui::GetFrameHeightWithSpacing()*11;
     const int posW = 0;
 #endif
     const int szW = 300;
@@ -1910,7 +1938,7 @@ void viewSettingDlgClass::view()
     ImGui::SetNextWindowSize(ImVec2(szW, szH), ImGuiCond_FirstUseEver);
 
     //bool wndVisible;
-    if(ImGui::Begin(getTitle(), &isVisible)) { 
+    if(ImGui::Begin(getTitle(), &isVisible, ImGuiWindowFlags_NoScrollbar)) { 
         
         particlesSystemClass *pSys = theWnd->getParticlesSystem();
         vg::vGizmo3D &tBall = pSys->getTMat()->getTrackball();
@@ -1918,13 +1946,14 @@ void viewSettingDlgClass::view()
         const float w = ImGui::GetContentRegionAvail().x;
         const float wHalf = w*.5;
         const float wButt2 = (wHalf-DLG_BORDER_SIZE*1.5);
+        //const float wButt3 = (w*.3333-DLG_BORDER_SIZE*.5);
 
 #if !defined(GLCHAOSP_LIGHTVER)
         comboWindowRes(w);
-#endif
-        //  Gizmo
-        ///////////////////////////////////////////////////////////////////////
         ImGui::NewLine();
+#endif
+        //  Camera param
+        ///////////////////////////////////////////////////////////////////////
         ImGui::Text(" Camera parameters");
         vec3 persp(pSys->getTMat()->getPerspAngle(),
                    pSys->getTMat()->getPerspNear() ,
@@ -1977,8 +2006,9 @@ void viewSettingDlgClass::view()
             }   
             imguiGizmo::restoreAxesSize();
 
+
             ImGui::TextDisabled(" Model");
-            ImGui::SameLine(wHalf+DLG_BORDER_SIZE);
+            ImGui::SameLine(wButt2+DLG_BORDER_SIZE);
             ImGui::TextDisabled(" Light");
 
             ImGui::PushItemWidth(wButt2);
@@ -1995,6 +2025,10 @@ void viewSettingDlgClass::view()
             ImGui::PopItemWidth();
             //if(ImGui::DragFloat4("Rot",value_ptr(q),.01,0.0,0.0)) tBall.setRotation(q);
         }
+        ImGui::NewLine(); 
+        if(ImGui::Button("Clipping planes", ImVec2(-1,0)))
+            theDlg.clippingDlg.visible(theDlg.clippingDlg.visible()^1);
+
 #if !defined(GLCHAOSP_LIGHTVER)
 
         //  Axes
@@ -2358,6 +2392,98 @@ void infoDlgClass::view()
 
 }
 
+void clippingDlgClass::view()
+{
+    if(!isVisible) return;
+    const int hSz = 15;
+
+    ImGui::SetNextWindowPos(ImVec2(270, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(IMGUIZMO_DEF_SIZE*1.8, IMGUIZMO_DEF_SIZE*(1.8*3)+8.5*ImGui::GetFrameHeightWithSpacing()), ImGuiCond_FirstUseEver);
+
+    if(ImGui::Begin(getTitle(), &isVisible,ImGuiWindowFlags_NoScrollbar)) { 
+        particlesSystemClass *pSys = theWnd->getParticlesSystem();
+
+        const float w = ImGui::GetContentRegionAvail().x;
+
+        char planes[] = "Plane0"; 
+        char names[]  = "##zxmesA"; 
+        char boundi[] = "Bound##0";
+        char reset[]  = " Reset ##A";
+        mat3 m(mat3_cast(pSys->getTMat()->getTrackball().getRotation()));
+
+        for(int i=0; i<3; i++) {
+            vec3 plane = normalize(pSys->getClippingPlane(i));
+
+            plane = m * plane;
+
+            float dist = theWnd->getParticlesSystem()->getClippingPlane(i).w;
+        
+            bool isChanged = false;
+            
+
+            planes[5] = 'X' + i;
+            bool b = pSys->getUPlanes().planeActive[i];
+            if(ImGui::Checkbox(planes, &b)) pSys->getUPlanes().planeActive[i] = b;
+
+            if(pSys->getUPlanes().planeActive[i]) {
+
+                ImGui::SameLine(w*.5);
+
+                boundi[7] = 'M' + i;
+                bool b = pSys->getUPlanes().colorActive[i];
+                if(ImGui::Checkbox(boundi, &b)) pSys->getUPlanes().colorActive[i] = b;
+
+                ImGui::SameLine(w-(ImGui::GetTextLineHeightWithSpacing()));
+                names[7] = 'J' + i;
+                const uint32_t flags  = (ImGuiColorEditFlags_AlphaBar   |
+                                         ImGuiColorEditFlags_NoInputs   |
+                                         ImGuiColorEditFlags_Float      |
+                                         ImGuiColorEditFlags_AlphaPreviewHalf);
+                
+                isChanged |= ImGui::ColorEdit4(names, (float *)value_ptr(pSys->getUPlanes().boundaryColor[i]),flags);
+                       
+                vec3 pt = plane;
+
+                // Gizmo
+                ///////////////////////////////////////////
+                names[7] = 'A' + i;
+                imguiGizmo::resizeSolidOf(1.5f);
+                imguiGizmo::setDirectionColor(ImGui::ColorConvertU32ToFloat4(0xff000000 + 0xff << (i<<3) ), ImGui::ColorConvertU32ToFloat4(0x809f9f9f));
+                isChanged |= ImGui::gizmo3D(names, pt, w, imguiGizmo::modeDirPlane);
+                imguiGizmo::restoreSolidSize();
+                imguiGizmo::restoreDirectionColor();
+
+                ImGui::PushItemWidth(w-57);
+
+                names[7] = 'G' + i;
+                isChanged |= ImGui::DragFloat(names, &dist, .001f, 0.0f, 0.0f, "dist %.3f");
+                ImGui::PopItemWidth();
+
+                reset[9] = 'A'+i;
+                ImGui::SameLine(w-52);
+                if(ImGui::Button(reset))
+                    pSys->setClippingPlane(vec4(i==0 ? 1.f : 0.f, i==1 ? 1.f : 0.f, i==2 ? 1.f : 0.f, 0.f), i);
+
+                if(isChanged) {
+                    pt = inverse(m) * pt;
+                    pSys->setClippingPlane(vec4(normalize(pt), dist), i);
+                }
+            }
+
+           //ImGui::NewLine();
+        }
+        ImGui::PushItemWidth(w);
+        float f = pSys->getUPlanes().thickness;
+        if(ImGui::DragFloat("##thickness", &f, .0001f, 0.0f, FLT_MAX, "boundThick. %.4f")) pSys->getUPlanes().thickness = f;
+        ImGui::PopItemWidth();
+        bool b = pSys->getUPlanes().additiveSpace;
+        if(ImGui::Checkbox("Additive Space", &b)) pSys->getUPlanes().additiveSpace = b;
+
+    }
+    ImGui::End();
+
+}
+
 void mainImGuiDlgClass::view()
 {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -2448,8 +2574,6 @@ void mainImGuiDlgClass::view()
 
 }
 
-
-
 void baseDlgClass::rePosWndByMode(int x, int y) 
 { 
     ImGuiWindow *wnd = ImGui::FindWindowByName(getTitle());
@@ -2459,7 +2583,6 @@ void baseDlgClass::rePosWndByMode(int x, int y)
 
 }
 
-
 void mainImGuiDlgClass::switchMode(int x, int y)
 {
     aboutDlg.rePosWndByMode(x, y);
@@ -2468,6 +2591,9 @@ void mainImGuiDlgClass::switchMode(int x, int y)
     paletteDlg.rePosWndByMode(x, y);
     infoDlg.rePosWndByMode(x, y);
     viewSettingDlg.rePosWndByMode(x, y);
+    fastViewDlg.rePosWndByMode(x, y);
+    clippingDlg.rePosWndByMode(x, y);
+    particleEditDlg.rePosWndByMode(x, y);
 #if !defined(GLCHAOSP_LIGHTVER)
     progSettingDlg.rePosWndByMode(x, y);
     dataDlg.rePosWndByMode(x, y);
@@ -2525,6 +2651,7 @@ void mainImGuiDlgClass::renderImGui()
         infoDlg.view();
         fastViewDlg.view();
         particleEditDlg.view();
+        clippingDlg.view();
 #if !defined(GLCHAOSP_LIGHTVER)
         progSettingDlg.view();
         dataDlg.view();

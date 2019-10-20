@@ -220,9 +220,6 @@
     <ClInclude Include="..\..\src\tools\transforms.h">
       <Filter>Tools</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\tools\virtualGizmo.h">
-      <Filter>Tools</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\libs\lodePNG\lodepng.h">
       <Filter>3th party Libs\lodePNG</Filter>
     </ClInclude>
@@ -257,6 +254,9 @@
       <Filter>Tools</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\tools\vGizmoMath.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\vGizmo.h">
       <Filter>Tools</Filter>
     </ClInclude>
   </ItemGroup>

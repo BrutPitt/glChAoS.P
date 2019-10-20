@@ -24,7 +24,6 @@ out float particleSize;
 void main()
 {
 
-
 #ifdef SHADOW_PASS
     vec4 vtxPos =  m.mvLightM  * vec4(a_ActualPoint.xyz,1.f);
     solidVtx = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
@@ -45,6 +44,7 @@ void main()
 
     float ptAtten = exp(-0.01*sign(pointDistance)*pow(abs(pointDistance)+1.f, u.pointDistAtten*.1));
     float size = u.pointSize * ptAtten * u.ySizeRatio;
+
     particleSize = size*u.invScrnRes.y;
 
     vec4 pt  = m.pMatrix * vec4(vtxPos.xy + vec2(size) * u.ptSizeRatio , vtxPos.zw);
@@ -52,8 +52,10 @@ void main()
     // NVidia & Intel do not supports gl_PointSize<1.0 -> point disappear
     // AMD driver (some times) supports gl_PointSize from 0.1
     // Look in Info dialog: point Range and Granularity
+    
+#ifdef SHADOW_PASS
+    gl_PointSize = max(distance(gl_Position.xyz, pt.xyz)/max(abs(gl_Position.w),.0001), u.pointspriteMinSize) * u.shadowDetail;
+#else
     gl_PointSize = max(distance(gl_Position.xyz, pt.xyz)/max(abs(gl_Position.w),.0001), u.pointspriteMinSize);
-
-//    float fc = .5 * log2(u.zFar+1);
-//    gl_Position.z = gl_Position.w * (log2( max(.000001, 1.+gl_Position.w) ) * fc - 1.);
+#endif
 }

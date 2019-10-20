@@ -324,20 +324,20 @@ public:
         //useAll();
         //useFragment();
 
-	    getVertex()->Load(SHADER_PATH "particlesVShader.glsl");
+        getVertex()->Load(SHADER_PATH "particlesVShader.glsl");
         //geomObj->Load(SHADER_PATH "BillboardGeom.glsl");
-	    //fragObj->Load(SHADER_PATH "BillboardFrag.glsl");
+        //fragObj->Load(SHADER_PATH "BillboardFrag.glsl");
 
         addVertex();
 
         glTransformFeedbackVaryings(getHandle(), num+1, namesParticlesLoc, GL_INTERLEAVED_ATTRIBS);
 
 
-	    link();
+        link();
 
         bindPipeline();
 
-	    USE_PROGRAM
+        USE_PROGRAM
 
         vec4 v(0.0f);
         for(int i=0; i<InsertVbo->getNumComponents(); i++) InsertVbo->getBuffer()[i] = 0.f;
@@ -410,7 +410,7 @@ public:
 
         getRenderFBO().reSizeFBO(w, h);
         getPostRendering()->getFBO().reSizeFBO(w, h);
-        getShadow()->getFBO().reSizeFBO(w, h);
+        getShadow()->resize(w, h);
         getAO()->getFBO().reSizeFBO(w, h);
         shaderPointClass::getGlowRender()->getFBO().reSizeFBO(w, h);
 #if !defined(GLCHAOSP_NO_FXAA)
@@ -507,7 +507,7 @@ public:
         //particles->render(0, getEmitter());
     #if !defined(GLCHAOSP_NO_FXAA)
             if(particles->getFXAA()->isOn()) 
-                texRendered = particles->getFXAA()->render(getRenderFBO().getTex(0));                
+                texRendered = particles->getFXAA()->render(getRenderFBO().getTex(0));
     #endif
         const GLuint fbo = 0;
         particles->getGlowRender()->render(texRendered, fbo); 
@@ -522,36 +522,36 @@ public:
     
     //emitterBaseClass *getTransformInterlieve() { return emitter; }
 
-private:    
+private:
     emitterBaseClass* emitter;
 };
 
 class glWindow 
 {
-public:		
+public:
     glWindow() {}
     virtual ~glWindow() {}
 
     void Create(const char* wTitle="glApp", int w=1024, int h=1024, int xPos=100, int yPos=50) {}
 
     // Called when start Window engine
-	virtual void onInit();
+    virtual void onInit();
     // Called when Window engine is closed.
-	virtual void onExit();
+    virtual void onExit();
 
-	virtual void onIdle();
-	virtual void onRender();
-	virtual void onReshape(GLint w, GLint h);
+    virtual void onIdle();
+    virtual void onRender();
+    virtual void onReshape(GLint w, GLint h);
 
-	virtual void onMouseButton(int button, int upOrDown, int x, int y);
-	virtual void onMouseWheel(int wheel, int direction, int x, int y);
-	virtual void onMotion(int x, int y);
-	virtual void onPassiveMotion(int x, int y);
+    virtual void onMouseButton(int button, int upOrDown, int x, int y);
+    virtual void onMouseWheel(int wheel, int direction, int x, int y);
+    virtual void onMotion(int x, int y);
+    virtual void onPassiveMotion(int x, int y);
 
-	virtual void onKeyDown(unsigned char key, int x, int y);
+    virtual void onKeyDown(unsigned char key, int x, int y);
     virtual void onKeyUp(unsigned char key, int x, int y);
-	virtual void onSpecialKeyUp(int key, int x, int y);
-	virtual void onSpecialKeyDown(int key, int x, int y);
+    virtual void onSpecialKeyUp(int key, int x, int y);
+    virtual void onSpecialKeyDown(int key, int x, int y);
 
     int GetWidth()  { return theApp->GetWidth();  }
     int GetHeight() { return theApp->GetHeight(); }

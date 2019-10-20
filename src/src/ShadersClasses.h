@@ -249,8 +249,8 @@ struct uBlurData {
 
 public:
 
-    BlurBaseClass() {
-    }
+    BlurBaseClass() {}
+    ~BlurBaseClass() {}
 
     void create();
 
@@ -292,6 +292,7 @@ public:
     void bindRender();
     void render();
     void releaseRender();
+    void resize(int w, int h) { const int detail = theApp->useDetailedShadows() ? 2 : 1; fbo.reSizeFBO(w*detail, h*detail); }
 
     mmFBO &getFBO() { return fbo; }
 
@@ -376,7 +377,22 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 class renderBaseClass
 {
+protected:
+
+struct uClippingPlanes {
+    vec4    clipPlane[3]     = { vec4(1.f, 0.f, 0.f, 0.0f), vec4(0.f, 1.f, 0.f, 0.0f), vec4(0.f, 0.f, 1.f, 0.0f) };
+    vec4    boundaryColor[3] = { vec4(1.f, 0.f, 0.f, 0.5f), vec4(0.f, 1.f, 0.f, 0.5f), vec4(0.f, 0.f, 1.f, 0.5f) };
+    uint32_t    planeActive[4]   = { false, false, false, 0 }; // 4: block rounded
+    uint32_t    colorActive[4]   = { true , true , true , 0 };
+    GLfloat     thickness = .005;
+    uint32_t    additiveSpace = true;
+    uint32_t    atLeastOneActive = false;
+} uPlanes;
+
+
 public:
+    enum bind { planesIDX = 9 };
+
     renderBaseClass();
 
     void create();
@@ -423,6 +439,7 @@ public:
     int getWhitchRenderMode() { return whichRenderMode; }
 
     VertexShader* getCommonVShader() { return &commonVShader; }
+    GLuint getSeparableVertex() { return separableVertex; }
     postRenderingClass* getPostRendering() { return postRendering; }
     ambientOcclusionClass* getAO() { return ambientOcclusion; }
     shadowClass* getShadow() { return shadow; }
@@ -432,6 +449,10 @@ public:
     std::vector<GLuint> &getBlendArray() { return blendArray; }
     std::vector<const char *> &getBlendArrayStrings() { return blendingStrings; }
 
+    vec4 &getClippingPlane(int i) { return clippingPlane[i]; }
+    void setClippingPlane(const vec4 &v, int i) { clippingPlane[i] = v; }
+
+    uClippingPlanes &getUPlanes() { return uPlanes; }
 
 protected:
     int whichRenderMode;    
@@ -449,6 +470,8 @@ protected:
 
     cmContainerClass colorMapContainer;
 
+    vec4 clippingPlane[3] = { vec4(1.f, 0.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f) };
+
     bool flagUpdate;
 
     mmFBO renderFBO;
@@ -457,6 +480,7 @@ protected:
     transformsClass tMat;
 
     VertexShader commonVShader;
+    GLuint separableVertex;
     postRenderingClass *postRendering = nullptr;
     ambientOcclusionClass *ambientOcclusion = nullptr;
     shadowClass* shadow = nullptr;
@@ -814,9 +838,9 @@ struct uParticlesData {
     GLfloat lightDiffInt = 1.f;
     vec3    lightColor = vec3(1.f);           // align 16
     GLfloat lightSpecInt = .75f;
-    vec4    POV;
     vec2    scrnRes;
     vec2    invScrnRes;
+    vec3    rotCenter = { 0.f, 0.f, 0.f }; 
     GLfloat lightAmbInt = .1f;
     GLfloat lightShinExp = 10.f;
     GLfloat sstepColorMin = .1;
@@ -841,6 +865,7 @@ struct uParticlesData {
     GLfloat shadowGranularity = 1.f;
     GLfloat shadowBias = 0.02;
     GLfloat shadowDarkness = 0.0;
+    GLfloat shadowDetail = 1.0;
     GLfloat aoRadius =  .5;
     GLfloat aoBias = .025;
     GLfloat aoDarkness = .25;
@@ -856,7 +881,6 @@ struct uParticlesData {
     GLuint renderType = 0;
 } uData;
 
-
 public:
     enum lightIDX { off, on };
     enum lightMDL { modelOffset = 5, modelPhong=modelOffset, modelBlinnPhong, modelGGX };
@@ -865,7 +889,6 @@ public:
     particlesBaseClass ()  { 
         
         glowRender = new radialBlurClass(this);
-        CHECK_GL_ERROR();
 
         colorMap = new ColorMapSettingsClass(this);
 #if !defined(GLCHAOSP_NO_FXAA)
@@ -878,6 +901,7 @@ public:
 
         glowRender->create();
         colorMap->create();
+
     }
 
     ~particlesBaseClass ()  {  delete glowRender; delete colorMap;
@@ -1054,8 +1078,11 @@ public:
     float dpNormalTune() { return uData.dpNormalTune; }
     void dpNormalTune(float f) { uData.dpNormalTune = f; }
 
+    uniformBlocksClass &getPlanesUBlock() { return planesUBlock; }
 
 protected:
+    uniformBlocksClass planesUBlock;
+
     GLuint dstBlendAttrib, srcBlendAttrib;
     int dstIdxBlendAttrib, srcIdxBlendAttrib;
 

@@ -207,21 +207,21 @@ public:
         zRotationModifier = m;
     }
 
-	//  get the rotation quaternion
+    //  get the rotation quaternion
     //////////////////////////////////////////////////////////////////
-	tQuat &getRotation() { return qtV; }
+    tQuat &getRotation() { return qtV; }
 
-	//  get the rotation increment
+    //  get the rotation increment
     //////////////////////////////////////////////////////////////////
     tQuat &getStepRotation() { return qtStep; }
 
-	//  get the rotation quaternion
+    //  get the rotation quaternion
     //////////////////////////////////////////////////////////////////
-	void setRotation(const tQuat &q) { qtV = q; }
+    void setRotation(const tQuat &q) { qtV = q; }
 
-	//  get the rotation increment
+    //  get the rotation increment
     //////////////////////////////////////////////////////////////////
-	void setStepRotation(const tQuat &q) { qtStep = q; }
+    void setStepRotation(const tQuat &q) { qtStep = q; }
 
 // Immediate mode helpers
 //////////////////////////////////////////////////////////////////////
@@ -322,8 +322,8 @@ public:
     //////////////////////////////////////////////////////////////////
     void setGizmoScale( T scale) { scale = scale; }
 
-	// get the rotation quaternion
-	tQuat &getRotation() { return this->qtV; }
+    // get the rotation quaternion
+    tQuat &getRotation() { return this->qtV; }
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -382,15 +382,15 @@ public:
 
     //////////////////////////////////////////////////////////////////
     void updatePan() {
-        tVec3 v(delta.x, delta.y, T(0));	  
+        tVec3 v(delta.x, delta.y, T(0));
         pan += v * panScale;
-	}
+    }
 
     //////////////////////////////////////////////////////////////////
     void updateDolly() {
         tVec3 v(T(0), T(0), delta.y);
         dolly -= v * dollyScale;
-	}
+    }
 
     //////////////////////////////////////////////////////////////////
     void update() {
@@ -473,7 +473,7 @@ public:
     //////////////////////////////////////////////////////////////////
     tVec3 &getPanPosition() { return pan; }
 
-    //  Get pos... use as Zoom factor
+    //  Get Pan (xy) & Dolly (z) position
     //////////////////////////////////////////////////////////////////
     tVec3 getPosition() const { return tVec3(pan.x, pan.y, dolly.z); }
 private:

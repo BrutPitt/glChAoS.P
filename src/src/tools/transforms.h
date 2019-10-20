@@ -22,8 +22,9 @@
 #define GLAPP_USE_MATRIX_BUFFERS
 
 struct transfMatrix {
-    mat4 vMatrix   = mat4(1.0f);
     mat4 mMatrix   = mat4(1.0f);
+    mat4 vMatrix   = mat4(1.0f);
+    mat4 invMV     = mat4(1.0f);
     mat4 pMatrix   = mat4(1.0f);  // Uniforms block starts HERE!!!
     mat4 mvMatrix  = mat4(1.0f);
     mat4 mvpMatrix = mat4(1.0f);
@@ -31,25 +32,31 @@ struct transfMatrix {
 };
 
 class transformsClass {
-#define SZ (sizeof(mat4)*4)
+//#define SZ (sizeof(mat4)*4)
+//#define PTR value_ptr(tM.pMatrix)
+
+#define SZ (sizeof(transfMatrix))
+#define PTR value_ptr(tM.mMatrix)
 public:
     transformsClass() {
         //setView(attractorsList.get()->getPOV(), attractorsList.get()->getTGT());         
         //setPerspective(30.f, float(theApp->GetWidth())/float(theApp->GetHeight()), 0.f, 100.f);
 #ifdef GLAPP_USE_MATRIX_BUFFERS
-		GLint uBufferMinSize(0);
-		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uBufferMinSize);
+        GLint uBufferMinSize(0);
+        glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &uBufferMinSize);
         uBlockSize = (GLint(SZ)/ uBufferMinSize) * uBufferMinSize;
         if(SZ%uBufferMinSize) uBlockSize += uBufferMinSize;
+
     #ifdef GLAPP_REQUIRE_OGL45
         glCreateBuffers(1, &uBuffer);
         glNamedBufferStorage(uBuffer,  uBlockSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferSubData(uBuffer, 0, SZ, value_ptr(tM.pMatrix)); 
+        glNamedBufferSubData(uBuffer, 0, SZ, PTR); 
     #else
         glGenBuffers(1, &uBuffer);
         glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
+
         glBufferData(GL_UNIFORM_BUFFER,  uBlockSize, nullptr, GL_STATIC_DRAW);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, SZ, value_ptr(tM.pMatrix)); 
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, SZ, PTR); 
     #endif
     }
     ~transformsClass() {
@@ -58,10 +65,10 @@ public:
 
     void updateBufferData() {
     #ifdef GLAPP_REQUIRE_OGL45
-        glNamedBufferSubData(uBuffer, 0, SZ, value_ptr(tM.pMatrix)); 
+        glNamedBufferSubData(uBuffer, 0, SZ, PTR); 
     #else
         glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, SZ, value_ptr(tM.pMatrix));
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, SZ, PTR);
     #endif
         glBindBufferBase(GL_UNIFORM_BUFFER, bind::bindIdx, uBuffer);
     }
@@ -99,9 +106,17 @@ public:
         build_MV_MVP();
     }
 
+    void buid_invMV() {
+        tM.invMV = inverse(tM.mvMatrix);
+    }
+
     void setModelMatrix(const mat4& m) { tM.mMatrix = m; }
     void setViewMatrix (const mat4& m) { tM.vMatrix = m; }
     void setProjMatrix (const mat4& m) { tM.pMatrix = m; }
+
+    mat4& getModelMatrix() { return tM.mMatrix; }
+    mat4& getViewMatrix () { return tM.vMatrix; }
+    mat4& getProjMatrix () { return tM.pMatrix; }
 
     void build_MV_MVP()
     {
@@ -121,11 +136,11 @@ public:
                              tgtVec,
                              vec3(0.0f, 1.0f, 0.0f));
     }
-    void setLightView(vec3 &lightPos) {
+    void setLightView(const vec3 &lightPos) {
         //mat4 m(1.f);
         //m = translate(m,getPOV());
         //m = translate(m,getTrackball().getPosition());
-        tM.mvLightM = lookAt(lightPos * .25f +povVec,
+        tM.mvLightM = lookAt(lightPos + povVec,
                              tgtVec, //getTrackball().getRotationCenter(),
                              vec3(0.0f, 1.0f, 0.0f));
         //tM.mvLightM = tM.mvLightM * m;
@@ -187,4 +202,5 @@ private:
     enum loc { pMat = 3, mvMat = 4, mvpMat = 5 };
     GLint minSize;
 #undef SZ
+#undef PTR
 };

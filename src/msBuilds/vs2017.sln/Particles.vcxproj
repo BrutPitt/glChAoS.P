@@ -357,7 +357,7 @@
     <Link>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>LIBCMTD;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
@@ -517,6 +517,9 @@
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>
       </MultiProcessorCompilation>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -644,9 +647,9 @@
     <ClInclude Include="..\..\src\tools\imGuIZMOquat.h" />
     <ClInclude Include="..\..\src\tools\oglAxes.h" />
     <ClInclude Include="..\..\src\tools\transforms.h" />
+    <ClInclude Include="..\..\src\tools\vGizmo.h" />
     <ClInclude Include="..\..\src\tools\vGizmoConfig.h" />
     <ClInclude Include="..\..\src\tools\vGizmoMath.h" />
-    <ClInclude Include="..\..\src\tools\virtualGizmo.h" />
     <ClInclude Include="..\..\src\appDefines.h" />
     <ClInclude Include="..\..\src\attractorsBase.h" />
     <ClInclude Include="..\..\src\glApp.h" />

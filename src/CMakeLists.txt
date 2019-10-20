@@ -110,6 +110,7 @@ if (BUILD_wglChAoSP)
     include_directories(${SRC})
     include_directories(${SRC}/tools)
     include_directories(${SRC}/libs)
+    include_directories(${SRC}/libs)
 #    include_directories(AFTER $ENV{INCLUDE})
 
 # -o ${PROJECT_NAME}.html ->  CMAKE_EXECUTABLE_SUFFIX  .html .bc, .js (default), etc

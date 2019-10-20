@@ -48,17 +48,27 @@ void ProgramObject::addShader(ShaderObject* shader)
 {
     if(!program) createProgram();
     glAttachShader(program, shader->getShader());
+    shader->statusAttached();
 }
 
 /////////////////////////////////////////////////
 void ProgramObject::removeShader(ShaderObject* shader, bool wantDelete)
 {
-    if(shader!=nullptr)  { glDetachShader(program, shader->getShader()); if(wantDelete) deleteShader(shader); }
+    if(shader!=nullptr)  {
+        glDetachShader(program, shader->getShader());
+        shader->statusWantDetach();
+        //checkDeletedShader(shader->getShader());
+        if(wantDelete) deleteShader(shader); 
+        //checkDeletedShader(shader->getShader());
+    }
 }
 
 void ProgramObject::deleteShader(ShaderObject* shader)
 {
-    if(shader!=nullptr)  { glDeleteShader(shader->getShader()); shader->resetShader(); }
+    if(shader!=nullptr)  { 
+        glDeleteShader(shader->getShader()); 
+        shader->statusWantDelete();
+    }
 }
 
 void checkProgram(GLuint program);

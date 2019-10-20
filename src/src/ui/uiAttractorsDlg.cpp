@@ -249,10 +249,10 @@ void attractorDlgClass::view()
         
     const float border = DLG_BORDER_SIZE;
     //const float oldWindowPadding = style.WindowPadding.x;
-#if !defined(GLCHAOSP_LIGHTVER)
-    const int szX = 600, szY = 270;    
+#ifdef GLCHAOSP_LIGHTVER
+    const int szX = 520, szY = 200;    
 #else
-    const int szX = 500, szY = 200;    
+    const int szX = 600, szY = 270;    
 #endif
     ImGui::SetNextWindowSize(ImVec2(szX, szY), ImGuiCond_FirstUseEver);
     {
@@ -264,7 +264,12 @@ void attractorDlgClass::view()
         ImGui::Columns(2);
 
         static bool firstTime = true;
-        if(firstTime) { ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth()*(theApp->isTabletMode()?.3:.25)); firstTime = false; }
+#ifdef GLCHAOSP_LIGHTVER
+        const float szReg = .3f;
+#else
+        const float szReg = .25f;
+#endif
+        if(firstTime) { ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth()*szReg); firstTime = false; }
 
         // left
         ImGui::BeginGroup(); 
@@ -305,7 +310,7 @@ void attractorDlgClass::view()
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY()+border*2);
 #endif
                 const bool b = theDlg.getfastViewDlg().visible();
-                if(colCheckButton(b, b ? ICON_FA_CHECK " QuickView Dir"  : "   QuickView Dir", wGrp)) 
+                if(colCheckButton(b, b ? ICON_FA_SEARCH " MORE " ICON_FA_LONG_ARROW_RIGHT " savedList"  : ICON_FA_SEARCH " MORE " ICON_FA_LONG_ARROW_RIGHT " savedList", wGrp)) 
                     { theDlg.getfastViewDlg().visible(b^1); }
 
                 //ImGui::PopItemWidth();

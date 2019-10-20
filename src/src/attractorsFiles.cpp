@@ -79,12 +79,13 @@ bool loadObjFile()
     return true;
 }
 
-bool importPLY(bool wantColors, bool isDLA)
+bool importPLY(bool wantColors, int velType)
 {
     attractorsList.getThreadStep()->stopThread();
 
     char const * patterns[] = { "*.ply" };           
-    char const * fileName = theApp->openFile(nullptr, patterns, 1);
+    char const * fileName = theApp->openFile(theApp->getCapturePath().c_str(), patterns, 1);
+    bool haveAlpha = true;
 
     if(fileName==nullptr) return false;
 
@@ -95,13 +96,16 @@ bool importPLY(bool wantColors, bool isDLA)
         PlyFile ply;
         ply.parse_header(ss);
 
-        std::shared_ptr<PlyData> vertices, colors;
+        std::shared_ptr<PlyData> vertices, colors, alpha;
 
         try { vertices = ply.request_properties_from_element("vertex", { "x", "y", "z" }); }
         catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
 
-        try { colors = ply.request_properties_from_element("vertex", { "red", "green", "blue" }); }
+        try { colors = ply.request_properties_from_element("vertex", { "red", "green", "blue"}); }
         catch (const std::exception & e) { std::cerr << "tinyply exception: " << e.what() << std::endl; }
+
+        try { alpha = ply.request_properties_from_element("vertex", { "alpha" }); }
+        catch (const std::exception & e) { haveAlpha = false; }
 
         ply.read(ss);
 
@@ -112,8 +116,8 @@ bool importPLY(bool wantColors, bool isDLA)
         if(attractorsList.continueDLA()) e->setSizeCircularBuffer(e->getSizeAllocatedBuffer());
         else                             e->setSizeCircularBuffer(nVtx);
 
-        GLfloat *vtx, *fClr;
-        uint8 *bClr;
+        GLfloat *vtx, *fClr, *fAlpha = nullptr;
+        uint8 *bClr, *bAlpha = nullptr;
         if (vertices->t == tinyply::Type::FLOAT32) {
             vtx = (GLfloat *)vertices->buffer.get();
         } else {
@@ -122,8 +126,12 @@ bool importPLY(bool wantColors, bool isDLA)
         }
 
         if (colors->t == tinyply::Type::FLOAT32 || colors->t == tinyply::Type::UINT8) {
-            bClr = (uint8 *)   colors->buffer.get();
-            fClr = (GLfloat *) colors->buffer.get();
+            bClr   = (uint8 *)   colors->buffer.get();
+            fClr   = (GLfloat *) colors->buffer.get();
+            if(haveAlpha) {
+                bAlpha = (uint8 *)    alpha->buffer.get();
+                fAlpha = (GLfloat *)  alpha->buffer.get();
+            }
         } else {
             cout << "Unsupported color format (only byte or float)" << endl;
             return false;
@@ -159,7 +167,10 @@ bool importPLY(bool wantColors, bool isDLA)
                 }         
                 ptr->w = uintBitsToFloat( iCol );            
             } else {
-                ptr->w = isDLA ? length(vec3(*ptr)) : ((i>0) ? distance(vec3(*ptr), vec3(*(ptr-1))) : 0.f);
+                ptr->w = velType ? ((velType == 1 || velType == 2 && !haveAlpha) ? 
+                                        length(vec3(*ptr)) : 
+                                        (colors->t == tinyply::Type::FLOAT32 ? *fAlpha++ : float(*bAlpha++)/255.f)
+                                    ) : ((i>0) ? distance(vec3(*ptr), vec3(*(ptr-1))) : 0.f);
                 if(attractorsList.continueDLA()) ((dla3D *)attractorsList.get())->addLoadedPoint(vec3(*ptr));
             }
 
@@ -191,13 +202,13 @@ bool importPLY(bool wantColors, bool isDLA)
 }
 
 
-uint8_t *getColorBuffer(vec4 *map, const uint32_t sizeBuff)
+uint8_t *getColorBuffer(vec4 *map, const uint32_t sizeBuff, bool alphaDist)
 {
     particlesBaseClass *pSys = theWnd->getParticlesSystem()->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? 
         (particlesBaseClass *) theWnd->getParticlesSystem()->shaderBillboardClass::getPtr() : 
         (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
 
-    uint8_t *clrBuff = new uint8_t[sizeBuff*3];
+    uint8_t *clrBuff = new uint8_t[sizeBuff * (alphaDist ? 4:3)];
     uint32_t *palBuff = new uint32_t[256]; // RGBA*256 -> 256*4
     uint8_t *clr = clrBuff;
 
@@ -208,24 +219,25 @@ uint8_t *getColorBuffer(vec4 *map, const uint32_t sizeBuff)
 //        glGetTextureImage(theWnd->getParticlesSystem()->shaderPointClass::getCMSettings()->getModfTex(),
 //                          0, GL_RGB, GL_UNSIGNED_BYTE, 256, palBuff);
 
-    if(pSys->wantPlyObjColor() && pSys->viewingObj()) { // packed color data
+    if(pSys->wantPlyObjColor() && pSys->viewingObj()) { // packed color data: is loaded PLY
         for(unsigned i=sizeBuff; i>0; i--, map++) {
             const uint32_t c = floatBitsToUint(map->w);
             uint8_t *p = (uint8_t *) &c;
             *clr++ =  *p++;
             *clr++ =  *p++;
             *clr++ =  *p;
+            if(alphaDist) *clr++ = *(++p);
         }
     } else { // color  = speed + palette
         const float vel = pSys->getCMSettings()->getVelIntensity();
 
         for(unsigned i=sizeBuff; i>0; i--, map++) {
             const int32_t offset = int(map->w*vel*255.f+.5);
-            uint8_t *p = (uint8_t *)(palBuff + (offset>255 ? 255 : (offset <= 0 ? 0 : offset)));
+            uint8_t *p = (uint8_t *)(palBuff + (offset>=255 ? 255 : (offset <= 0 ? 0 : offset)));
             *clr++ =  *p++;
             *clr++ =  *p++;
             *clr++ =  *p;
-
+            if(alphaDist) *clr++ = map->w*255.f+.5;
         }
     }
 
@@ -274,7 +286,7 @@ vec3 *getNormalBuffer(vec4 *map, const uint32_t sizeBuff, const bool isNormalize
     return nrmBuff;
 }
 
-void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool bCoR, bool wantNormalized, normalType nType)
+void exportPLY(bool wantBinary, bool wantColors, bool alphaDist, bool wantNormals, bool bCoR, bool wantNormalized, normalType nType)
 {
     
     emitterBaseClass *e = theWnd->getParticlesSystem()->getEmitter();
@@ -316,18 +328,18 @@ void exportPLY(bool wantBinary, bool wantColors, bool wantNormals, bool bCoR, bo
 
         PlyFile ply;
         ply.add_properties_to_element("vertex", { "x", "y", "z" }, 
-        Type::FLOAT32, sizeBuff, reinterpret_cast<uint8_t*>(vtxBuff), Type::INVALID, 0);
+            Type::FLOAT32, sizeBuff, reinterpret_cast<uint8_t*>(vtxBuff), Type::INVALID, 0);
 
         if(wantColors) {
-            clrBuff  = getColorBuffer(mappedBuffer, sizeBuff);
-            ply.add_properties_to_element("vertex", { "red", "green", "blue" }, 
-            Type::UINT8, sizeBuff, reinterpret_cast<uint8_t*>(clrBuff), Type::INVALID, 0);
+            clrBuff  = getColorBuffer(mappedBuffer, sizeBuff, alphaDist);
+            ply.add_properties_to_element("vertex", alphaDist ? std::initializer_list<std::string> { "red", "green", "blue", "alpha" } : std::initializer_list<std::string> { "red", "green", "blue" }, 
+                Type::UINT8, sizeBuff, reinterpret_cast<uint8_t*>(clrBuff), Type::INVALID, 0);
         }
 
         if(wantNormals) {
             nrmBuff = getNormalBuffer(mappedBuffer, sizeBuff, wantNormalized, nType);
             ply.add_properties_to_element("vertex", { "nx", "ny", "nz" },
-            Type::FLOAT32, sizeBuff, reinterpret_cast<uint8_t*>(nrmBuff), Type::INVALID, 0);
+                Type::FLOAT32, sizeBuff, reinterpret_cast<uint8_t*>(nrmBuff), Type::INVALID, 0);
 
         }
 

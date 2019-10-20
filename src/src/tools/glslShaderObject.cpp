@@ -76,6 +76,14 @@ void getCompilerLog(GLuint handle, GLint blen, bool isShader)
     }
 }
 
+void checkDeletedShader(GLuint shader)
+{
+    GLint deleted;
+    glGetShaderiv( shader, GL_DELETE_STATUS, &deleted );
+
+    cout << "Shader#: " << shader << (deleted == GL_TRUE ? " flagged for delete" : " still active") << endl;
+}
+
 void checkShader(GLuint shader)
 {
     GLint compiled;
@@ -159,7 +167,7 @@ GLuint& ShaderObject::getShader()
 //#define USE_STDIO_TO_LOAD_SHADERS
 
 #ifndef USE_STDIO_TO_LOAD_SHADERS
-void ShaderObject::getFileContents(const char* fileName, string &str)
+void getFileContents(const char* fileName, string &str)
 {
     std::streamoff length;
     char* buffer;
@@ -205,7 +213,7 @@ void ShaderObject::getFileContents(const char* fileName, string &str)
 #else // USE STDIO
 #include <stdio.h>
 #include <stdlib.h>
-void ShaderObject::getFileContents(const char* fileName, string &str)
+void getFileContents(const char* fileName, string &str)
 {
     int length;
     char* buffer;

@@ -19,10 +19,10 @@
     "Copyright (c) 2018/2019 Michele Morrone\n"\
     "All rights reserved.\n"\
     "\n"\
-    "    https://michelemorrone.eu\n"\
-    "    https://github.com/BrutPitt\n"\
+    "    https://michelemorrone.eu - https://BrutPitt.com \n"\
     "\n"\
-    "    me@michelemorrone.eu\n"\
+    "    twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt \n"\
+    "    brutpitt@gmail.com - me@michelemorrone.eu\n"\
     "\n"\
     "Software distributed under BSD 2-Clause license\n"\
     "\n"
@@ -243,6 +243,11 @@
     "      Checked - always starts with current attractor\n"\
     "    unChecked - starts with random selection (default)\n\n"\
     " *unCheck and reCheck to select new one"\
+
+#define GLAPP_HELP_DETAILED_SHADOW\
+    "More detailed shadows\n"\
+    "      Checked - Wider texture for shadows (w*2 x h*2)\n"\
+    "    unChecked - Standard window texture (w x h => default)"\
 
 #define GLAPP_HELP_SHADOWS_TREE\
     "Shadow settings\n\n"\

@@ -275,16 +275,17 @@ public:
 
     const Mat3 operator+(const Mat3& m) const { return Mat3(v0 + m.v0, v1 + m.v1, v2 + m.v2); }
     const Mat3 operator-(const Mat3& m) const { return Mat3(v0 - m.v0, v1 - m.v1, v2 - m.v2); }
-    const Mat3 operator*(const Mat3& m) const { return Mat3( m00 * m.m00 + m10 * m.m01 + m20 * m.m02,
-                                                             m01 * m.m00 + m11 * m.m01 + m21 * m.m02,
-                                                             m02 * m.m00 + m12 * m.m01 + m22 * m.m02,
-                                                             m00 * m.m10 + m10 * m.m11 + m20 * m.m12,
-                                                             m01 * m.m10 + m11 * m.m11 + m21 * m.m12,
-                                                             m02 * m.m10 + m12 * m.m11 + m22 * m.m12,
-                                                             m00 * m.m20 + m10 * m.m21 + m20 * m.m22,
-                                                             m01 * m.m20 + m11 * m.m21 + m21 * m.m22,
-                                                             m02 * m.m20 + m12 * m.m21 + m22 * m.m22); }
-
+#define M(X,Y) (m##X * m.m##Y)
+    const Mat3 operator*(const Mat3& m) const { return Mat3( M(00,00) + M(10,01) + M(20,02),
+                                                             M(01,00) + M(11,01) + M(21,02),
+                                                             M(02,00) + M(12,01) + M(22,02),
+                                                             M(00,10) + M(10,11) + M(20,12),
+                                                             M(01,10) + M(11,11) + M(21,12),
+                                                             M(02,10) + M(12,11) + M(22,12),
+                                                             M(00,20) + M(10,21) + M(20,22),
+                                                             M(01,20) + M(11,21) + M(21,22),
+                                                             M(02,20) + M(12,21) + M(22,22)); }
+#undef M
     const Mat3 operator*(T s) const { return Mat3(v0 * s   , v1 * s   , v2 * s   ); }
     const Mat3 operator/(T s) const { return Mat3(v0 / s   , v1 / s   , v2 / s   ); }
 
@@ -331,24 +332,24 @@ public:
     const Mat4 operator-(const Mat4& m) const { return Mat4(v0 - m.v0, v1 - m.v1, v2 - m.v2, v3 - m.v3); }
     const Mat4 operator*(T s)           const { return Mat4(v0 * s   , v1 * s   , v2 * s   , v3 * s   ); }
     const Mat4 operator/(T s)           const { return Mat4(v0 / s   , v1 / s   , v2 / s   , v3 / s   ); }
-
-    const Mat4 operator*(const Mat4& m) const { return Mat4( m00 * m.m00 + m10 * m.m01 + m20 * m.m02 + m30 * m.m03,
-                                                             m01 * m.m00 + m11 * m.m01 + m21 * m.m02 + m31 * m.m03,
-                                                             m02 * m.m00 + m12 * m.m01 + m22 * m.m02 + m32 * m.m03,
-                                                             m03 * m.m00 + m13 * m.m01 + m23 * m.m02 + m33 * m.m03,
-                                                             m00 * m.m10 + m10 * m.m11 + m20 * m.m12 + m30 * m.m13,
-                                                             m01 * m.m10 + m11 * m.m11 + m21 * m.m12 + m31 * m.m13,
-                                                             m02 * m.m10 + m12 * m.m11 + m22 * m.m12 + m32 * m.m13,
-                                                             m03 * m.m10 + m13 * m.m11 + m23 * m.m12 + m33 * m.m13,
-                                                             m00 * m.m20 + m10 * m.m21 + m20 * m.m22 + m30 * m.m23,
-                                                             m01 * m.m20 + m11 * m.m21 + m21 * m.m22 + m31 * m.m23,
-                                                             m02 * m.m20 + m12 * m.m21 + m22 * m.m22 + m32 * m.m23,
-                                                             m03 * m.m20 + m13 * m.m21 + m23 * m.m22 + m33 * m.m23,
-                                                             m00 * m.m30 + m10 * m.m31 + m20 * m.m32 + m30 * m.m33,
-                                                             m01 * m.m30 + m11 * m.m31 + m21 * m.m32 + m31 * m.m33,
-                                                             m02 * m.m30 + m12 * m.m31 + m22 * m.m32 + m32 * m.m33,
-                                                             m03 * m.m30 + m13 * m.m31 + m23 * m.m32 + m33 * m.m33);  }
-
+#define M(X,Y) (m##X * m.m##Y)
+    const Mat4 operator*(const Mat4& m) const { return Mat4( M(00,00) + M(10,01) + M(20,02) + M(30,03),
+                                                             M(01,00) + M(11,01) + M(21,02) + M(31,03),
+                                                             M(02,00) + M(12,01) + M(22,02) + M(32,03),
+                                                             M(03,00) + M(13,01) + M(23,02) + M(33,03),
+                                                             M(00,10) + M(10,11) + M(20,12) + M(30,13),
+                                                             M(01,10) + M(11,11) + M(21,12) + M(31,13),
+                                                             M(02,10) + M(12,11) + M(22,12) + M(32,13),
+                                                             M(03,10) + M(13,11) + M(23,12) + M(33,13),
+                                                             M(00,20) + M(10,21) + M(20,22) + M(30,23),
+                                                             M(01,20) + M(11,21) + M(21,22) + M(31,23),
+                                                             M(02,20) + M(12,21) + M(22,22) + M(32,23),
+                                                             M(03,20) + M(13,21) + M(23,22) + M(33,23),
+                                                             M(00,30) + M(10,31) + M(20,32) + M(30,33),
+                                                             M(01,30) + M(11,31) + M(21,32) + M(31,33),
+                                                             M(02,30) + M(12,31) + M(22,32) + M(32,33),
+                                                             M(03,30) + M(13,31) + M(23,32) + M(33,33));  }
+#undef M
     const VEC4_T operator*(const VEC4_T& v) const { return VEC4_T(m00 * v.x + m10 * v.y + m20 * v.z + m30 * v.w,
                                                                   m01 * v.x + m11 * v.y + m21 * v.z + m31 * v.w,
                                                                   m02 * v.x + m12 * v.y + m22 * v.z + m32 * v.w,
@@ -440,15 +441,36 @@ TEMPLATE_TYPENAME_T inline const MAT4_T transpose(MAT4_T m) {
                    m.m03, m.m13, m.m23, m.m33); }
 // inverse
 //////////////////////////
-TEMPLATE_TYPENAME_T inline const QUAT_T inverse(QUAT_T q) { return QUAT_T(q.w, -q.x, -q.y, -q.z) / dot(q, q); }
-TEMPLATE_TYPENAME_T inline const MAT3_T inverse(MAT3_T m) {
-    T invDet = T(1) / (   m.m00 * (m.m11 * m.m22 - m.m21 * m.m12)
-                        - m.m10 * (m.m01 * m.m22 - m.m21 * m.m02)
-                        + m.m20 * (m.m01 * m.m12 - m.m11 * m.m02));
+#define M(X,Y) (m.m##X * m.m##Y)
+TEMPLATE_TYPENAME_T inline const QUAT_T inverse(QUAT_T const &q) { return QUAT_T(q.w, -q.x, -q.y, -q.z) / dot(q, q); }
+TEMPLATE_TYPENAME_T inline const MAT3_T inverse(MAT3_T const &m) {
+    T invDet = T(1) / (m.m00 * (M(11,22) - M(21,12)) - m.m10 * (M(01,22) - M(21,02)) + m.m20 * (M(01,12) - M(11,02)));
+    return MAT3_T(  (M(11,22) - M(21,12)), - (M(01,22) - M(21,02)),   (M(01,12) - M(11,02)),
+                  - (M(10,22) - M(20,12)),   (M(00,22) - M(20,02)), - (M(00,12) - M(10,02)),
+                    (M(10,21) - M(20,11)), - (M(00,21) - M(20,01)),   (M(00,11) - M(10,01))) * invDet; } // ==> "operator *" is faster
+TEMPLATE_TYPENAME_T inline const MAT4_T inverse(MAT4_T const &m) {
+    const T c0 = M(22,33) - M(32,23);   VEC4_T f0(c0, c0, M(12,33) - M(32,13), M(12,23) - M(22,13));
+    const T c1 = M(21,33) - M(31,23);   VEC4_T f1(c1, c1, M(11,33) - M(31,13), M(11,23) - M(21,13));
+    const T c2 = M(21,32) - M(31,22);   VEC4_T f2(c2, c2, M(11,32) - M(31,12), M(11,22) - M(21,12));
+    const T c3 = M(20,33) - M(30,23);   VEC4_T f3(c3, c3, M(10,33) - M(30,13), M(10,23) - M(20,13));
+    const T c4 = M(20,32) - M(30,22);   VEC4_T f4(c4, c4, M(10,32) - M(30,12), M(10,22) - M(20,12));
+    const T c5 = M(20,31) - M(30,21);   VEC4_T f5(c5, c5, M(10,31) - M(30,11), M(10,21) - M(20,11));
+#undef M
+    VEC4_T v0(m.m10, m.m00, m.m00, m.m00);
+    VEC4_T v1(m.m11, m.m01, m.m01, m.m01);
+    VEC4_T v2(m.m12, m.m02, m.m02, m.m02);
+    VEC4_T v3(m.m13, m.m03, m.m03, m.m03);
 
-    return MAT3_T(  (m.m11 * m.m22 - m.m21 * m.m12), - (m.m01 * m.m22 - m.m21 * m.m02),   (m.m01 * m.m12 - m.m11 * m.m02),
-                  - (m.m10 * m.m22 - m.m20 * m.m12),   (m.m00 * m.m22 - m.m20 * m.m02), - (m.m00 * m.m12 - m.m10 * m.m02),
-                    (m.m10 * m.m21 - m.m20 * m.m11), - (m.m00 * m.m21 - m.m20 * m.m01),   (m.m00 * m.m11 - m.m10 * m.m01)) * invDet; }
+    VEC4_T i0(v1 * f0 - v2 * f1 + v3 * f2);
+    VEC4_T i1(v0 * f0 - v2 * f3 + v3 * f4);
+    VEC4_T i2(v0 * f1 - v1 * f3 + v3 * f5);
+    VEC4_T i3(v0 * f2 - v1 * f4 + v2 * f5);
+            
+    VEC4_T signA( 1, -1,  1, -1), signB(-1,  1, -1,  1);
+    MAT4_T inv(i0 * signA, i1 * signB, i2 * signA, i3 * signB);
+
+    VEC4_T v0r0(m.v0 * VEC4_T(inv.m00, inv.m10, inv.m20, inv.m30));
+    return inv * (T(1) / (v0r0.x + v0r0.y + v0r0.z + v0r0.w)); }// 1/determinant ==> "operator *" is faster
 // external operators
 //////////////////////////
 TEMPLATE_TYPENAME_T inline VEC2_T operator*(const T s, const VEC2_T& v) {  return v * s; }
@@ -569,6 +591,30 @@ TEMPLATE_TYPENAME_T inline const MAT4_T frustrum(T l, T r, T b, T t, T n, T f)
     using uvec2 = vgm::Vec2<uint32_t>;
     using uvec3 = vgm::Vec3<uint32_t>;
     using uvec4 = vgm::Vec4<uint32_t>;
+
+#ifdef VGIZMO_USES_HLSL_TYPES // testing phase
+    using float2   = vgm::Vec2<float>;
+    using float3   = vgm::Vec3<float>;
+    using float4   = vgm::Vec4<float>;
+    using quat     = vgm::Quat<float>;
+    using float3x3 = vgm::Mat3<float>;
+    using float4x4 = vgm::Mat4<float>;
+
+    using double2   = vgm::Vec2<double>;
+    using double3   = vgm::Vec3<double>;
+    using double4   = vgm::Vec4<double>;
+    using dquat     = vgm::Quat<double>;
+    using double3x3 = vgm::Mat3<double>;
+    using double4x4 = vgm::Mat4<double>;
+
+    using int2 = vgm::Vec2<int32_t>;
+    using int3 = vgm::Vec3<int32_t>;
+    using int4 = vgm::Vec4<int32_t>;
+
+    using uint2 = vgm::Vec2<uint32_t>;
+    using uint3 = vgm::Vec3<uint32_t>;
+    using uint4 = vgm::Vec4<uint32_t>;
+#endif
 #else
     using vec2 = vgm::Vec2;
     using vec3 = vgm::Vec3;
@@ -578,8 +624,18 @@ TEMPLATE_TYPENAME_T inline const MAT4_T frustrum(T l, T r, T b, T t, T n, T f)
     using mat4 = vgm::Mat4;
     using mat3x3 = mat3;
     using mat4x4 = mat4;
+
+#ifdef VGIZMO_USES_HLSL_TYPES
+    using float2   = vgm::Vec2;
+    using float3   = vgm::Vec3;
+    using float4   = vgm::Vec4;
+    using quat     = vgm::Quat;
+    using float3x3 = vgm::Mat3;
+    using float4x4 = vgm::Mat4;
 #endif
 
+#endif
+// Internal vGizmo USES ONLY
     using tVec2 = vgm::VEC2_PRECISION;
     using tVec3 = vgm::VEC3_PRECISION;
     using tVec4 = vgm::VEC4_PRECISION;
@@ -587,8 +643,8 @@ TEMPLATE_TYPENAME_T inline const MAT4_T frustrum(T l, T r, T b, T t, T n, T f)
     using tMat3 = vgm::MAT3_PRECISION;
     using tMat4 = vgm::MAT4_PRECISION;
 
-    using uint8 = uint8_t;
-    using  int8 =  int8_t;
+    using uint8  = uint8_t;
+    using  int8  =  int8_t;
     using uint   = uint32_t;
     using  int32 =  int32_t;
     using uint32 = uint32_t;

@@ -1901,6 +1901,24 @@ public:
     }
   }
 
+void addNewPoint(IndexType idx) {
+    int pos = First0Bit(pointCount);
+    index[pos].vind.clear();
+    treeIndex.push_back(pos);
+
+    for (int i = 0; i < pos; i++) {
+        for (int j = 0; j < static_cast<int>(index[i].vind.size()); j++) {
+            index[pos].vind.push_back(index[i].vind[j]);
+            if (treeIndex[index[i].vind[j]] != -1)  treeIndex[index[i].vind[j]] = pos;
+        }
+        index[i].vind.clear();
+        index[i].freeIndex(index[i]);
+    }
+    index[pos].vind.push_back(idx);
+    index[pos].buildIndex();
+    pointCount++;
+  }
+
   /** Remove a point from the set (Lazy Deletion) */
   void removePoint(size_t idx) {
     if (idx >= pointCount)

@@ -85,11 +85,13 @@ void shaderPointClass::initShader()
 
 #ifdef GLAPP_REQUIRE_OGL45
     uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData);
+    getPlanesUBlock().create(sizeof(uClippingPlanes), &uPlanes, GLuint(renderBaseClass::bind::planesIDX));
     getCommonLocals();
 #else
     USE_PROGRAM
 
     uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData, getProgram(), "_particlesData");
+    getPlanesUBlock().create(sizeof(uClippingPlanes), &uPlanes, getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
 
     getTMat()->blockBinding(getProgram());
 
@@ -142,8 +144,10 @@ void particlesBaseClass::restoreGLstate()
     //glDisable(GL_MULTISAMPLE);
 }
 
+
 GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter) 
 {
+    const float shadowDetail = theApp->useDetailedShadows() ? float(2) : float(1);
 
     auto updateCommons = [&] () {
         getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
@@ -152,6 +156,17 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
         getUData().velocity = getCMSettings()->getVelIntensity();
         getUData().lightDir = vec3(getTMat()->tM.vMatrix * vec4(getLightDir(), 1.0));
+        getUData().shadowDetail = shadowDetail;
+        getUData().rotCenter = getTMat()->getTrackball().getRotationCenter();
+
+    };
+
+
+    auto buildInvMV_forPlanes = [&] () {
+        if(getUPlanes().planeActive[0] || getUPlanes().planeActive[1] || getUPlanes().planeActive[2]) {
+            getTMat()->buid_invMV(); 
+            getUPlanes().atLeastOneActive = true;
+        } else getUPlanes().atLeastOneActive = false;
     };
 
     const bool isAO_RD_SHDW = ( useAO() ||  postRenderingActive() || useShadow());
@@ -187,7 +202,15 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 #endif
     };
 
+    buildInvMV_forPlanes();
     if(checkFlagUpdate()) updateCommons();
+
+    for(int i=0; i<3; i++) {
+        //if(getUPlanes().planeSettings[i]&planesState::planeON) {            
+            getUPlanes().clipPlane[i] = getClippingPlane(i);
+        //}
+    }
+
 
     getUData().zNear = getTMat()->getPerspNear();
     getUData().zFar  = getTMat()->getPerspFar();
@@ -196,16 +219,26 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
     if(isShadow && !getBlendState()) {
+        glViewport(0,0, getWidth()*shadowDetail, getHeight()*shadowDetail);
         if(autoLightDist()) {
             vec3 vL(normalize(getLightDir()));
-            float dist = getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z;
-            setLightDir(vL * (dist*4.f + dist*.1f));
+            
+            getTMat()->setPOV(getTMat()->getPOV()-vec3(0.f, 0.f, getTMat()->getTrackball().getDollyPosition().z));
+            getTMat()->getTrackball().setDollyPosition(0.f);
+            getTMat()->applyTransforms();
+            
+            float dist = getTMat()->getPOV().z;
+            if(dist<FLT_EPSILON) dist = FLT_EPSILON;
+            setLightDir(vL * (dist*(theApp->useDetailedShadows() ? 5.5f : 4.f) + dist*.1f));
         }
+        //const float oldAngle = getTMat()->getPerspAngle();
+        //getTMat()->setPerspective(radians(45.f), getTMat()->getPerspNear(), getTMat()->getPerspFar());
 
-        //tMat.setLightOrtho();
         getShadow()->bindRender();
 
-        tMat.setLightView(getLightDir());
+        getPlanesUBlock().updateBufferData();
+
+        tMat.setLightView(getLightDir()*.25f);
         tMat.tM.mvLightM = tMat.tM.mvLightM * tMat.tM.mMatrix;
 
 
@@ -216,9 +249,12 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         emitter->renderEvents();
 
         getShadow()->releaseRender();
+
+        //getTMat()->setPerspective(oldAngle, getTMat()->getPerspNear(), getTMat()->getPerspFar());
         //tMat.setPerspective();
     }
 #endif
+    glViewport(0,0, getWidth(), getHeight());
 
 // Normal Render
 /////////////////////////////////////////////
@@ -230,14 +266,14 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
     clearScreenBuffers();
 
     if(checkFlagUpdate()) updateCommons();
+    getPlanesUBlock().updateBufferData();
+
 
     getUData().zNear = getTMat()->getPerspNear();
     getUData().zFar  = getTMat()->getPerspFar();
-//    getUData().zFar = (getTMat()->getPerspFar() + (getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z)) * 2.0;
 
     tMat.updateBufferData();
     getUData().pass = (isShadow ? 4:0) | (postRenderingActive() ? 2:0) | (useAO() ? 1:0);
-    getUData().POV = vec4(getTMat()->getTrackball().getPosition(), 0.0);
 
     updateBufferData();
        
@@ -275,11 +311,12 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 #else
     if(!getBlendState() && isAO_RD_SHDW && !showAxes())  {
 #endif
-        tMat.setLightView(getLightDir());
+
+        tMat.setLightView(getLightDir()*.25f);
         mat4 m(1.f);
-        m = translate(m,tMat.getTrackball().getPosition());
-        m = translate(m,tMat.getPOV());
-        tMat.tM.mvLightM = tMat.tM.mvLightM * m;
+        m = translate(m,getTMat()->getPOV()/*+getTMat()->getTrackball().getPosition()*/);
+        //m = translate(m,getTMat()->getPOV());
+        tMat.tM.mvLightM = getTMat()->tM.mvLightM * m;
 
         getUData().halfTanFOV = tanf(getTMat()->getPerspAngleRad()*.5);
 
@@ -290,6 +327,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
             tMat.updateBufferData();
             updateBufferData();
+            //getPlanesUBlock().updateBufferData();
 
 #ifdef GLAPP_REQUIRE_OGL45
             glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
@@ -306,10 +344,15 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
 // PostRendering frag
 /////////////////////////////////////////////
+          //const float oldAngle = getTMat()->getPerspAngle();
+          //getTMat()->setPerspective(radians(45.f), getTMat()->getPerspNear(), getTMat()->getPerspFar());
+
             getPostRendering()->bindRender();
 
             tMat.updateBufferData();
             updateBufferData();
+            //getPlanesUBlock().updateBufferData();
+
 
 #ifdef GLAPP_REQUIRE_OGL45
 
@@ -331,6 +374,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
             getPostRendering()->render();
             getPostRendering()->releaseRender();
             returnedTex = getPostRendering()->getFBO().getTex(0);
+          //getTMat()->setPerspective(oldAngle, getTMat()->getPerspNear(), getTMat()->getPerspFar());
+
         //}
     }
 #endif
@@ -364,8 +409,6 @@ shaderBillboardClass::shaderBillboardClass()
 
 void shaderBillboardClass::initShader()
 {
-
-    //selectColorMap(1); //pal_magma_data
     useAll(); 
 
     getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesVert.glsl", SHADER_PATH "BillboardVert.glsl");
@@ -381,25 +424,22 @@ void shaderBillboardClass::initShader()
 
     removeAllShaders(true);
 
-
 #ifdef GLAPP_REQUIRE_OGL45
     uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData);
+    getPlanesUBlock().create(sizeof(uClippingPlanes), &uPlanes, GLuint(renderBaseClass::bind::planesIDX));
     getCommonLocals();
 #else
     bindPipeline();
     USE_PROGRAM
 
     uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData, getProgram(), "_particlesData");
+    getPlanesUBlock().create(sizeof(uClippingPlanes), &uPlanes, getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
     getTMat()->blockBinding(getProgram());
 
 
     getCommonLocals();
-
-    //ProgramObject::reset();
 #endif
-
 }
-
 
 //
 //  mergedRendering
@@ -407,7 +447,6 @@ void shaderBillboardClass::initShader()
 ////////////////////////////////////////////////////////////////////////////////
 GLuint mergedRenderingClass::render(GLuint texA, GLuint texB) 
 {
-
     bindPipeline();
 
     const GLuint fbo = renderEngine->getMotionBlur()->Active() ? mergedFBO.getFB(0) : 0;
@@ -445,14 +484,15 @@ GLuint mergedRenderingClass::render(GLuint texA, GLuint texB)
 
 void mergedRenderingClass::create() 
 {
+#ifdef GLAPP_NO_GLSL_PIPELINE
+    useVertex(renderEngine->getCommonVShader());
+    addShader(vertObj);
+#else
+    glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, renderEngine->getSeparableVertex());
+#endif
 
     useFragment();
-    useVertex(renderEngine->getCommonVShader());
-
-    //vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
     fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "MergedRenderingFrag.glsl");
-
-    addShader(vertObj);
     addShader(fragObj);
 
     link();
@@ -473,13 +513,14 @@ void mergedRenderingClass::create()
 ////////////////////////////////////////////////////////////////////////////////
 void motionBlurClass::create() 
 {
+#ifdef GLAPP_NO_GLSL_PIPELINE
     useVertex(renderEngine->getCommonVShader());
-    useFragment();
-
-    //vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
-    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "MotionBlurFS.glsl");
-
     addShader(vertObj);
+#else
+    glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, renderEngine->getSeparableVertex());
+#endif
+    useFragment();
+    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "MotionBlurFS.glsl");
     addShader(fragObj);        
 
     link();
@@ -631,7 +672,16 @@ renderBaseClass::renderBaseClass()
 
     setRenderMode(RENDER_USE_POINTS);
 
-    commonVShader.Load( (theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "mmFBO_all_vert.glsl");
+    {
+#ifdef GLAPP_NO_GLSL_PIPELINE
+        commonVShader.Load( (theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "mmFBO_all_vert.glsl");
+#else
+        string str(theApp->get_glslVer() + theApp->get_glslDef());
+        getFileContents(SHADER_PATH "mmFBO_all_vert.glsl", str);
+        const char *s[] = { str.c_str(), "\0" };
+        separableVertex = glCreateShaderProgramv(GL_VERTEX_SHADER, 1, s);
+#endif
+    }
 
 #if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
     renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F); 
@@ -672,6 +722,7 @@ void renderBaseClass::create()
     postRendering->create();
 }
 
+
 renderBaseClass::~renderBaseClass()
 {
 #if !defined(GLCHAOSP_LIGHTVER)
@@ -684,7 +735,6 @@ renderBaseClass::~renderBaseClass()
      delete shadow;
      delete postRendering; 
 #endif
-
 }
 
 void renderBaseClass::setRenderMode(int which) 
@@ -703,16 +753,16 @@ VertexShader* commonVShader = nullptr;
 //  BlurBase (Glow)
 //
 ////////////////////////////////////////////////////////////////////////////////
-void BlurBaseClass::create()    {
-
-
+void BlurBaseClass::create()    
+{
+#ifdef GLAPP_NO_GLSL_PIPELINE
         useVertex(renderEngine->getCommonVShader());
-        useFragment();
-
-        //vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
-        fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "colorSpaces.glsl", SHADER_PATH "RadialBlur2PassFrag.glsl");
-
         addShader(vertObj);
+#else
+        glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, renderEngine->getSeparableVertex());
+#endif
+        useFragment();
+        fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "colorSpaces.glsl", SHADER_PATH "RadialBlur2PassFrag.glsl");
         addShader(fragObj);
 
         link();
@@ -741,7 +791,6 @@ void BlurBaseClass::create()    {
 
 void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex) 
 {
-
     bindPipeline();
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
 
@@ -780,7 +829,6 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
 #if !defined(GLAPP_REQUIRE_OGL45)
     //ProgramObject::reset();
 #endif
-
 }
 
 void BlurBaseClass::updateData(GLuint subIndex) 
@@ -808,10 +856,7 @@ void BlurBaseClass::updateData(GLuint subIndex)
     getUData().invScreenSize = 1.f/vec2(float(pSys->getWidth()), float(pSys->getHeight()));
 
     updateBufferData();
-
 }
-
-
 
 //
 //  colorMapTextured
@@ -819,14 +864,15 @@ void BlurBaseClass::updateData(GLuint subIndex)
 ////////////////////////////////////////////////////////////////////////////////
 void colorMapTexturedClass::create()
 {
+#ifdef GLAPP_NO_GLSL_PIPELINE
     useVertex(particles->getCommonVShader());
-    useFragment();
-
-    //vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
-    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "colorSpaces.glsl", SHADER_PATH "cmTexturedFrag.glsl");
-
-
     addShader(vertObj);
+#else
+    glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, particles->getSeparableVertex());
+#endif
+
+    useFragment();
+    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "colorSpaces.glsl", SHADER_PATH "cmTexturedFrag.glsl");
     addShader(fragObj);
 
     link();
@@ -887,12 +933,14 @@ void colorMapTexturedClass::render(int tex)
 //
 ////////////////////////////////////////////////////////////////////////////////
 void fxaaClass::create() {
+#ifdef GLAPP_NO_GLSL_PIPELINE
     useVertex(renderEngine->getCommonVShader());
-    useFragment();
-
-    //vertObj->Load( theApp->get_glslVer().c_str()                         , 1, SHADER_PATH "mmFBO_all_vert.glsl");
-    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "fxaaFrag.glsl");
     addShader(vertObj);
+#else
+    glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, renderEngine->getSeparableVertex());
+#endif
+    useFragment();
+    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "fxaaFrag.glsl");
     addShader(fragObj);
 
     link();
@@ -951,9 +999,6 @@ GLuint fxaaClass::render(GLuint texIn)
 postRenderingClass::postRenderingClass(renderBaseClass *ptrRE) : renderEngine(ptrRE) 
 {
     fbo.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision());
-
-
-    //create();
 }
 
 void postRenderingClass::create() {
@@ -979,8 +1024,10 @@ void postRenderingClass::create() {
     locAOTex = getUniformLocation("aoTex");
     locShadowTex = getUniformLocation("shadowTex");
     locPrevData = getUniformLocation("prevData");
-    uniformBlocksClass::bindIndex(getProgram(), "_particlesData");
+    uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
     renderEngine->getTMat()->blockBinding(getProgram());
+    //uniformBlocksClass::bindIndex(getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
+
 
     setUniform1i(getLocAOTex(), renderEngine->getAO()->getFBO().getTex(0));
 
@@ -1139,7 +1186,8 @@ void ambientOcclusionClass::create() {
     locNoiseTexture = getUniformLocation("noise");
     locPrevData = getUniformLocation("prevData");
     locKernelTexture = getUniformLocation("ssaoSample");
-    bindIDX = uniformBlocksClass::bindIndex(getProgram(), "_particlesData");
+    bindIDX = uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
+    //uniformBlocksClass::bindIndex(getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
     renderEngine->getTMat()->blockBinding(getProgram());
 
     setUniform1i(locKernelTexture, ssaoKernelTex);
@@ -1193,7 +1241,8 @@ shadowClass::shadowClass(renderBaseClass *ptrRE) : renderEngine(ptrRE)
 // FireFox68 Works fine also only with zBuffer w/o ColorBuffer
 ////////////////////////////////////////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER)
-    fbo.buildOnlyFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F); //
+    const int detail = theApp->useDetailedShadows() ? 2 : 1;
+    fbo.buildOnlyFBO(1, theApp->GetWidth()*detail, theApp->GetHeight()*detail, GL_RGBA32F); //
     fbo.attachDB(mmFBO::depthTexture,GL_LINEAR,GL_CLAMP_TO_BORDER);
 #else
     fbo.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F);
@@ -1233,7 +1282,8 @@ void shadowClass::bindRender()
 
 #if !defined(GLAPP_REQUIRE_OGL45)
     USE_PROGRAM
-    uniformBlocksClass::bindIndex(getProgram(), "_particlesData");
+    uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
+    uniformBlocksClass::bindIndex(getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
     renderEngine->getTMat()->blockBinding(getProgram());
 #endif
 }

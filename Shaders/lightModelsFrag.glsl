@@ -18,9 +18,9 @@ LAYOUT_BINDING(2) uniform _particlesData {
     float lightDiffInt;
     vec3  lightColor;        // align 16
     float lightSpecInt;
-    vec4  POV;
     vec2  scrnRes;
     vec2  invScrnRes;
+    vec3  rotCenter;
     float lightAmbInt ;
     float lightShinExp;
     float sstepColorMin;
@@ -45,6 +45,7 @@ LAYOUT_BINDING(2) uniform _particlesData {
     float shadowGranularity;
     float shadowBias;
     float shadowDarkness;
+    float shadowDetail;
     float aoRadius;
     float aoBias;
     float aoDarkness;
@@ -57,9 +58,22 @@ LAYOUT_BINDING(2) uniform _particlesData {
     uint  lightActive;
     uint  pass;
     uint  renderType;
-} u;                    // 51*4 + APPLE
+} u;                    // 54*4
+
+LAYOUT_BINDING(9) uniform _clippingPlanes {
+    vec4  clipPlane[3];
+    vec4  boundaryColor[3];
+    uvec4 planeActive;
+    uvec4 colorActive;
+    float thickness;
+    bool  additiveSpace;
+    bool  atLeastOneActive;
+} pl;
 
 LAYOUT_BINDING(4) uniform _tMat {
+    mat4 mMatrix;
+    mat4 vMatrix;
+    mat4 invMV  ;
     mat4 pMatrix;
     mat4 mvMatrix;
     mat4 mvpMatrix;
@@ -77,6 +91,9 @@ LAYOUT_BINDING(4) uniform _tMat {
 #define idxPHONG     (lightModelOFFSET    )
 #define idxBLINPHONG (lightModelOFFSET + 1)
 #define idxGGX       (lightModelOFFSET + 2)
+
+#define planeON 1
+#define boundON 2
 
 
 float packColor16(vec2 color)
@@ -119,6 +136,54 @@ vec4 unPackColor8(float pkColor)
 }
 #endif
 
+// Clipping planes
+///////////////////////////////////////
+mat4 translate(mat4 mt, vec3 v) 
+{
+    mt[3] = mt[0] * v.x + mt[1] * v.y + mt[2] * v.z + mt[3]; 
+    return mt; 
+}
+
+float returnClipDistance(vec4 vtx, int plane)
+{
+    mat4 mt=mat4(1.f);
+    vec4 pt = m.invMV * vec4(vtx.xyz, 1.0); // if modelViewd vertex
+
+    mt = translate(mt, u.rotCenter);
+
+    return -(dot( mt * pt, pl.clipPlane[plane]));
+}
+
+vec4 colorBoundary(vec4 vtx, int plane)
+{
+    vec4 retColor = vec4(0.0);
+    if(bool(pl.planeActive[plane]) && bool(pl.colorActive[plane])) { 
+        float clipDist = returnClipDistance(vtx, plane);
+        if(pl.additiveSpace) { 
+            if(clipDist<=0.0 && clipDist>-pl.thickness) retColor = pl.boundaryColor[plane];
+        } else {
+            if(clipDist>=0.0 && clipDist< pl.thickness) retColor = pl.boundaryColor[plane];
+        }
+    }
+    return retColor;
+}
+bool clippedPlane(vec4 vtx, int plane)
+{
+    return bool(pl.planeActive[plane]) ? 
+                (pl.additiveSpace ? bool(returnClipDistance(vtx, plane)>0.0) : bool(returnClipDistance(vtx, plane)<0.0)) : 
+                (pl.additiveSpace ? true : false);
+
+}
+
+bool clippedPoint(vec4 vtx)
+{
+    return pl.additiveSpace ?
+                clippedPlane(vtx, 0) && clippedPlane(vtx, 1) && clippedPlane(vtx, 2) && pl.atLeastOneActive :
+                clippedPlane(vtx, 0) || clippedPlane(vtx, 1) || clippedPlane(vtx, 2) ;
+}
+
+// Z Buffer
+///////////////////////////////////////
 float getLinearZ(float D)
 {
     float denom = u.zFar-u.zNear;
@@ -167,9 +232,7 @@ float getLogDepth(float z)
     return logz;
 
 }
-
 //#define LOG_ZBUFF
-
 float getFragDepth(float z)
 {
 #ifdef LOG_ZBUFF
@@ -289,5 +352,3 @@ vec3 getSelectedNormal(float z, sampler2D depthData)
 #define RENDER_AO uint(1)
 #define RENDER_DEF uint(2)
 #define RENDER_SHADOW uint(4)
-
-vec4 ClipPlane = vec4(0.0, -.1, .1, .5);

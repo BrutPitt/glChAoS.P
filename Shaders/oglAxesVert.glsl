@@ -16,7 +16,7 @@
 layout (location = 1) in vec3 vPos;
 layout (location = 2) in vec3 normal;
 
-// I cant use direct location... for EMS and webgl
+// cant use direct location... for EMS and webgl
 //layout (location = 4) uniform mat4 pMat;
 //layout (location = 5) uniform mat4 mvMat;
 //layout (location = 6) uniform mat4 zoomF;
@@ -32,7 +32,7 @@ out gl_PerVertex
 };
 #endif
 
-// I cant use blocks... for EMS and webgl
+// cant use blocks... for EMS and webgl
 
 #ifdef GL_ES
 out vec4 vsColor;

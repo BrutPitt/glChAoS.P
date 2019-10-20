@@ -179,6 +179,17 @@ private:
 
 };
 
+class clippingDlgClass  : public baseDlgClass
+{
+public:
+    clippingDlgClass() : baseDlgClass("Clipping planes") {}
+
+    void view();
+
+private:
+};
+
+
 class aboutDlgClass  : public baseDlgClass
 {
 public:
@@ -283,6 +294,7 @@ paletteDlgClass paletteDlg;
 viewSettingDlgClass viewSettingDlg;
 fastViewDlgClass fastViewDlg;
 particleEditDlgClass particleEditDlg;
+clippingDlgClass clippingDlg;
 #if !defined(GLCHAOSP_LIGHTVER)
 dataDlgClass dataDlg;
 progSettingDlgClass progSettingDlg;
@@ -295,6 +307,7 @@ friend void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int actio
 friend void setGUIStyle();
 friend class progSettingDlgClass;
 friend class particlesDlgClass;
+friend class viewSettingDlgClass;
 
 };
 
