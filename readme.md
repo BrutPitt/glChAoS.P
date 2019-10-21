@@ -11,7 +11,7 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebGL** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
 - **[wglChAoS.P Advanced Mode](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** - **WebGL** advanced mode release with new render engine 
 
-### New ver.1.4.0 clipping planes feature
+#### New ver.1.4.0 *clipping planes* feature:
 | Boundary Coloring | w/o Boundary Coloring |
 | :---: | :---: |
 |![](https://user-images.githubusercontent.com/16171743/67207882-b84ba800-f414-11e9-869f-17837afadfbd.png) | ![](https://user-images.githubusercontent.com/16171743/67208489-eed5f280-f415-11e9-91f8-5e567fe40350.png) |
