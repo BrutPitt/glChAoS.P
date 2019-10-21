@@ -6,16 +6,21 @@ A real time 3D strange attractors scout... and hypercompex fractals (new!)
 To view all Attractors / Fractals currently inserted in this version, follow the link: [Attractors Formula](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
 
 
-## All availabe 1.4.0 releases
-- **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X**
+## All availabe 1.4.0 releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
+- **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X** 
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebGL** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
 - **[wglChAoS.P Advanced Mode](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** - **WebGL** advanced mode release with new render engine 
 
+### New ver.1.4.0 clipping planes feature
+| Boundary Coloring | w/o Boundary Coloring |
+| :---: | :---: |
+|![](https://user-images.githubusercontent.com/16171743/67207882-b84ba800-f414-11e9-869f-17837afadfbd.png) | ![](https://user-images.githubusercontent.com/16171743/67208489-eed5f280-f415-11e9-91f8-5e567fe40350.png) |
 
+|  TWO planes | THREE planes |
+| :-----: | :----: |
+|![](https://user-images.githubusercontent.com/16171743/67208555-07460d00-f416-11e9-8685-3f251c79f768.png) | ![](https://user-images.githubusercontent.com/16171743/67208224-69524280-f415-11e9-8297-f08ad2626350.png)|
 
-### 3D DLA (Diffusion Limited Aggregation)  - [DLA3D Video Example](https://youtu.be/_R7akPh64XU)
-[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/dla3D.jpg)](https://youtu.be/_R7akPh64XU)
-Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman), with possibility to export/import to/from PLY format and to continue a previous rendering.
+<p>&nbsp;<br>&nbsp;<br></p>
 
 ## Particle System rendering features
 - **100M** of particles in minus of 1.6 GByte of VRAM.. until **265M** (4G VRAM): **S**light (**dot**) **P**articles
@@ -27,6 +32,10 @@ Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, a
 - **Image adjustment**: Bright / Contrast / Gamma / Exposure / ToneMapping
 
 With **Billboard** and **PointSprite** techniques
+
+### 3D DLA (Diffusion Limited Aggregation)  - [DLA3D Video Example](https://youtu.be/_R7akPh64XU)
+[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/dla3D.jpg)](https://youtu.be/_R7akPh64XU)
+Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman), with possibility to export/import to/from PLY format and to continue a previous rendering.
 
 ### Rendering models with Aizawa attractor - **[Video Example](https://youtu.be/mkX4fdv-kZU)**
 
