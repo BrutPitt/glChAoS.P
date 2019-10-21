@@ -228,7 +228,7 @@ set(COMMON_DEFINES "-DVGIZMO_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPEN
 if(APPLE)
     set(COMMON_DEFINES "${COMMON_DEFINES} -DGLAPP_NO_GLSL_PIPELINE -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses -framework Cocoa -framework IOKit -framework CoreVideo")
 else()
-    set(COMMON_DEFINES "${COMMON_DEFINES} ")
+    set(COMMON_DEFINES "${COMMON_DEFINES} -DGLCHAOSP_USES_LIGHTMODELS_SUBS")
 endif(APPLE)
 
 

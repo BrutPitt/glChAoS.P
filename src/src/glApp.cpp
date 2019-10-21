@@ -318,6 +318,9 @@ void mainGLApp::glfwInit()
                       "#define LAYOUT_INDEX(X) layout(index = X)\n"
                       "#define LAYOUT_LOCATION(X) layout(location = X)\n"
                       "#define SUBROUTINE(X) subroutine(X)\n"
+        #ifdef GLCHAOSP_USES_LIGHTMODELS_SUBS
+                      "#define GLCHAOSP_USES_LIGHTMODELS_SUBS\n"
+        #endif
                       "#define CONST const\n";
     #else
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -326,8 +329,8 @@ void mainGLApp::glfwInit()
                       "#define LAYOUT_LOCATION(X)\n"
                       "#define LAYOUT_INDEX(X)\n"
                       "#define SUBROUTINE(X) subroutine(X)\n"
-        #ifdef __APPLE__  // troubles on MAC with multiple subroutines
-                      "#define __APPLE__\n"
+        #ifdef GLCHAOSP_USES_LIGHTMODELS_SUBS // troubles on MAC with multiple subroutines
+                      "#define GLCHAOSP_USES_LIGHTMODELS_SUBS\n"
         #endif
         #ifdef GLCHAOSP_LIGHTVER
                       "#define TEST_WGL\n"

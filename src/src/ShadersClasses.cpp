@@ -176,26 +176,28 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
     auto selectSubroutines = [&]() {
         GLuint subIDX[2];        
-        const int idxPixelColor  = (getBlendState() && !isSolid)       ? pixColIDX::pixBlendig :
-                                   getBlendState() || !isAO_RD_SHDW    ? pixColIDX::pixDirect  :
-                                   isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
-                                                                         pixColIDX::pixDR      ;
+        const uint idxPixelColor  = (getBlendState() && !isSolid)       ? pixColIDX::pixBlendig :
+                                    getBlendState() || !isAO_RD_SHDW    ? pixColIDX::pixDirect  :
+                                    isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
+                                                                          pixColIDX::pixDR      ;
 #ifdef GLAPP_REQUIRE_OGL45
-        subIDX[locSubPixelColor] = idxPixelColor;
-        subIDX[locSubLightModel] = uData.lightModel + lightMDL::modelOffset;
 
         GLuint subVtxIdx = idxViewOBJ && plyObjGetColor ? particlesViewColor::packedRGB : particlesViewColor::paletteIndex;
-
-        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
         glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &subVtxIdx);
+
+        subIDX[subsLoc::pixelColor] = idxPixelColor;
+        subIDX[subsLoc::lightModel] = uData.lightModel + lightMDL::modelOffset;
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
 #else
     uData.renderType = idxPixelColor;
     #if !defined(GLCHAOSP_LIGHTVER)
-        #if !defined(__APPLE__)
+        #ifdef GLCHAOSP_USES_LIGHTMODELS_SUBS
             subIDX[locSubPixelColor] = idxSubPixelColor[idxPixelColor-pixColIDX::pixOffset];
             subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel];
 
             glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
+        #else   
+            glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &idxSubPixelColor[idxPixelColor]);
         #endif
         glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), idxViewOBJ ? &idxSubOBJ : &idxSubVEL);
     #endif
@@ -367,7 +369,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
             getPostRendering()->setUniform1i(getPostRendering()->getLocPrevData(), getRenderFBO().getTex(fbIdx));
 
 #endif
-#if !defined(__APPLE__) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+#if defined(GLCHAOSP_USES_LIGHTMODELS_SUBS) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
             glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
 #endif
 
@@ -1015,15 +1017,14 @@ void postRenderingClass::create() {
 
     removeAllShaders(true);
 
-#if !defined(GLCHAOSP_LIGHTVER)
-    locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
-#endif
-
 #if !defined(GLAPP_REQUIRE_OGL45)
     USE_PROGRAM
     locAOTex = getUniformLocation("aoTex");
     locShadowTex = getUniformLocation("shadowTex");
     locPrevData = getUniformLocation("prevData");
+#if !defined(GLCHAOSP_LIGHTVER)
+    locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
+#endif
     uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
     renderEngine->getTMat()->blockBinding(getProgram());
     //uniformBlocksClass::bindIndex(getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));

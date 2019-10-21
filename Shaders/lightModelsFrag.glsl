@@ -80,7 +80,7 @@ LAYOUT_BINDING(4) uniform _tMat {
     mat4 mvLightM;
 } m;
 
-#if !defined(GL_ES) && !defined(__APPLE__)
+#if !defined(GL_ES) && defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
     #define lightModelOFFSET 5
     subroutine float _lightModel(vec3 V, vec3 L, vec3 N);
     LAYOUT_LOCATION(0) subroutine uniform _lightModel lightModel;
@@ -92,10 +92,6 @@ LAYOUT_BINDING(4) uniform _tMat {
 #define idxBLINPHONG (lightModelOFFSET + 1)
 #define idxGGX       (lightModelOFFSET + 2)
 
-#define planeON 1
-#define boundON 2
-
-
 float packColor16(vec2 color)
 {
     return uintBitsToFloat( packUnorm2x16(color) );
@@ -104,7 +100,6 @@ vec2 unPackColor16(float pkColor)
 {
     return unpackUnorm2x16(floatBitsToUint(pkColor));
 }
-
 
 #if !defined(GL_ES)
 /*
@@ -177,9 +172,11 @@ bool clippedPlane(vec4 vtx, int plane)
 
 bool clippedPoint(vec4 vtx)
 {
-    return pl.additiveSpace ?
-                clippedPlane(vtx, 0) && clippedPlane(vtx, 1) && clippedPlane(vtx, 2) && pl.atLeastOneActive :
-                clippedPlane(vtx, 0) || clippedPlane(vtx, 1) || clippedPlane(vtx, 2) ;
+    return pl.atLeastOneActive ? 
+               (pl.additiveSpace ?
+                    clippedPlane(vtx, 0) && clippedPlane(vtx, 1) && clippedPlane(vtx, 2)  :
+                    clippedPlane(vtx, 0) || clippedPlane(vtx, 1) || clippedPlane(vtx, 2)) :
+               false;
 }
 
 // Z Buffer
@@ -256,7 +253,7 @@ float restoreZ(float D)
 float form_01_to_m1p1(float f)  { return 2. * f - 1.; }
 float form_m1p1_to_01(float f)  { return  f*.5 + .5; }
 
-#if !defined(__APPLE__)
+#if defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
 LAYOUT_INDEX(idxPHONG) SUBROUTINE(_lightModel) 
 #endif
 float specularPhong(vec3 V, vec3 L, vec3 N)
@@ -267,7 +264,7 @@ float specularPhong(vec3 V, vec3 L, vec3 N)
     return pow(specAngle, u.lightShinExp * .25);
 }
 
-#if !defined(__APPLE__)
+#if defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
 LAYOUT_INDEX(idxBLINPHONG) SUBROUTINE(_lightModel) 
 #endif
 float specularBlinnPhong(vec3 V, vec3 L, vec3 N)
@@ -280,7 +277,7 @@ float specularBlinnPhong(vec3 V, vec3 L, vec3 N)
 
 }
 
-#if !defined(__APPLE__)
+#if defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
 LAYOUT_INDEX(idxGGX) SUBROUTINE(_lightModel) 
 #endif
 float specularGGX(vec3 V, vec3 L, vec3 N) 

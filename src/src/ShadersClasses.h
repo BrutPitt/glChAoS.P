@@ -364,8 +364,8 @@ public:
 private:
     mmFBO fbo;
     renderBaseClass *renderEngine;
-    GLuint locSubLightModel;
 #if !defined(GLAPP_REQUIRE_OGL45)
+    GLuint locSubLightModel;
     GLuint locAOTex, locPrevData, locShadowTex;
     GLuint idxSubLightModel[3];
 #endif
@@ -885,6 +885,7 @@ public:
     enum lightIDX { off, on };
     enum lightMDL { modelOffset = 5, modelPhong=modelOffset, modelBlinnPhong, modelGGX };
     enum pixColIDX { pixOffset, pixBlendig=pixOffset, pixDirect, pixAO, pixDR };
+    enum subsLoc { lightModel, pixelColor };
 
     particlesBaseClass ()  { 
         
@@ -911,23 +912,24 @@ public:
     }
 
     void getCommonLocals() {
-#if !defined(GLCHAOSP_LIGHTVER)
+
+#if !defined(GLAPP_REQUIRE_OGL45)
+    #if !defined(GLCHAOSP_LIGHTVER) 
         locSubPixelColor = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "pixelColor");
         locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
         const int numSub = 2;
-        if(locSubPixelColor>=numSub) locSubPixelColor = 0;
-        if(locSubLightModel>=numSub) locSubLightModel = 0;
-#endif
-#if !defined(GLAPP_REQUIRE_OGL45)
+        if(locSubPixelColor>=numSub || locSubPixelColor == -1) locSubPixelColor = 0;
+        if(locSubLightModel>=numSub || locSubLightModel == -1) locSubLightModel = 0;
+
         locPaletteTex = getUniformLocation("paletteTex" );
         locDotsTex    = getUniformLocation("tex"); 
-    #if !defined(GLCHAOSP_LIGHTVER) 
-        #if !defined(__APPLE__)
-            idxSubPixelColor[pixBlendig] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorBlending");
-            idxSubPixelColor[pixDirect ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorDirect");
-            idxSubPixelColor[pixAO     ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorAO");
-            idxSubPixelColor[pixDR     ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorDR");
 
+        idxSubPixelColor[pixBlendig] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorBlending");
+        idxSubPixelColor[pixDirect ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorDirect");
+        idxSubPixelColor[pixAO     ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorAO");
+        idxSubPixelColor[pixDR     ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorDR");
+
+        #ifdef GLCHAOSP_USES_LIGHTMODELS_SUBS
             idxSubLightModel[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularPhong");
             idxSubLightModel[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularBlinnPhong");
             idxSubLightModel[2] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularGGX");
@@ -1100,12 +1102,12 @@ protected:
     GLfloat stepInc;  
 
 #if !defined(GLAPP_REQUIRE_OGL45)
+    GLuint locSubLightModel, locSubPixelColor;
     GLuint locDotsTex, locPaletteTex;
     GLuint idxSubOBJ, idxSubVEL;
-    GLuint idxSubLightModel[3];
-    GLuint idxSubPixelColor[4];
+    GLuint idxSubLightModel[3] = { 0, 0, 0 };
+    GLuint idxSubPixelColor[4]  = { 0, 0, 0, 0 };
 #endif
-    GLuint locSubLightModel, locSubPixelColor;
     vec3 lightVec = vec3(50.f, 15.f, 25.f);
 
     bool depthBuffActive = true;

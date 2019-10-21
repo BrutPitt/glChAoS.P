@@ -1,30 +1,19 @@
-<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.3.1</a> ==> 1.4.0 (WiP)</h1>
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.4.0</a> </h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercompex fractals (new!) 
 
+To view all Attractors / Fractals currently inserted in this version, follow the link: [Attractors Formula](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
 
-# ** IMPORTANT ** Windows users with NVidia cards
-Please read this issue: [**fatal error C9999:** *** exception during compilation ***](https://github.com/BrutPitt/glChAoS.P/issues/3)
 
-It influence all version of **glChAoS.P**, also the previous ones
-
-**Since NVidia has biblical times to answer** I bypass momentarily the issue.
-
-I added `glChAoSP_NVidiaWorkaround.zip` Windows binaries, in the **[glChAoS.P Release Download](https://github.com/BrutPitt/glChAoS.P/releases)**: the package contains only two executable (32/64 bit), so you need to replace the original ones of `glChAoSP.zip` file, inside **glChAoS.P** directory strucure. 
-
-In this workaround I uses OpenGL 4.1, without Zero Drivers Overhead feature of OpenGL 4.5, without GLSL subroutines, with consequent slower performance.
-
-You can read more here: https://github.com/BrutPitt/glChAoS.P/issues/3#issuecomment-535753200
-
-## All availabe 1.3.1 releases
+## All availabe 1.4.0 releases
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X**
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebGL** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
 - **[wglChAoS.P Advanced Mode](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** - **WebGL** advanced mode release with new render engine 
 
 
 
-### New 3D DLA (Diffusion Limited Aggregation)  - [DLA3D Video Example](https://youtu.be/_R7akPh64XU)
+### 3D DLA (Diffusion Limited Aggregation)  - [DLA3D Video Example](https://youtu.be/_R7akPh64XU)
 [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/dla3D.jpg)](https://youtu.be/_R7akPh64XU)
 Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman), with possibility to export/import to/from PLY format and to continue a previous rendering.
 
@@ -45,7 +34,7 @@ With **Billboard** and **PointSprite** techniques
 | :-----: | :----: |
 |![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_5533.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55251.jpg)|
 
-### Ver 1.3 with further rendering engine improvement - **[Rendering Video Example](https://youtu.be/mkX4fdv-kZU)**
+### Further rendering engine improvement (from ver. >= 1.3.x) - **[Rendering Video Example](https://youtu.be/mkX4fdv-kZU)**
 | DualPass rendering: Z-buffer surface reconstruction | DualPass + Ambient Occlusion |
 | :---: | :---: |
 | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55315.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55328.jpg)|
@@ -56,7 +45,7 @@ With **Billboard** and **PointSprite** techniques
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
-## wglChAoS.P - the WebGL2 online version (ver. 1.3.2)
+## wglChAoS.P - the WebGL2 online version (ver. 1.4.0)
 
 <p align="center"><a href="https://michelemorrone.eu/glchaosp/webGL.html"> 
 <img src="https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg"></a>
@@ -277,7 +266,7 @@ Add the location in to `INCLUDE` environment variable or unpack/copy the `boost`
 
 **Windows**
 
-Windows user needs of Visual Studio 2017 or, in alternative, CMake 3.10 (or higher) for other compilers toolschain (non tested, but it should work).
+Windows user needs of Visual Studio 2019 (it works also wit VS 2017/2015, but is need to change appropriate *Platform Toolse* and/or *Windows SDK version* that you have installed). In alternative, CMake 3.10 (or higher) for other compilers toolschain (non tested, but it should work).
 
 - **Microsoft Visual Studio**
 In the folder `./src/msBuilds` there is the solution project for use with Visual Studio 2017.

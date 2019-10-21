@@ -165,7 +165,7 @@ vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO, float shadow)
         float lambertian = max(0.0, dot(light, N.xyz)); 
 
         vec3 V = normalize(vtx);
-#if defined(GL_ES) || defined(__APPLE__)
+#if defined(GL_ES) || !defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
         float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
 #else
         float specular = lightModel(V, light, N.xyz);
@@ -261,13 +261,7 @@ float buildSmoothScattereShadow(vec4 frag)
     if(projCoords.z>1.0) return 0.0;
     // get depth of current fragment from light's perspective    
 
-
-    float bias = u.shadowBias;
-#ifdef __APPLE__
-    bias+=1.0;
-#endif
-
-    float currentDepth = restoreZ(projCoords.z) + bias;
+    float currentDepth = restoreZ(projCoords.z) + u.shadowBias;
 
     vec2 stepTex = u.shadowGranularity*u.invScrnRes;
 
@@ -288,7 +282,7 @@ float buildSmoothScattereShadow(vec4 frag)
             vec3 projCoords = .5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
 
             closestDepth = restoreZ(texture(shadowTex, projCoords.xy+poissonDisk[(x*diam+y)%16]/1000.0).r);
-            float currentDepth = restoreZ(projCoords.z) + bias;
+            float currentDepth = restoreZ(projCoords.z) + u.shadowBias;
 
             shadow += currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv ;    // 1.0/9.0
         }
@@ -312,12 +306,7 @@ float buildSmoothShadow(vec4 frag)
 
 
     //float bias = 0.005 *  tan(acos(clamp(dot(normalize(u.lightDir),frag.xyz), 0., .9999)));
-    float bias = u.shadowBias;
-#ifdef __APPLE__
-    bias+=1.0;
-#endif
-
-    float currentDepth = restoreZ(projCoords.z) + bias;
+    float currentDepth = restoreZ(projCoords.z) + u.shadowBias;
 
     vec2 stepTex = u.shadowGranularity*u.invScrnRes;
 
@@ -338,7 +327,7 @@ float buildSmoothShadow(vec4 frag)
             vec3 projCoords = .5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
 
             closestDepth = restoreZ(texture(shadowTex, projCoords.xy).r);
-            float currentDepth = restoreZ(projCoords.z) + bias;
+            float currentDepth = restoreZ(projCoords.z) + u.shadowBias;
 
             shadow += (currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv) * .1 ;    // 1.0/9.0
 */

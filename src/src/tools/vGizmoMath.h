@@ -181,9 +181,10 @@ public:
     };
 
     Vec4() {}
-    Vec4(T s)                          : x(s),   y(s),   z(s),   w(s) {}
-    Vec4(T x, T y, T z, T w)           : x(x),   y(y),   z(z),   w(w) {}
-    Vec4(const VEC3_T& v, T s = T(0))  : x(v.x), y(v.y), z(v.z), w(s) {}
+    Vec4(T s)                          : x(s),   y(s),   z(s),   w(s)   {}
+    Vec4(T x, T y, T z, T w)           : x(x),   y(y),   z(z),   w(w)   {}
+    Vec4(const VEC3_T& v, T s = T(0))  : x(v.x), y(v.y), z(v.z), w(s)   {}
+    Vec4(T s, const VEC3_T& v)         : x(s),   y(v.y), z(v.z), w(v.w) {}
 
     const Vec4 operator-() const { return Vec4(-x, -y, -z, -w); }
     
@@ -461,14 +462,12 @@ TEMPLATE_TYPENAME_T inline const MAT4_T inverse(MAT4_T const &m) {
     VEC4_T v2(m.m12, m.m02, m.m02, m.m02);
     VEC4_T v3(m.m13, m.m03, m.m03, m.m03);
 
-    VEC4_T i0(v1 * f0 - v2 * f1 + v3 * f2);
-    VEC4_T i1(v0 * f0 - v2 * f3 + v3 * f4);
-    VEC4_T i2(v0 * f1 - v1 * f3 + v3 * f5);
-    VEC4_T i3(v0 * f2 - v1 * f4 + v2 * f5);
+    VEC4_T signV(T(1), T(-1),  T(1), T(-1));
+    MAT4_T inv((v1 * f0 - v2 * f1 + v3 * f2) *  signV,
+               (v0 * f0 - v2 * f3 + v3 * f4) * -signV,
+               (v0 * f1 - v1 * f3 + v3 * f5) *  signV,
+               (v0 * f2 - v1 * f4 + v2 * f5) * -signV);
             
-    VEC4_T signA( 1, -1,  1, -1), signB(-1,  1, -1,  1);
-    MAT4_T inv(i0 * signA, i1 * signB, i2 * signA, i3 * signB);
-
     VEC4_T v0r0(m.v0 * VEC4_T(inv.m00, inv.m10, inv.m20, inv.m30));
     return inv * (T(1) / (v0r0.x + v0r0.y + v0r0.z + v0r0.w)); }// 1/determinant ==> "operator *" is faster
 // external operators

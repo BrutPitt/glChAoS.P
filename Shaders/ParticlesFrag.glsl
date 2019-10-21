@@ -20,7 +20,7 @@ LAYOUT_BINDING(1) uniform sampler2D tex;
 #define idxSOLID_AO (pixelColorOFFSET + 2)
 #define idxSOLID_DR (pixelColorOFFSET + 3)
 
-#if !defined(GL_ES) && !defined(__APPLE__)
+#if !defined(GL_ES)
     subroutine vec4 _pixelColor(vec4 color, vec4 N);
     LAYOUT_LOCATION(1) subroutine uniform _pixelColor pixelColor;
 #endif
@@ -79,9 +79,7 @@ vec3 packing2Colors8bit(vec3 colorA, vec3 colorB)
 }
 #endif
 
-#if !defined(__APPLE__)
 LAYOUT_INDEX(idxSOLID) SUBROUTINE(_pixelColor) 
-#endif
 vec4 pixelColorDirect(vec4 color, vec4 N)
 {
 
@@ -91,7 +89,7 @@ vec4 pixelColorDirect(vec4 color, vec4 N)
     float lambertian = max(0.0, dot(light, N.xyz)); 
 
     vec3 V = normalize(newVertex.xyz);
-#if defined(GL_ES) || defined(__APPLE__)
+#if defined(GL_ES) || !defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
     float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
 #else
     float specular = lightModel(V, light, N.xyz);
@@ -105,9 +103,7 @@ vec4 pixelColorDirect(vec4 color, vec4 N)
     return vec4(smoothstep(u.sstepColorMin, u.sstepColorMax, lightColor + ambColor) , color.a);
 }
 
-#if !defined(__APPLE__)
 LAYOUT_INDEX(idxSOLID_AO) SUBROUTINE(_pixelColor) 
-#endif
 vec4 pixelColorAO(vec4 color, vec4 N)
 {
     vec3 light =  normalize(u.lightDir);  // +vtx
@@ -115,7 +111,7 @@ vec4 pixelColorAO(vec4 color, vec4 N)
     float lambertian = max(0.0, dot(light, N.xyz)); 
 
     vec3 V = normalize(newVertex.xyz);
-#if defined(GL_ES) || defined(__APPLE__)
+#if defined(GL_ES) || !defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
     float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
 #else
     float specular = lightModel(V, light, N.xyz);
@@ -127,18 +123,14 @@ vec4 pixelColorAO(vec4 color, vec4 N)
     return vec4(packing2Colors16bit(lColor, color.rgb), getFragDepth(newVertex.z));
 }
 
-#if !defined(__APPLE__)
 LAYOUT_INDEX(idxSOLID_DR) SUBROUTINE(_pixelColor)
-#endif
 vec4 pixelColorDR(vec4 color, vec4 N)
 {
    return vec4(color.xyz, getFragDepth(newVertex.z));
 }
 
 
-#if !defined(__APPLE__)
 LAYOUT_INDEX(idxBLENDING) SUBROUTINE(_pixelColor)  
-#endif
 vec4 pixelColorBlending(vec4 color, vec4 N)
 {
     if(color.a < u.alphaSkip ) { discard; return vec4(0.0); }  //returm need for Angle error
@@ -162,7 +154,7 @@ vec4 mainFunc(vec2 ptCoord)
     vec4 bound = colorBoundary(newVertex, 0) + colorBoundary(newVertex, 1) + colorBoundary(newVertex, 2);
     color.xyz = mix(color.xyz, bound.xyz, bound.a);
 
-#if defined(GL_ES) || defined(__APPLE__)
+#if defined(GL_ES)
     #if defined(GL_ES) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
         return u.lightActive==uint(1) ? pixelColorDirect(color, N) : pixelColorBlending(color, N);
     #else        
@@ -177,6 +169,5 @@ vec4 mainFunc(vec2 ptCoord)
     #endif
 #else   
         return pixelColor(color, N); 
-        
 #endif
 }
