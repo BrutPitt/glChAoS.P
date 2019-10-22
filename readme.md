@@ -9,7 +9,7 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 ## All availabe 1.4.0 releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X** 
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebGL** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
-- **[wglChAoS.P Advanced Mode](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** - **WebGL** advanced mode release with new render engine 
+  - You can select **Advanced Mode** check box (*default*) or deselect it for **Standard Mode**, for low resources devices (mobiles/tablet/smartphones), also from **[wglChAoS.P Advanced Mode](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** page description
 
 #### New ver.1.4.0 *clipping planes* feature:
 | Boundary Coloring | w/o Boundary Coloring |
@@ -50,7 +50,7 @@ Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, a
 | **DualPass + AO + Shadows** | **DualPass + AO + Shadows + mixed AlphaBlending** |
 | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55342.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55450.jpg)|
 
-**features also available in WebGL EXPERIMENTAL version*
+**features also available in WebGL advanced version*
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
