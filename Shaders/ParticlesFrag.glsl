@@ -160,10 +160,10 @@ vec4 mainFunc(vec2 ptCoord)
     #else        
         switch(u.renderType) {
             default:
-            case uint(0) : return pixelColorBlending(color, N);
-            case uint(1) : return pixelColorDirect(color, N);
-            case uint(2) : return pixelColorAO(color, N);
-            case uint(3) : return pixelColorDR(color, N);             
+            case uint(idxBLENDING) : return pixelColorBlending(color, N);
+            case uint(idxSOLID   ) : return pixelColorDirect(color, N);
+            case uint(idxSOLID_AO) : return pixelColorAO(color, N);
+            case uint(idxSOLID_DR) : return pixelColorDR(color, N);             
         }
         //return (u.pass >= uint(2)) ? vec4(color.xyz, getDepth(newVertex.z)) : (u.pass==uint(0) ? retColor : vec4(retColor.xyz, getDepth(newVertex.z))); 
     #endif

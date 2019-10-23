@@ -81,7 +81,6 @@ LAYOUT_BINDING(4) uniform _tMat {
 } m;
 
 #if !defined(GL_ES) && defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
-    #define lightModelOFFSET 5
     subroutine float _lightModel(vec3 V, vec3 L, vec3 N);
     LAYOUT_LOCATION(0) subroutine uniform _lightModel lightModel;
 #else

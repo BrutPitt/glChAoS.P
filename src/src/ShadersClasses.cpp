@@ -83,23 +83,7 @@ void shaderPointClass::initShader()
 
     removeAllShaders(true);
 
-#ifdef GLAPP_REQUIRE_OGL45
-    uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData);
-    getPlanesUBlock().create(sizeof(uClippingPlanes), &uPlanes, GLuint(renderBaseClass::bind::planesIDX));
-    getCommonLocals();
-#else
-    USE_PROGRAM
-
-    uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData, getProgram(), "_particlesData");
-    getPlanesUBlock().create(sizeof(uClippingPlanes), &uPlanes, getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
-
-    getTMat()->blockBinding(getProgram());
-
-    getCommonLocals();
-
-    ProgramObject::reset();
-#endif
-
+    setCommonData();
 }
 
 //
@@ -147,7 +131,7 @@ void particlesBaseClass::restoreGLstate()
 
 GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter) 
 {
-    const float shadowDetail = theApp->useDetailedShadows() ? float(2) : float(1);
+    const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
 
     auto updateCommons = [&] () {
         getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
@@ -156,7 +140,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
         getUData().velocity = getCMSettings()->getVelIntensity();
         getUData().lightDir = vec3(getTMat()->tM.vMatrix * vec4(getLightDir(), 1.0));
-        getUData().shadowDetail = shadowDetail;
+        getUData().shadowDetail = float(shadowDetail);
         getUData().rotCenter = getTMat()->getTrackball().getRotationCenter();
 
     };
@@ -173,13 +157,13 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
     const bool isAO_SHDW = ( useAO() || useShadow());
     const bool isSolid = ( getDepthState() ||  getLightState());
     const bool isShadow = ( useShadow() && isSolid);
-
+    const uint idxPixelColor  = 
+             uData.renderType = (getBlendState() && !isSolid)        ? pixColIDX::pixBlendig :
+                                 getBlendState() || !isAO_RD_SHDW    ? pixColIDX::pixDirect  :
+                                 isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
+                                                                       pixColIDX::pixDR      ;
     auto selectSubroutines = [&]() {
         GLuint subIDX[2];        
-        const uint idxPixelColor  = (getBlendState() && !isSolid)       ? pixColIDX::pixBlendig :
-                                    getBlendState() || !isAO_RD_SHDW    ? pixColIDX::pixDirect  :
-                                    isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
-                                                                          pixColIDX::pixDR      ;
 #ifdef GLAPP_REQUIRE_OGL45
 
         GLuint subVtxIdx = idxViewOBJ && plyObjGetColor ? particlesViewColor::packedRGB : particlesViewColor::paletteIndex;
@@ -189,7 +173,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         subIDX[subsLoc::lightModel] = uData.lightModel + lightMDL::modelOffset;
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
 #else
-    uData.renderType = idxPixelColor;
+        uData.renderType = idxPixelColor;
     #if !defined(GLCHAOSP_LIGHTVER)
         #ifdef GLCHAOSP_USES_LIGHTMODELS_SUBS
             subIDX[locSubPixelColor] = idxSubPixelColor[idxPixelColor-pixColIDX::pixOffset];
@@ -213,7 +197,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         //}
     }
 
-
     getUData().zNear = getTMat()->getPerspNear();
     getUData().zFar  = getTMat()->getPerspFar();
 
@@ -221,7 +204,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
     if(isShadow && !getBlendState()) {
-        glViewport(0,0, getWidth()*shadowDetail, getHeight()*shadowDetail);
+        if(shadowDetail>1) glViewport(0,0, getWidth()*shadowDetail, getHeight()*shadowDetail);
         if(autoLightDist()) {
             vec3 vL(normalize(getLightDir()));
             
@@ -251,12 +234,9 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         emitter->renderEvents();
 
         getShadow()->releaseRender();
-
-        //getTMat()->setPerspective(oldAngle, getTMat()->getPerspNear(), getTMat()->getPerspFar());
-        //tMat.setPerspective();
     }
 #endif
-    glViewport(0,0, getWidth(), getHeight());
+    if(shadowDetail>1) glViewport(0,0, getWidth(), getHeight());
 
 // Normal Render
 /////////////////////////////////////////////
@@ -279,21 +259,19 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
     updateBufferData();
        
-    const GLuint texID = dotTex.getTexID();
-
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, colorMap->getModfTex());
-    glBindTextureUnit(1, texID);
+    glBindTextureUnit(1, dotTex.getTexID());
 #else
     glActiveTexture(GL_TEXTURE0+colorMap->getModfTex());
     glBindTexture(GL_TEXTURE_2D,colorMap->getModfTex());
 
-    glActiveTexture(GL_TEXTURE0+texID);
-    glBindTexture(GL_TEXTURE_2D,texID);
+    glActiveTexture(GL_TEXTURE0+dotTex.getTexID());
+    glBindTexture(GL_TEXTURE_2D,dotTex.getTexID());
 
-    USE_PROGRAM
-    setUniform1i(locDotsTex,texID);
+    USE_PROGRAM    
 
+    setUniform1i(locDotsTex, dotTex.getTexID());
     updatePalTex();
 #endif
     selectSubroutines();
@@ -305,7 +283,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
     //ProgramObject::reset();
 #endif
 
-// DualRendering
+// SecondPass Rendering 
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
 #if defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
@@ -329,7 +307,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
             tMat.updateBufferData();
             updateBufferData();
-            //getPlanesUBlock().updateBufferData();
 
 #ifdef GLAPP_REQUIRE_OGL45
             glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
@@ -349,36 +326,32 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
           //const float oldAngle = getTMat()->getPerspAngle();
           //getTMat()->setPerspective(radians(45.f), getTMat()->getPerspNear(), getTMat()->getPerspFar());
 
-            getPostRendering()->bindRender();
+        getPostRendering()->bindRender();
 
-            tMat.updateBufferData();
-            updateBufferData();
-            //getPlanesUBlock().updateBufferData();
+        tMat.updateBufferData();
+        updateBufferData();
 
 
 #ifdef GLAPP_REQUIRE_OGL45
 
-            GLuint subIDX = uData.lightModel + lightMDL::modelOffset; 
+        GLuint subIDX = uData.lightModel + lightMDL::modelOffset; 
 
-            glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
+        glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
 #else
-            GLuint subIDX = getPostRendering()->getSubIdx(uData.lightModel);
+        GLuint subIDX = getPostRendering()->getSubIdx(uData.lightModel);
 
-            glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTex(fbIdx));
-            glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTex(fbIdx));
-            getPostRendering()->setUniform1i(getPostRendering()->getLocPrevData(), getRenderFBO().getTex(fbIdx));
+        glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTex(fbIdx));
+        glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTex(fbIdx));
+        getPostRendering()->setUniform1i(getPostRendering()->getLocPrevData(), getRenderFBO().getTex(fbIdx));
 
 #endif
 #if defined(GLCHAOSP_USES_LIGHTMODELS_SUBS) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-            glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
 #endif
 
-            getPostRendering()->render();
-            getPostRendering()->releaseRender();
-            returnedTex = getPostRendering()->getFBO().getTex(0);
-          //getTMat()->setPerspective(oldAngle, getTMat()->getPerspNear(), getTMat()->getPerspFar());
-
-        //}
+        getPostRendering()->render();
+        getPostRendering()->releaseRender();
+        returnedTex = getPostRendering()->getFBO().getTex(0);
     }
 #endif
 
@@ -426,21 +399,7 @@ void shaderBillboardClass::initShader()
 
     removeAllShaders(true);
 
-#ifdef GLAPP_REQUIRE_OGL45
-    uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData);
-    getPlanesUBlock().create(sizeof(uClippingPlanes), &uPlanes, GLuint(renderBaseClass::bind::planesIDX));
-    getCommonLocals();
-#else
-    bindPipeline();
-    USE_PROGRAM
-
-    uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData, getProgram(), "_particlesData");
-    getPlanesUBlock().create(sizeof(uClippingPlanes), &uPlanes, getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
-    getTMat()->blockBinding(getProgram());
-
-
-    getCommonLocals();
-#endif
+    setCommonData();
 }
 
 //
@@ -1027,7 +986,8 @@ void postRenderingClass::create() {
 #endif
     uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
     renderEngine->getTMat()->blockBinding(getProgram());
-    //uniformBlocksClass::bindIndex(getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
+    //if present in the shader, WebGL want to bindIndex also if not used
+    uniformBlocksClass::bindIndex(getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
 
 
     setUniform1i(getLocAOTex(), renderEngine->getAO()->getFBO().getTex(0));
@@ -1060,12 +1020,13 @@ void postRenderingClass::bindRender()
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
     glClearBufferfv(GL_COLOR,  0, value_ptr(vec4(0.0f)));
 
-    USE_PROGRAM
+    
 
 #ifdef GLAPP_REQUIRE_OGL45
         glBindTextureUnit(6, renderEngine->getAO()->getFBO().getTex(0));
         glBindTextureUnit(7, renderEngine->getShadow()->getFBO().getDepth(0));
 #else
+        USE_PROGRAM
         glActiveTexture(GL_TEXTURE0 + renderEngine->getAO()->getFBO().getTex(0));
         glBindTexture(GL_TEXTURE_2D,  renderEngine->getAO()->getFBO().getTex(0));
 
@@ -1188,7 +1149,8 @@ void ambientOcclusionClass::create() {
     locPrevData = getUniformLocation("prevData");
     locKernelTexture = getUniformLocation("ssaoSample");
     bindIDX = uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
-    //uniformBlocksClass::bindIndex(getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
+    //if present in the shader, WebGL want to bindIndex also if not used
+    uniformBlocksClass::bindIndex(getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX)); 
     renderEngine->getTMat()->blockBinding(getProgram());
 
     setUniform1i(locKernelTexture, ssaoKernelTex);

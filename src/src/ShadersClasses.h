@@ -911,18 +911,27 @@ public:
 #endif
     }
 
-    void getCommonLocals() {
+    void setCommonData() {
+#ifdef GLAPP_REQUIRE_OGL45
+    uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData);
+    getPlanesUBlock().create(sizeof(uClippingPlanes), &uPlanes, GLuint(renderBaseClass::bind::planesIDX));
 
-#if !defined(GLAPP_REQUIRE_OGL45)
+#else
+    USE_PROGRAM
+
+    uniformBlocksClass::create(GLuint(sizeof(uParticlesData)), (void *) &uData, getProgram(), "_particlesData");
+    getPlanesUBlock().create(sizeof(uClippingPlanes), &uPlanes, getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
+    getTMat()->blockBinding(getProgram());
+
+    locPaletteTex = getUniformLocation("paletteTex" );
+    locDotsTex    = getUniformLocation("tex"); 
+
     #if !defined(GLCHAOSP_LIGHTVER) 
         locSubPixelColor = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "pixelColor");
         locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
         const int numSub = 2;
         if(locSubPixelColor>=numSub || locSubPixelColor == -1) locSubPixelColor = 0;
         if(locSubLightModel>=numSub || locSubLightModel == -1) locSubLightModel = 0;
-
-        locPaletteTex = getUniformLocation("paletteTex" );
-        locDotsTex    = getUniformLocation("tex"); 
 
         idxSubPixelColor[pixBlendig] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorBlending");
         idxSubPixelColor[pixDirect ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorDirect");

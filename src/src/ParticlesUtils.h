@@ -226,11 +226,12 @@ public:
 
         const int w = texSize, h = texSize;
 
+        
+    #ifdef GLAPP_REQUIRE_OGL45
         int level = 1;
         int sz = texSize;
         while(sz>>=1) level++;
-        
-    #ifdef GLAPP_REQUIRE_OGL45
+
         static int oldSZ = -1;
 
         if(generated && oldSZ!=texSize) { glDeleteTextures(1, &texID); generated = false; }
@@ -265,7 +266,7 @@ public:
         //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
-        glBindTexture(GL_TEXTURE_2D, 0);
+        //glBindTexture(GL_TEXTURE_2D, 0);
     #endif
         CHECK_GL_ERROR();
     

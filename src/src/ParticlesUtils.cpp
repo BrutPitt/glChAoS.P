@@ -27,7 +27,7 @@
 //-----------------------------------------------------------------------------
 float getRandomMinMax( float fMin, float fMax )
 {
-    float fRandNum = (float)rand () / RAND_MAX;
+    float fRandNum = (float)rand () / (float)RAND_MAX;
     return fMin + (fMax - fMin) * fRandNum;
 }
 

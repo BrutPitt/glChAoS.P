@@ -1139,7 +1139,7 @@ public:
 
     inline void addLoadedPoint(const vec3 &p) {
         thisPOINT.push_back(p);
-        boundingRadius = max(boundingRadius, length(p) + kVal[1]);
+        boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
     }
 
 
@@ -1293,7 +1293,7 @@ protected:
             }
 
             // move randomly
-            p += normalize(MotionVector(p)) * max(kVal[2], d - kVal[1]);
+            p += normalize(MotionVector(p)) * std::max(kVal[2], d - kVal[1]);
 
             // check if particle is too far away, reset if so
             if (ShouldReset(p)) p = RandomStartingPosition();
