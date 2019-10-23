@@ -14,11 +14,13 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 #### New ver.1.4.0 *clipping planes* feature:
 | Boundary Coloring | w/o Boundary Coloring |
 | :---: | :---: |
-|![](https://user-images.githubusercontent.com/16171743/67207882-b84ba800-f414-11e9-869f-17837afadfbd.png) | ![](https://user-images.githubusercontent.com/16171743/67208489-eed5f280-f415-11e9-91f8-5e567fe40350.png) |
+|![sShot_20191021_135142a](https://user-images.githubusercontent.com/16171743/67403343-11047780-f5b2-11e9-832d-ea1a8c30d412.jpg) | ![sShot_20191021_135216](https://user-images.githubusercontent.com/16171743/67403549-63de2f00-f5b2-11e9-9ed6-69cb9f93d2e2.jpg) |
 
 |  TWO planes | THREE planes |
 | :-----: | :----: |
-|![](https://user-images.githubusercontent.com/16171743/67208555-07460d00-f416-11e9-8685-3f251c79f768.png) | ![](https://user-images.githubusercontent.com/16171743/67208224-69524280-f415-11e9-8297-f08ad2626350.png)|
+|![sShot_20191021_134829](https://user-images.githubusercontent.com/16171743/67403459-3f825280-f5b2-11e9-9956-2a8c42fecfe2.jpg) | ![sShot_20191021_13439](https://user-images.githubusercontent.com/16171743/67403416-29749200-f5b2-11e9-9717-5f05e553c2aa.jpg)|
+
+
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
