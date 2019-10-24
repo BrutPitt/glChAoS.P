@@ -164,9 +164,12 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
                                                                        pixColIDX::pixDR      ;
     auto selectSubroutines = [&]() {
         GLuint subIDX[2];        
-#ifdef GLAPP_REQUIRE_OGL45
-
+#ifdef GLCHAOSP_LIGHTVER
+        GLuint subVtxIdx = particlesViewColor::paletteIndex;
+#else
         GLuint subVtxIdx = idxViewOBJ && plyObjGetColor ? particlesViewColor::packedRGB : particlesViewColor::paletteIndex;
+#endif
+#ifdef GLAPP_REQUIRE_OGL45 
         glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &subVtxIdx);
 
         subIDX[subsLoc::pixelColor] = idxPixelColor;
@@ -174,16 +177,13 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
 #else
         uData.renderType = idxPixelColor;
-    #if !defined(GLCHAOSP_LIGHTVER)
-        #ifdef GLCHAOSP_USES_LIGHTMODELS_SUBS
-            subIDX[locSubPixelColor] = idxSubPixelColor[idxPixelColor-pixColIDX::pixOffset];
-            subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel];
+        uData.colorizingMethod = subVtxIdx;
+    #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+        subIDX[locSubPixelColor] = idxSubPixelColor[idxPixelColor-pixColIDX::pixOffset];
+        subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel];
 
-            glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
-        #else   
-            glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &idxSubPixelColor[idxPixelColor]);
-        #endif
-        glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), idxViewOBJ ? &idxSubOBJ : &idxSubVEL);
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
+        glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), subVtxIdx == particlesViewColor::packedRGB ? &idxSubOBJ : &idxSubVEL);
     #endif
 #endif
     };
@@ -345,7 +345,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         getPostRendering()->setUniform1i(getPostRendering()->getLocPrevData(), getRenderFBO().getTex(fbIdx));
 
 #endif
-#if defined(GLCHAOSP_USES_LIGHTMODELS_SUBS) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+#if !defined(GLCHAOSP_NO_USES_GLSL_SUBS) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
 #endif
 
@@ -738,13 +738,15 @@ void BlurBaseClass::create()
 
 
         uniformBlocksClass::create(GLuint(sizeof(uBlurData)), (void *) &uData, getProgram(), "_blurData");
-    #if !defined(GLCHAOSP_LIGHTVER)
+    #if !defined(GLCHAOSP_LIGHTVER) 
         LOCpass1Texture = getUniformLocation("pass1Texture");
-        idxSubGlowType[idxSubroutine_ByPass            ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "byPass"                  );
-        idxSubGlowType[idxSubroutine_BlurCommonPass1   ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass1"             );
-        idxSubGlowType[idxSubroutine_BlurGaussPass2    ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass2"             );
-        idxSubGlowType[idxSubroutine_BlurThresholdPass2]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass2withBilateral");
-        idxSubGlowType[idxSubroutine_Bilateral         ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "bilateralSmooth"         );
+        #if !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+            idxSubGlowType[idxSubroutine_ByPass            ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "byPass"                  );
+            idxSubGlowType[idxSubroutine_BlurCommonPass1   ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass1"             );
+            idxSubGlowType[idxSubroutine_BlurGaussPass2    ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass2"             );
+            idxSubGlowType[idxSubroutine_BlurThresholdPass2]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass2withBilateral");
+            idxSubGlowType[idxSubroutine_Bilateral         ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "bilateralSmooth"         );
+        #endif
     #endif
         //ProgramObject::reset();
 #endif
@@ -762,10 +764,6 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
     glBindTextureUnit(0, sourceTex);
     glBindTextureUnit(1, glowFBO.getTex(RB_PASS_1));
 
-    //glBindTextureUnit(3, theWnd->getParticlesSystem()->getRenderFBO().getDepth(0));
-    //glBindTextureUnit(4, theWnd->getParticlesSystem()->getRenderFBO().getTexMultiFB(0)); //vtx
-    //glBindTextureUnit(5, theWnd->getParticlesSystem()->getRenderFBO().getTexMultiFB(1)); //Norm
-
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIndex);
     updateData(subIndex);
 
@@ -775,21 +773,20 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
     glBindTexture(GL_TEXTURE_2D,sourceTex);
     setUniform1i(LOCorigTexture, sourceTex);
 
-#if !defined(GLCHAOSP_LIGHTVER)
-    glActiveTexture(GL_TEXTURE0+glowFBO.getTex(RB_PASS_1));
-    glBindTexture(GL_TEXTURE_2D,  glowFBO.getTex(RB_PASS_1));
-    setUniform1i(LOCpass1Texture, glowFBO.getTex(RB_PASS_1));
+    #if !defined(GLCHAOSP_LIGHTVER)
+        glActiveTexture(GL_TEXTURE0+glowFBO.getTex(RB_PASS_1));
+        glBindTexture(GL_TEXTURE_2D,  glowFBO.getTex(RB_PASS_1));
+        setUniform1i(LOCpass1Texture, glowFBO.getTex(RB_PASS_1));
 
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &idxSubGlowType[subIndex]);
-#endif
+        #if !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+            glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &idxSubGlowType[subIndex]);
+        #endif
+    #endif
     updateData(subIndex);
 
 #endif
 
     theWnd->getVAO()->draw();
-#if !defined(GLAPP_REQUIRE_OGL45)
-    //ProgramObject::reset();
-#endif
 }
 
 void BlurBaseClass::updateData(GLuint subIndex) 
@@ -977,37 +974,35 @@ void postRenderingClass::create() {
     removeAllShaders(true);
 
 #if !defined(GLAPP_REQUIRE_OGL45)
-    USE_PROGRAM
-    locAOTex = getUniformLocation("aoTex");
-    locShadowTex = getUniformLocation("shadowTex");
-    locPrevData = getUniformLocation("prevData");
-#if !defined(GLCHAOSP_LIGHTVER)
-    locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
-#endif
-    uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
-    renderEngine->getTMat()->blockBinding(getProgram());
-    //if present in the shader, WebGL want to bindIndex also if not used
-    uniformBlocksClass::bindIndex(getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
+        USE_PROGRAM
+        locAOTex = getUniformLocation("aoTex");
+        locShadowTex = getUniformLocation("shadowTex");
+        locPrevData = getUniformLocation("prevData");
+
+        uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
+        renderEngine->getTMat()->blockBinding(getProgram());
+        //if present in the shader, WebGL want to bindIndex also if not used
+        uniformBlocksClass::bindIndex(getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
+
+        setUniform1i(getLocAOTex(), renderEngine->getAO()->getFBO().getTex(0));
+
+    // for Chrome76 message: "texture is not renderable" if only zBuffer... need ColorBuffer 
+    // FireFox68 Works fine also only with zBuffer w/o ColorBuffer
+    ////////////////////////////////////////////////////////////////////////////////
+    #if !defined(GLCHAOSP_LIGHTVER)
+        setUniform1i(getLocShadowTex(), renderEngine->getShadow()->getFBO().getDepth(0));
+    #else
+        setUniform1i(getLocShadowTex(), renderEngine->getShadow()->getFBO().getTex(0));
+    #endif 
 
 
-    setUniform1i(getLocAOTex(), renderEngine->getAO()->getFBO().getTex(0));
+    #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+        locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
 
-// for Chrome76 message: "texture is not renderable" if only zBuffer... need ColorBuffer 
-// FireFox68 Works fine also only with zBuffer w/o ColorBuffer
-////////////////////////////////////////////////////////////////////////////////
-#if !defined(GLCHAOSP_LIGHTVER)
-    setUniform1i(getLocShadowTex(), renderEngine->getShadow()->getFBO().getDepth(0));
-#else
-    setUniform1i(getLocShadowTex(), renderEngine->getShadow()->getFBO().getTex(0));
-#endif
-
-
-
-#if !defined(GLCHAOSP_LIGHTVER)
-    idxSubLightModel[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularPhong");
-    idxSubLightModel[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularBlinnPhong");
-    idxSubLightModel[2] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularGGX");
-#endif
+        idxSubLightModel[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularPhong");
+        idxSubLightModel[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularBlinnPhong");
+        idxSubLightModel[2] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularGGX");
+    #endif
 
 #endif
 

@@ -165,7 +165,7 @@ vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO, float shadow)
         float lambertian = max(0.0, dot(light, N.xyz)); 
 
         vec3 V = normalize(vtx);
-#if defined(GL_ES) || !defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
+#if defined(GL_ES) || defined(GLCHAOSP_NO_USES_GLSL_SUBS)
         float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
 #else
         float specular = lightModel(V, light, N.xyz);

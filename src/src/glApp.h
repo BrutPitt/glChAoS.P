@@ -278,7 +278,7 @@ public:
     int selectedListQuickView() { return idxListQuickView; }
 
     void selectEmitterType(int type) {
-#if !defined(__EMSCRIPTEN__)
+#if !defined(GLCHAOSP_LIGHTVER)
     #ifdef GLAPP_REQUIRE_OGL45
         emitterType = type;
     #else

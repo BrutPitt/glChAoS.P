@@ -318,9 +318,6 @@ void mainGLApp::glfwInit()
                       "#define LAYOUT_INDEX(X) layout(index = X)\n"
                       "#define LAYOUT_LOCATION(X) layout(location = X)\n"
                       "#define SUBROUTINE(X) subroutine(X)\n"
-        #ifdef GLCHAOSP_USES_LIGHTMODELS_SUBS
-                      "#define GLCHAOSP_USES_LIGHTMODELS_SUBS\n"
-        #endif
                       "#define CONST const\n";
     #else
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -328,18 +325,14 @@ void mainGLApp::glfwInit()
         glslDefines = "#define LAYOUT_BINDING(X)\n"
                       "#define LAYOUT_LOCATION(X)\n"
                       "#define LAYOUT_INDEX(X)\n"
+        #ifdef GLCHAOSP_NO_USES_GLSL_SUBS // troubles on MAC with multiple subroutines
+                      "#define GLCHAOSP_NO_USES_GLSL_SUBS\n"
+                      "#define SUBROUTINE(X)\n"
+        #else
                       "#define SUBROUTINE(X) subroutine(X)\n"
-        #ifdef GLCHAOSP_USES_LIGHTMODELS_SUBS // troubles on MAC with multiple subroutines
-                      "#define GLCHAOSP_USES_LIGHTMODELS_SUBS\n"
-        #endif
-        #ifdef GLCHAOSP_LIGHTVER
-                      "#define TEST_WGL\n"
         #endif
                       "#define CONST\n";
     #endif
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //GLFW_OPENGL_ANY_PROFILE
-        glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
 #else
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -348,16 +341,19 @@ void mainGLApp::glfwInit()
         else                  glslDefines = "precision highp float;\n"   "precision highp int;\n";
         glslDefines+= "#define LAYOUT_BINDING(X)\n"
                       "#define LAYOUT_INDEX(X)\n"
+                      "#define LAYOUT_LOCATION(X)\n"
                       "#define SUBROUTINE(X)\n"
 #ifdef GLCHAOSP_LIGHTVER_EXPERIMENTAL
                       "#define GLCHAOSP_LIGHTVER_EXPERIMENTAL\n"
 #endif
                       "#define CONST\n";
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //GLFW_OPENGL_ANY_PROFILE
-        glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
         glfwWindowHint(GLFW_SAMPLES,0);
 #endif
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //GLFW_OPENGL_ANY_PROFILE
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
+    glfwWindowHint(GLFW_DEPTH_BITS,0);
+
     //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);

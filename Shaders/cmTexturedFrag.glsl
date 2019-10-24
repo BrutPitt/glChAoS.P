@@ -18,15 +18,8 @@
 
 layout(std140) uniform;
 
-#if defined(GL_ES) || defined(TEST_WGL)
-out vec4 color;
-uniform sampler2D paletteTex;
-
-#else
-layout (location = 0) out vec4 color;
-
+LAYOUT_LOCATION(0) out vec4 color;
 LAYOUT_BINDING(0) uniform sampler2D paletteTex;
-#endif
 
 LAYOUT_BINDING(2) uniform _cmData {
     vec3 hslData;

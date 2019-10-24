@@ -58,6 +58,7 @@ LAYOUT_BINDING(2) uniform _particlesData {
     uint  lightActive;
     uint  pass;
     uint  renderType;
+    int   colorizingMethod;
 } u;                    // 54*4
 
 LAYOUT_BINDING(9) uniform _clippingPlanes {
@@ -80,7 +81,7 @@ LAYOUT_BINDING(4) uniform _tMat {
     mat4 mvLightM;
 } m;
 
-#if !defined(GL_ES) && defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
+#if !defined(GL_ES) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
     #define lightModelOFFSET 5
     subroutine float _lightModel(vec3 V, vec3 L, vec3 N);
     LAYOUT_LOCATION(0) subroutine uniform _lightModel lightModel;
@@ -253,9 +254,7 @@ float restoreZ(float D)
 float form_01_to_m1p1(float f)  { return 2. * f - 1.; }
 float form_m1p1_to_01(float f)  { return  f*.5 + .5; }
 
-#if defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
 LAYOUT_INDEX(idxPHONG) SUBROUTINE(_lightModel) 
-#endif
 float specularPhong(vec3 V, vec3 L, vec3 N)
 {
     vec3 R = reflect(L, N);
@@ -264,9 +263,7 @@ float specularPhong(vec3 V, vec3 L, vec3 N)
     return pow(specAngle, u.lightShinExp * .25);
 }
 
-#if defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
 LAYOUT_INDEX(idxBLINPHONG) SUBROUTINE(_lightModel) 
-#endif
 float specularBlinnPhong(vec3 V, vec3 L, vec3 N)
 {
 // point on surface of sphere in eye space
@@ -277,9 +274,7 @@ float specularBlinnPhong(vec3 V, vec3 L, vec3 N)
 
 }
 
-#if defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
 LAYOUT_INDEX(idxGGX) SUBROUTINE(_lightModel) 
-#endif
 float specularGGX(vec3 V, vec3 L, vec3 N) 
 {
     float alpha = u.ggxRoughness*u.ggxRoughness;

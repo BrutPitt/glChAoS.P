@@ -184,7 +184,7 @@ public:
     Vec4(T s)                          : x(s),   y(s),   z(s),   w(s)   {}
     Vec4(T x, T y, T z, T w)           : x(x),   y(y),   z(z),   w(w)   {}
     Vec4(const VEC3_T& v, T s = T(0))  : x(v.x), y(v.y), z(v.z), w(s)   {}
-    Vec4(T s, const VEC3_T& v)         : x(s),   y(v.y), z(v.z), w(v.w) {}
+    Vec4(T s, const VEC3_T& v)         : x(s),   y(v.x), z(v.y), w(v.z) {}
 
     const Vec4 operator-() const { return Vec4(-x, -y, -z, -w); }
     

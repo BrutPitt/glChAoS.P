@@ -20,7 +20,7 @@ LAYOUT_BINDING(1) uniform sampler2D tex;
 #define idxSOLID_AO (pixelColorOFFSET + 2)
 #define idxSOLID_DR (pixelColorOFFSET + 3)
 
-#if !defined(GL_ES)
+#if !defined(GL_ES) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
     subroutine vec4 _pixelColor(vec4 color, vec4 N);
     LAYOUT_LOCATION(1) subroutine uniform _pixelColor pixelColor;
 #endif
@@ -89,7 +89,7 @@ vec4 pixelColorDirect(vec4 color, vec4 N)
     float lambertian = max(0.0, dot(light, N.xyz)); 
 
     vec3 V = normalize(newVertex.xyz);
-#if defined(GL_ES) || !defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
+#if defined(GL_ES) || defined(GLCHAOSP_NO_USES_GLSL_SUBS)
     float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
 #else
     float specular = lightModel(V, light, N.xyz);
@@ -111,7 +111,7 @@ vec4 pixelColorAO(vec4 color, vec4 N)
     float lambertian = max(0.0, dot(light, N.xyz)); 
 
     vec3 V = normalize(newVertex.xyz);
-#if defined(GL_ES) || !defined(GLCHAOSP_USES_LIGHTMODELS_SUBS)
+#if defined(GL_ES) || defined(GLCHAOSP_NO_USES_GLSL_SUBS)
     float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
 #else
     float specular = lightModel(V, light, N.xyz);
@@ -128,7 +128,6 @@ vec4 pixelColorDR(vec4 color, vec4 N)
 {
    return vec4(color.xyz, getFragDepth(newVertex.z));
 }
-
 
 LAYOUT_INDEX(idxBLENDING) SUBROUTINE(_pixelColor)  
 vec4 pixelColorBlending(vec4 color, vec4 N)
@@ -154,9 +153,9 @@ vec4 mainFunc(vec2 ptCoord)
     vec4 bound = colorBoundary(newVertex, 0) + colorBoundary(newVertex, 1) + colorBoundary(newVertex, 2);
     color.xyz = mix(color.xyz, bound.xyz, bound.a);
 
-#if defined(GL_ES)
+#if defined(GL_ES) || defined(GLCHAOSP_NO_USES_GLSL_SUBS)
     #if defined(GL_ES) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-        return u.lightActive==uint(1) ? pixelColorDirect(color, N) : pixelColorBlending(color, N);
+        return u.lightActive==1u ? pixelColorDirect(color, N) : pixelColorBlending(color, N);
     #else        
         switch(u.renderType) {
             default:

@@ -283,13 +283,15 @@ void attractorDlgClass::view()
 
                 for (int i = 0; i < attractorsList.getList().size(); i++)   {
                     //ImGui::SetCursorPosX(border);
-                    if (ImGui::Selectable(attractorsList.getDisplayName(i).c_str(), attractorsList.getSelection() == i)) {
+                    const bool selected = attractorsList.getSelection() == i;
+                    if (ImGui::Selectable(attractorsList.getDisplayName(i).c_str(), selected)) {
                         attractorsList.setSelection(i);
                         //onRestart();
                     }
+                    //if(selected) ImGui::SetItemDefaultFocus();
                 }
 
-            ImGui::EndChild();           
+            ImGui::EndChild();
 
             ImGui::BeginChild("load_save",ImVec2(wGrp,0)); {
                

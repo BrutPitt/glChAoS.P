@@ -226,9 +226,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/..")
 
 set(COMMON_DEFINES "-DVGIZMO_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL")
 if(APPLE)
-    set(COMMON_DEFINES "${COMMON_DEFINES} -DGLAPP_NO_GLSL_PIPELINE -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses -framework Cocoa -framework IOKit -framework CoreVideo")
+    set(COMMON_DEFINES "${COMMON_DEFINES} -DGLCHAOSP_NO_USES_GLSL_SUBS -DGLAPP_NO_GLSL_PIPELINE -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses -framework Cocoa -framework IOKit -framework CoreVideo")
 else()
-    set(COMMON_DEFINES "${COMMON_DEFINES} -DGLCHAOSP_USES_LIGHTMODELS_SUBS")
+    set(COMMON_DEFINES "${COMMON_DEFINES}")
 endif(APPLE)
 
 

@@ -877,8 +877,9 @@ struct uParticlesData {
 // __APPLE__ & GL_ES
     GLuint lightModel = modelBlinnPhong - modelOffset;
     GLuint lightActive = GLuint(on);
-    GLint pass = 0;
+    GLuint pass = 0;
     GLuint renderType = 0;
+    GLint colorizingMethod = 0;
 } uData;
 
 public:
@@ -926,7 +927,7 @@ public:
     locPaletteTex = getUniformLocation("paletteTex" );
     locDotsTex    = getUniformLocation("tex"); 
 
-    #if !defined(GLCHAOSP_LIGHTVER) 
+    #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
         locSubPixelColor = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "pixelColor");
         locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
         const int numSub = 2;
@@ -938,11 +939,10 @@ public:
         idxSubPixelColor[pixAO     ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorAO");
         idxSubPixelColor[pixDR     ] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pixelColorDR");
 
-        #ifdef GLCHAOSP_USES_LIGHTMODELS_SUBS
-            idxSubLightModel[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularPhong");
-            idxSubLightModel[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularBlinnPhong");
-            idxSubLightModel[2] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularGGX");
-        #endif        
+        idxSubLightModel[0] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularPhong");
+        idxSubLightModel[1] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularBlinnPhong");
+        idxSubLightModel[2] = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "specularGGX");
+
         idxSubOBJ = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "objColor"); 
         idxSubVEL = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "velColor"); 
     #endif

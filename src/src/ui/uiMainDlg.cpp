@@ -1237,7 +1237,7 @@ void particlesDlgClass::view()
                     viewSettings(pSys->shaderBillboardClass::getPtr(),'B');
                 }
 #else
-                ImGui::SetNextTreeNodeOpen(true);
+                ImGui::SetNextItemOpen(true);
                 if(psTreeVisible = ImGui::CollapsingHeader(ICON_FA_SLIDERS " Pointsprite", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_NoTreePushOnOpen)) {
                     viewSettings(pSys->shaderPointClass::getPtr(), 'P');   
                 }

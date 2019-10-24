@@ -290,7 +290,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>GLAPP_NO_GLSL_PIPELINE;VGIZMO_USES_TEMPLATE;GLCHAOSP_USES_LIGHTMODELS_SUBS;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_DEBUG;_CRT_SECURE_NO_DEPRECATE;WIN32;_WINDOWS;GLM_ENABLE_EXPERIMENTAL;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLCHAOSP_LIGHTVER;GLCHAOSP_NO_USES_GLSL_SUBS;GLAPP_NO_GLSL_PIPELINE;VGIZMO_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_DEBUG;_CRT_SECURE_NO_DEPRECATE;WIN32;_WINDOWS;GLM_ENABLE_EXPERIMENTAL;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
@@ -367,7 +367,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>GLAPP_NO_GLSL_PIPELINE;VGIZMO_USES_TEMPLATE;GLCHAOSP_USES_LIGHTMODELS_SUBS;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;GLM_ENABLE_EXPERIMENTAL;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLCHAOSP_LIGHTVER;GLCHAOSP_NO_USES_GLSL_SUBS;GLAPP_NO_GLSL_PIPELINE;VGIZMO_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;GLM_ENABLE_EXPERIMENTAL;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
@@ -440,7 +440,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>VGIZMO_USES_TEMPLATE;GLCHAOSP_USES_LIGHTMODELS_SUBS;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLCHAOSP_NO_USES_GLSL_SUBS;GLAPP_NO_GLSL_PIPELINE;VGIZMO_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -540,7 +540,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|x64'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>VGIZMO_USES_TEMPLATE;GLCHAOSP_USES_LIGHTMODELS_SUBS;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLCHAOSP_NO_USES_GLSL_SUBS;GLAPP_NO_GLSL_PIPELINE;VGIZMO_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>

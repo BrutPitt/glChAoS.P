@@ -32,9 +32,9 @@ void glWindow::onInit()
     //rndTexture.buildTex(1024);
     //hlsTexture.buildTex(1024);
 
+    particlesSystem = new particlesSystemClass(new singleEmitterClass);
 #if !defined(__EMSCRIPTEN__)
     //new particlesSystemClass(new transformedEmitterClass(1,1/*mVB_COLOR*/)) :
-    particlesSystem = new particlesSystemClass(new singleEmitterClass);
 
     //pointsprite initialization
     glEnable( GL_PROGRAM_POINT_SIZE );
@@ -43,10 +43,10 @@ void glWindow::onInit()
     glGetFloatv(GL_POINT_SIZE_RANGE, &retVal[0]);
     particlesSystem->shaderPointClass::getUData().pointspriteMinSize = retVal[0];
 
-    //lock aux thread until initialization is complete
-    std::lock_guard<std::mutex> l( attractorsList.getStepMutex() );
-#else
-    particlesSystem = new particlesSystemClass(new singleEmitterClass);
+    #if !defined(GLCHAOSP_LIGHTVER)
+        //lock aux thread until initialization is complete
+        std::lock_guard<std::mutex> l( attractorsList.getStepMutex() );
+    #endif
 #endif
 
     //start new thread (if aux thread enabled)

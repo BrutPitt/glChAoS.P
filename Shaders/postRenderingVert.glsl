@@ -65,6 +65,7 @@ LAYOUT_BINDING(2) uniform _particlesData {
     uint  lightActive;
     uint  pass;
     uint  renderType;
+    int   colorizingMethod;
 } u;
 
 LAYOUT_BINDING(9) uniform _clippingPlanes {
@@ -80,8 +81,7 @@ LAYOUT_BINDING(9) uniform _clippingPlanes {
 out vec2 viewRay;
 out vec2 viewRayLight;
 
-#ifdef GL_ES
-#else
+#if !defined(GL_ES)
 out gl_PerVertex
 {
 	vec4 gl_Position;

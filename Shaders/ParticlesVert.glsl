@@ -63,6 +63,7 @@ LAYOUT_BINDING(2) uniform _particlesData {
     uint  lightActive;
     uint  pass;
     uint  renderType;
+    int   colorizingMethod;
 } u;
 
 LAYOUT_BINDING(9) uniform _clippingPlanes {
@@ -95,14 +96,15 @@ out gl_PerVertex
 #endif
 
 
-#ifndef GL_ES
+#if !defined(GL_ES) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
     subroutine vec4 _colorResult();
     subroutine uniform _colorResult colorResult;
 #endif
 
 // Load OBJ
-#ifndef GL_ES
-LAYOUT_INDEX(1) SUBROUTINE(_colorResult) vec4 objColor()
+#if !defined (GL_ES)
+LAYOUT_INDEX(1) SUBROUTINE(_colorResult) 
+vec4 objColor()
 {
     uint packCol = floatBitsToUint(a_ActualPoint.w);
     vec4 col = unpackUnorm4x8(packCol);
@@ -111,7 +113,8 @@ LAYOUT_INDEX(1) SUBROUTINE(_colorResult) vec4 objColor()
 }
 #endif
 
-LAYOUT_INDEX(0) SUBROUTINE(_colorResult) vec4 velColor()
+LAYOUT_INDEX(0) SUBROUTINE(_colorResult) 
+vec4 velColor()
 {
     float vel = a_ActualPoint.w*u.velIntensity;
     return vec4(texture(paletteTex, vec2(vel,0.f)).rgb,1.0);

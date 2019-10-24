@@ -2030,11 +2030,7 @@ private:
 
 //  Attractor Class container
 ////////////////////////////////////////////////////////////////////////////
-#if !defined(GLCHAOSP_LIGHTVER)
 #define ATT_PATH "startData/"
-#else
-#define ATT_PATH "startData/"
-#endif
 #define ATT_EXT ".sca"
 
 #define PB(ATT,DISPLAY_NAME) ptr.push_back(new ATT());\

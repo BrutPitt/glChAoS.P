@@ -33,8 +33,13 @@
 ///////////////////////////////////////////////////////////////////////
 layout(std140) uniform;
 
+#define idxBYPASS          0
+#define idxRADIAL_P1       1
+#define idxRADIAL_P2       2
+#define idxRADIAL_P2_BILAT 3
+#define idxBILATERAL       4
 
-#ifndef GL_ES
+#if !defined(GL_ES) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
     subroutine vec4 _radialPass();
     subroutine uniform _radialPass imageResult;
 #endif
@@ -58,22 +63,13 @@ LAYOUT_BINDING(2) uniform _blurData {
 LAYOUT_BINDING(0) uniform sampler2D origTexture;
 LAYOUT_BINDING(1) uniform sampler2D pass1Texture;
 
-//LAYOUT_BINDING(3) uniform sampler2D depthTexture;
-//LAYOUT_BINDING(4) uniform sampler2D vtxTex;
-//LAYOUT_BINDING(5) uniform sampler2D normTex;
-
-
-//in vec2 vTexCoord;
 out vec4 outColor;
 
 
 CONST vec2 aspect = vec2(1.0, 1.0);
 
 
-//Bilateral smart smooth
-
 #define MSIZE 40
-
 
 
 //  fX = exp( -(x*x) * invSigmaSqx2 ) * invSigmaxSqrt2PI; 
@@ -132,32 +128,32 @@ CONST vec2 aspect = vec2(1.0, 1.0);
 
 vec4 bilateralSmartSmooth(CONST float reductFactor)
 {
-    CONST float bsigma = threshold*reductFactor;
-    CONST float radius = float(round(sigma.y*sigma.x-1.f));
-    CONST float radQ = radius * radius;
+    float bsigma = threshold*reductFactor;
+    float radius = float(round(sigma.y*sigma.x-1.f));
+    float radQ = radius * radius;
     
-    CONST float invSigma = 1.f/sigma.x;
-    CONST float invSigmaQx2 = .5 * invSigma * invSigma;          // 1.0 / (sigma^2 * 2.0)
-    CONST float invSigmaQx2PI = INV_PI * invSigmaQx2;    // 1.0 / (sqrt(PI) * sigma)
+    float invSigma = 1.f/sigma.x;
+    float invSigmaQx2 = .5 * invSigma * invSigma;          // 1.0 / (sigma^2 * 2.0)
+    float invSigmaQx2PI = INV_PI * invSigmaQx2;    // 1.0 / (sqrt(PI) * sigma)
     
-    CONST float invBSigma = 1.f/bsigma;
-    CONST float invBSigmaSqx2 = .5 * invBSigma * invBSigma;          // 1.0 / (sigma^2 * 2.0)
-    CONST float invBSigmaxSqrt2PI = INV_SQRT_OF_2PI * invBSigma;    // 1.0 / (sqrt(2*PI) * sigma)
+    float invBSigma = 1.f/bsigma;
+    float invBSigmaSqx2 = .5 * invBSigma * invBSigma;          // 1.0 / (sigma^2 * 2.0)
+    float invBSigmaxSqrt2PI = INV_SQRT_OF_2PI * invBSigma;    // 1.0 / (sqrt(2*PI) * sigma)
     
-    CONST vec4 centrPx = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0);
+    vec4 centrPx = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0);
     
     float Zbuff = 0.0;
     vec4 accumBuff = vec4(0.0);
     
     vec2 d;
     for (d.x=-radius; d.x <= radius; d.x++)	{
-        CONST float pt = sqrt(radQ-d.x*d.x);
+        float pt = sqrt(radQ-d.x*d.x);
         for (d.y=-pt; d.y <= pt; d.y++) {
-            CONST float blurFactor = exp( -dot(d , d) * invSigmaQx2 ) * invSigmaQx2;
+            float blurFactor = exp( -dot(d , d) * invSigmaQx2 ) * invSigmaQx2;
             
-            CONST vec4 walkPx =  texelFetch(origTexture, ivec2(gl_FragCoord.xy+d),0 );
-            CONST vec4 dC = walkPx-centrPx;
-            CONST float deltaFactor = exp( -dot(dC, dC) * invBSigmaSqx2) * invBSigmaxSqrt2PI * blurFactor;
+            vec4 walkPx =  texelFetch(origTexture, ivec2(gl_FragCoord.xy+d),0 );
+            vec4 dC = walkPx-centrPx;
+            float deltaFactor = exp( -dot(dC, dC) * invBSigmaSqx2) * invBSigmaxSqrt2PI * blurFactor;
                                  
             Zbuff     += deltaFactor;
             accumBuff += deltaFactor*walkPx;
@@ -177,15 +173,15 @@ vec4 gPass(sampler2D tex, vec2 direction)
     //vec2 offset = wSize; 
     
     //compute the radius across the kernel
-    CONST float radius = sigma.y*sigma.x-1.f;
+    float radius = sigma.y*sigma.x-1.f;
     
     float Zbuff = 0.0;
     vec4 accumBuff = vec4(0.0);
     
     //precompute factors used every iteration
-    CONST float invSigma = 1.f/sigma.x;
-    CONST float invSigmaSqx2 = .5 * invSigma * invSigma;          // 1.0 / (sigma^2 * 2.0)
-    CONST float invSigmaxSqrt2PI = INV_SQRT_OF_2PI * invSigma;    // 1.0 / (sqrt(PI) * sigma)
+    float invSigma = 1.f/sigma.x;
+    float invSigmaSqx2 = .5 * invSigma * invSigma;          // 1.0 / (sigma^2 * 2.0)
+    float invSigmaxSqrt2PI = INV_SQRT_OF_2PI * invSigma;    // 1.0 / (sqrt(PI) * sigma)
     
     // separable Gaussian
     for ( float r = -radius; r <= radius; r++) {
@@ -266,12 +262,8 @@ vec4 qualitySetting(vec4 col)
     col.yz = contrastHSL( col.yz, videoControls.w);
     col.z  = brightnessHSL(col.z, videoControls.z);
 
-#ifdef GL_ES
     col.yz = clamp(col.yz,vec2(0.0), vec2(1.0));
     col.rgb = hsl2rgb(vec3(col.xyz));
-#else
-    col.rgb = hsl2rgb(vec3(col.x,saturate(col.yz)));
-#endif        
         
     if(videoControls.w>0.0) col.rgb = contrastRGB(col.rgb, videoControls.w + (1.0+epsilon));
         //if(videoControls.w>0.0) col.rgb = contrast2(col.rgb, (videoControls.w ));
@@ -282,14 +274,14 @@ vec4 qualitySetting(vec4 col)
 
 //  Pass1 Gauss Blur
 ////////////////////////////////////////////////////////////////////////////
-LAYOUT_INDEX(1) SUBROUTINE(_radialPass) vec4 radialPass1()
+LAYOUT_INDEX(idxRADIAL_P1) SUBROUTINE(_radialPass) vec4 radialPass1()
 {
     return gPass(origTexture, vec2(1.0, 0.0));
 }
 
 //  Pass2 Gauss Blur
 ////////////////////////////////////////////////////////////////////////////
-LAYOUT_INDEX(2) SUBROUTINE(_radialPass) vec4 radialPass2()
+LAYOUT_INDEX(idxRADIAL_P2) SUBROUTINE(_radialPass) vec4 radialPass2()
 {
     vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y; //origTex * intensity
     vec4 blurred = gPass(pass1Texture, vec2(0.0, 1.0))* texControls.x;                //blur * intensity
@@ -302,7 +294,7 @@ LAYOUT_INDEX(2) SUBROUTINE(_radialPass) vec4 radialPass2()
 
 //  Pass2 Gauss Blur + threshold -> reduced (1/4) bilateral
 ////////////////////////////////////////////////////////////////////////////
-LAYOUT_INDEX(3) SUBROUTINE(_radialPass) vec4 radialPass2withBilateral()
+LAYOUT_INDEX(idxRADIAL_P2_BILAT) SUBROUTINE(_radialPass) vec4 radialPass2withBilateral()
 {
     vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y;
     vec4 blurred = gPass(pass1Texture, vec2(0.0, 1.0))* texControls.x;
@@ -317,7 +309,7 @@ LAYOUT_INDEX(3) SUBROUTINE(_radialPass) vec4 radialPass2withBilateral()
 
 //  Bilateral onePass
 ////////////////////////////////////////////////////////////////////////////
-LAYOUT_INDEX(4) SUBROUTINE(_radialPass) vec4 bilateralSmooth()
+LAYOUT_INDEX(idxBILATERAL) SUBROUTINE(_radialPass) vec4 bilateralSmooth()
 {
     vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y; //origTex intensity
     vec4 newBlur = bilateralSmartSmoothOK() * texControls.z;
@@ -359,63 +351,30 @@ float specularGGX(vec3 vtx, vec3 L, vec3 N)
     return dotNL * D * F / (dotLH*dotLH*(1.0-k2)+k2);
 }
 
-float getZ(float depth)
-{
-    float f = 100., n = .1;
-
-    float zNDC = 2.1 * depth - 1.05;
-
-
-
-    //if(zNDC>1.0) discard;
-/*
-    float zEye = 2.0 * n * f / (f + n - zNDC * (f - n));
-    return zEye;
-*/
-    return zNDC;
-}
-/*
-float getZ(vec2 uv)
-{
-    vec3 sampleCoord[9];
-    const float NR = 1.;
-    sampleCoord[0] = vec3( 0.,  0., 1.);
-    sampleCoord[1] = vec3( NR, -NR, .3);
-    sampleCoord[2] = vec3(-NR,  NR, .3);
-    sampleCoord[3] = vec3( NR,  NR, .3);
-    sampleCoord[4] = vec3(-NR, -NR, .3);
-    sampleCoord[5] = vec3(  0,  NR, .5);
-    sampleCoord[6] = vec3(  0, -NR, .5);
-    sampleCoord[7] = vec3( NR,   0, .5);
-    sampleCoord[8] = vec3(-NR,   0, .5);
-    
-    float colorDiv = .2381;
-
-    float z = 0;
-    for (int i = 0; i < 9; i++) 
-        z+=texelFetch(depthTexture,ivec2(uv+sampleCoord[i].xy), 0).r * sampleCoord[i].z;
-        //z+=texture(depthTexture,(uv+sampleCoord[i].xy)*invScreenSize).r * sampleCoord[i].z;
-
-    return getZ(z*colorDiv);
-}
-*/
-
 vec2 scale (vec2 p, float s) {
     return p * s;
 }
 
-
 //  bypass, only image adjust
 ////////////////////////////////////////////////////////////////////////////
-LAYOUT_INDEX(0) SUBROUTINE(_radialPass) vec4 byPass()
+LAYOUT_INDEX(idxBYPASS) SUBROUTINE(_radialPass) vec4 byPass()
 {
     return qualitySetting(min(texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y, 1.0f));
 }
 
 void main ()
 {
-#if defined(GL_ES) || defined(TEST_WGL)
+#if defined(GL_ES)
     outColor = blurCallType==0 ? byPass() : bilateralSmooth();
+#elif defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+    switch(blurCallType) {
+        default:
+        case idxBYPASS          : outColor = byPass();                   break;
+        case idxRADIAL_P1       : outColor = radialPass1();              break;
+        case idxRADIAL_P2       : outColor = radialPass2();              break;
+        case idxRADIAL_P2_BILAT : outColor = radialPass2withBilateral(); break;
+        case idxBILATERAL       : outColor = bilateralSmooth();          break;
+    }
 #else
     outColor = imageResult();
 #endif

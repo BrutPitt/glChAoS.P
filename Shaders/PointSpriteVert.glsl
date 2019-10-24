@@ -31,11 +31,13 @@ void main()
     vec4 vtxPos = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
 #endif
 
-    #if defined(GL_ES) || defined(TEST_WGL)
-        particleColor = velColor();
-    #else
-        particleColor = colorResult();
-    #endif
+#if defined(GL_ES)
+    particleColor = velColor();
+#elif defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+    particleColor = u.colorizingMethod == 0 ? velColor() : objColor();
+#else
+    particleColor = colorResult();
+#endif
     gl_Position = m.pMatrix * vtxPos;
 
     mvVtxPos = vec4(vtxPos.xyz,1.0);
