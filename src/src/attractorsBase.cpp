@@ -690,8 +690,7 @@ void DequanLi::Step(vec3 &v, vec3 &vp)
 void MultiChuaII::Step(vec3 &v, vec3 &vp) 
 { // kVal[] -> a, b, m0 -> m5, c1 -> c5
     auto f = [&](const float x) -> float {
-        const int startM = 2, startC = 7;
-        float sum = 0;
+        const int startM = 2, startC = 7; float sum = 0;
         for(int i=1; i<=5; i++) sum+= (kVal[startM+(i-1)]-kVal[startM+i])*(fabs(x+kVal[startC+i]) - fabs(x-kVal[startC+i]));
         return kVal[startM+5]*x + sum*.5f;  
     };
