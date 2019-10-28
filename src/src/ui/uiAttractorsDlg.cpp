@@ -445,27 +445,34 @@ const float border = 5;
     int valIdx = selIdx;   
 
     int idx = 0;
-    static const char *idCell = "XYZW";
+    static const char idCell[] = "XYZW";
     AttractorBase *att = attractorsList.get();
 
-    auto populateData = [&] (auto colWidth, int elem, int pos, int nCol, float minVal, float maxVal, const int typeVal) {
+    auto populateData = [&] (const float colWidth, int elem, int nCol, float minVal, float maxVal, const int typeVal) {
+        const float pos = ImGui::GetCursorPosX();
+
         for(int i=0; i<elem ; i++) {
+                    
+            ImGui::PushStyleColor(ImGuiCol_FrameBg,i&1 ? rowD : rowP); 
+
             float szItem;
             if(nCol != 1) {
                 sprintf(s,"##c_%03d",i+1);
-                szItem = colWidth/3.f - (border + style.ItemInnerSpacing.x * 4.f) ;
             } else {
-                sprintf(s,"##c_%c", (typeVal==AttractorBase::attLoadKtVal ? 'A'+i : idCell[i]) );
-                szItem = colWidth - (border*2 + style.ItemInnerSpacing.x) ;
+                if(typeVal==AttractorBase::attLoadKtVal) sprintf(s,"##c_k%02d",   i );
+                else                                     sprintf(s,"##c_%c", idCell[i]);
             }
-                    
-            ImGui::PushStyleColor(ImGuiCol_FrameBg,i&1 ? rowD : rowP); 
 
             ImGui::SetCursorPosX(pos);
 
             ImGui::AlignTextToFramePadding();
-            ImGui::TextDisabled(&s[4]); ImGui::SameLine();                       
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX()+border);
+            ImGui::TextDisabled(&s[4]); ImGui::SameLine();
+            
+            const float curPos = ImGui::GetCursorPosX();
+            //ImGui::SetCursorPosX(curPos);
+
+            szItem = nCol != 1 ? (colWidth-(curPos-pos)- style.ItemInnerSpacing.x)*.33333f : 
+                                 (colWidth-(curPos-pos));
 
             ImGui::PushItemWidth(szItem);
 
@@ -526,9 +533,9 @@ const float border = 5;
         const float wCl = ImGui::GetContentRegionAvail().x;
 
         const int nElem = att->getNumElements(AttractorBase::attLoadPtVal);
-        if(nElem > 1) { columnsHeader(wCl, "X", "Y", "Z"); populateData(wCl, nElem, border, 3, att->getInputVMin(), att->getInputVMax(), 0); }
+        if(nElem > 1) { columnsHeader(wCl, "X", "Y", "Z"); populateData(wCl, nElem, 3, att->getInputVMin(), att->getInputVMax(), 0); }
         else          { columnHeader(wCl, "Start Pt"); 
-                        populateData(wCl, att->getPtSize(), border, 1, att->getInputVMin(), att->getInputVMax(), 0); }
+                        populateData(wCl, att->getPtSize(), 1, att->getInputVMin(), att->getInputVMax(), 0); }
     }
 
     ImGui::SetCursorPosY(posY);
@@ -543,7 +550,7 @@ const float border = 5;
         if(nCol > 1) columnsHeader(wCl, "Kx", "Ky", "Kz");
         else         columnHeader(wCl, " K Vals ");
 
-        populateData(wCl, nElem, ImGui::GetCursorPosX()+border, nCol, att->getInputKMin(), att->getInputKMax(), 1);
+        populateData(wCl, nElem, nCol, att->getInputKMin(), att->getInputKMax(), 1);
     }
 /*
     if(attractorsList.get()->getKType() == attractorsList.get()->attHaveKVect )
