@@ -118,24 +118,45 @@ class particlesBaseClass;
 class timerClass
 {
 public:
-    timerClass() {  }
+    timerClass() {  
+#ifdef GLAPP_TIMER_RT_AVG
+        memset((void *)fpsBuff, sizeof(fpsBuff), 0);
+#endif
+    }
 
     void init() { last = prev = startAVG = glfwGetTime(); }
 
-    void tick() { prev = last;  last = glfwGetTime();  count++; }
+    void tick() { 
+        prev = last;  
+        last = glfwGetTime();  
+        count++;
+
+#ifdef GLAPP_TIMER_RT_AVG
+        const float dt = elapsed();
+        fpsAccum += dt - fpsBuff[fpsIDX];
+        fpsBuff[fpsIDX] = dt;
+        fpsIDX++;
+        framerate = (fpsAccum > 0.0f) ? (1.0f / (fpsAccum / 256.f)) : FLT_MAX;
+#endif
+    }
 
     float elapsed() { last = glfwGetTime(); return static_cast<float>(last-prev); }
     void start() { prev = last = glfwGetTime(); }
 
     void resetAVG() { startAVG = glfwGetTime(); count = 0; }
 
-    float fps() { return static_cast<float>(1.0/(last-prev)); }
+    float fps() { const float elaps = static_cast<float>(last-prev); return 1.f/elaps>0 ? elaps : FLT_EPSILON; }
 
     float fpsAVG() { return static_cast<float>(count/(last-startAVG)); }
 
 private:
     double last = 0.0, prev = 0.0, startAVG = 0.0;
     long count = 0;
+#ifdef GLAPP_TIMER_RT_AVG
+    uint8_t fpsIDX = 0;
+    float fpsBuff[256];
+    float fpsAccum;
+#endif
 };
 
 

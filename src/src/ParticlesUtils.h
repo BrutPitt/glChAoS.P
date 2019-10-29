@@ -254,7 +254,10 @@ public:
         //glTexStorage2D(GL_TEXTURE_2D, 7, GL_R32F, w, h);
         //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RED, GL_FLOAT, buffer);
         glTexImage2D(GL_TEXTURE_2D, 0, theApp->getTexInternalPrecision(), w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
+
+        CHECK_GL_ERROR();
         glGenerateMipmap(GL_TEXTURE_2D);
+        CHECK_GL_ERROR();
 
         //glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

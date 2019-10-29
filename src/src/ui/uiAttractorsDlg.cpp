@@ -11,6 +11,7 @@
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #include <sstream>
+#include <limits>
 
 #include "../glApp.h"
 #include "../glWindow.h"
@@ -158,12 +159,37 @@ void BicomplexJExplorer::additionalDataCtrls()
 void attractorDtType::additionalDataCtrls()
 {
         
+    //ImGui::NewLine();
+    ImGui::SameLine();
+    particlesSystemClass *pSys = theWnd->getParticlesSystem();
+
+    bool b = pSys->slowMotion();
+    if(ImGui::Checkbox("slowMotion",&b)) pSys->slowMotion(b);
+
+    if(b) {
+        ImGui::SameLine();
+
+        const float w = ImGui::GetContentRegionAvail().x-ImGui::GetCursorPosX();
+        ImGui::PushItemWidth(w*.5);
+        int DpS = pSys->getSlowMotionDpS();
+        if(ImGui::DragInt("##DpS_", &DpS, 1.0f, 0, INT32_MAX, "dots/s %d")) pSys->setSlowMotionDpS(DpS);
+
+        ImGui::SameLine();
+
+        int maxDots = pSys->getSlowMotionMaxDots();
+        if(ImGui::DragInt("##maxDots", &maxDots, 10.0f, 0, INT32_MAX, "dots# %d")) pSys->setSlowMotionMaxDots(maxDots);
+
+        ImGui::PopItemWidth();
+    }
     ImGui::NewLine();
     headerAdditionalDataCtrls();
 
     float f = dtStepInc;
 
-    if(ImGui::DragFloat("##dtI", &f, .000001f, 0.0, 1.0, "dt: %.8f",1.0f)) dtStepInc = f;
+    if(ImGui::DragFloat("##dtI", &f, .000001f, 0.0, 1.0, "dt: %.8f",1.0f)) { 
+        dtStepInc = f;
+        if(!pSys->getEmitter()->isEmitterOn()) pSys->getEmitter()->setEmitterOn();
+    }
     ImGui::PopItemWidth();
 }
 

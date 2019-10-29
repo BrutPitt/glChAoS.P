@@ -137,6 +137,9 @@
     <ClCompile Include="..\..\src\tools\imGuIZMOquat.cpp">
       <Filter>Tools\imguiTools</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\emitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\glApp.h">
@@ -258,6 +261,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\tools\vGizmo.h">
       <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\emitter.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

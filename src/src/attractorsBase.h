@@ -72,12 +72,6 @@ public:
     virtual ~AttractorBase() {}
 
 
-    void Insert(const vec3 &vect)
-    {
-        stepQueue.push_front(vect);
-        //deque <vec3>::size_type sz = stepQueue.size();
-        stepQueue.pop_back();
-    }
 
     virtual void resetQueue();
 
@@ -126,10 +120,26 @@ public:
         for(int i = samples; i>0; i--) Step();
     }
 
-
+//#define GLCHAOS_USES_SEMPLIFED_QUEUE
+#ifdef GLCHAOS_USES_SEMPLIFED_QUEUE
+    vec3& getCurrent()  { return queueCurrent; }
+    vec3& getPrevious() { return queuePrevious; }
+    void Insert(const vec3 &vect)
+    {
+        queuePrevious = queueCurrent;
+        queueCurrent = vect;
+    }
+#else
     vec3& getCurrent()  { return stepQueue.front(); }
     vec3& getPrevious() { return stepQueue[1]; }
-    vec3& getAt(int i)  { return stepQueue[i]; }
+    void Insert(const vec3 &vect)
+    {
+        stepQueue.push_front(vect);
+        stepQueue.pop_back();
+    }
+#endif
+
+    //vec3& getAt(int i)  { return stepQueue[i]; }
 
     int getMagnetSize() { return vVal.size(); }
 
@@ -183,7 +193,11 @@ protected:
     //innerThreadStepPtrFn innerThreadStepFn;
     stepPtrFn stepFn;
 
+#ifdef GLCHAOS_USES_SEMPLIFED_QUEUE
+    vec3 queueCurrent = vec3(0.f), queuePrevious  = vec3(0.f);
+#else
     deque<vec3> stepQueue;
+#endif
 
     // limit random generators
     float kMax = 1.f, kMin = -1.f, vMax = 1.f, vMin = -1.f;
@@ -1370,6 +1384,7 @@ public:
 //                 vect.z+dtStepInc*(-vect.z+kVal[1]*vect.x*vect.y+vect.x*vect.z)));
     }
 */
+/*
     void newRandomValues()
     {
         kVal[0] = (float)rand()/(float)RAND_MAX * 20.f;
@@ -1379,7 +1394,7 @@ public:
     }
 
     float getDistance(int i=0, int j=1) { return  distance(stepQueue[i], stepQueue[j]); }
-
+*/
 };
 
 //  ChenLee base class

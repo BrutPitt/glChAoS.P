@@ -379,6 +379,11 @@ void mainGLApp::glfwInit()
     //Init OpenGL
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 #else
+    bool b = emscripten_webgl_enable_extension(emscripten_webgl_get_current_context(),"EXT_color_buffer_float");
+    if (!b) {
+        cout << "sorry, can't render to floating point textures\n";
+        //return;
+    }
 
     emscripten_set_touchstart_callback("#canvas", &getEmsDevice(), true, emsMDeviceClass::touchStart);
     emscripten_set_touchend_callback("#canvas", &getEmsDevice(), true, emsMDeviceClass::touchEnd);
@@ -492,6 +497,7 @@ void mainGLApp::resetParticlesSystem() {
 
 void newFrame()
 {
+    theApp->getTimer().tick();
     glfwPollEvents();
 
     theWnd->onIdle();
@@ -511,8 +517,7 @@ void mainGLApp::mainLoop()
         glfwGetFramebufferSize(getGLFWWnd(), &width, &height);
 
         if (!glfwGetWindowAttrib(getGLFWWnd(), GLFW_ICONIFIED)) 
-            timer.tick();
-
+            getTimer().tick();
 #if !defined(GLCHAOSP_LIGHTVER)
             theWnd->onIdle();
 

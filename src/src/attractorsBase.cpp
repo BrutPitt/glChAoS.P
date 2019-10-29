@@ -89,7 +89,9 @@ void AttractorsClass::endlessStep(emitterBaseClass *emitter)
 void AttractorBase::resetQueue()
 {
     //stepQueue.clear();
+#if !defined(GLCHAOS_USES_SEMPLIFED_QUEUE)
     stepQueue.resize(BUFFER_DIM,vec3(0.f,0.f,0.f));
+#endif
 }
 
 void AttractorBase::Step() 
@@ -417,9 +419,9 @@ void Rampe03A::Step(vec3 &v, vec3 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void Rampe04::Step(vec3 &v, vec3 &vp)
 {
-    vp.x = v.z*sin(kVal[0].x*v.x)+cos(kVal[1].x*v.y);
-    vp.y = v.x*sin(kVal[0].y*v.y)+cos(kVal[1].y*v.z);
-    vp.z = v.y*sin(kVal[0].z*v.z)+cos(kVal[1].z*v.x);
+    vp.x = v.x*sin(kVal[0].x*v.x)+cos(kVal[1].x*v.y);
+    vp.y = v.y*sin(kVal[0].y*v.y)+cos(kVal[1].y*v.z);
+    vp.z = v.z*sin(kVal[0].z*v.z)+cos(kVal[1].z*v.x);
 }
 ////////////////////////////////////////////////////////////////////////////
 void Rampe05::Step(vec3 &v, vec3 &vp)

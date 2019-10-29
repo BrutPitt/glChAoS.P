@@ -122,16 +122,16 @@ public:
     }
 
     void draw(GLsizei maxSize) {
-/*        
-#ifdef GLAPP_REQUIRE_OGL45
-        if(isMapped)) glFlushMappedNamedBufferRange(vao, 0, uploadedVtx*bytesPerVertex);
-#endif
-*/
         glBindVertexArray(vao);
         glDrawArrays(primitive,0,uploadedVtx<GLuint64(maxSize) ? uploadedVtx : maxSize);
         CHECK_GL_ERROR();
-        //GLenum err = glGetError();
-        //if(err!=GL_NO_ERROR) printf("vtxSize %d\n", maxSize);
+    }
+    void draw(uint32_t start, GLsizei maxElements, GLsizei maxSize) {
+        glBindVertexArray(vao);
+        GLsizei limit = uploadedVtx<GLuint64(maxSize) ? uploadedVtx : maxSize;
+        glDrawArrays(primitive,start,start+maxElements<limit ? maxElements : limit-start);
+        cout << start << " - " << (start+maxElements<limit ? maxElements : limit-start) << '\n';
+        CHECK_GL_ERROR();
     }
 
 #if !defined(GLCHAOSP_LIGHTVER)

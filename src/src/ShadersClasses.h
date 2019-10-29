@@ -454,6 +454,15 @@ public:
 
     uClippingPlanes &getUPlanes() { return uPlanes; }
 
+    GLint getSlowMotionDpS() { return slowMotionDpS; }
+    void  setSlowMotionDpS(GLint v) { slowMotionDpS = v; }
+
+    GLsizei getSlowMotionMaxDots() { return slowMotionMaxDots; }
+    void  setSlowMotionMaxDots(GLsizei v) { slowMotionMaxDots = v; }
+
+    bool slowMotion() { return isSlowMotion; }
+    void slowMotion(bool b) {  isSlowMotion = b; }
+
 protected:
     int whichRenderMode;    
 
@@ -467,6 +476,9 @@ protected:
     GLuint idxViewOBJ = 0;
     bool plyObjGetColor = true;
 #endif
+    GLint slowMotionDpS = 1000;
+    GLsizei slowMotionMaxDots = 10000;
+    bool isSlowMotion = false;
 
     cmContainerClass colorMapContainer;
 
@@ -899,7 +911,9 @@ public:
         dotTex.build(DOT_TEXT_SHFT, vec4(.7f, 0.f, .3f, 0.f), dotsTextureClass::dotsAlpha);
         selectColorMap(0);
 
+#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
         renderBaseClass::create();
+#endif
 
         glowRender->create();
         colorMap->create();
