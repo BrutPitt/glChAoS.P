@@ -168,13 +168,13 @@ void mmFBO::defineTexture(GLuint iTex, GLuint intFormat, GLuint format, GLuint t
   
 /*
             static int drawbuffer=GL_COLOR_ATTACHMENT0;
-			glGenTextures(1, &m_rb);
-			glBindTexture(GL_TEXTURE_2D, m_rb);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, sizeX, sizeY, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+            glGenTextures(1, &m_rb);
+            glBindTexture(GL_TEXTURE_2D, m_rb);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, sizeX, sizeY, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
             glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_rb, 0);
             glDrawBuffers(1, (const GLenum *)&drawbuffer);
 */
@@ -378,7 +378,7 @@ void mmFBO::CheckFramebufferStatus(GLenum status)
         default:
             printf("Framebuffer Not Complete, error %x\n", status);
             fprintf(stderr, "Framebuffer Not Complete, error %x\n", status);
-			break;
+            break;
     }
 #endif
 }

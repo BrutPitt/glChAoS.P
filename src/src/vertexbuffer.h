@@ -128,7 +128,7 @@ public:
     }
     void draw(uint32_t start, GLsizei maxElements, GLsizei maxSize) {
         glBindVertexArray(vao);
-        GLsizei limit = uploadedVtx<GLuint64(maxSize) ? uploadedVtx : maxSize;
+        const GLsizei limit = uploadedVtx<GLuint64(maxSize) ? uploadedVtx : maxSize;
         glDrawArrays(primitive,start,start+maxElements<limit ? maxElements : limit-start);
         CHECK_GL_ERROR();
     }

@@ -134,7 +134,7 @@ uint32_t AttractorBase::Step(float *ptr, uint32_t numElements)
     }
 
     Insert(vec3(vp));
-    return numElements-elems;
+    return numElements-elems-1;
 }
 
 void AttractorBase::searchLyapunov()

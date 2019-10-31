@@ -12,6 +12,7 @@
 #------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.10)
 SET(BUILD_wglChAoSP TRUE CACHE BOOL TRUE)
+SET(BUILD_wglChAoSP_lowres FALSE CACHE BOOL FALSE)
 ###########################################################
 #
 # *** CHANGES NOTE ***
@@ -101,7 +102,15 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
 #   EMSCRIPTEN setting
 ###########################################################
 if (BUILD_wglChAoSP)
-    project(wglChAoSP)
+    if(BUILD_wglChAoSP_lowres) 
+        project(wglChAoSP_lowres)
+        message("aaaaaaaaaaaaa")
+        set(LIGHTVER_EXPERIMENTAL "")
+    else()
+        set(LIGHTVER_EXPERIMENTAL "-DGLCHAOSP_LIGHTVER_EXPERIMENTAL")
+        project(wglChAoSP)
+    endif()
+
     set(OGL_EMITTER_TYPE ${OGL41})
     
     set(CMAKE_CXX_STANDARD 14)
@@ -131,7 +140,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 # emcc compiler options
     set(M_EMCC_FLAGS "-DGLAPP_NO_OGL_DSA -DGLFW_INCLUDE_ES3")
-    set(M_GLOBAL_FLAGS "-DGLAPP_NO_GLSL_PIPELINE -DVGIZMO_USES_TEMPLATE -DIMGUI_IMPL_OPENGL_ES3 -DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
+    set(M_GLOBAL_FLAGS "${LIGHTVER_EXPERIMENTAL} -DGLAPP_NO_GLSL_PIPELINE -DVGIZMO_USES_TEMPLATE -DIMGUI_IMPL_OPENGL_ES3 -DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
 
 # BUILD TYPE: [Debug|RelWithDebInfo|Release|MinSizeRel]    
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
