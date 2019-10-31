@@ -132,26 +132,44 @@ public:
 
         //getShader()->renderOfflineFeedback(attractorsList.get());
 /*
-        vec3 head = attractorsList.get()->getCurrent();
+        if(slowMotion()) {
+            const int sizeBuffer = 100;
+            vec4 buffer[sizeBuffer];
+            vec4 *mappedBuffer = nullptr;
+            if(getEmitter()->useMappedMem())   // USE_MAPPED_BUFFER
+                mappedBuffer = (vec4 *) getEmitter()->getVBO()->getBuffer()+int(getEmitter()->getStartPointSlowMotion());
+            else {
+                mappedBuffer = buffer;
+#ifdef GLAPP_REQUIRE_OGL45
+                glGetNamedBufferSubData(getEmitter()->getVBO()->getVBO(), int(getEmitter()->getStartPointSlowMotion())* getEmitter()->getVBO()->getBytesPerVertex(), sizeBuffer * getEmitter()->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
+#else
+                glBindBuffer(GL_ARRAY_BUFFER, getEmitter()->getVBO()->getVBO());
+                glGetBufferSubData(GL_ARRAY_BUFFER, int(getEmitter()->getStartPointSlowMotion())* getEmitter()->getVBO()->getBytesPerVertex(), sizeBuff * getEmitter()->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
+#endif
+            }
+            vec3 head = mappedBuffer[0];
+            vec3 vecA = (mappedBuffer[ 0]);
+            vec3 vecB = (mappedBuffer[90]);
 
-        vec3 vecA = (attractorsList.get()->getAt(10)-head)*.5f;
-        vec3 vecB = (attractorsList.get()->getAt(40)-head)*.5f;
-        getTMat()->setView(head+vecB, head+vecA);
+            getTMat()->setPerspective(45.f, float(theApp->GetWidth())/float(theApp->GetHeight()), 0.f, 100.f);
+            getTMat()->setView(vecA+(vecA-vecB), vecA);
 
-        static int sel = attractorsList.getSelection(), oldSel = -1;
+            static int sel = attractorsList.getSelection(), oldSel = -1;
 
-        sel = attractorsList.getSelection();
+            sel = attractorsList.getSelection();
 
-//        if(oldSel!=sel) {
-            getTMat()->setPerspective(30.f, float(theApp->GetWidth())/float(theApp->GetHeight()), 0.f, 100.f);
-            getTMat()->getTrackball().setRotation(quat(1.0f,0.0f, 0.0f, 0.0f));
-            getTMat()->getTrackball().setDollyPosition(vec3(0.f));
-            getTMat()->getTrackball().setPanPosition(vec3(0.f));
-            getTMat()->getTrackball().setRotationCenter(vec3(0.f));
-            getTMat()->applyTransforms();
-            getTMat()->updateBufferData();
-        //}
-        oldSel = sel;
+    //        if(oldSel!=sel) {
+
+                getTMat()->getTrackball().setRotation(quat(1.0f,0.0f, 0.0f, 0.0f));
+                getTMat()->getTrackball().setDollyPosition(vec3(0.f));
+                getTMat()->getTrackball().setPanPosition(vec3(0.f));
+                getTMat()->getTrackball().setRotationCenter(vec3(0.f));
+                getTMat()->applyTransforms();
+//                getTMat()->updateBufferData();
+
+            //}
+            oldSel = sel;
+        }
 */
         GLuint texRendered;        
 

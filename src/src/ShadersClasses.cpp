@@ -645,7 +645,7 @@ renderBaseClass::renderBaseClass()
     }
 
 #if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F); 
+    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA16F); 
 #else
     renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F);
 #endif

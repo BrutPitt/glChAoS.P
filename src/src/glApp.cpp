@@ -337,8 +337,9 @@ void mainGLApp::glfwInit()
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
         glslVersion = "#version 300 es\n";
-        if(useLowPrecision()) glslDefines = "precision mediump float;\n" "precision highp int;\n";
-        else                  glslDefines = "precision highp float;\n"   "precision highp int;\n";
+/*        if(useLowPrecision()) glslDefines = "precision mediump float;\n" "precision highp int;\n";
+        else                  glslDefines = "precision highp float;\n"   "precision highp int;\n";*/
+        glslDefines = "precision highp float;\n"   "precision highp int;\n";
         glslDefines+= "#define LAYOUT_BINDING(X)\n"
                       "#define LAYOUT_INDEX(X)\n"
                       "#define LAYOUT_LOCATION(X)\n"

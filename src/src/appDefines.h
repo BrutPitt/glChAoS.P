@@ -33,7 +33,7 @@
 
 #ifdef GLCHAOSP_LIGHTVER
 //FF !:! pixel -> layout.css.devPixelsPerPx = 1
-    //#define GLCHAOSP_LIGHTVER_EXPERIMENTAL
+    #define GLCHAOSP_LIGHTVER_EXPERIMENTAL
     #define GLCHAOSP_NO_FXAA
     //#define GLCHAOSP_NO_DeL
     //#define GLCHAOSP_USE_LOWPRECISION

@@ -117,6 +117,7 @@ public:
         }
     }
 
+    float getStartPointSlowMotion() { return startPointSlowMotion; }
 
 protected:
     friend class particlesSystemClass; 

@@ -130,7 +130,6 @@ public:
         glBindVertexArray(vao);
         GLsizei limit = uploadedVtx<GLuint64(maxSize) ? uploadedVtx : maxSize;
         glDrawArrays(primitive,start,start+maxElements<limit ? maxElements : limit-start);
-        cout << start << " - " << (start+maxElements<limit ? maxElements : limit-start) << '\n';
         CHECK_GL_ERROR();
     }
 
