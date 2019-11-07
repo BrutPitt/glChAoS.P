@@ -128,52 +128,14 @@ public:
 
     GLuint render() {
 
-        //glViewport(0,0, getWidth(), getHeight());
+        //
 
         //getShader()->renderOfflineFeedback(attractorsList.get());
-/*
-        if(slowMotion()) {
-            const int sizeBuffer = 100;
-            vec4 buffer[sizeBuffer];
-            vec4 *mappedBuffer = nullptr;
-            if(getEmitter()->useMappedMem())   // USE_MAPPED_BUFFER
-                mappedBuffer = (vec4 *) getEmitter()->getVBO()->getBuffer()+int(getEmitter()->getStartPointSlowMotion());
-            else {
-                mappedBuffer = buffer;
-#ifdef GLAPP_REQUIRE_OGL45
-                glGetNamedBufferSubData(getEmitter()->getVBO()->getVBO(), int(getEmitter()->getStartPointSlowMotion())* getEmitter()->getVBO()->getBytesPerVertex(), sizeBuffer * getEmitter()->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
-#else
-                glBindBuffer(GL_ARRAY_BUFFER, getEmitter()->getVBO()->getVBO());
-                glGetBufferSubData(GL_ARRAY_BUFFER, int(getEmitter()->getStartPointSlowMotion())* getEmitter()->getVBO()->getBytesPerVertex(), sizeBuff * getEmitter()->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
-#endif
-            }
-            vec3 head = mappedBuffer[0];
-            vec3 vecA = (mappedBuffer[ 0]);
-            vec3 vecB = (mappedBuffer[90]);
 
-            getTMat()->setPerspective(45.f, float(theApp->GetWidth())/float(theApp->GetHeight()), 0.f, 100.f);
-            getTMat()->setView(vecA+(vecA-vecB), vecA);
 
-            static int sel = attractorsList.getSelection(), oldSel = -1;
-
-            sel = attractorsList.getSelection();
-
-    //        if(oldSel!=sel) {
-
-                getTMat()->getTrackball().setRotation(quat(1.0f,0.0f, 0.0f, 0.0f));
-                getTMat()->getTrackball().setDollyPosition(vec3(0.f));
-                getTMat()->getTrackball().setPanPosition(vec3(0.f));
-                getTMat()->getTrackball().setRotationCenter(vec3(0.f));
-                getTMat()->applyTransforms();
-//                getTMat()->updateBufferData();
-
-            //}
-            oldSel = sel;
-        }
-*/
         GLuint texRendered;        
 
-    mat4 m;
+        mat4 m;
 
     //particlesSystem->getAxes()->getTransforms()->tM.mvMatrix = particlesSystem->getTMat()->tM.mvMatrix;
 
@@ -203,8 +165,6 @@ public:
 
             if(particles->getFXAA()->isOn()) 
                 texRendered = particles->getFXAA()->render(texRendered);
-
-
         };
 
         if(getRenderMode() == RENDER_USE_POINTS) {
@@ -223,12 +183,13 @@ public:
         particlesBaseClass *particles = shaderPointClass::getPtr();
         texRendered = particles->render(0, getEmitter());
         //particles->render(0, getEmitter());
-    #if !defined(GLCHAOSP_NO_FXAA)
-            if(particles->getFXAA()->isOn()) 
-                texRendered = particles->getFXAA()->render(getRenderFBO().getTex(0));
-    #endif
         const GLuint fbo = 0;
         particles->getGlowRender()->render(texRendered, fbo); 
+
+    #if !defined(GLCHAOSP_NO_FXAA)
+        if(particles->getFXAA()->isOn()) 
+            texRendered = particles->getFXAA()->render(texRendered);
+    #endif
 #endif
 
         emitter->postRenderEvents();
@@ -270,6 +231,9 @@ public:
     virtual void onKeyUp(unsigned char key, int x, int y);
     virtual void onSpecialKeyUp(int key, int x, int y);
     virtual void onSpecialKeyDown(int key, int x, int y);
+
+    GLuint renderAttractor();
+
 
     int GetWidth()  { return theApp->GetWidth();  }
     int GetHeight() { return theApp->GetHeight(); }

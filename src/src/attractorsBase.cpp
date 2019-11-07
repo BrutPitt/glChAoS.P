@@ -30,6 +30,12 @@ inline float cosAprx(float x) {
 #undef PIQ
 #undef PIH
 
+inline float mOne_One(float x)
+{
+    return x>1.f ? 1.f : x<-1.f ? -1.f : x;
+
+}
+
 //  Attractor base class
 ////////////////////////////////////////////////////////////////////////////
 
@@ -38,7 +44,7 @@ inline float cosAprx(float x) {
 void AttractorsClass::endlessStep(emitterBaseClass *emitter)
 {
     //typedef void (AttractorBase::*threadStepPtrFn)(float *&ptr,vec3 &v, vec3 &vp);
-    typedef void (AttractorBase::*threadStepPtrFn)(float *&ptr,vec3 &v, vec3 &vp);
+    //typedef void (AttractorBase::*threadStepPtrFn)(float *&ptr,vec3 &v, vec3 &vp);
 
     auto singleStep = [&] (float *ptr) -> void
     {
@@ -90,7 +96,7 @@ void AttractorBase::resetQueue()
 {
     //stepQueue.clear();
 #if !defined(GLCHAOS_USES_SEMPLIFED_QUEUE)
-    stepQueue.resize(BUFFER_DIM,vec3(0.f,0.f,0.f));
+    stepQueue.resize(BUFFER_DIM,vec3(0.f));
 #endif
 }
 
@@ -384,9 +390,25 @@ void PolynomialPow::Step(vec3 &v, vec3 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void PolynomialSin::Step(vec3 &v, vec3 &vp)
 {
+//SinCosA
+//    vp.x = kVal[0].x + kVal[1].x*v.x + kVal[2].x*v.y + kVal[3].x*v.z + kVal[4].x*cos(kVal[5].x*v.x) + kVal[6].x*sin(kVal[7].x*v.y) +kVal[8].x*sin(kVal[9].x*v.z);
+//    vp.y = kVal[0].y + kVal[1].y*v.x + kVal[2].y*v.y + kVal[3].y*v.z + kVal[4].y*sin(kVal[5].y*v.x) + kVal[6].y*cos(kVal[7].y*v.y) +kVal[8].y*sin(kVal[9].y*v.z);
+//    vp.z = kVal[0].z + kVal[1].z*v.x + kVal[2].z*v.y + kVal[3].z*v.z + kVal[4].z*sin(kVal[5].z*v.x) + kVal[6].z*sin(kVal[7].z*v.y) +kVal[8].z*cos(kVal[9].z*v.z);
+/*
+    vp.x = kVal[0].x + kVal[1].x*v.x + kVal[2].x*v.y + kVal[3].x*v.z + kVal[4].x*cos(kVal[5].x*v.x) + kVal[6].x*sin(kVal[7].x*v.y) +kVal[8].x*cos(kVal[9].x*v.z);
+    vp.y = kVal[0].y + kVal[1].y*v.x + kVal[2].y*v.y + kVal[3].y*v.z + kVal[4].y*sin(kVal[5].y*v.x) + kVal[6].y*cos(kVal[7].y*v.y) +kVal[8].y*sin(kVal[9].y*v.z);
+    vp.z = kVal[0].z + kVal[1].z*v.x + kVal[2].z*v.y + kVal[3].z*v.z + kVal[4].z*cos(kVal[5].z*v.x) + kVal[6].z*sin(kVal[7].z*v.y) +kVal[8].z*cos(kVal[9].z*v.z);
+*/
+
+    vp.x = kVal[0].x + kVal[1].x*v.x + kVal[2].x*v.y + kVal[3].x*v.z + kVal[4].x*sin(kVal[5].x*v.x) + kVal[6].x*sin(kVal[7].x*v.y) +kVal[8].x*sin(kVal[9].x*v.z);
+    vp.y = kVal[0].y + kVal[1].y*v.x + kVal[2].y*v.y + kVal[3].y*v.z + kVal[4].y*sin(kVal[5].y*v.x) + kVal[6].y*sin(kVal[7].y*v.y) +kVal[8].y*sin(kVal[9].y*v.z);
+    vp.z = kVal[0].z + kVal[1].z*v.x + kVal[2].z*v.y + kVal[3].z*v.z + kVal[4].z*sin(kVal[5].z*v.x) + kVal[6].z*sin(kVal[7].z*v.y) +kVal[8].z*sin(kVal[9].z*v.z);
+
+/*
     vp.x = kVal[0].x + kVal[1].x*v.x + kVal[2].x*v.y + kVal[3].x*v.z + kVal[4].x*sin(kVal[5].x*kVal[6].x*v.x) + kVal[7].x*sin(kVal[8].x*kVal[9].x*v.y) +kVal[10].x*sin(kVal[11].x*kVal[12].x*v.z);
     vp.y = kVal[0].y + kVal[1].y*v.x + kVal[2].y*v.y + kVal[3].y*v.z + kVal[4].y*sin(kVal[5].y*kVal[6].y*v.x) + kVal[7].y*sin(kVal[8].y*kVal[9].y*v.y) +kVal[10].y*sin(kVal[11].y*kVal[12].y*v.z);
     vp.z = kVal[0].z + kVal[1].z*v.x + kVal[2].z*v.y + kVal[3].z*v.z + kVal[4].z*sin(kVal[5].z*kVal[6].z*v.x) + kVal[7].z*sin(kVal[8].z*kVal[9].z*v.y) +kVal[10].z*sin(kVal[11].z*kVal[12].z*v.z);
+*/
 }
 ////////////////////////////////////////////////////////////////////////////
 void Rampe01::Step(vec3 &v, vec3 &vp)
@@ -398,9 +420,9 @@ void Rampe01::Step(vec3 &v, vec3 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void Rampe02::Step(vec3 &v, vec3 &vp)
 {
-    vp.x = v.z*sin(kVal[0].x*v.x)+acos(kVal[1].x*v.y);
-    vp.y = v.x*sin(kVal[0].y*v.y)+acos(kVal[1].y*v.z);
-    vp.z = v.y*sin(kVal[0].z*v.z)+acos(kVal[1].z*v.x);
+    vp.x = v.z*sin(kVal[0].x*v.x)+acos(mOne_One(kVal[1].x*v.y));
+    vp.y = v.x*sin(kVal[0].y*v.y)+acos(mOne_One(kVal[1].y*v.z));
+    vp.z = v.y*sin(kVal[0].z*v.z)+acos(mOne_One(kVal[1].z*v.x));
 }
 ////////////////////////////////////////////////////////////////////////////
 void Rampe03::Step(vec3 &v, vec3 &vp)
@@ -454,14 +476,14 @@ void Rampe08::Step(vec3 &v, vec3 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void Rampe09::Step(vec3 &v, vec3 &vp)
 {
-    vp.x = v.z*sin(kVal[0].x*v.x)-acos(kVal[1].x*v.y)+sin(kVal[2].x*v.z);
-    vp.y = v.x*sin(kVal[0].y*v.x)-acos(kVal[1].y*v.y)+sin(kVal[2].y*v.z);
-    vp.z = v.y*sin(kVal[0].z*v.x)-acos(kVal[1].z*v.y)+sin(kVal[2].z*v.z);
+    vp.x = v.z*sin(kVal[0].x*v.x)-acos(mOne_One(kVal[1].x*v.y))+sin(kVal[2].x*v.z);
+    vp.y = v.x*sin(kVal[0].y*v.x)-acos(mOne_One(kVal[1].y*v.y))+sin(kVal[2].y*v.z);
+    vp.z = v.y*sin(kVal[0].z*v.x)-acos(mOne_One(kVal[1].z*v.y))+sin(kVal[2].z*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
 void Rampe10::Step(vec3 &v, vec3 &vp)
 {
-    vp.x = v.z*v.y*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y)+asin(kVal[2].x*v.z);
+    vp.x = v.z*v.y*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y)+asin(mOne_One(kVal[2].x*v.z));
     vp.y = v.x*v.z*sin(kVal[0].y*v.x)-cos(kVal[1].y*v.y)+ sin(kVal[2].y*v.z);
     vp.z = v.y*v.x*sin(kVal[0].z*v.x)-cos(kVal[1].z*v.y)+ sin(kVal[2].z*v.z);
 }
@@ -714,6 +736,13 @@ void SprottLinzF::Step(vec3 &v, vec3 &vp)
     vp.x = v.x + dtStepInc*(v.y + v.z);
     vp.y = v.y + dtStepInc*(-v.x + kVal[0]*v.y); 
     vp.z = v.z + dtStepInc*(v.x*v.x - v.z);
+}
+////////////////////////////////////////////////////////////////////////////
+void SprottLinzB::Step(vec3 &v, vec3 &vp) 
+{ // kVal[] -> a
+    vp.x = v.x + dtStepInc* kVal[0]*v.y * v.z;
+    vp.y = v.y + dtStepInc*(kVal[1]*v.x - kVal[2]*v.y); 
+    vp.z = v.z + dtStepInc*(1 - kVal[3]*v.x*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
 void Coullet::Step(vec3 &v, vec3 &vp) 

@@ -26,7 +26,7 @@
 
 #include "uiMainDlg.h"
 
-bool colCheckButton(bool b, const char *s, const float sz);
+bool colCheckButton(bool b, const char *s, const float sz=0);
 
 int AttractorBase::additionalDataDlg()
 {
@@ -154,23 +154,24 @@ void BicomplexJExplorer::additionalDataCtrls()
     fractalIIMBase::additionalDataCtrls();
 }
 
-
+//#define GLCHAOSP_FEATURE_WIP
 
 void attractorDtType::additionalDataCtrls()
 {
         
     //ImGui::NewLine();
     ImGui::SameLine();
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY()-ImGui::GetFrameHeightWithSpacing()); //repos previous line
     particlesSystemClass *pSys = theWnd->getParticlesSystem();
 
     bool b = pSys->slowMotion();
-    if(ImGui::Checkbox("slowMotion",&b)) pSys->slowMotion(b);
+    if(colCheckButton(b , b ? " slowMotion "  ICON_FA_CHECK_SQUARE_O " ": " slowMotion " ICON_FA_SQUARE_O " ")) pSys->slowMotion(b^1);
+    //if(ImGui::Checkbox("slowMotion",&b)) pSys->slowMotion(b);
 
-    if(b) {
+    if(pSys->slowMotion()) {
         ImGui::SameLine();
 
-        const float w = ImGui::GetContentRegionAvail().x-ImGui::GetCursorPosX();
-        ImGui::PushItemWidth(w*.5);
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*.5);
         int DpS = pSys->getSlowMotionDpS();
         if(ImGui::DragInt("##DpS_", &DpS, 1.0f, 0, INT32_MAX, "dots/s %d")) pSys->setSlowMotionDpS(DpS);
 
@@ -180,7 +181,24 @@ void attractorDtType::additionalDataCtrls()
         if(ImGui::DragInt("##maxDots", &maxDots, 10.0f, 0, INT32_MAX, "dots# %d")) pSys->setSlowMotionMaxDots(maxDots);
 
         ImGui::PopItemWidth();
+#ifdef GLCHAOSP_FEATURE_WIP
+        
+        bool cP = pSys->cockPit();
+        if(colCheckButton(cP , cP ? " cockPit "  ICON_FA_CHECK_SQUARE_O " " : " cockPit " ICON_FA_SQUARE_O " ")) pSys->cockPit(cP^1);
+        if(pSys->cockPit()) {
+            ImGui::SameLine();
+            bool s = theDlg.cockpitDlg.visible();
+            if(colCheckButton(s , s ? " settings "  ICON_FA_CHECK_SQUARE_O " " : " settings " ICON_FA_SQUARE_O " ")) theDlg.cockpitDlg.visible(s^1);
+        }
+#else
+        ImGui::AlignTextToFramePadding();
+        ImGui::NewLine();
+#endif
+    } else {
+        ImGui::AlignTextToFramePadding();
+        ImGui::NewLine();
     }
+    
     ImGui::NewLine();
     headerAdditionalDataCtrls();
 
@@ -263,8 +281,6 @@ int Magnetic::additionalDataDlg()
     return 0;
 
 }
-
-bool colCheckButton(bool b, const char *s, const float sz);
 
 
 void attractorDlgClass::view() 
@@ -483,10 +499,10 @@ const float border = 5;
 
             float szItem;
             if(nCol != 1) {
-                sprintf(s,"##c_%03d",i+1);
+                sprintf(s,"##c_%03d",i); // vec3 k vals
             } else {
-                if(typeVal==AttractorBase::attLoadKtVal) sprintf(s,"##c_k%02d",   i );
-                else                                     sprintf(s,"##c_%c", idCell[i]);
+                if(typeVal==AttractorBase::attLoadKtVal) sprintf(s,"##c_%03d",   i );    // float k vals
+                else                                     sprintf(s,"##c_%c", idCell[i]); // fractals XYZW
             }
 
             ImGui::SetCursorPosX(pos);
@@ -550,7 +566,7 @@ const float border = 5;
             if(nCol == 1) innerLoop();
             else          innerLoop3();
             ImGui::PopItemWidth();
-            ImGui::PopStyleColor();               
+            ImGui::PopStyleColor();
         }
     };
 

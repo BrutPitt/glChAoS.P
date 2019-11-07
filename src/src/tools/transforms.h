@@ -137,14 +137,9 @@ public:
                              vec3(0.0f, 1.0f, 0.0f));
     }
     void setLightView(const vec3 &lightPos) {
-        //mat4 m(1.f);
-        //m = translate(m,getPOV());
-        //m = translate(m,getTrackball().getPosition());
         tM.mvLightM = lookAt(lightPos + povVec,
                              tgtVec, //getTrackball().getRotationCenter(),
                              vec3(0.0f, 1.0f, 0.0f));
-        //tM.mvLightM = tM.mvLightM * m;
-        //tM.mvLightM =  tM.mMatrix * tM.mvLightM ;
     }
 
 #define MIN_NEAR .01f //(_far*.01f)

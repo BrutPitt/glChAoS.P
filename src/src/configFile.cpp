@@ -358,13 +358,18 @@ void mainGLApp::loadQuikViewSelection(int idx)
 void mainGLApp::selectFolder(string &s) {        
 #if !defined(GLCHAOSP_LIGHTVER)
     string tmpS = s;
-#if defined (_WIN32) || defined (_WIN64)
-    replace(tmpS.begin(), tmpS.end(), '/', '\\');
-#else
-    replace(tmpS.begin(), tmpS.end(), '\\', '/');
-#endif
+    #if defined (_WIN32) || defined (_WIN64)
+        replace(tmpS.begin(), tmpS.end(), '/', '\\');
+    #else
+        replace(tmpS.begin(), tmpS.end(), '\\', '/');
+    #endif
     const char *path = tinyfd_selectFolderDialog("Select folder...", tmpS.c_str());
-    if(path != NULL) { s = path; replace(s.begin(), s.end(), '\\', '/'); s += "/"; }
+    if(path != NULL) { 
+        s = path; replace(s.begin(), s.end(), '\\', '/'); 
+    #if !defined(__APPLE__)
+        s += "/"; 
+    #endif
+    }
 #endif
 }
 

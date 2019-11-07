@@ -98,7 +98,6 @@ void particlesBaseClass::clearScreenBuffers()
         glDepthMask(GL_TRUE);
         const GLfloat f=1.0f;
         glClearBufferfv(GL_DEPTH , 0, &f);
-        //glClearBufferfi(GL_DEPTH_STENCIL , 0, 1.f, 0);
     }
 
 #if !defined(GLCHAOSP_LIGHTVER)
@@ -109,12 +108,9 @@ void particlesBaseClass::clearScreenBuffers()
     if(blendActive) {
 #endif
         glEnable(GL_BLEND);
-        //glBlendFuncSeparate(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA,GL_ZERO,GL_ONE_MINUS_SRC_ALPHA);
         glBlendFunc(getSrcBlend(), getDstBlend());
     }
 
-    //glEnable(GL_CLIP_DISTANCE0);
-    //glEnable(GL_CLIP_PLANE0);
 }
 
 void particlesBaseClass::restoreGLstate()
@@ -122,8 +118,6 @@ void particlesBaseClass::restoreGLstate()
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
-    //glDisable(GL_CLIP_DISTANCE0);
-    //glDisable(GL_CLIP_PLANE0);
 
     //glDisable(GL_MULTISAMPLE);
 }

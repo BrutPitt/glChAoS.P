@@ -41,7 +41,7 @@ using namespace fstRnd;
 extern fFastRand32 fastRandom;
 
 
-#define BUFFER_DIM 100
+#define BUFFER_DIM 10
 #define STABILIZE_DIM 1500
 
 //#define RANDOM(MIN, MAX) ((MIN)+((float)rand()/(float)RAND_MAX)*((MAX)-(MIN)))
@@ -130,11 +130,18 @@ public:
         queueCurrent = vect;
     }
 #else
-    vec3& getCurrent()  { return stepQueue.front(); }
-    vec3& getPrevious() { return stepQueue[1]; }
-    void Insert(const vec3 &vect)
+    vec3& getCurrent()  { return *((vec3 *)value_ptr(stepQueue.front())); }
+    vec3& getPrevious() { return *((vec3 *)value_ptr(stepQueue[1])); }
+    vec4& getCurrent4()  { return stepQueue.front(); }
+    vec4& getPrevious4() { return stepQueue[1]; }
+    void Insert(const vec4 &vect)
     {
         stepQueue.push_front(vect);
+        stepQueue.pop_back();
+    }
+    void Insert(const vec3 &vect)
+    {
+        stepQueue.push_front(vec4(vect));
         stepQueue.pop_back();
     }
 #endif
@@ -194,9 +201,9 @@ protected:
     stepPtrFn stepFn;
 
 #ifdef GLCHAOS_USES_SEMPLIFED_QUEUE
-    vec3 queueCurrent = vec3(0.f), queuePrevious  = vec3(0.f);
+    vec4 queueCurrent = vec4(0.f), queuePrevious  = vec4(0.f);
 #else
-    deque<vec3> stepQueue;
+    deque<vec4> stepQueue;
 #endif
 
     // limit random generators
@@ -286,8 +293,6 @@ protected:
     virtual void loadAdditionalData(Config &cfg);
     // dTime step 
     float dtStepInc = 0.001f;
-
-
 };
 
 
@@ -1802,6 +1807,22 @@ protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
+//  SprottLinzB
+////////////////////////////////////////////////////////////////////////////
+class SprottLinzB : public attractorDtType
+{
+public:
+
+    SprottLinzB() {
+        stepFn = (stepPtrFn) &SprottLinzB::Step;
+
+        m_POV = vec3( 0.f, 0, 20.f);
+    }
+
+protected:
+    void Step(vec3 &v, vec3 &vp);
+    void startData();
+};
 //  SprottLinzF
 ////////////////////////////////////////////////////////////////////////////
 class SprottLinzF : public attractorDtType
@@ -1818,7 +1839,6 @@ protected:
     void Step(vec3 &v, vec3 &vp);
     void startData();
 };
-
 //  Coullet 
 ////////////////////////////////////////////////////////////////////////////
 class Coullet : public attractorDtType
@@ -2110,6 +2130,7 @@ public:
         PB(Rossler            , u8"\uf192" " Rossler"            )
         PB(Rucklidge          , u8"\uf192" " Rucklidge"          )
         PB(Sakarya            , u8"\uf192" " Sakarya"            )
+        PB(SprottLinzB        , u8"\uf192" " Sprott-Linz B"      )
         PB(SprottLinzF        , u8"\uf192" " Sprott-Linz F"      )
         PB(Thomas             , u8"\uf192" " Thomas"             )
         PB(TSUCS              , u8"\uf192" " TSUCS 1&2"          )

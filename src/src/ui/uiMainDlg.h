@@ -200,6 +200,18 @@ public:
 private:
 };
 
+
+class cockpitDlgClass  : public baseDlgClass
+{
+public:
+    cockpitDlgClass() : baseDlgClass("cockpit") {}
+
+    void view();
+
+private:
+};
+
+
 class fastViewDlgClass  : public baseDlgClass
 {
 public:
@@ -295,9 +307,11 @@ viewSettingDlgClass viewSettingDlg;
 fastViewDlgClass fastViewDlg;
 particleEditDlgClass particleEditDlg;
 clippingDlgClass clippingDlg;
+cockpitDlgClass cockpitDlg;
 #if !defined(GLCHAOSP_LIGHTVER)
 dataDlgClass dataDlg;
 progSettingDlgClass progSettingDlg;
+friend class progSettingDlgClass;
 #else
     bool invertSettings = false;
 #endif
@@ -305,9 +319,9 @@ private:
 
 friend void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 friend void setGUIStyle();
-friend class progSettingDlgClass;
 friend class particlesDlgClass;
 friend class viewSettingDlgClass;
+friend class attractorDtType;
 
 };
 

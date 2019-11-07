@@ -223,7 +223,7 @@ void popColorButton()
     ImGui::PopStyleColor();
 }
 //////////////////////////////////////////////////////////////////
-bool colCheckButton(bool b, const char *s, const float sz)
+bool colCheckButton(bool b, const char *s, const float sz=0)
 {
     if(b) pushColorButton();
     const bool ret = ImGui::Button(s,  ImVec2(sz,0));
@@ -379,7 +379,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     {
                         ImGui::SameLine(posC3);                    
                         float f = particles->getClippingDist();                   
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.01, 1000.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setClippingDist(f);
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.001, 1000.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setClippingDist(f);
                     }
                     ImGui::SetCursorPosX(INDENT(posA)); ImGui::TextDisabled("alphaK");     
                     ImGui::SameLine(INDENT(posB3));     ImGui::TextDisabled("alphaAtten"); //ImGui::SameLine(); ImGui::TextDisabled(" ?");
@@ -1920,6 +1920,67 @@ void particleEditDlgClass::view()
 
 }
 
+void cockpitDlgClass::view()
+{
+
+    if(!isVisible) return;
+
+    const int posH = 0;
+    const int szH = 365+7*ImGui::GetFrameHeightWithSpacing();
+    const int posW = 190;
+    const int szW = 300;
+
+    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-szW-posW,posH ), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(szW, szH), ImGuiCond_FirstUseEver);
+
+    //bool wndVisible;
+    if(ImGui::Begin(getTitle(), &isVisible, ImGuiWindowFlags_NoScrollbar)) { 
+        particlesSystemClass *pSys = theWnd->getParticlesSystem();
+        cockpitClass &cPit = pSys->getCockpit();
+
+        {
+            float f = cPit.getPerspAngle();
+            if(ImGui::DragFloat("angle", &f, .01f, 5.f, 170.f, "%.2f")) cPit.setPerspAngle(f);
+        }
+        {
+            float f = cPit.getPerspNear();
+            if(ImGui::DragFloat("near", &f, .001f, .001f, FLT_MAX, "%.3f")) cPit.setPerspNear(f);
+        }
+        {
+            int pos = cPit.getPIPposition();
+            float a = ImGui::GetCursorPosX();
+            if(ImGui::RadioButton("##lTop", pos == cPit.pip::lTop)) { cPit.setPIPposition(cPit.pip::lTop); } 
+            ImGui::SameLine(); 
+            float b = ImGui::GetCursorPosX();
+            float size = b - a; 
+            ImGui::SetCursorPosX(b+size);
+            if(ImGui::RadioButton("##rTop", pos == cPit.pip::rTop)) { cPit.setPIPposition(cPit.pip::rTop); } 
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX()+size);
+            if(ImGui::RadioButton("##noPIP", pos == cPit.pip::noPIP)) { cPit.setPIPposition(cPit.pip::noPIP); } 
+            if(ImGui::RadioButton("##lBottom", pos == cPit.pip::lBottom)) { cPit.setPIPposition(cPit.pip::lBottom); } 
+            ImGui::SameLine(); 
+            ImGui::SetCursorPosX(b+size);
+            if(ImGui::RadioButton("##rBottom", pos == cPit.pip::rBottom)) { cPit.setPIPposition(cPit.pip::rBottom); } 
+            float f = cPit.getPIPzoom();
+            if(ImGui::SliderFloat("zoomPIP", &f, .25, 1.0)) cPit.setPIPzoom(f);
+        }
+        {
+            vec3 v(cPit.getPanDollyPos());
+            if(ImGui::DragFloat3("Pan/Dolly",value_ptr(v),.01,0.0,0.0)) cPit.setPanDollyPos(v);
+
+        }
+        {
+            quat q(cPit.getRotation());
+            //imguiGizmo::resizeSolidOf(.75); // sphere resize
+            if(ImGui::gizmo3D("##RotB1", q, IMGUIZMO_DEF_SIZE, imguiGizmo::sphereAtOrigin))  { cPit.setRotation(q); } 
+            ImGui::SameLine();
+            if(ImGui::Button("Reset")) cPit.setRotation(quat(1.f, 0.f, 0.f, 0.f));
+        }
+
+    }
+    ImGui::End();
+}
+
 void viewSettingDlgClass::view()
 {
 
@@ -2652,6 +2713,8 @@ void mainImGuiDlgClass::renderImGui()
         fastViewDlg.view();
         particleEditDlg.view();
         clippingDlg.view();
+        if(attractorsList.get()->dtType() && theWnd->getParticlesSystem()->slowMotion() && theWnd->getParticlesSystem()->cockPit()) 
+            cockpitDlg.view();
 #if !defined(GLCHAOSP_LIGHTVER)
         progSettingDlg.view();
         dataDlg.view();

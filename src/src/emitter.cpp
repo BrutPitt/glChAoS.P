@@ -6,7 +6,8 @@ void emitterBaseClass::render() {
     if(attractorsList.get()->dtType() && pSys->slowMotion()) {
         stopFull(true);
         const float increment = float(pSys->getSlowMotionDpS()) * theApp->getTimer().fps();
-        const float start = startPointSlowMotion+increment<szCircularBuffer ? startPointSlowMotion : 0;
+        const float start = startPointSlowMotion+pSys->getSlowMotionMaxDots()+increment<szCircularBuffer ? 
+                                startPointSlowMotion : 0;
 
         InsertVbo->draw(int(start+.5), pSys->getSlowMotionMaxDots(), szCircularBuffer);
         startPointSlowMotion= start + increment;

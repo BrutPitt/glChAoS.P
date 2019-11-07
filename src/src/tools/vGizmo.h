@@ -476,6 +476,8 @@ public:
     //  Get Pan (xy) & Dolly (z) position
     //////////////////////////////////////////////////////////////////
     tVec3 getPosition() const { return tVec3(pan.x, pan.y, dolly.z); }
+    void  setPosition(const tVec3 &p) { pan.x = p.x; pan.y = p.y; dolly.z = p.z; }
+
 private:
     // UI commands that this virtualGizmo responds to (defaults to left mouse button with no modifier key)
     vgButtons   dollyControlButton,    panControlButton;

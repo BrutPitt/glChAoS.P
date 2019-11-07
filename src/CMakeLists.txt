@@ -154,7 +154,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
             if(${CMAKE_BUILD_TYPE} MATCHES "MinSizeRel")
                 # one file no memory option: -s SINGLE_FILE=1 --memory-init-file 0
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-                set(M_EMCC_BINARYEN "--no-heap-copy --closure 1 -s WASM=1 ")
+                set(M_EMCC_BINARYEN "--no-heap-copy --closure 1 -s WASM=1 -s LZ4=1")
                 set(M_EMCC_SHELL_FILE "--shell-file \"${CMAKE_SOURCE_DIR}/mVeryMinimal.html\"")
             else() # Release 
                 # -s SINGLE_FILE=1 --memory-init-file 0 -s \"BINARYEN_METHOD='interpret-asm2wasm'\"

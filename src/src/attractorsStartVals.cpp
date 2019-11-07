@@ -252,12 +252,9 @@ void PolynomialSin::startData()
     kVal.push_back(vec3( 0.2690,  0.3772,  0.2621));
     kVal.push_back(vec3(-0.3577,  0.3236,  0.3320));
     kVal.push_back(vec3(-0.9483, -0.4507, -0.0864));
-    kVal.push_back(vec3( 0.5141,  0.5066, -0.7610));
     kVal.push_back(vec3(-0.7562,  0.5762,  0.8301));
     kVal.push_back(vec3(-0.3577,  0.3236,  0.3320));
-    kVal.push_back(vec3(-0.9483, -0.4507, -0.0864));
     kVal.push_back(vec3( 0.5141,  0.5066, -0.7610));
-    kVal.push_back(vec3(-0.7562,  0.5762,  0.8301));
     kVal.push_back(vec3(-0.7562,  0.5762,  0.8301));
 
     Insert(vVal[0]);
@@ -721,6 +718,18 @@ void SprottLinzF::startData()
     vVal.push_back(vec3(.1f, 0.f, 0.f));
 
     kVal.push_back(.5f);
+
+    Insert(vVal[0]);
+}
+
+void SprottLinzB::startData()
+{
+    vVal.push_back(vec3(.1f, 0.f, 1.f));
+
+    kVal.push_back(1.0f);
+    kVal.push_back(1.0f);
+    kVal.push_back(1.0f);
+    kVal.push_back(1.0f);
 
     Insert(vVal[0]);
 }

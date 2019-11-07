@@ -159,10 +159,7 @@ void glWindow::onRender()
         model->applyTransforms();
     }
 
-    
-    //  render Attractor
-    //////////////////////////////////////////////////////////////////
-    GLuint texRendered = particlesSystem->render();
+    GLuint texRendered = renderAttractor();
 
     //  Motion Blur
     //////////////////////////////////////////////////////////////////
@@ -188,12 +185,160 @@ void glWindow::onRender()
 #else 
 
     model->applyTransforms();
-    GLuint texRendered = particlesSystem->render();
+    GLuint texRendered = renderAttractor();
 
 #endif
     //glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind both FRAMEBUFFERS to default
 
     particlesSystem->clearFlagUpdate();
+}
+
+//  render Attractor
+//////////////////////////////////////////////////////////////////
+GLuint glWindow::renderAttractor()
+{
+
+    auto saveTSettings = [&]() {
+
+
+    };
+
+    const int w =particlesSystem->getWidth(), h =particlesSystem->getHeight();
+
+    GLuint texRendered;
+
+
+    if(attractorsList.get()->dtType() && particlesSystem->slowMotion() && particlesSystem->cockPit()) {
+
+        cockpitClass &cPit = particlesSystem->getCockpit();
+
+        auto renderProcedure = [&]() {
+            particlesSystem->setFlagUpdate();
+            texRendered = particlesSystem->render();
+        };
+
+        if(cPit.invertPIP() && cPit.getPIPposition() != cPit.pip::noPIP) {
+            glViewport(0,0, w, h);
+            renderProcedure();
+        }
+
+        const int sizeBuffer = 100;
+        const GLsizei startPoint = GLsizei(particlesSystem->getEmitter()->getStartPointSlowMotion()+
+                                           particlesSystem->getSlowMotionMaxDots()-sizeBuffer);
+        vec4 buffer[sizeBuffer];
+        vec4 *mappedBuffer = nullptr;
+        if(particlesSystem->getEmitter()->useMappedMem())   // USE_MAPPED_BUFFER
+            mappedBuffer = (vec4 *) particlesSystem->getEmitter()->getVBO()->getBuffer() + startPoint;
+        else {
+            mappedBuffer = buffer;
+#ifdef GLAPP_REQUIRE_OGL45
+            glGetNamedBufferSubData(particlesSystem->getEmitter()->getVBO()->getVBO(), 
+                                    startPoint * particlesSystem->getEmitter()->getVBO()->getBytesPerVertex(),
+                                    sizeBuffer * particlesSystem->getEmitter()->getVBO()->getBytesPerVertex(),
+                                    (void *)mappedBuffer);
+#else
+            glBindBuffer(GL_ARRAY_BUFFER, particlesSystem->getEmitter()->getVBO()->getVBO());
+    #ifdef __EMSCRIPTEN__
+            int start = startPoint * particlesSystem->getEmitter()->getVBO()->getBytesPerVertex();
+            int size = sizeBuffer * particlesSystem->getEmitter()->getVBO()->getBytesPerVertex();
+            void *data = (void *)mappedBuffer;
+            EM_ASM_(
+            {
+              Module.ctx.getBufferSubData(Module.ctx.ARRAY_BUFFER, $0, HEAPU8.subarray($2, $2 + $1));
+            }, size, start, data);
+    #else
+            glGetBufferSubData(GL_ARRAY_BUFFER, 
+                                startPoint * particlesSystem->getEmitter()->getVBO()->getBytesPerVertex(),                                    
+                                sizeBuffer * particlesSystem->getEmitter()->getVBO()->getBytesPerVertex(),
+                                (void *)mappedBuffer);
+    #endif
+
+#endif
+        }
+/*
+        vec4 *p1 = mappedBuffer+(sizeBuffer-1);
+        vec4 *p2 = mappedBuffer+(sizeBuffer-50);
+        vec3 vP1(*p1--), vP2(*p2--);
+        for(int i = 0; i<49; i++) {
+            vP1+=*p1--;
+            vP2+=*p2--;
+        }
+        vP1*=.02f; vP2*=.02f;
+
+        const vec3 vecA(vP1);
+        const vec3 vecB(vP2);
+        vec3 cpPOV = vecB+(vecA-vecB);
+        vec3 cpTGT = vecA+(vecA-vecB);
+*/
+        //vec3 head = mappedBuffer[sizeBuffer-1];
+        const vec3 vecA(mappedBuffer[sizeBuffer-1]);
+        const vec3 vecB(mappedBuffer[sizeBuffer-50]);
+        vec3 cpPOV = vecB+(vecA-vecB);
+        vec3 cpTGT = vecA+(vecA-vecB)*5.f;
+        //vec3 c = cross(cpPOV, cpTGT);
+
+
+        // Saving transform status
+        transformsClass *objT = getParticlesSystem()->getTMat();
+
+        //mat4 mModel(objT->getModelMatrix()), mView(objT->getProjMatrix()), mProj(objT->getProjMatrix());
+        const float perspAngle = objT->getPerspAngle();
+        vec3 vPOV(objT->getPOV()), vTGT(objT->getTGT());
+        vec3 vPos(objT->getTrackball().getPosition()), vCoR(objT->getTrackball().getRotationCenter());
+        quat qRot = objT->getTrackball().getRotation();
+        float pNear = objT->getPerspNear();
+
+//        mat4 m = mat4(1.f) * vec4(cpTGT, 1.0);
+        mat4 m = translate(mat4(1.f), cpPOV);
+        m = m * mat4_cast(cPit.getRotation());
+        //m = translate(m, cpPOV);
+        cpTGT = m * cpTGT;
+
+        particlesSystem->getTMat()->setPerspective(particlesSystem->getCockpit().getPerspAngle(), float(w)/float(h), particlesSystem->getCockpit().getPerspNear(), objT->getPerspFar());
+        particlesSystem->getTMat()->setView(cpPOV, cpTGT);
+
+        // New view cockpit
+        particlesSystem->getTMat()->getTrackball().setRotation(quat(1.0f,0.0f, 0.0f, 0.0f));
+        particlesSystem->getTMat()->getTrackball().setRotationCenter(vec3(0.f));
+
+        particlesSystem->getTMat()->getTrackball().setPosition(vec3(0.f));
+        particlesSystem->getTMat()->getTrackball().viewportSize(w, h);
+        particlesSystem->getTMat()->applyTransforms();
+
+
+        if(cPit.invertPIP()) cPit.setViewport(w,h);
+        else                 glViewport(0,0, w, h);
+
+        renderProcedure();
+
+        // Restore transform status
+
+        particlesSystem->getTMat()->setView(vPOV, vTGT);
+        particlesSystem->getTMat()->setPerspective(perspAngle, float(w)/float(h), pNear, objT->getPerspFar());
+
+        //objT->setModelMatrix(mModel);
+        //objT->setProjMatrix(mView);
+        //objT->setProjMatrix(mProj);        
+
+        particlesSystem->getTMat()->getTrackball().viewportSize(w, h);
+
+        particlesSystem->getTMat()->getTrackball().setRotation(qRot);
+        particlesSystem->getTMat()->getTrackball().setPosition(vPos);
+        particlesSystem->getTMat()->getTrackball().setRotationCenter(vCoR);
+        particlesSystem->getTMat()->applyTransforms();
+
+        if(!cPit.invertPIP() && cPit.getPIPposition() != cPit.pip::noPIP){
+            cPit.setViewport(w,h);
+            renderProcedure();
+        }
+
+    } else {
+        glViewport(0,0, w, h);
+        texRendered = particlesSystem->render();
+    }
+
+    return texRendered;
+
 }
 
 
