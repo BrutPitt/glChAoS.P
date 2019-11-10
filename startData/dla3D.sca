@@ -7,8 +7,8 @@
 		"kMin":         -1.0,
 		"vMax":         1.0,
 		"vMin":         -1.0,
-		"vData":        [ 0.0, 0.0, 0.0 ],
-		"kData":        [ 0.0013, 0.03, 0.03 ]
+		"vData4":       [ 0.0, 0.0, 0.0, 0.0 ],
+		"kData4":       [ 0.0013, 0.03, 0.03 ]
 	},
 	"Render":      {
 		"RenderMode":     1,
@@ -24,7 +24,7 @@
 		"camDolly":       [ 0.0, 0.0, 0.0 ],
 		"camPan":         [ 0.0, 0.0, 0.0 ],
 		"camRotCent":     [ 0.0, 0.0, 0.0 ],
-		"camRot":         [ 0.17005083, -0.988864, -0.13373612, 0.071462 ]
+		"camRot":         [ -0.071247324, -0.37357277, 0.93317032, 0.12040409 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":      1,
@@ -916,20 +916,20 @@
 		"PalL":                -0.135,
 		"lightShinExp":        0.1,
 		"lightDiffInt":        1.07,
-		"lightSpecInt":        0.5,
+		"lightSpecInt":        1.261,
 		"lightAmbInt":         0.31,
 		"lightStepMin":        0.1,
 		"lightStepMax":        1.1,
 		"lightModel":          2,
 		"ggxRoughness":        1.0,
-		"ggxFresnel":          1.0,
+		"ggxFresnel":          0.273,
 		"lightDir":            [ 5.2578249, -1.3656408, 19.979671 ],
 		"lightColor":          [ 1.0, 1.0, 1.0 ],
 		"glowOn":              false,
 		"glowSelect":          3,
 		"sigma":               7.0,
 		"sigmaRadX":           2.0,
-		"renderInt":           0.85,
+		"renderInt":           1.067,
 		"blurInt":             1.0,
 		"bilatInt":            0.332,
 		"bilatMix":            0.3,
@@ -940,7 +940,7 @@
 		"ReductMul":           8.0,
 		"ReductMin":           128.0,
 		"Span":                8.0,
-		"Gamma":               2.732,
+		"Gamma":               2.707,
 		"Bright":              -0.105,
 		"Contrast":            0.13,
 		"Exposure":            1.18,

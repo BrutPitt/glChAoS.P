@@ -1,13 +1,13 @@
 {
 	"Attractor":   {
-		"Name":  "Hadley",
-		"dtInc": 0.001875,
-		"kMax":  5.0,
-		"kMin":  -5.0,
-		"vMax":  0.0,
-		"vMin":  0.0,
-		"vData": [ 0.1, -0.0542, -0.0674 ],
-		"kData": [ 0.201256, 3.9161997, 9.1676, 1.0754509 ]
+		"Name":   "Hadley",
+		"dtInc":  0.001875,
+		"kMax":   5.0,
+		"kMin":   -5.0,
+		"vMax":   0.0,
+		"vMin":   0.0,
+		"vData4": [ 0.1, -0.0542, -0.0674, 0.0 ],
+		"kData4": [ 0.201256, 3.9161997, 9.1676, 1.0754509 ]
 	},
 	"Render":      {
 		"RenderMode":     1,
@@ -23,7 +23,7 @@
 		"camDolly":       [ 0.0, 0.0, 0.0 ],
 		"camPan":         [ -0.54000074, 0.15999785, 0.0 ],
 		"camRotCent":     [ -1.19, 0.0, 0.0 ],
-		"camRot":         [ -0.0039406582, -0.19629216, 0.6597181, 0.7282511 ]
+		"camRot":         [ -0.026448123, -0.12319636, 0.69905138, 0.70682853 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":      32772,
@@ -921,14 +921,14 @@
 		"PalL":                -0.055,
 		"lightShinExp":        26.53,
 		"lightDiffInt":        1.02,
-		"lightSpecInt":        0.31,
+		"lightSpecInt":        0.107,
 		"lightAmbInt":         0.33,
 		"lightStepMin":        0.1,
 		"lightStepMax":        1.1,
 		"lightModel":          2,
-		"ggxRoughness":        0.453,
-		"ggxFresnel":          0.457,
-		"lightDir":            [ 26.100126, 10.29981, 33.509876 ],
+		"ggxRoughness":        0.296,
+		"ggxFresnel":          0.643,
+		"lightDir":            [ -12.327701, 7.5805068, 41.240494 ],
 		"lightColor":          [ 1.0, 1.0, 1.0 ],
 		"glowOn":              false,
 		"glowSelect":          2,
