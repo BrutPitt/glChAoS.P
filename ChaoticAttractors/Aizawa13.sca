@@ -1,20 +1,20 @@
 {
 	"Attractor":   {
-		"Name":  "Aizawa",
-		"dtInc": 0.001,
-		"kMax":  5.0,
-		"kMin":  -5.0,
-		"vMax":  0.0,
-		"vMin":  0.0,
-		"vData": [ 0.1, 0.0, 0.0 ],
-		"kData": [ 0.96920019, 0.8389, 0.5368101, 3.5, 0.25, 0.1 ]
+		"Name":   "Aizawa",
+		"dtInc":  0.001,
+		"kMax":   5.0,
+		"kMin":   -5.0,
+		"vMax":   0.0,
+		"vMin":   0.0,
+		"vData4": [ 0.1, 0.0, 0.0, 0.0 ],
+		"kData4": [ 0.96920019, 0.8389, 0.5368101, 3.5, 0.25, 0.1 ]
 	},
 	"Render":      {
 		"RenderMode":     1,
 		"motionBlur":     false,
 		"blurIntensity":  0.5,
 		"mixingVal":      0.0,
-		"circBuff":       8490000,
+		"circBuff":       1870000,
 		"rstrtCircBuff":  false,
 		"stopCircBuff":   false,
 		"camPOV":         [ 0.0, 0.0, 10.0 ],
