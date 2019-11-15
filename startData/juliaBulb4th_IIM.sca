@@ -2,14 +2,13 @@
 	"Attractor":   {
 		"Name":         "juliaBulb4th_IIM",
 		"maxDepth":     50,
-		"dim4D":        0.0,
 		"fractDegreeN": 4,
 		"kMax":         0.0,
 		"kMin":         0.0,
 		"vMax":         0.0,
 		"vMin":         0.0,
-		"vData":        [ 0.0, 0.0, 0.0 ],
-		"kData":        [ -0.313, 0.6723, 0.0209999 ]
+		"vData4":       [ 0.0, 0.0, 0.0, 0.0 ],
+		"kData4":       [ -0.313, 0.6723, 0.0209999 ]
 	},
 	"Render":      {
 		"RenderMode":     0,
@@ -29,7 +28,7 @@
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":      1,
-		"srcBlendAttrib":      770,
+		"srcBlendAttrib":      768,
 		"DepthState":          false,
 		"BlendState":          true,
 		"LightState":          false,
@@ -49,6 +48,7 @@
 		"ShadowGranularity":   1.0,
 		"ShadowAutoLightDist": true,
 		"AOenabled":           false,
+		"AOstrong":            0.0,
 		"AObias":              0.2,
 		"AOradius":            5.0,
 		"AOdarkness":          0.25,
@@ -94,7 +94,7 @@
 		"Span":                8.0,
 		"Gamma":               1.786,
 		"Bright":              0.03,
-		"Contrast":            0.035,
+		"Contrast":            0.072,
 		"Exposure":            1.207,
 		"ToneMap":             true,
 		"ToneMapVal":          1.125,
@@ -103,9 +103,9 @@
 			"Type":    "Aranblue",
 			"Name":    "Aranblue",
 			"rgbData": [
-				0.0,
-				0.0,
-				0.0,
+				0.8,
+				0.37647,
+				0.18824,
 				0.8,
 				0.37647,
 				0.18824,
@@ -896,6 +896,7 @@
 		"ShadowGranularity":   1.0,
 		"ShadowAutoLightDist": true,
 		"AOenabled":           true,
+		"AOstrong":            0.0,
 		"AObias":              0.084,
 		"AOradius":            1.69,
 		"AOdarkness":          0.027,

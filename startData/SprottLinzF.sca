@@ -1,13 +1,13 @@
 {
 	"Attractor":   {
-		"Name":  "SprottLinzF",
-		"dtInc": 0.00713,
-		"kMax":  5.0,
-		"kMin":  -5.0,
-		"vMax":  0.0,
-		"vMin":  0.0,
-		"vData": [ 0.684, 0.341, -0.394 ],
-		"kData": [ 0.5047 ]
+		"Name":   "SprottLinzF",
+		"dtInc":  0.00713,
+		"kMax":   5.0,
+		"kMin":   -5.0,
+		"vMax":   0.0,
+		"vMin":   0.0,
+		"vData4": [ 0.684, 0.341, -0.394, 0.0 ],
+		"kData4": [ 0.5047 ]
 	},
 	"Render":      {
 		"RenderMode":     2,
@@ -41,7 +41,7 @@
 		"HermiteVals":         [ 1.0, 0.68, 1.0, 0.0 ],
 		"dotsType":            1,
 		"ShadowEnabled":       true,
-		"ShadowBias":          0.009,
+		"ShadowBias":          0.0,
 		"ShadowDarkness":      0.0,
 		"ShadowRadius":        2.0,
 		"ShadowGranularity":   1.0,
@@ -92,7 +92,7 @@
 		"ReductMin":           128.0,
 		"Span":                8.0,
 		"Gamma":               2.39,
-		"Bright":              0.03,
+		"Bright":              0.0,
 		"Contrast":            0.09,
 		"Exposure":            1.272,
 		"ToneMap":             true,
