@@ -1,13 +1,15 @@
 {
 	"Attractor":   {
-		"Name":   "BicomplexJExplorer",
-		"bjeIDX": [ 1, 5, 5, 7 ],
-		"kMax":   0.0,
-		"kMin":   0.0,
-		"vMax":   1.0,
-		"vMin":   -1.0,
-		"vData4": [ 0.0, -0.5514, 0.0, 0.0 ],
-		"kData4": [ -0.1701, 0.0, 0.0, 0.3581 ]
+		"Name":         "BicomplexJExplorer",
+		"maxDepth":     603,
+		"fractDegreeN": 2,
+		"bjeIDX":       [ 1, 5, 5, 7 ],
+		"kMax":         0.0,
+		"kMin":         0.0,
+		"vMax":         1.0,
+		"vMin":         -1.0,
+		"vData4":       [ 0.0, -0.5514, 0.0, 0.0 ],
+		"kData4":       [ -0.1701, 0.0, 0.0, 0.3581 ]
 	},
 	"Render":      {
 		"RenderMode":     0,
@@ -23,7 +25,7 @@
 		"camDolly":       [ 0.0, 0.0, 0.0 ],
 		"camPan":         [ 0.0099999942, 0.20000005, 0.0 ],
 		"camRotCent":     [ 0.0, 0.0, 0.0 ],
-		"camRot":         [ 0.72021991, 0.65838856, 0.20779657, -0.0921288 ]
+		"camRot":         [ 0.59840959, 0.73592514, 0.31865278, -0.051451169 ]
 	},
 	"RenderMode0": {
 		"dstBlendAttrib":      32772,
@@ -64,7 +66,7 @@
 		"PalRange":            1.548,
 		"PalH":                0.0,
 		"PalS":                0.5325,
-		"PalL":                -0.0475,
+		"PalL":                0.04,
 		"lightShinExp":        1.6,
 		"lightDiffInt":        1.96,
 		"lightSpecInt":        0.181,
@@ -91,9 +93,9 @@
 		"ReductMul":           8.0,
 		"ReductMin":           128.0,
 		"Span":                8.0,
-		"Gamma":               1.921,
+		"Gamma":               2.058,
 		"Bright":              0.0,
-		"Contrast":            0.124,
+		"Contrast":            0.086,
 		"Exposure":            1.485,
 		"ToneMap":             true,
 		"ToneMapVal":          1.061,

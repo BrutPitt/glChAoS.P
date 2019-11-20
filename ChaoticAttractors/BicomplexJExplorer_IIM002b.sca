@@ -1,13 +1,15 @@
 {
 	"Attractor":   {
-		"Name":   "BicomplexJExplorer",
-		"bjeIDX": [ 1, 4, 4, 6 ],
-		"kMax":   0.0,
-		"kMin":   0.0,
-		"vMax":   0.4225,
-		"vMin":   -0.4225,
-		"vData4": [ 0.0, -0.5425, 0.0, 0.0 ],
-		"kData4": [ -0.177, 0.0, 0.0, 0.3576 ]
+		"Name":         "BicomplexJExplorer",
+		"maxDepth":     608,
+		"fractDegreeN": 2,
+		"bjeIDX":       [ 1, 4, 4, 6 ],
+		"kMax":         0.0,
+		"kMin":         0.0,
+		"vMax":         0.4225,
+		"vMin":         -0.4225,
+		"vData4":       [ 0.0, -0.5425, 0.0, 0.0 ],
+		"kData4":       [ -0.177, 0.0, 0.0, 0.3576 ]
 	},
 	"Render":      {
 		"RenderMode":     0,
