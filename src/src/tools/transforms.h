@@ -29,6 +29,7 @@ struct transfMatrix {
     mat4 mvMatrix  = mat4(1.0f);
     mat4 mvpMatrix = mat4(1.0f);
     mat4 mvLightM  = mat4(1.0f);
+    mat4 mvpLightM = mat4(1.0f);
 };
 
 class transformsClass {

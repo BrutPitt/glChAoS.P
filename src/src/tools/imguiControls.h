@@ -45,13 +45,14 @@ IMGUI_API bool paletteButton(const char* label, int numCol, float *buff, const I
 //  
 //  hslTuning
 //
-//      selVal - in/out value in interval [-1,1]
-//      type   - type of widget, must be HSL_TUNING_H (for HUE), HSL_TUNING_S, HSL_TUNING_L
-//      size   - widget size
-//      padding- need for adjust color line below text in case of different fonts
+//      selVal   - in/out value in interval [-1,1]
+//      type     - type of widget, must be HSL_TUNING_H (for HUE), HSL_TUNING_S, HSL_TUNING_L
+//      stepSize - increment
+//      size     - widget size
+//      padding  - need for adjust color line below text in case of different fonts
 //               for default is your Imgui default setting
 ////////////////////////////////////////////////////////////////////////////
-IMGUI_API bool hslTuning(const char* label, float *selVal,int type, const ImVec2 &size, const ImVec2 &padding=ImVec2(-1,-1));
+IMGUI_API bool hslTuning(const char* label, float *selVal, int type, float stepSize, const ImVec2 &size, const ImVec2 &padding=ImVec2(-1,-1));
 
 //  
 //  DragFloatEx and DragFloat#Ex

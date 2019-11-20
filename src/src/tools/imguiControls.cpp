@@ -16,7 +16,7 @@
 namespace ImGui
 {
 //////////////////////////////////////////////////////////////////
-bool hslTuning(const char* label, float *selVal, int barType, const ImVec2 &size, const ImVec2 &padd)
+bool hslTuning(const char* label, float *selVal, int barType, float stepSize, const ImVec2 &size, const ImVec2 &padd)
 {
 
     bool value_changed = false;
@@ -53,7 +53,7 @@ bool hslTuning(const char* label, float *selVal, int barType, const ImVec2 &size
     //Proportional drag value (like DragFloat)
     //value_changed = DragBehavior(bb, id, selVal, .005f, -1.f, 1.f, 3, 1);
     const float min=-1.f, max = 1.f;
-    value_changed = DragBehavior(id, ImGuiDataType_Float, selVal, .005f, (void *)&min, (void *)&max, "%3f", 1, ImGuiDragFlags_None);
+    value_changed = DragBehavior(id, ImGuiDataType_Float, selVal, stepSize, (void *)&min, (void *)&max, "%3f", 1, ImGuiDragFlags_None);
 #else
     // ONE <-> ONE value (like slider)
     if (IsItemActive())

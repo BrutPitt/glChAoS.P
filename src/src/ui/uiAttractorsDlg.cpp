@@ -551,10 +551,9 @@ const float border = 5;
                 }
                 
                 const bool test4D = !typeVal && att->getPtSize()==AttractorBase::attPt4D && i==3;
-                float f =  test4D ? att->getDim4D() : att->getValue(i,typeVal);
+                float f =  att->getValue(i,typeVal);
                 if(ImGui::DragFloatEx(s, (float *) &f, .0001, minVal, maxVal, "%.7f",1.0f,ImVec2(.93,0.5))) {
-                    if(test4D) att->setDim4D(f);
-                    else       att->setValue(i, typeVal, f); 
+                    att->setValue(i, typeVal, f); 
                     valIdx=idx; 
                     if(!theWnd->getParticlesSystem()->getEmitter()->isEmitterOn()) 
                         theWnd->getParticlesSystem()->getEmitter()->setEmitterOn(); 

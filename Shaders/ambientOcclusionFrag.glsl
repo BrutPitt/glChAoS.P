@@ -173,9 +173,9 @@ void main()
     if(depth<=.01) { discard; outColor = vec4(0.0); return; }
 
     float z = restoreZ(depth);
-    vec4 vtx = vec4(viewRay * z, z, 1.0);
+    vec4 vtx = getVertexFromDepth(viewRay,z);
 
-    vec3 N = getSimpleNormal(z, prevData);
+    vec3 N = getSimpleNormal(vtx, prevData);
     
     float AO = 0.0;
     const int RAD = 64;

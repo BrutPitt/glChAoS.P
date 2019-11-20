@@ -100,13 +100,8 @@ void particlesBaseClass::clearScreenBuffers()
         glClearBufferfv(GL_DEPTH , 0, &f);
     }
 
-#if !defined(GLCHAOSP_LIGHTVER)
-    if(showAxes() == noShowAxes) glClear(GL_COLOR_BUFFER_BIT); //glClearBufferfv(GL_COLOR,  GL_DRAW_BUFFER, value_ptr(vec4(0.0f)));
+    if(!showAxes()) glClearBufferfv(GL_COLOR,  0, value_ptr(backgroundColor()));
     if(blendActive || showAxes()) {
-#else
-    glClearBufferfv(GL_COLOR, 0, value_ptr(vec4(0.0f)));
-    if(blendActive) {
-#endif
         glEnable(GL_BLEND);
         glBlendFunc(getSrcBlend(), getDstBlend());
     }
@@ -126,6 +121,7 @@ void particlesBaseClass::restoreGLstate()
 GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter) 
 {
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
+    const float lightReduction = theApp->useDetailedShadows() ? .3333 : .25f;
 
     auto updateCommons = [&] () {
         getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
@@ -147,13 +143,14 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         } else getUPlanes().atLeastOneActive = false;
     };
 
-    const bool isAO_RD_SHDW = ( useAO() ||  postRenderingActive() || useShadow());
+    const bool blendActive = getBlendState() || showAxes();
     const bool isAO_SHDW = ( useAO() || useShadow());
+    const bool isAO_RD_SHDW = (isAO_SHDW || postRenderingActive());
     const bool isSolid = ( getDepthState() ||  getLightState());
     const bool isShadow = ( useShadow() && isSolid);
     const uint idxPixelColor  = 
-             uData.renderType = (getBlendState() && !isSolid)        ? pixColIDX::pixBlendig :
-                                 getBlendState() || !isAO_RD_SHDW    ? pixColIDX::pixDirect  :
+             uData.renderType = (blendActive && !isSolid)        ? pixColIDX::pixBlendig :
+                                 blendActive || !isAO_RD_SHDW    ? pixColIDX::pixDirect  :
                                  isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
                                                                        pixColIDX::pixDR      ;
     auto selectSubroutines = [&]() {
@@ -193,11 +190,12 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
     getUData().zNear = getTMat()->getPerspNear();
     getUData().zFar  = getTMat()->getPerspFar();
+    //getUData().zFar  = getTMat()->getPOV().z*3.f;
 
 // Shadow pass
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-    if(isShadow && !getBlendState()) {
+    if(isShadow && !blendActive) {
         if(shadowDetail>1) glViewport(0,0, getWidth()*shadowDetail, getHeight()*shadowDetail);
         if(autoLightDist()) {
             vec3 vL(normalize(getLightDir()));
@@ -217,8 +215,9 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
         getPlanesUBlock().updateBufferData();
 
-        tMat.setLightView(getLightDir()*.25f);
+        tMat.setLightView(getLightDir()*lightReduction);
         tMat.tM.mvLightM = tMat.tM.mvLightM * tMat.tM.mMatrix;
+
 
 
         tMat.updateBufferData();
@@ -283,14 +282,15 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 #if defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
     if(!getBlendState() && isAO_RD_SHDW)  {
 #else
-    if(!getBlendState() && isAO_RD_SHDW && !showAxes())  {
+    if(!blendActive && isAO_RD_SHDW)  {
 #endif
 
-        tMat.setLightView(getLightDir()*.25f);
+        tMat.setLightView(getLightDir()*lightReduction);
         mat4 m(1.f);
         m = translate(m,getTMat()->getPOV()/*+getTMat()->getTrackball().getPosition()*/);
         //m = translate(m,getTMat()->getPOV());
         tMat.tM.mvLightM = getTMat()->tM.mvLightM * m;
+        tMat.tM.mvpLightM = tMat.tM.pMatrix * tMat.tM.mvLightM; 
 
         getUData().halfTanFOV = tanf(getTMat()->getPerspAngleRad()*.5);
 
@@ -914,8 +914,6 @@ GLuint fxaaClass::render(GLuint texIn)
 #else
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER,  0);
 #endif
-    //glClearBufferfv(GL_COLOR,  0, value_ptr(vec4(0.0f)));
-    //glClear(GL_COLOR_BUFFER_BIT);
 
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, texIn);
@@ -1007,7 +1005,15 @@ void postRenderingClass::bindRender()
     bindPipeline();
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
-    glClearBufferfv(GL_COLOR,  0, value_ptr(vec4(0.0f)));
+#ifdef GLCHAOSP_LIGHTVER
+    const vec4 bkg(theWnd->getParticlesSystem()->shaderPointClass::backgroundColor());
+#else
+    const vec4 bkg(renderEngine->getWhitchRenderMode()==RENDER_USE_POINTS ? 
+                    theWnd->getParticlesSystem()->shaderPointClass::backgroundColor() :
+                    theWnd->getParticlesSystem()->shaderBillboardClass::backgroundColor());
+#endif
+
+    glClearBufferfv(GL_COLOR,  0, value_ptr(bkg));
 
     
 
@@ -1153,7 +1159,15 @@ void ambientOcclusionClass::bindRender()
     bindPipeline();
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
-    glClearBufferfv(GL_COLOR,  0, value_ptr(vec4(0.0f)));
+#ifdef GLCHAOSP_LIGHTVER
+    const vec4 bkg(theWnd->getParticlesSystem()->shaderPointClass::backgroundColor());
+#else
+    const vec4 bkg(renderEngine->getWhitchRenderMode()==RENDER_USE_POINTS ? 
+                    theWnd->getParticlesSystem()->shaderPointClass::backgroundColor() :
+                    theWnd->getParticlesSystem()->shaderBillboardClass::backgroundColor());
+#endif
+
+    glClearBufferfv(GL_COLOR,  0, value_ptr(bkg));
 
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(6, noiseTexture);
@@ -1231,6 +1245,13 @@ void shadowClass::bindRender()
     const GLfloat f=1.0f;
     glClearBufferfv(GL_DEPTH , 0, &f);
 
+// for Chrome76 message: "texture is not renderable" if only zBuffer... need ColorBuffer 
+// FireFox68 Works fine also only with zBuffer w/o ColorBuffer
+////////////////////////////////////////////////////////////////////////////////
+#ifdef GLCHAOSP_LIGHTVER
+    const GLfloat fc=0.0f;
+    glClearBufferfv(GL_COLOR , 0, &fc);
+#endif
 
 #if !defined(GLAPP_REQUIRE_OGL45)
     USE_PROGRAM

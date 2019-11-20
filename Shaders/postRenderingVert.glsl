@@ -79,7 +79,6 @@ LAYOUT_BINDING(9) uniform _clippingPlanes {
 } pl;
 
 out vec2 viewRay;
-out vec2 viewRayLight;
 
 #if !defined(GL_ES)
 out gl_PerVertex
@@ -96,5 +95,4 @@ void main(void)
     vTexCoord = texCoord[gl_VertexID];
     gl_Position = vec4(vPos.xy,.0f,1.f);
     viewRay = vPos.xy * vec2(u.scrnRes.x*u.invScrnRes.y * u.halfTanFOV, u.halfTanFOV);
-    viewRayLight = vPos.xy * vec2(u.scrnRes.x*u.invScrnRes.y * tan(radians(45.0)*.5), tan(radians(45.0)*.5));
 }

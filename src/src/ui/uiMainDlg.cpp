@@ -300,12 +300,17 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
             ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*numItems-ImGui::GetStyle().ItemSpacing.y*3), true); 
                 //////////Linea 1//////////
-                ImGui::SetCursorPosX(INDENT(posA)); ImGui::TextDisabled("Blending Src"); 
-                ImGui::SameLine(INDENT(posC4));     ImGui::TextDisabled("Blending Dst");           
+                ImGui::SetCursorPosX(ImGui::GetFrameHeightWithSpacing());
+                const float nextPos = ImGui::GetContentRegionAvail().x*.5;
+                ImGui::TextDisabled(" Blending Src"); 
+                ImGui::SameLine(ImGui::GetFrameHeightWithSpacing()+nextPos);     ImGui::TextDisabled(" Blending Dst");
         
                 //////////Linea 2//////////
-                ImGui::PushItemWidth(wButt2);
-                    ImGui::SetCursorPosX(posA);  
+                vec4 bkgColor(particles->backgroundColor());
+                if(ImGui::ColorEdit4(buildID(base, idA++, id),value_ptr(bkgColor),ImGuiColorEditFlags_NoInputs)) particles->backgroundColor(bkgColor); 
+
+                ImGui::SameLine();
+                ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*.5);
                     {
                         int idx = particles->srcBlendIdx();
                         if(ImGui::Combo(buildID(base, idA++, id), &idx, particles->getBlendArrayStrings().data(), particles->getBlendArrayElements())) {
@@ -313,7 +318,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                             particles->srcBlendIdx(idx);
                         }
                     }
-                    ImGui::SameLine(posC4);
+                    ImGui::SameLine();
                     {
                         int idx = particles->dstBlendIdx();
                         if(ImGui::Combo(buildID(base, idA++, id), &idx, particles->getBlendArrayStrings().data(), particles->getBlendArrayElements())) {
@@ -417,13 +422,13 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                         ImGui::SameLine();
                         {
                             float f = particles->dpAdjConvex();
-                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .001, .01, 1.0, "Adj: %.3f",1.f)) particles->dpAdjConvex(f);
+                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .001, .01, 3.0, "Cnvx: %.3f",1.f)) particles->dpAdjConvex(f);
                         }
 
                         ImGui::SameLine();
                         {
                             float f = particles->dpNormalTune();
-                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .00025, 0.0, 1.0, "Norm: %.4f",1.f)) particles->dpNormalTune(f);
+                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .00025, 0.0, 5.0, "Norm: %.4f",1.f)) particles->dpNormalTune(f);
                         }
                         ImGui::PopItemWidth();
                     }
@@ -542,18 +547,18 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     ImGui::SetCursorPosX(border);
                     float f = cmSet->getH();                    
                     //if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, -1.0, 1.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->getCMTex()->setH(f);
-                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_H, ImVec2(wButt3, buttY)))  cmSet->setH(f);
+                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_H, 0.0025f, ImVec2(wButt3, buttY)))  cmSet->setH(f);
                     //ImGui::SameLine(border+5); ImGui::Text("%.2f",f);
                 }
                 {
                     ImGui::SameLine(posB3);
                     float f = cmSet->getS();
-                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_S, ImVec2(wButt3, buttY),ImVec2(3, 3))) cmSet->setS(f);
+                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_S, 0.0025f, ImVec2(wButt3, buttY),ImVec2(3, 3))) cmSet->setS(f);
                 }
                 {
                     ImGui::SameLine(posC3);
                     float f = cmSet->getL(); 
-                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_L, ImVec2(wButt3, buttY),ImVec2(3, 3))) cmSet->setL(f);
+                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_L, 0.0025f, ImVec2(wButt3, buttY),ImVec2(3, 3))) cmSet->setL(f);
                 }
                 ImGui::PopItemWidth();
                 
@@ -1132,14 +1137,14 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::SameLine(posC4);
                 {
                     float f = imT->getBright();
-                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_L, ImVec2(wButt4-2, buttY),ImVec2(0, 0))) 
+                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_L, .001f, ImVec2(wButt4-2, buttY),ImVec2(0, 0))) 
                         imT->setBright(f);
                 }               
 
                 ImGui::SameLine(posD4);
                 {
                     float f = imT->getContrast();
-                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_L, ImVec2(wButt4-2, buttY),ImVec2(0, 0))) 
+                    if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_L, .001f, ImVec2(wButt4-2, buttY),ImVec2(0, 0))) 
                         imT->setContrast(f);
                 
                 }   
@@ -1493,11 +1498,20 @@ void progSettingDlgClass::view()
 
         {
             bool b = bool(theApp->getVSync());
-            if(ImGui::Checkbox("vSync", &b)) {
+            if(ImGui::Checkbox("vSync  ", &b)) {
                 theApp->setVSync(b ? 1 : 0);
                 glfwSwapInterval(theApp->getVSync());
             }
         }
+        ImGui::SameLine(); 
+        {
+            bool b = bool(theApp->slowGPU());
+            if(ImGui::Checkbox("slow GPU", &b)) theApp->slowGPU(b);
+            ImGui::SameLine();
+            ShowHelpMarker(GLAPP_HELP_SLOW_GPU);
+
+        }
+
 /*
         ImGui::NewLine();
 
@@ -1621,29 +1635,42 @@ void progSettingDlgClass::view()
         //ImGui::PushItemWidth(wButt -ImGui::GetCursorPosX());
         ImGui::Text("%.2fGB", (maxBuff*16000000.f)/(1024*1024*1024));
 
-        if(emitterChanges) pushColorButton();
-        if(ImGui::Button("Apply Emitter Changes", ImVec2(w,0))) {
-            theApp->setMaxAllocatedBuffer(maxBuff * 1000000.f);
-            theApp->setEmissionStepBuffer(emitStep<<10);
-            theApp->selectEmitterType(idxEmitt);
-            theApp->resetParticlesSystem();
+        if(emitterChanges) { pushColorButton();
+            if(ImGui::Button("Apply Emitter Changes", ImVec2(w,0))) {
+                theApp->setMaxAllocatedBuffer(maxBuff * 1000000.f);
+                theApp->setEmissionStepBuffer(emitStep<<10);
+                theApp->selectEmitterType(idxEmitt);
+                theApp->needRestart(true);
+                if(emitterChanges) popColorButton();
+                emitterChanges = false;
+            }
             if(emitterChanges) popColorButton();
-            emitterChanges = false;
-        }
-        if(emitterChanges) popColorButton();
+        } else { ImGui::AlignTextToFramePadding(); ImGui::NewLine(); }
 
         ImGui::NewLine();
 
+        static bool optionChanges = false;
         {
             ImGui::AlignTextToFramePadding();
             bool b = bool(theApp->isParticlesSizeConstant());
             if(ImGui::Checkbox(" Particles size constant", &b)) {
                 theApp->setParticlesSizeConstant(b);
                 theWnd->getParticlesSystem()->setFlagUpdate();
-
             }
             ImGui::SameLine();
             ShowHelpMarker(GLAPP_HELP_PART_SZ_CONST);
+        }
+        {
+            ImGui::AlignTextToFramePadding();
+            bool b = theApp->useDetailedShadows();
+            if(ImGui::Checkbox(" Detailed shadow", &b)) {
+                particlesSystemClass *sys = theWnd->getParticlesSystem();
+                theApp->useDetailedShadows(b);
+                const int detail = theApp->useDetailedShadows() ? 2 : 1;
+                sys->getShadow()->getFBO().reBuildFBO(1,sys->getWidth()*detail,sys->getHeight()*detail,GL_RGBA32F);
+            }
+            ImGui::SameLine();
+            ShowHelpMarker(GLAPP_HELP_DETAILED_SHADOW);
         }
         {
             ImGui::AlignTextToFramePadding();
@@ -1651,30 +1678,22 @@ void progSettingDlgClass::view()
             if(ImGui::Checkbox(" Use LOW precision", &b)) {                
                 if(b) theApp->setLowPrecision();
                 else  theApp->setHighPrecision();
-                theApp->resetParticlesSystem();
+                //theApp->needRestart(true);
+                optionChanges = true;
             }
             ImGui::SameLine();
             ShowHelpMarker(GLAPP_HELP_PRECISION);
         }
         {
             ImGui::AlignTextToFramePadding();
-            bool b = bool(theApp->getStartWithAttractorIdx()>=0);
+            bool b = bool(theApp->getStartWithAttractorName()!="random");
             if(ImGui::Checkbox(" Start with current attractor", &b)) {
-                if(b) theApp->setStartWithAttractorIdx(attractorsList.getSelection());
-                else  theApp->setStartWithAttractorIdx(-1);
+                if(b) theApp->setStartWithAttractorName(attractorsList.getNameID());
+                else  theApp->setStartWithAttractorName("random");
+                optionChanges = true;
             }
             ImGui::SameLine();
             ShowHelpMarker(GLAPP_HELP_START_ATTRACTOR);
-        }
-        {
-            ImGui::AlignTextToFramePadding();
-            bool b = theApp->useDetailedShadows();
-            if(ImGui::Checkbox(" Detailed shadow", &b)) {
-                theApp->useDetailedShadows(b);
-                theApp->resetParticlesSystem();
-            }
-            ImGui::SameLine();
-            ShowHelpMarker(GLAPP_HELP_DETAILED_SHADOW);
         }
 /*
         {
@@ -1733,6 +1752,7 @@ void progSettingDlgClass::view()
         ImGui::PopItemWidth();
 */
         ImGui::NewLine();
+        if(optionChanges) pushColorButton();
         if(ImGui::Button("Save Prog.Settings",ImVec2(wButt,0))) {
             theApp->setPosX(wantSavePos ? x : -1);
             theApp->setPosY(wantSavePos ? y : -1);
@@ -1740,9 +1760,13 @@ void progSettingDlgClass::view()
             theApp->setEmissionStepBuffer(emitStep<<10);
             theApp->selectEmitterType(idxEmitt);
             theApp->saveProgConfig();
-            theApp->resetParticlesSystem();
+            //theApp->resetParticlesSystem();
+            theApp->needRestart(true);
+            if(optionChanges) popColorButton();
             emitterChanges = false;
+            optionChanges = false;
         }
+        if(optionChanges) popColorButton();
 
     }
     ImGui::End();
@@ -1987,11 +2011,11 @@ void viewSettingDlgClass::view()
     if(!isVisible) return;
 #if !defined(GLCHAOSP_LIGHTVER)
     const int posH = 0;
-    const int szH = 365+7*ImGui::GetFrameHeightWithSpacing();
+    const int szH = 365+14*ImGui::GetFrameHeightWithSpacing();
     const int posW = 190;
 #else
     const int posH = 385;
-    const int szH = 146+ImGui::GetFrameHeightWithSpacing()*11;
+    const int szH = 146+ImGui::GetFrameHeightWithSpacing()*12;
     const int posW = 0;
 #endif
     const int szW = 300;
@@ -2036,7 +2060,10 @@ void viewSettingDlgClass::view()
                 tBall.setDollyPosition(vec3(0.f, 0.f, v.z));
             }
         }
-
+        bool b = theApp->idleRotation();
+        if(ImGui::Checkbox(" vGizmo idle rotation", &b)) { theApp->idleRotation(b); }
+        ImGui::SameLine();
+        ShowHelpMarker(GLAPP_HELP_TRACK_IDLE);
         //  Gizmo
         ///////////////////////////////////////////////////////////////////////
         ImGui::NewLine();
@@ -2112,7 +2139,10 @@ void viewSettingDlgClass::view()
         {
             bool b = pSys->showAxes() == renderBaseClass::showAxesToSetCoR;
             if(colCheckButton(b , b ? ICON_FA_CHECK_SQUARE_O " Modify CoR" : ICON_FA_SQUARE_O " Modify CoR", wButt2)) {
-                pSys->showAxes(pSys->showAxes() == renderBaseClass::showAxesToSetCoR ? renderBaseClass::noShowAxes : renderBaseClass::showAxesToSetCoR);
+                if(pSys->showAxes() == renderBaseClass::showAxesToSetCoR ) {
+                    pSys->showAxes(renderBaseClass::noShowAxes);                    
+                    tBall.setPosition(tBall.getRotationCenter());
+                } else pSys->showAxes(renderBaseClass::showAxesToSetCoR);
             }
         }
 
@@ -2444,8 +2474,8 @@ void infoDlgClass::view()
         if(metricW) ImGui::ShowMetricsWindow(&metricW);
 
 #if !defined(GLCHAOSP_LIGHTVER)
-        if(ImGui::Button(" start/stop ")) {
-            theApp->resetParticlesSystem();
+        if(ImGui::Button(" restart ")) {
+            theApp->needRestart(true);
         }
 #endif
     }
@@ -2671,7 +2701,21 @@ extern float g_touch_x, g_touch_y;
 #endif
 void mainImGuiDlgClass::postRenderImGui()
 {
+    if(visible()) {
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+
+#ifdef GLAPP_IMGUI_VIEWPORT
+    // Update and Render additional Platform Windows
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            GLFWwindow* backup_current_context = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backup_current_context);
+        }
+#endif
+    }
 }
 
 void mainImGuiDlgClass::renderImGui()
@@ -2722,17 +2766,6 @@ void mainImGuiDlgClass::renderImGui()
         view();
 
         ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-
-#ifdef GLAPP_IMGUI_VIEWPORT
-    // Update and Render additional Platform Windows
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-        }
-#endif
     }
 
 }

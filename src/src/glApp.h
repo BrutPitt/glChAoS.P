@@ -223,8 +223,6 @@ public:
     std::string &get_glslVer() {return glslVersion; }
     std::string &get_glslDef() {return glslDefines; }
 
-    void resetParticlesSystem();
-
     unsigned getMaxAllocatedBuffer() { return maxAllocatedBuffer; }
     void setMaxAllocatedBuffer(unsigned v) { maxAllocatedBuffer = v; }
     unsigned getEmissionStepBuffer() { return emissionStepBuffer; }
@@ -236,8 +234,8 @@ public:
     bool useDetailedShadows() { return detailedShadows; }
     void useDetailedShadows(bool b) { detailedShadows = b; }
 
-    int getStartWithAttractorIdx() { return startWithAttractorIdx; }
-    void setStartWithAttractorIdx(int v) { startWithAttractorIdx = v; }
+    std::string& getStartWithAttractorName() { return startWithAttractorName; }
+    void setStartWithAttractorName(const std::string& s) { startWithAttractorName = s; }
 
 
     void setVSync(int v) { vSync = v; }
@@ -284,6 +282,10 @@ public:
     void useLightGUI(bool b) {  lightGUI = b; }
     bool startWithGlowOFF() { return initialGlowOFF; }
     void startWithGlowOFF(bool b) {  initialGlowOFF = b; }
+    bool slowGPU() { return isSlowGPU; }
+    void slowGPU(bool b) {  isSlowGPU = b; }
+    bool needRestart() { return appNeedRestart; }
+    void needRestart(bool b) {  appNeedRestart = b; }
 
 
     void selectFolder(std::string &s);
@@ -297,6 +299,9 @@ public:
 
     void selectedListQuickView(int i) { idxListQuickView = i; }
     int selectedListQuickView() { return idxListQuickView; }
+
+    bool idleRotation() { return isIdleRotation; }
+    void idleRotation(bool b) { isIdleRotation = b; }
 
     void selectEmitterType(int type) {
 #if !defined(GLCHAOSP_LIGHTVER)
@@ -351,8 +356,11 @@ private:
     bool lightGUI = false;
     bool initialGlowOFF = false;
     bool detailedShadows = false;
+    bool isIdleRotation = false;
+    bool isSlowGPU = false;
+    bool appNeedRestart = false;
 
-    int startWithAttractorIdx = -1; // -1 Random start
+    std::string startWithAttractorName = std::string("random"); // -1 Random start
 
     int screenShotRequest;
     int vSync = 0;

@@ -186,6 +186,7 @@ public:
     Vec4(const VEC3_T& v, T s = T(0))  : x(v.x), y(v.y), z(v.z), w(s)   {}
     Vec4(T s, const VEC3_T& v)         : x(s),   y(v.x), z(v.y), w(v.z) {}
 
+    //operator VEC3_T() const { return *((VEC3_T *) &x); }
     const Vec4 operator-() const { return Vec4(-x, -y, -z, -w); }
     
     Vec4& operator+=(const Vec4& v) { x += v.x; y += v.y; z += v.z; w += v.w; return *this; }

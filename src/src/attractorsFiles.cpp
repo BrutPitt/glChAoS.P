@@ -430,9 +430,9 @@ void saveAttractorFile(bool fileExport)
 
 void AttractorBase::saveVals(Config &cfg) 
 {
-    vector<float> v((vVal.size()*3));
+    vector<float> v((vVal.size()*4));
 
-    memcpy(v.data(), vVal.data(), vVal.size()*sizeof(vec3));
+    memcpy(v.data(), vVal.data(), vVal.size()*sizeof(vec4));
 
     cfg["Name"] = getNameID();
     saveAdditionalData(cfg);
@@ -440,7 +440,7 @@ void AttractorBase::saveVals(Config &cfg)
     cfg["kMin" ] = kMin;
     cfg["vMax" ] = vMax;
     cfg["vMin" ] = vMin;
-    cfg["vData"] = Config::array(v);
+    cfg["vData4"] = Config::array(v);
     saveKVals(cfg);
 }
 
@@ -451,17 +451,31 @@ void AttractorBase::loadVals(Config &cfg)
     vMax = cfg.get_or("vMax", vMax);
     vMin = cfg.get_or("vMin", vMin);
 
-    loadAdditionalData(cfg);
 
     vector<float> v;
-    for (const Config& e : cfg["vData"].as_array()) v.push_back(e.as_float());
+    if(cfg.has_key("vData")) {
 
-    const int vSize = v.size()/3;
-    vVal.resize(vSize);
+        for (const Config& e : cfg["vData"].as_array()) v.push_back(e.as_float());
 
-    memcpy(vVal.data(), v.data(), vSize*sizeof(vec3));
+        const int vSize = v.size()/3;
+        vVal.resize(vSize);
 
+        for(int i=0, j=0; i<vSize; i++, j+=3) {
+            vVal[i] = vec4(v[j], v[j+1], v[j+2], 0.f);
+        }
+
+    } else { //vdata4
+        for (const Config& e : cfg["vData4"].as_array()) v.push_back(e.as_float());
+
+        const int vSize = v.size()/4;
+        vVal.resize(vSize);
+
+        memcpy(vVal.data(), v.data(), vSize*sizeof(vec4));
+    }
+
+    loadAdditionalData(cfg);
     loadKVals(cfg);
+
 
     initStep();
 
@@ -472,12 +486,13 @@ void AttractorBase::loadVals(Config &cfg)
 void attractorScalarK::loadKVals(Config &cfg) 
 {
     kVal.clear();
-    for (const Config& e : cfg["kData"].as_array()) kVal.push_back(e.as_float());
+    const char *str = cfg.has_key("kData") ? "kData" : "kData4";
+    for (const Config& e : cfg[str].as_array()) kVal.push_back(e.as_float());
 }
 
 void attractorScalarK::saveKVals(Config &cfg) 
 {
-    cfg["kData"] = Config::array(kVal); 
+    cfg["kData4"] = Config::array(kVal); 
 }
 //  Attractor with vectorK general files
 ////////////////////////////////////////////////////////////////////////////
@@ -485,23 +500,32 @@ void attractorVectorK::loadKVals(Config &cfg)
 {
     vector<float> k;
 
-    for (const Config& e : cfg["kData"].as_array()) k.push_back(e.as_float());
 
-    const int kSize = k.size()/3;
+    if(cfg.has_key("kData")) {
+        for (const Config& e : cfg["kData"].as_array()) k.push_back(e.as_float());
 
-    kVal.resize(kSize);
+        const int kSize = k.size()/3;
+        kVal.resize(kSize);
 
-    memcpy(kVal.data(), k.data(), kSize*sizeof(vec3));
+        for(int i=0, j=0; i<kSize; i++, j+=3) {
+            kVal[i] = vec4(k[j], k[j+1], k[j+2], 0.f);
+        }
+    } else {
+        for (const Config& e : cfg["kData4"].as_array()) k.push_back(e.as_float());
 
+        const int kSize = k.size()/4;
+        kVal.resize(kSize);
+        memcpy(kVal.data(), k.data(), kSize*sizeof(vec4));
+    }
 }
 
 void attractorVectorK::saveKVals(Config &cfg) 
 {
-vector<float>  k((kVal.size()*3));
+vector<float>  k((kVal.size()*4));
 
-    memcpy(k.data(), kVal.data(), kVal.size()*sizeof(vec3));
+    memcpy(k.data(), kVal.data(), kVal.size()*sizeof(vec4));
 
-    cfg["kData"] = Config::array(k); 
+    cfg["kData4"] = Config::array(k); 
 }
 
 //  FractalIMMBase Attractor
@@ -509,14 +533,13 @@ vector<float>  k((kVal.size()*3));
 void fractalIIMBase::saveAdditionalData(Config &cfg) 
 {
     cfg["maxDepth" ] = maxDepth;
-    cfg["dim4D" ] = dim4D;
     cfg["fractDegreeN" ] = degreeN;
 }
 
 void fractalIIMBase::loadAdditionalData(Config &cfg) 
 {
     maxDepth = cfg.get_or("maxDepth",    maxDepth);
-    dim4D    = cfg.get_or("dim4D",       dim4D   );
+    if(kVal.size()==4) kVal[3] = cfg.get_or("dim4D", kVal[3] );
     degreeN  = cfg.get_or("fractDegreeN",degreeN );
 }
 
@@ -528,6 +551,7 @@ void BicomplexJExplorer::saveAdditionalData(Config &cfg)
     cfg["bjeIDX2" ] = idx2;
     cfg["bjeIDX3" ] = idx3;
 */
+    fractalIIMBase::saveAdditionalData(cfg);
     std::vector<int> v{idx0, idx1, idx2, idx3};
     cfg["bjeIDX"        ] = Config::array(v);
 }
@@ -541,6 +565,7 @@ void BicomplexJExplorer::loadAdditionalData(Config &cfg)
     idx3 = cfg.get_or("bjeIDX3", 7);
     //getVec_asArray
 */
+    fractalIIMBase::loadAdditionalData(cfg);
     const char *name = "bjeIDX";
     idx0 = 4, idx1 = 5, idx2 = 6, idx3 = 7 ;
     //std::vector<int> v{ 4, 5, 6, 7};

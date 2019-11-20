@@ -131,6 +131,11 @@ void savePalette(Config &cfg, particlesBaseClass *ptr)
 void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
 {
 //Rendering
+    {
+        vector<float> v(4); 
+        *((vec4 *)v.data()) = ptr->backgroundColor();
+        c["backgroundColor"] = Config::array(v);
+    }
     c["dstBlendAttrib"  ] = ptr->getDstBlend();
     c["srcBlendAttrib"  ] = ptr->getSrcBlend(); 
     c["DepthState"      ] = ptr->getDepthState();
@@ -168,8 +173,8 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
 
     
     c["depthRender"     ] = ptr->postRenderingActive();
-    c["dpAdjConvex"     ] = ptr->dpAdjConvex();
-    c["dpNormalTune"    ] = ptr->dpNormalTune();
+    c["dpAdjConvex2"    ] = ptr->dpAdjConvex();
+    c["dpNormalTune2"   ] = ptr->dpNormalTune();
 
 
 //Colors
@@ -396,6 +401,9 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     };
     
 //Rendering
+    vec4 v4;
+    ptr->backgroundColor(getVec_asArray(c, "backgroundColor", v4) ? v4 : vec4(0.f));
+
     ptr->setDstBlend(       c.get_or("dstBlendAttrib"  , ptr->getDstBlend()       ));
     ptr->setSrcBlend(       c.get_or("srcBlendAttrib"  , ptr->getSrcBlend()       ));
     ptr->setDepthState(     c.get_or("DepthState"      , ptr->getDepthState()     ));
@@ -409,14 +417,13 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     ptr->setAlphaSkip(      c.get_or("alphaSkip"       , ptr->getAlphaSkip()      ));
 
 
-    vec4 v4;
     ptr->getDotTex().rebuild( c.get_or("dotsSize"        , DOT_TEXT_SHFT),
                               getVec_asArray(c, "HermiteVals", v4) ? v4 : vec4(.7f, 0.f, .3f, 0.f),
                               c.get_or("dotsType"        , 0));
 
     ptr->useAO(                    c.get_or("AOenabled"   , false               ));
     ptr->setAOStrong(              c.get_or("AOstrong"    , 0.0                 ));
-    ptr->setAOBias(                c.get_or("AObias"      , .2                  ));
+    ptr->setAOBias(                c.get_or("AObias"      , .02                 ));
     ptr->setAORadius(              c.get_or("AOradius"    , ptr->getAORadius()  ));
     ptr->setAODarkness(            c.get_or("AOdarkness"  , .25                 ));
     ptr->setAOMul(                 c.get_or("AOmul"       , 1.0                 ));
@@ -424,12 +431,14 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
 
 
     ptr->postRenderingActive(             c.get_or("depthRender" , false));
-    ptr->dpAdjConvex(                     c.get_or("dpAdjConvex" , 0.333));
-    ptr->dpNormalTune(                    c.get_or("dpNormalTune", 0.025));
+    //ptr->dpAdjConvex(                     c.get_or("dpAdjConvex" , 0.250));
+    //ptr->dpNormalTune(                    c.get_or("dpNormalTune", 0.025));
+    ptr->dpAdjConvex(                     c.get_or("dpAdjConvex2" , 1.00));
+    ptr->dpNormalTune(                    c.get_or("dpNormalTune2", 0.15));
 
 
     ptr->useShadow(            c.get_or("ShadowEnabled"      , false ));
-    ptr->setShadowBias(        c.get_or("ShadowBias"         , 0.015 ));
+    ptr->setShadowBias(        c.get_or("ShadowBias"         , 0.0   ));
     ptr->setShadowDarkness(    c.get_or("ShadowDarkness"     , 0.0   ));
     ptr->setShadowRadius(      c.get_or("ShadowRadius"       , 2.0   ));
     ptr->setShadowGranularity( c.get_or("ShadowGranularity"  , 1.0   ));
@@ -480,8 +489,8 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
             glow->setGlowState( gSel>0 ? gSel : glow->glowType_Threshold);            
         }
     }
-#ifdef GLCHAOSP_LIGHTVER
     if(theApp->startWithGlowOFF()) glow->setGlowOn(false);    
+#ifdef GLCHAOSP_LIGHTVER
     if(glow->isGlowOn()) glow->setGlowState(glow->glowType_Bilateral);
 #endif
 
@@ -527,7 +536,8 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
     {
         auto& c = cfg["Render"];
 
-        pSys->setRenderMode(                      c.get_or("RenderMode"   , pSys->getRenderMode()                      ));
+        pSys->setRenderMode(theApp->slowGPU() ? RENDER_USE_POINTS : c.get_or("RenderMode"   , int(RENDER_USE_POINTS)) );
+
 #if !defined(GLCHAOSP_LIGHTVER)
         pSys->getMotionBlur()->Active(            c.get_or("motionBlur"   , pSys->getMotionBlur()->Active()            ));
         pSys->getMotionBlur()->setBlurIntensity(  c.get_or("blurIntensity", pSys->getMotionBlur()->getBlurIntensity()  ));
@@ -537,7 +547,7 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
         if(typeToIgnore != loadSettings::ignoreCircBuffer) {
             pSys->getEmitter()->setSizeCircularBuffer(c.get_or("circBuff"     , pSys->getEmitter()->getSizeCircularBuffer()));
 #ifdef GLCHAOSP_LIGHTVER
-            pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeCircularBuffer()>>1);
+            //pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeCircularBuffer()>>1);
 #endif
             if(pSys->getEmitter()->getSizeCircularBuffer()>pSys->getEmitter()->getSizeAllocatedBuffer())
                 pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeAllocatedBuffer());
@@ -553,7 +563,7 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
 
         if(getVec_asArray(c, "camPOV"        , v3)) pSys->getTMat()->setPOV(v3);
         if(getVec_asArray(c, "camTGT"        , v3)) pSys->getTMat()->setTGT(v3);
-        if(getVec_asArray(c, "camPerspective", v3)) pSys->getTMat()->setPerspective(v3.x, v3.y, v3.z);
+        if(getVec_asArray(c, "camPerspective", v3)) pSys->getTMat()->setPerspective(v3.x, v3.y, v3.z < pSys->getTMat()->getPOV().z*3 ? pSys->getTMat()->getPOV().z*3 : v3.z);
         if(getVec_asArray(c, "camDolly"      , v3)) pSys->getTMat()->getTrackball().setDollyPosition(v3);
         if(getVec_asArray(c, "camPan"        , v3)) pSys->getTMat()->getTrackball().setPanPosition(v3);
         if(getVec_asArray(c, "camRotCent"    , v3)) pSys->getTMat()->getTrackball().setRotationCenter(v3);
@@ -759,6 +769,7 @@ void mainGLApp::saveProgConfig()
     cfg["windowSizeH" ] = h;
 
     cfg["vSync" ] = theApp->getVSync();
+    cfg["slowGPU"] = theApp->slowGPU();
 
     cfg["maxParticles" ] = getMaxAllocatedBuffer();
     cfg["partSizeConst"] =  theApp->isParticlesSizeConstant();
@@ -773,7 +784,7 @@ void mainGLApp::saveProgConfig()
     cfg["emitterType" ] = theApp->getEmitterType();
     cfg["auxStepBuffer" ] = theApp->getEmissionStepBuffer();
 
-    cfg["startWithAttractorIdx" ] = theApp->getStartWithAttractorIdx();
+    cfg["startWithAttractorName" ] = theApp->getStartWithAttractorName();
 
     dump_file(filename, cfg, JSON);
 
@@ -821,7 +832,9 @@ bool mainGLApp::loadProgConfig()
     width  = cfg.get_or("windowSizeW", INIT_WINDOW_W);
     height = cfg.get_or("windowSizeH", INIT_WINDOW_H);  
 
-    vSync = cfg.get_or("vSync", vSync);
+    vSync = cfg.get_or("vSync", 1);
+    isSlowGPU = cfg.get_or("slowGPU", false);
+    if(isSlowGPU) initialGlowOFF = true;
 
     setMaxAllocatedBuffer(cfg.get_or("maxParticles", getMaxAllocatedBuffer()));
     if(getMaxAllocatedBuffer()>PARTICLES_MAX) setMaxAllocatedBuffer(PARTICLES_MAX);
@@ -834,7 +847,7 @@ bool mainGLApp::loadProgConfig()
     theApp->selectEmitterType(cfg.get_or("emitterType",int(emitter_separateThread_externalBuffer)));
     theApp->setEmissionStepBuffer(cfg.get_or("auxStepBuffer", theApp->getEmissionStepBuffer()));
 
-    theApp->setStartWithAttractorIdx(cfg.get_or("startWithAttractorIdx", -1));  // -1 Random start
+    theApp->setStartWithAttractorName(cfg.get_or("startWithAttractorName", "random"));  // -1 Random start
 
     if(theApp->useLowPrecision()) theApp->setLowPrecision();
     else                          theApp->setHighPrecision();

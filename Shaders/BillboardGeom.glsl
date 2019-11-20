@@ -42,6 +42,7 @@ LAYOUT_BINDING(4) uniform _tMat {
     mat4 mvMatrix;
     mat4 mvpMatrix;
     mat4 mvLightM;
+    mat4 mvpLightM;
 } m;
 
 in gl_PerVertex

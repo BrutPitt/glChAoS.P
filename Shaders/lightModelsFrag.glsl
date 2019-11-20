@@ -79,6 +79,7 @@ LAYOUT_BINDING(4) uniform _tMat {
     mat4 mvMatrix;
     mat4 mvpMatrix;
     mat4 mvLightM;
+    mat4 mvpLightM;
 } m;
 
 #if !defined(GL_ES) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
@@ -250,6 +251,18 @@ float restoreZ(float D)
 #endif
 }
 
+vec4 getVertexFromDepth(vec2 uv, float z)
+{
+/*
+    vec4 vtx = vec4(uv, z, 1.0);
+    vtx = inverse(m.pMatrix) * vtx;
+    vtx /= vtx.w;
+    return vtx;
+*/
+    return vec4(uv*z, z, 1.0);
+
+}
+
 
 float form_01_to_m1p1(float f)  { return 2. * f - 1.; }
 float form_m1p1_to_01(float f)  { return  f*.5 + .5; }
@@ -274,6 +287,23 @@ float specularBlinnPhong(vec3 V, vec3 L, vec3 N)
 
 }
 
+float pow5(float x)
+{
+    return (x * x) * (x * x) * x;
+}
+#define M_PI 3.141592653589793
+//   Material                F linear            F sRGB
+// Water                 (0.02, 0.02, 0.02)  (0.15, 0.15, 0.15)
+// Plastic / Glass (Low) (0.03, 0.03, 0.03)  (0.21, 0.21, 0.21)
+// Plastic High          (0.05, 0.05, 0.05)  (0.24, 0.24, 0.24)
+// Glass (high) / Ruby   (0.08, 0.08, 0.08)  (0.31, 0.31, 0.31)
+// Diamond               (0.17, 0.17, 0.17)  (0.45, 0.45, 0.45)
+// Iron                  (0.56, 0.57, 0.58)  (0.77, 0.78, 0.78)
+// Copper                (0.95, 0.64, 0.54)  (0.98, 0.82, 0.76)
+// Gold                  (1.00, 0.71, 0.29)  (1.00, 0.86, 0.57)
+// Aluminium             (0.91, 0.92, 0.92)  (0.96, 0.96, 0.97)
+// Silver                (0.95, 0.93, 0.88)  (0.98, 0.97, 0.95)
+
 LAYOUT_INDEX(idxGGX) SUBROUTINE(_lightModel) 
 float specularGGX(vec3 V, vec3 L, vec3 N) 
 {
@@ -284,19 +314,27 @@ float specularGGX(vec3 V, vec3 L, vec3 N)
     float dotLH = max(0.0, dot(L,H));
     float dotNH = max(0.0, dot(N,H));
     float dotNL = max(0.0, dot(N,L));
+    float dotNV = max(0.0, dot(N,-V));
 
     // D (GGX normal distribution)
     float denom = dotNH * dotNH * (alphaSqr - 1.0) + 1.0;
-    float D = alphaSqr / (3.141592653589793 * denom * denom);
+    float D = alphaSqr / (M_PI * denom * denom);
 
-    // F (Fresnel term)
-    float F = u.ggxFresnel + (1.0 - u.ggxFresnel) * pow(1.0 - dotLH, 5.0);
-    float k = 0.5 * alpha;
-    float k2 = k * k;
+    // F (Fresnel term) - Schlick approx
+    //float F = u.ggxFresnel + (1.0 - u.ggxFresnel) * pow5(1.0 - dotLH);
+    float F = mix(pow5(1.0 - dotLH), 1.0, u.ggxFresnel);
 
-    return dotNL * D * F / (dotLH*dotLH*(1.0-k2)+k2);
+    //float k = 0.5 * alpha; // IBL lighting    
+    float k = (alpha + 2.0 * u.ggxRoughness + 1.0) * .125; //direct light approssimation - divided 8.0 -> *.125
+
+    //float G = dotNL*dotNV / ((dotNL * (1.0 - k) + k) * (dotNV * (1. - k) + k));    
+    float G = dotNL / mix(dotNL, 1.0, k) * mix(dotNV, 1.0, k); // *dotNV -> normalized
+
+    return D * F * G;
+    
+    //float k2 = k * k;
+    //return dotNL * D * F / (dotLH*dotLH*(1.0-k2)+k2);
 }
-
 
 vec4 getParticleNormal(vec2 coord)
 {
@@ -309,26 +347,29 @@ vec4 getParticleNormal(vec2 coord)
     return N;
 }
 
+
 vec3 getSimpleNormal(float z, sampler2D depthData)
 {
-    float gradA = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 1., 0.)), 0).w) - z;
-    float gradB = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0., 1.)), 0).w) - z;
+    //float gradA = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 1., 0.)), 0).w) - z;
+    //float gradB = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0., 1.)), 0).w) - z;
+    float gradA = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 1., 0.))*u.invScrnRes ).w) - z;
+    float gradB = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 0., 1.))*u.invScrnRes ).w) - z;
 
     vec2 m = u.invScrnRes * -z;// * vec2(u.scrnRes.x/u.scrnRes.y * u.halfTanFOV, u.halfTanFOV);
-    float invTanFOV = u.dpAdjConvex/u.halfTanFOV;
+    float invTanFOV = u.dpAdjConvex /u.halfTanFOV;
 
+    //vec3 N0 = cross(vec3(vec2( 1., 0.)*m, gradA*invTanFOV), vec3(vec2( 0., 1.)*m, gradB*invTanFOV));
     vec3 N0 = cross(vec3(vec2( 1., 0.)*m, gradA*invTanFOV), vec3(vec2( 0., 1.)*m, gradB*invTanFOV));
 
     return normalize (N0);
 }
-
 vec3 getSelectedNormal(float z, sampler2D depthData)
 {
 
-    float gradA = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 1., 0.)), 0).w) - z;
-    float gradB = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0., 1.)), 0).w) - z;
-    float gradC = z - restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2(-1., 0.)), 0).w);
-    float gradD = z - restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0.,-1.)), 0).w);
+    float gradA = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 1., 0.))*u.invScrnRes ).w) - z;
+    float gradB = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 0., 1.))*u.invScrnRes ).w) - z;
+    float gradC = z - restoreZ(texture(depthData,(gl_FragCoord.xy + vec2(-1., 0.))*u.invScrnRes ).w);
+    float gradD = z - restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 0.,-1.))*u.invScrnRes ).w);
 
     vec2 m = u.invScrnRes * -z; //vec2(u.scrnRes.x/u.scrnRes.y * u.halfTanFOV, u.halfTanFOV);
     float invTanFOV = u.dpAdjConvex/u.halfTanFOV;
@@ -340,6 +381,60 @@ vec3 getSelectedNormal(float z, sampler2D depthData)
 
     return normalize (N0);
 }
+
+vec2 getFOVPos(vec2 pos)
+{
+    return (pos*2.0-1.0) * vec2(u.scrnRes.x*u.invScrnRes.y * u.halfTanFOV, u.halfTanFOV); 
+}
+
+vec3 getSimpleNormal(vec4 vtx, sampler2D depthData)
+{
+    vec2 uv1 = (gl_FragCoord.xy + vec2( 1., 0.))*u.invScrnRes;
+    vec2 uv2 = (gl_FragCoord.xy + vec2( 0., 1.))*u.invScrnRes;
+    float gradA = restoreZ(texture(depthData, uv1).w);
+    float gradB = restoreZ(texture(depthData, uv2).w);
+
+    vec4 vtxA = getVertexFromDepth(getFOVPos(uv1), gradA);
+    vec4 vtxB = getVertexFromDepth(getFOVPos(uv2), gradB);
+
+    vec3 invTanFOV = vec3(1.0, 1.0, u.dpAdjConvex);
+
+    vec3 v1 = (vtx.xyz-vtxA.xyz) * invTanFOV;
+    vec3 v2 = (vtx.xyz-vtxB.xyz) * invTanFOV;
+
+    vec3 N0 = cross(v1,v2);
+
+    return normalize (vec3(-N0.xy, N0.z));
+}
+
+vec3 getSelectedNormal(vec4 vtx, sampler2D depthData)
+{
+    vec2 uv1 = (gl_FragCoord.xy + vec2( 1., 0.))*u.invScrnRes;
+    vec2 uv2 = (gl_FragCoord.xy + vec2( 0., 1.))*u.invScrnRes;
+    vec2 uv3 = (gl_FragCoord.xy + vec2(-1., 0.))*u.invScrnRes;
+    vec2 uv4 = (gl_FragCoord.xy + vec2( 0.,-1.))*u.invScrnRes;
+    float gradA = restoreZ(texture(depthData, uv1).w);
+    float gradB = restoreZ(texture(depthData, uv2).w);
+    float gradC = restoreZ(texture(depthData, uv3).w);
+    float gradD = restoreZ(texture(depthData, uv4).w);
+    vec4 vtxA = getVertexFromDepth(getFOVPos(uv1), gradA);
+    vec4 vtxB = getVertexFromDepth(getFOVPos(uv2), gradB);
+    vec4 vtxC = getVertexFromDepth(getFOVPos(uv3), gradC);
+    vec4 vtxD = getVertexFromDepth(getFOVPos(uv4), gradD);
+
+    vec3 invTanFOV = vec3(1.0, 1.0, u.dpAdjConvex);
+
+    float z = vtx.z;
+
+    //vec3 V1 = (abs(dotA-dotC)<u.dpNormalTune && dotA<dotC ? (vtx.xyz-vtxA.xyz) : (vtxC.xyz-vtx.xyz)) * invTanFOV;
+    //vec3 V2 = (abs(dotB-dotD)<u.dpNormalTune && dotB<dotD ? (vtx.xyz-vtxB.xyz) : (vtxD.xyz-vtx.xyz)) * invTanFOV;
+    vec3 V1 = (abs(gradA-gradC)>=u.dpNormalTune && abs(gradA-z)<abs(z-gradC) ? (vtx.xyz-vtxA.xyz) : (vtxC.xyz-vtx.xyz)) * invTanFOV;
+    vec3 V2 = (abs(gradB-gradD)>=u.dpNormalTune && abs(gradB-z)<abs(z-gradD) ? (vtx.xyz-vtxB.xyz) : (vtxD.xyz-vtx.xyz)) * invTanFOV;
+    vec3 N0 = cross(V1, V2);
+
+    return normalize (vec3(-N0.xy, N0.z));
+}
+
 
 #define RENDER_AO uint(1)
 #define RENDER_DEF uint(2)

@@ -97,6 +97,9 @@
     "     it is useful in cases where you modify parameters and the attractor is instable\n"\
     "* Buffer: num of particles to emit, in M (millions); and progressive point, in K (thousands)\n"
 
+#define GLAPP_HELP_TRACK_IDLE\
+    "Enable/Disable vGizmo idle rotation\n\n"\
+    "   use \"G\" key to quickly toggle on/off"
     
 #define GLAPP_HELP_LIGHT_TREE\
     "Light settings\n\n"\
@@ -236,23 +239,31 @@
 #define GLAPP_HELP_PRECISION\
     "Internal precision of FBO, palettes, textures\n"\
     "      Checked - use 16bit floating point\n"\
-    "    unChecked - use 32bit floating point (default)"\
+    "    unChecked - use 32bit floating point (default)\n\n"\
+    "  *is necessary to save to apply the changes (autorestart)"\
 
 #define GLAPP_HELP_START_ATTRACTOR\
     "With which attractor glChAoSP starts\n"\
     "      Checked - always starts with current attractor\n"\
     "    unChecked - starts with random selection (default)\n\n"\
-    " *unCheck and reCheck to select new one"\
+    "  *is necessary to save to apply the changes (autorestart)"\
 
 #define GLAPP_HELP_DETAILED_SHADOW\
     "More detailed shadows\n"\
     "      Checked - Wider texture for shadows (w*2 x h*2)\n"\
     "    unChecked - Standard window texture (w x h => default)"\
 
+#define GLAPP_HELP_SLOW_GPU\
+    "Start any attractor in PointSprite mode and with GLOW OFF\n\n"\
+    "After you can select whatever you want: BillBoard/GLOW\n"\
+    "(pointSprite are faster and GLOW is critical mostly in macOS)"\
+
 #define GLAPP_HELP_SHADOWS_TREE\
     "Shadow settings\n\n"\
     "   Rad - Smoothing shadow radius in pix (0 = noSmooth)\n"\
     "   Ratio - expand smooth radius with subPixels\n"\
+    "      real RADIUS = Rad/Ratio\n"\
+    "      computed RADIUS pixels = Rad*Ratio\n"\
     "   AutoLightDist - auto ligt distance extimation\n"\
     "   Bias - Shadow adaptation\n"\
     "   Dark - Shadow intensity"\

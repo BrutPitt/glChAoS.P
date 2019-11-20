@@ -459,6 +459,7 @@ public:
     renderBaseClass();
 
     void create();
+    void resizeShadow(int w, int h) {}
 
     enum { noShowAxes, showAxesToViewCoR, showAxesToSetCoR };
 
@@ -483,13 +484,13 @@ public:
 
     transformsClass *getTMat() { return &tMat; }
 
+    void showAxes(int b) { axesShow = b; }
+    int showAxes() { return axesShow; }
+
 #if !defined(GLCHAOSP_LIGHTVER)
     mergedRenderingClass *getMergedRendering() { return mergedRendering; }
     motionBlurClass *getMotionBlur() { return motionBlur; }
     oglAxes *getAxes() { return axes; }
-
-    void showAxes(int b) { axesShow = b; }
-    int showAxes() { return axesShow; }
 
     void viewObjON()  { idxViewOBJ = GLuint(particlesViewColor::packedRGB); }
     void viewObjOFF() { idxViewOBJ = GLuint(particlesViewColor::paletteIndex); }
@@ -539,11 +540,12 @@ protected:
     mergedRenderingClass *mergedRendering = nullptr;
 
     oglAxes *axes;
-    int axesShow = noShowAxes;
 
     GLuint idxViewOBJ = 0;
     bool plyObjGetColor = true;
 #endif
+    int axesShow = noShowAxes;
+
     GLint slowMotionDpS = 1000;
     GLsizei slowMotionMaxDots = 10000;
     bool isSlowMotion = false, isCockPit = false;
@@ -944,7 +946,7 @@ struct uParticlesData {
     GLfloat ggxFresnel = .5f;
     GLfloat shadowSmoothRadius = 2.f;
     GLfloat shadowGranularity = 1.f;
-    GLfloat shadowBias = 0.02;
+    GLfloat shadowBias = 0.0;
     GLfloat shadowDarkness = 0.0;
     GLfloat shadowDetail = 1.0;
     GLfloat aoRadius =  .5;
@@ -953,7 +955,7 @@ struct uParticlesData {
     GLfloat aoMul = 1.0;
     GLfloat aoModulate = 1.0;
     GLfloat aoStrong = 0.0;
-    GLfloat dpAdjConvex = .333;
+    GLfloat dpAdjConvex = .250;
     GLfloat dpNormalTune = .025;
 // __APPLE__ & GL_ES
     GLuint lightModel = modelBlinnPhong - modelOffset;
@@ -1112,6 +1114,9 @@ public:
     void setHermiteVals(const vec4 &v) { dotTex.setHermiteVals(v); }
     vec4& getHermiteVals() { return dotTex.getHermiteVals(); }
 
+    void backgroundColor(const vec4 &v) { backgrndColor = v; }
+    vec4& backgroundColor() { return backgrndColor; }
+
     int getLightModel() { return uData.lightModel; }
     void setLightModel(int l) { uData.lightModel = l; }
 
@@ -1201,6 +1206,7 @@ protected:
     GLuint idxSubPixelColor[4]  = { 0, 0, 0, 0 };
 #endif
     vec3 lightVec = vec3(50.f, 15.f, 25.f);
+    vec4 backgrndColor = vec4(0.f);
 
     bool depthBuffActive = true;
     bool blendActive = true;

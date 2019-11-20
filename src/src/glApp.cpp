@@ -62,6 +62,9 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
 #if !defined (__EMSCRIPTEN__)
             case GLFW_KEY_F11: toggleFullscreenOnOff(window);         break;
 #endif
+            case GLFW_KEY_G:
+                theApp->idleRotation(theApp->idleRotation()^1);
+                break;
             case GLFW_KEY_DOWN :  
             case GLFW_KEY_D    :  {
                 int idx = attractorsList.getSelection();
@@ -253,6 +256,7 @@ mainGLApp* mainGLApp::theMainApp = 0;
 void mainGLApp::imguiInit()
 {
     // Setup ImGui binding
+    //IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
 #ifdef GLAPP_IMGUI_VIEWPORT
@@ -448,7 +452,6 @@ mainGLApp::mainGLApp()
 
 mainGLApp::~mainGLApp() 
 {
-    onExit();
 
     delete glEngineWnd;
 }
@@ -488,53 +491,51 @@ int mainGLApp::onExit()
     return 0;
 }
 
-void mainGLApp::resetParticlesSystem() { 
-    //int sel = attractorsList.getSelection();
-    theWnd->onExit(); 
-    //attractorsList.resetSelection();
-    theWnd->onInit(); 
-    //attractorsList.setSelection(sel);
-}
-
 void newFrame()
 {
     theApp->getTimer().tick();
     glfwPollEvents();
 
     theWnd->onIdle();
-    theWnd->onRender();
 
     theApp->getMainDlg().renderImGui();
+    theWnd->onRender();
+    theApp->getMainDlg().postRenderImGui();
 
-    glfwMakeContextCurrent(theApp->getGLFWWnd());
+    //glfwMakeContextCurrent(theApp->getGLFWWnd());
     glfwSwapBuffers(theApp->getGLFWWnd());
 }
 
 void mainGLApp::mainLoop() 
 {
-    while (!glfwWindowShouldClose(getGLFWWnd())) {
+    while (!glfwWindowShouldClose(getGLFWWnd()) && !appNeedRestart) {
         
         glfwPollEvents();
-        glfwGetFramebufferSize(getGLFWWnd(), &width, &height);
+        //glfwGetFramebufferSize(getGLFWWnd(), &width, &height);
 
         if (!glfwGetWindowAttrib(getGLFWWnd(), GLFW_ICONIFIED)) 
             getTimer().tick();
 #if !defined(GLCHAOSP_LIGHTVER)
             theWnd->onIdle();
+            getMainDlg().renderImGui();
 
             // debug interface
             //glClearColor(0.0, 0.0, 0.0, 0.1);
             //glClear(GL_COLOR_BUFFER_BIT);
             theWnd->onRender();
 
-            if(screenShotRequest) {
-                if(screenShotRequest == ScreeShotReq::ScrnSht_CAPTURE_ALL) getMainDlg().renderImGui();
-                glfwMakeContextCurrent(getGLFWWnd());
-                getScreenShot();
-            }
-            getMainDlg().renderImGui();
 
-            glfwMakeContextCurrent(getGLFWWnd());
+            if(screenShotRequest) {
+                if(screenShotRequest == ScreeShotReq::ScrnSht_CAPTURE_ALL) {
+                    getMainDlg().postRenderImGui();
+                //glfwMakeContextCurrent(getGLFWWnd());
+                    getScreenShot();
+                } else {
+                    getScreenShot();
+                    getMainDlg().postRenderImGui();
+                }
+            } else  getMainDlg().postRenderImGui();
+            //glfwMakeContextCurrent(getGLFWWnd());
             glfwSwapBuffers(getGLFWWnd());
 #else
             newFrame();
@@ -572,34 +573,26 @@ int main(int argc, char **argv)
             theApp->useLightGUI(atoi(argv[8])==1 ? true : false);
         // 9        
             std::string s(argv[9]);
-            //printf("%s\n",argv[9]);
-
-            int index;
-            int listSize = attractorsList.getList().size()-1;
-
-            auto getRandomIDX = [&]() {
-                fstRnd::fFastRand32 fastRandom;
-                return int(fastRandom.UNI() * float(listSize));
-            };
-
-            if(s=="random") index = getRandomIDX();
-            else            index = attractorsList.getSelectionByName(s);
-
-            if(index<0 || index>listSize) index = getRandomIDX();            
-            theApp->setStartWithAttractorIdx(index);        
+            theApp->setStartWithAttractorName(s.empty() ? "random" : s);
         
         theApp->onInit(w<256 ? 256 : (w>3840 ? 3840 : w), h<256 ? 256 : (h>2160 ? 2160 : h));
     } else
 #endif        
+
+    do {
+        theApp->needRestart(false);
         theApp->onInit();
    
 // Enter in GL main loop
 /////////////////////////////////////////////////
 #if !defined (__EMSCRIPTEN__)
-    theApp->mainLoop();
+        theApp->mainLoop();
 #else
-    emscripten_set_main_loop(newFrame,0,true);
+        emscripten_set_main_loop(newFrame,0,true);
 #endif
+
+        theApp->onExit();
+    } while(theApp->needRestart());
 
 // Exit procedures called from theApp destructor
 /////////////////////////////////////////////////

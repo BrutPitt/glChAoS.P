@@ -1,30 +1,24 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2026
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29509.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Particles", "Particles.vcxproj", "{7BE468C8-02A3-41A6-9553-99A208C2D4D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug noThread OpenGL 4.1|Win32 = Debug noThread OpenGL 4.1|Win32
-		Debug noThread OpenGL 4.1|x64 = Debug noThread OpenGL 4.1|x64
 		Debug OpenGL 4.1|Win32 = Debug OpenGL 4.1|Win32
 		Debug OpenGL 4.1|x64 = Debug OpenGL 4.1|x64
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
-		Release noThread OpenGL 4.1|Win32 = Release noThread OpenGL 4.1|Win32
-		Release noThread OpenGL 4.1|x64 = Release noThread OpenGL 4.1|x64
 		Release OpenGL 4.1|Win32 = Release OpenGL 4.1|Win32
 		Release OpenGL 4.1|x64 = Release OpenGL 4.1|x64
+		Release Viewports|Win32 = Release Viewports|Win32
+		Release Viewports|x64 = Release Viewports|x64
 		Release|Win32 = Release|Win32
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Debug noThread OpenGL 4.1|Win32.ActiveCfg = Debug noThread OpenGL 4.1|Win32
-		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Debug noThread OpenGL 4.1|Win32.Build.0 = Debug noThread OpenGL 4.1|Win32
-		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Debug noThread OpenGL 4.1|x64.ActiveCfg = Debug noThread OpenGL 4.1|x64
-		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Debug noThread OpenGL 4.1|x64.Build.0 = Debug noThread OpenGL 4.1|x64
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Debug OpenGL 4.1|Win32.ActiveCfg = Debug OpenGL 4.1|Win32
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Debug OpenGL 4.1|Win32.Build.0 = Debug OpenGL 4.1|Win32
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Debug OpenGL 4.1|x64.ActiveCfg = Debug OpenGL 4.1|x64
@@ -33,14 +27,14 @@ Global
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Debug|Win32.Build.0 = Debug|Win32
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Debug|x64.ActiveCfg = Debug|x64
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Debug|x64.Build.0 = Debug|x64
-		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release noThread OpenGL 4.1|Win32.ActiveCfg = Release singleThread OpenGL 4.1|Win32
-		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release noThread OpenGL 4.1|Win32.Build.0 = Release singleThread OpenGL 4.1|Win32
-		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release noThread OpenGL 4.1|x64.ActiveCfg = Release singleThread OpenGL 4.1|x64
-		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release noThread OpenGL 4.1|x64.Build.0 = Release singleThread OpenGL 4.1|x64
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release OpenGL 4.1|Win32.ActiveCfg = Release OpenGL 4.1|Win32
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release OpenGL 4.1|Win32.Build.0 = Release OpenGL 4.1|Win32
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release OpenGL 4.1|x64.ActiveCfg = Release OpenGL 4.1|x64
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release OpenGL 4.1|x64.Build.0 = Release OpenGL 4.1|x64
+		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release Viewports|Win32.ActiveCfg = Release Viewports|Win32
+		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release Viewports|Win32.Build.0 = Release Viewports|Win32
+		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release Viewports|x64.ActiveCfg = Release Viewports|x64
+		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release Viewports|x64.Build.0 = Release Viewports|x64
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release|Win32.ActiveCfg = Release|Win32
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release|Win32.Build.0 = Release|Win32
 		{7BE468C8-02A3-41A6-9553-99A208C2D4D9}.Release|x64.ActiveCfg = Release|x64

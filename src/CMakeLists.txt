@@ -153,7 +153,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
         else()
             if(${CMAKE_BUILD_TYPE} MATCHES "MinSizeRel")
                 # one file no memory option: -s SINGLE_FILE=1 --memory-init-file 0
-                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+                # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
                 set(M_EMCC_BINARYEN "--no-heap-copy --closure 1 -s WASM=1 -s LZ4=1")
                 set(M_EMCC_SHELL_FILE "--shell-file \"${CMAKE_SOURCE_DIR}/mVeryMinimal.html\"")
             else() # Release 
@@ -183,8 +183,8 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
     # -s FULL_ES3=1 -s OFFSCREENCANVAS_SUPPORT=1
     set(M_EMCC_OGL_OPTIONS "-s USE_WEBGL2=1 -s USE_GLFW=3 -s LEGACY_GL_EMULATION=0 -s OFFSCREENCANVAS_SUPPORT=1 ")
 
-# merge all EMCC_OPTIONS -s BINARYEN_TRAP_MODE=clamp 
-    set(M_EMCC_OPTIONS "-s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ALLOW_MEMORY_GROWTH=1 -s PRECISE_F32=1 ${M_EMCC_SHELL_FILE} ${M_EMCC_OGL_OPTIONS} ${M_EMCC_BINARYEN} ${M_EMCC_EMBED_FILES}")
+# merge all EMCC_OPTIONS -s BINARYEN_TRAP_MODE=clamp -s PRECISE_F32=1 -s PRECISE_F32=1 
+    set(M_EMCC_OPTIONS "-s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ALLOW_MEMORY_GROWTH=1 ${M_EMCC_SHELL_FILE} ${M_EMCC_OGL_OPTIONS} ${M_EMCC_BINARYEN} ${M_EMCC_EMBED_FILES}")
 
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${EMSOUT}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${M_GLOBAL_FLAGS} ${OGL_EMITTER_TYPE} ${M_EMCC_FLAGS} ${M_EMCC_OPTIONS} ${GLAPP_DISABLE_DLA} -Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value -Wdelete-non-virtual-dtor")

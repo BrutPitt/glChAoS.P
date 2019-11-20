@@ -36,7 +36,6 @@ vec2 poissonDisk[16] = vec2[](
 );
 
 in vec2 viewRay;
-in vec2 viewRayLight;
 in vec2 vTexCoord;
 
 out vec4 outColor;
@@ -143,7 +142,7 @@ vec4 SampleTextureCatmullRom( vec2 uv)
     return result;
 }
 
-float getStrognAO(float AO)
+float getStrongAO(float AO)
 {
     return u.aoStrong<.001 ? 1.0 : pow(AO,u.aoStrong);
 }
@@ -171,7 +170,7 @@ vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO, float shadow)
         float specular = lightModel(V, light, N.xyz);
 #endif
 
-        float aoD = getStrognAO(AO);
+        float aoD = getStrongAO(AO);
         vec3 lColor =  smoothstep(u.sstepColorMin, u.sstepColorMax,
                                     (aoD*color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
                                     u.lightColor * specular * u.lightSpecInt) * shadow + 
@@ -293,20 +292,20 @@ float buildSmoothScattereShadow(vec4 frag)
 
 float buildSmoothShadow(vec4 frag)
 {
-    vec4 pt = vec4(viewRay*-frag.z, frag.z, 1.0);
+    //vec4 pt = vec4(viewRay*-frag.z, frag.z, 1.0);
+    vec4 pt = getVertexFromDepth(-viewRay, frag.z);
+    //float dist = distance(pt.xyz, 
 
-    mat4 tMat = m.pMatrix * m.mvLightM;
-           
-    vec4 fragPosLightSpace = tMat * pt;
-    // perform perspective divide and port to [0,1] range
+    vec4 fragPosLightSpace = m.mvpLightM * pt;
+
     vec3 projCoords = 0.5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
 
     if(projCoords.z>1.0) return 0.0;
-    // get depth of current fragment from light's perspective    
 
 
     //float bias = 0.005 *  tan(acos(clamp(dot(normalize(u.lightDir),frag.xyz), 0., .9999)));
-    float currentDepth = restoreZ(projCoords.z) + u.shadowBias;
+    float currentDepth = restoreZ(projCoords.z);
+    currentDepth += -currentDepth*.0025 + u.shadowBias;
 
     vec2 stepTex = u.shadowGranularity*u.invScrnRes;
 
@@ -320,7 +319,7 @@ float buildSmoothShadow(vec4 frag)
             float closestDepth = restoreZ(texture(shadowTex, projCoords.xy+vec2(x,y)*stepTex).r);
 
             shadow += (currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv) ;    // 1.0/9.0
-/*
+/* Real more accuracy ???
             vec4 pt = vec4((viewRay+vec2(x,y)*stepTex)*-frag.z-(vec2(x,y)*stepTex), frag.z, 1.0);
            
             vec4 fragPosLightSpace = tMat * pt;
@@ -395,7 +394,7 @@ void main()
     if(depth<=.01) { discard; outColor = vec4(0.0); return; }
 
     float z = restoreZ(depth);
-    vec4 vtx = vec4(viewRay *z, z, 1.0);
+    vec4 vtx = getVertexFromDepth(viewRay, z);
 
     //float AO = bicubic(uv, 3); //texelFetch(aoTex,ivec2(uv), 0).w;
     float AO = bool(u.pass&RENDER_AO) ? getBlurredAO(uv) : 1.0;
@@ -408,13 +407,19 @@ void main()
 
         //vec3 N = blurredNormals(uv).xyz;
         //vec3 N = 2.0 * texelFetch(aoTex,ivec2(uv), 0).xyz - 1.0;
-        vec3 N = getSelectedNormal(z, prevData);
-        //vec3 N = getSimpleNormal(z, prevData);
+
+        //vec4 N = vec4(getSelectedNormal(z, prevData), 1.0);      
+
+        vec4 N = vec4(getSelectedNormal(vtx, prevData), 1.0);
+        //vec4 N = vec4(getSimpleNormal(vtx, prevData), 1.0);
 
         vec4 color = texture(prevData,uv);
 
+        vtx = vec4(viewRay, z, 1.0);
+        vtx = inverse(m.pMatrix) * vtx;
+        vtx /= vtx.w;
         
-        outColor = pixelColorLight(vtx.xyz, color, vec4(N, 1.0), AO, shadow);
+        outColor = pixelColorLight(vtx.xyz, color, N, AO, shadow);
 
         //outColor = vec4(AO);
 
@@ -430,7 +435,7 @@ void main()
         vec3 lightColor = unPackColor8(packedColor.x).yzw;
         vec3 baseColor  = unPackColor8(packedColor.y).yzw;
 */
-        float aoD = getStrognAO(AO);
+        float aoD = getStrongAO(AO);
         lightColor = smoothstep(u.sstepColorMin, u.sstepColorMax, 
                                  aoD *lightColor * shadow + 
                                 AO * (baseColor*u.lightAmbInt + vec3(u.lightAmbInt)) * .5);

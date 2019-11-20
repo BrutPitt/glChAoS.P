@@ -64,7 +64,7 @@ void glWindow::onInit()
     T.setGizmoRotZControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_ALT | GLFW_MOD_SUPER);
 
     T.setDollyControl((vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) 0);
-    T.setPanControl(  (vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) GLFW_MOD_CONTROL|GLFW_MOD_SHIFT);
+    T.setPanControl(  (vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) GLFW_MOD_CONTROL|GLFW_MOD_SUPER);
 
 
     T.setRotationCenter(attractorsList.get()->getTGT());
@@ -78,15 +78,26 @@ void glWindow::onInit()
 
     int listSize = attractorsList.getList().size()-1;
 
-    if(theApp->getStartWithAttractorIdx()<0 || theApp->getStartWithAttractorIdx()>listSize) {
-        fstRnd::fFastRand32 fastRandom; 
-        
-        int index = int(fastRandom.UNI() * float(listSize));
-        attractorsList.setSelection(index); 
-        //attractorsList.setSelection(30); 
+    auto getRandomIDX = [&]() {
+        fstRnd::fFastRand32 fastRandom;
+        return int(fastRandom.UNI() * float(listSize));
+    };
+
+    if(theApp->getStartWithAttractorName()=="random") {
+        attractorsList.setSelection(getRandomIDX()); 
+    } else if(theApp->getStartWithAttractorName().find(".sca")==std::string::npos) {
+        int index = attractorsList.getSelectionByName(theApp->getStartWithAttractorName());
+        attractorsList.setSelection((index<0 || index>listSize) ? getRandomIDX() : index);       
+    } else {
+        attractorsList.getThreadStep()->stopThread();
+        if(theApp->loadAttractor(theApp->getStartWithAttractorName().c_str())) {
+            attractorsList.setFileName(theApp->getStartWithAttractorName());
+            attractorsList.getThreadStep()->restartEmitter();
+            attractorsList.get()->initStep();
+            attractorsList.getThreadStep()->startThread();
+        }
+        else attractorsList.setSelection(getRandomIDX());
     }
-    else attractorsList.setSelection(theApp->getStartWithAttractorIdx()); 
-    
 }
 
 // 
@@ -292,7 +303,7 @@ GLuint glWindow::renderAttractor()
         mat4 m = translate(mat4(1.f), cpPOV);
         m = m * mat4_cast(cPit.getRotation());
         //m = translate(m, cpPOV);
-        cpTGT = m * cpTGT;
+        cpTGT = mat3(m) * cpTGT;
 
         particlesSystem->getTMat()->setPerspective(particlesSystem->getCockpit().getPerspAngle(), float(w)/float(h), particlesSystem->getCockpit().getPerspNear(), objT->getPerspFar());
         particlesSystem->getTMat()->setView(cpPOV, cpTGT);
@@ -345,7 +356,7 @@ GLuint glWindow::renderAttractor()
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onIdle()
 {
-    particlesSystem->getTMat()->getTrackball().idle();
+    if(theApp->idleRotation()) particlesSystem->getTMat()->getTrackball().idle();
 }
 
 

@@ -41,7 +41,7 @@ using namespace fstRnd;
 extern fFastRand32 fastRandom;
 
 
-#define BUFFER_DIM 10
+#define BUFFER_DIM 100
 #define STABILIZE_DIM 1500
 
 //#define RANDOM(MIN, MAX) ((MIN)+((float)rand()/(float)RAND_MAX)*((MAX)-(MIN)))
@@ -57,7 +57,7 @@ class AttractorBase
 {
 public:
 
-    typedef void (AttractorBase::*stepPtrFn)(vec3 &v, vec3 &vp);
+    typedef void (AttractorBase::*stepPtrFn)(vec4 &v, vec4 &vp);
 
     enum { attLoadPtVal, attLoadKtVal };
     enum { attHaveKVect, attHaveKScalar }; 
@@ -108,13 +108,13 @@ public:
     virtual int getKType() = 0;
 
     //thread Step with shared GPU memory
-    void Step(float *&ptr, vec3 &v, vec3 &vp);
+    void Step(float *&ptr, vec4 &v, vec4 &vp);
     //single step
     virtual void Step();
     //buffered Step
     virtual uint32_t Step(float *ptr, uint32_t numElements);
     //attractor step algorithm
-    virtual void Step(vec3 &v, vec3 &vp) = 0;
+    virtual void Step(vec4 &v, vec4 &vp) = 0;
 
     void stabilize(int samples) {
         for(int i = samples; i>0; i--) Step();
@@ -122,31 +122,24 @@ public:
 
 //#define GLCHAOS_USES_SEMPLIFED_QUEUE
 #ifdef GLCHAOS_USES_SEMPLIFED_QUEUE
-    vec3& getCurrent()  { return queueCurrent; }
-    vec3& getPrevious() { return queuePrevious; }
-    void Insert(const vec3 &vect)
+    vec4& getCurrent()  { return queueCurrent; }
+    vec4& getPrevious() { return queuePrevious; }
+    void Insert(const vec4 &vect)
     {
         queuePrevious = queueCurrent;
         queueCurrent = vect;
     }
 #else
-    vec3& getCurrent()  { return *((vec3 *)value_ptr(stepQueue.front())); }
-    vec3& getPrevious() { return *((vec3 *)value_ptr(stepQueue[1])); }
-    vec4& getCurrent4()  { return stepQueue.front(); }
-    vec4& getPrevious4() { return stepQueue[1]; }
+    vec4& getCurrent()  { return stepQueue.front(); }
+    vec4& getPrevious() { return stepQueue[1]; }
     void Insert(const vec4 &vect)
     {
         stepQueue.push_front(vect);
         stepQueue.pop_back();
     }
-    void Insert(const vec3 &vect)
-    {
-        stepQueue.push_front(vec4(vect));
-        stepQueue.pop_back();
-    }
 #endif
 
-    //vec3& getAt(int i)  { return stepQueue[i]; }
+    //vec4& getAt(int i)  { return stepQueue[i]; }
 
     int getMagnetSize() { return vVal.size(); }
 
@@ -185,17 +178,14 @@ public:
     bool fractalType() { return isFractal; }
 
     virtual int getPtSize() { return attPt3D; }
-    float getDim4D() { return dim4D; }
-    void setDim4D(float f) { dim4D = f; }
 
     float getInputKMin() { return inputKMin; }
     float getInputKMax() { return inputKMax; }
     float getInputVMin() { return inputVMin; }
     float getInputVMax() { return inputVMax; }
 
-    vector<vec3> vVal;
+    vector<vec4> vVal;
 protected:
-    float dim4D = 0;
 
     //innerThreadStepPtrFn innerThreadStepFn;
     stepPtrFn stepFn;
@@ -212,7 +202,7 @@ protected:
     bool bDlgAdditionalDataVisible = false;
     
 
-    vec3 m_POV, m_TGT = vec3(0.f, 0.f, 0.f);
+    vec3 m_POV, m_TGT = vec3(0.f);
 
     string displayName, fileName, nameID;
 
@@ -249,7 +239,7 @@ public:
     virtual void newRandomValues() 
     {
             for (int i=0; i<kVal.size(); i++) kVal[i] = RANDOM(kMin,kMax);
-            vVal[0] = vec3(RANDOM(vMin,vMax),RANDOM(vMin,vMax),RANDOM(vMin,vMax));
+            vVal[0] = vec4(RANDOM(vMin,vMax),RANDOM(vMin,vMax),RANDOM(vMin,vMax),RANDOM(vMin,vMax));
     }
 
 
@@ -293,6 +283,8 @@ protected:
     virtual void loadAdditionalData(Config &cfg);
     // dTime step 
     float dtStepInc = 0.001f;
+
+
 };
 
 
@@ -312,13 +304,13 @@ public:
     }
     virtual void newRandomValues() 
     {
-            for (auto &i : kVal) i = vec3(RANDOM(kMin,kMax),RANDOM(kMin,kMax),RANDOM(kMin,kMax));
-            vVal[0] = vec3(RANDOM(vMin,vMax),RANDOM(vMin,vMax),RANDOM(vMin,vMax));
+            for (auto &i : kVal) i = vec4(RANDOM(kMin,kMax),RANDOM(kMin,kMax),RANDOM(kMin,kMax),RANDOM(vMin,vMax));
+            vVal[0] = vec4(RANDOM(vMin,vMax),RANDOM(vMin,vMax),RANDOM(vMin,vMax),RANDOM(vMin,vMax));
     }
 
     void clear() { kVal.clear(); vVal.clear(); }
 
-    vec3& getKParam(int i) { return kVal[i]; }
+    vec4& getKParam(int i) { return kVal[i]; }
 
     void saveKVals(Config &cfg);
     void loadKVals(Config &cfg);
@@ -341,7 +333,7 @@ public:
     int getKType() { return attHaveKVect; }
 
 protected:
-    vector<vec3> kVal;
+    vector<vec4> kVal;
 
 };
 
@@ -360,12 +352,13 @@ protected:
 
     }
 
-    virtual void preStep(vec3 &v) {
+    virtual void preStep(vec4 &v) {
         if(depth++>maxDepth) {
             depth = 0;
 
-            last4D = dim4D +   fastRandom.range(vMin, vMax);
-            v = vVal[0] + vec3(fastRandom.range(vMin, vMax),
+            //last4D = dim4D +   fastRandom.range(vMin, vMax); remove
+            v = vVal[0] + vec4(fastRandom.range(vMin, vMax),
+                               fastRandom.range(vMin, vMax),
                                fastRandom.range(vMin, vMax),
                                fastRandom.range(vMin, vMax));
             
@@ -385,11 +378,9 @@ protected:
 
     vec4 kRnd = vec4(0.f);
     vec4 vIter;
-    std::vector<vec3> eqRoots;
     
     int maxDepth = 50;
     int degreeN = 2;
-    float last4D = 1;
 
     int depth = 0;
 private:
@@ -413,7 +404,7 @@ public:
     juliaBulb_IIM() { stepFn = (stepPtrFn) &juliaBulb_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -423,18 +414,17 @@ public:
     juliaBulb4th_IIM() { stepFn = (stepPtrFn) &juliaBulb4th_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
 class fractalIIM_4D : public fractalIIMBase
 {
 public:
-    //void preStep(vec3 &v, vec3 &vp) { last4D = RANDOM(vMin, vMax); fractalIIMBase::preStep(v,vp); }
+    //void preStep(vec4 &v, vec4 &vp) { last4D = RANDOM(vMin, vMax); fractalIIMBase::preStep(v,vp); }
     int getPtSize() { return attPt4D; }
 
     virtual void initStep() {
-        last4D = dim4D;
         attractorScalarK::initStep();
     }
 
@@ -449,10 +439,10 @@ protected:
 class BicomplexBase : public fractalIIM_4D
 {
 public:
-    typedef void (BicomplexBase::*magneticPtrFn)(const vec3 &, int);
+    typedef void (BicomplexBase::*magneticPtrFn)(const vec4 &, int);
     void startData();
 
-    void radiciBicomplex(const vec4 &pt, vec3 &vp)
+    void radiciBicomplex(const vec4 &pt, vec4 &vp)
     {           
         const int rnd = fastRand32::xorShift();
         const float sign1 = (rnd&1) ? 1.f : -1.f, sign2 = (rnd&2) ? 1.f : -1.f;
@@ -460,8 +450,8 @@ public:
 
         const std::complex<float> z1(p.x, p.y), z2(-p.w, p.z);
         const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
-        vp = vec3(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag()/*, w1.real()-w2.real()*/)*.5f;
-        last4D =  .5f * (w1.real()-w2.real());
+        vp = vec4(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag(), w1.real()-w2.real())*.5f;
+        //last4D =  ;
     };
 
 };
@@ -473,7 +463,8 @@ public:
     BicomplexJ_IIM() { stepFn = (stepPtrFn) &BicomplexJ_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(v, last4D), vp); }
+    //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v, last4D), vp); } //remove
+    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(v, vp); }
 };
 
 /////////////////////////////////////////////////
@@ -483,7 +474,8 @@ public:
     BicomplexJMod0_IIM() { stepFn = (stepPtrFn) &BicomplexJMod0_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(v, dim4D), vp); }
+    //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v, dim4D), vp); } remove
+    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4((vec3)v, vVal[0].w), vp); }
 };
 
 /////////////////////////////////////////////////
@@ -493,7 +485,8 @@ public:
     BicomplexJMod1_IIM() { stepFn = (stepPtrFn) &BicomplexJMod1_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, vVal[0].z, last4D), vp); }
+    //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, vVal[0].z, last4D), vp); } remove
+    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, vVal[0].z, v.w), vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod2_IIM : public BicomplexBase
@@ -502,10 +495,12 @@ public:
     BicomplexJMod2_IIM() { stepFn = (stepPtrFn) &BicomplexJMod2_IIM::Step; }
 
 protected:
-    //void Step(vec3 &v, vec3 &vp) { preStep(v,vp); radiciBicomplex(vec4(last4D, v.x, v.z, v.x), vp); }
-    //void Step(vec3 &v, vec3 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.y, v.z, last4D, v.x), vp); }
-    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.z, v.y), vp); }
-    //void Step(vec3 &v, vec3 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.x, v.y, v.y, v.y), vp); }
+    //void Step(vec4 &v, vec4 &vp) { preStep(v,vp); radiciBicomplex(vec4(last4D, v.x, v.z, v.x), vp); }
+    //void Step(vec4 &v, vec4 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.y, v.z, last4D, v.x), vp); }
+    //void Step(vec4 &v, vec4 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.x, v.y, v.y, v.y), vp); }
+
+    //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.z, v.y), vp); } remove
+    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.z, v.y), vp); }
 };
 
 /////////////////////////////////////////////////
@@ -515,7 +510,7 @@ public:
     BicomplexJMod3_IIM() { stepFn = (stepPtrFn) &BicomplexJMod3_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(vVal[0].x, v.y, v.z, last4D), vp); }
+    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(vVal[0].x, v.y, v.z, v.w), vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod4_IIM : public BicomplexBase
@@ -524,7 +519,7 @@ public:
     BicomplexJMod4_IIM() { stepFn = (stepPtrFn) &BicomplexJMod4_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.x, last4D), vp); }
+    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.x, v.w), vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod5_IIM : public BicomplexBase
@@ -533,7 +528,7 @@ public:
     BicomplexJMod5_IIM() { stepFn = (stepPtrFn) &BicomplexJMod5_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4( v.y, v.x, last4D, v.z), vp); }
+    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4( v.y, v.x, v.w, v.z), vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod6_IIM : public BicomplexBase
@@ -542,7 +537,7 @@ public:
     BicomplexJMod6_IIM() { stepFn = (stepPtrFn) &BicomplexJMod6_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4(vVal[0].x, vVal[0].y, v.z, last4D), vp); }
+    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(vVal[0].x, vVal[0].y, v.z, v.w), vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod7_IIM : public BicomplexBase
@@ -551,9 +546,9 @@ public:
     BicomplexJMod7_IIM() { stepFn = (stepPtrFn) &BicomplexJMod7_IIM::Step; }
 
 protected:
-    //void Step(vec3 &v, vec3 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, v.x), vp); }
-    void Step(vec3 &v, vec3 &vp) { preStep(v); radiciBicomplex(vec4( v.x, v.x, v.z, dim4D), vp); }
-    //void Step(vec3 &v, vec3 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, last4D), vp); }
+    //void Step(vec4 &v, vec4 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, v.x), vp); }
+    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4( v.x, v.x, v.z, vVal[0].w), vp); }
+    //void Step(vec4 &v, vec4 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, last4D), vp); }
 };
 
 /////////////////////////////////////////////////
@@ -577,15 +572,15 @@ public:
         a1[0] = a2[0] = a3[0] = a4[0] = &vVal[0].x;
         a1[1] = a2[1] = a3[1] = a4[1] = &vVal[0].y;
         a1[2] = a2[2] = a3[2] = a4[2] = &vVal[0].z;
-        a1[3] = a2[3] = a3[3] = a4[3] = &dim4D;
+        a1[3] = a2[3] = a3[3] = a4[3] = &vVal[0].w;
         a1[4] = a2[4] = a3[4] = a4[4] = &vt.x;
         a1[5] = a2[5] = a3[5] = a4[5] = &vt.y;
         a1[6] = a2[6] = a3[6] = a4[6] = &vt.z;
-        a1[7] = a2[7] = a3[7] = a4[7] = &last4D;        
+        a1[7] = a2[7] = a3[7] = a4[7] = &vt.w;
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp) { 
+    void Step(vec4 &v, vec4 &vp) { 
         preStep(v); 
         vt = v; 
         radiciBicomplex(vec4( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]), vp); 
@@ -594,7 +589,7 @@ private:
     float *a1[8], *a2[8], *a3[8], *a4[8];
     int idx0 = 4, idx1 = 5, idx2 = 6, idx3 = 7 ;
     const char str[8][4] { "s.X", "s.Y", "s.Z", "s.W", "i.X", "i.Y", "i.Z", "i.W" }; 
-    vec3 vt;
+    vec4 vt;
 
 };
 
@@ -605,7 +600,7 @@ public:
     quatJulia_IIM() { stepFn = (stepPtrFn) &quatJulia_IIM::Step; }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -616,7 +611,7 @@ public:
     glynnJB_IIM() { stepFn = (stepPtrFn) &glynnJB_IIM::Step;  }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -657,8 +652,8 @@ public:
 
     //void Step();
     //void Step(float *ptr, int numElements);
-    //inline void Step(float *&ptr, vec3 &v, vec3 &vp);
-    void Step(vec3 &v, vec3 &vp);
+    //inline void Step(float *&ptr, vec4 &v, vec4 &vp);
+    void Step(vec4 &v, vec4 &vp);
 
     void startData();
 
@@ -704,7 +699,7 @@ public:
         resetData();
     }
 
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 
     void searchAttractor()  { searchLyapunov(); }
@@ -750,9 +745,9 @@ public:
     void newRandomValues()
     {
         for(int i=0; i<nCoeff; i++)
-            kVal[i] = vec3(RANDOM(kMin,kMax),RANDOM(kMin,kMax),RANDOM(kMin,kMax));
+            kVal[i] = vec4(RANDOM(kMin,kMax),RANDOM(kMin,kMax),RANDOM(kMin,kMax),0.f);
 
-        vVal[0] = vec3(RANDOM(vMin,vMax),RANDOM(vMin,vMax),RANDOM(vMin,vMax));
+        vVal[0] = vec4(RANDOM(vMin,vMax),RANDOM(vMin,vMax),RANDOM(vMin,vMax),0.f);
     }
 
 private:
@@ -796,7 +791,7 @@ class PolynomialA : public PolynomialBase
 public:
     PolynomialA() { stepFn = (stepPtrFn) &PolynomialA::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 /*
     void newRandomValues ()
@@ -818,7 +813,7 @@ class PolynomialB : public PolynomialBase
 public:
     PolynomialB() { stepFn = (stepPtrFn) &PolynomialB::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -828,7 +823,7 @@ class PolynomialC : public PolynomialBase
 public:
     PolynomialC() { stepFn = (stepPtrFn) &PolynomialC::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -838,7 +833,7 @@ class PolynomialABS : public PolynomialBase
 public:
     PolynomialABS() { stepFn = (stepPtrFn) &PolynomialABS::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -848,7 +843,7 @@ class PolynomialPow : public PolynomialBase
 public:
     PolynomialPow() { stepFn = (stepPtrFn) &PolynomialPow::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -858,7 +853,7 @@ class PolynomialSin : public PolynomialBase
 public:
     PolynomialSin() { stepFn = (stepPtrFn) &PolynomialSin::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -880,7 +875,7 @@ class Rampe01 : public RampeBase
 public:
     Rampe01() { stepFn = (stepPtrFn) &Rampe01::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 /////////////////////////////////////////////////
@@ -889,7 +884,7 @@ class Rampe02 : public RampeBase
 public:
     Rampe02() { stepFn = (stepPtrFn) &Rampe02::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 /////////////////////////////////////////////////
@@ -898,7 +893,7 @@ class Rampe03 : public RampeBase
 public:
     Rampe03() { stepFn = (stepPtrFn) &Rampe03::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 /////////////////////////////////////////////////
@@ -907,7 +902,7 @@ class Rampe03A : public RampeBase
 public:
     Rampe03A() { stepFn = (stepPtrFn) &Rampe03A::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 /////////////////////////////////////////////////
@@ -916,7 +911,7 @@ class Rampe04 : public RampeBase
 public:
     Rampe04() { stepFn = (stepPtrFn) &Rampe04::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 /////////////////////////////////////////////////
@@ -925,7 +920,7 @@ class Rampe05 : public RampeBase
 public:
     Rampe05() { stepFn = (stepPtrFn) &Rampe05::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 /////////////////////////////////////////////////
@@ -934,7 +929,7 @@ class Rampe06 : public RampeBase
 public:
     Rampe06() { stepFn = (stepPtrFn) &Rampe06::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 /////////////////////////////////////////////////
@@ -943,7 +938,7 @@ class Rampe07 : public RampeBase
 public:
     Rampe07() { stepFn = (stepPtrFn) &Rampe07::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 /////////////////////////////////////////////////
@@ -952,7 +947,7 @@ class Rampe08 : public RampeBase
 public:
     Rampe08() { stepFn = (stepPtrFn) &Rampe08::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 /////////////////////////////////////////////////
@@ -961,7 +956,7 @@ class Rampe09 : public RampeBase
 public:
     Rampe09() { stepFn = (stepPtrFn) &Rampe09::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 /////////////////////////////////////////////////
@@ -970,7 +965,7 @@ class Rampe10 : public RampeBase
 public:
     Rampe10() { stepFn = (stepPtrFn) &Rampe10::Step; }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -989,7 +984,7 @@ public:
         m_POV = vec3( 0.f, 0, 10.f);
     }
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
     void searchAttractor()  { searchLyapunov(); }
 };
@@ -1009,7 +1004,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
     void searchAttractor()  { searchLyapunov(); }
 };
@@ -1031,12 +1026,12 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
     void searchAttractor()  { searchLyapunov(); }
 };
 
-//  Mira3D base class
+//  Mira3D
 ////////////////////////////////////////////////////////////////////////////
 class Mira3D : public attractorScalarK
 {
@@ -1051,9 +1046,183 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
     void searchAttractor()  { searchLyapunov(); }
+};
+//  Mira4D
+////////////////////////////////////////////////////////////////////////////
+class Mira4D : public attractorScalarK
+{
+public:
+
+    Mira4D() {
+        stepFn = (stepPtrFn) &Mira4D::Step;
+        vMin = -10.0; vMax = 10.0; kMin = -1.0; kMax = 1.0;
+
+        m_POV = vec3( 0.f, 0, 50.f);
+    }
+
+    int getPtSize() { return attPt4D; }
+protected:
+    void Step(vec4 &v, vec4 &vp);
+    void startData();
+    void searchAttractor()  { searchLyapunov(); }
+};
+
+//  PopCorn 4D BaseClass
+////////////////////////////////////////////////////////////////////////////
+class PopCorn4DBase : public attractorScalarK
+{
+public:
+    
+    PopCorn4DBase() {
+        vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
+        m_POV = vec3( 0.f, 0, 12.f);
+    }
+
+    int getPtSize() { return attPt4D; }
+protected:
+    void startData();
+};
+
+class PopCorn4Dset : public PopCorn4DBase
+{
+public:
+    void Step(vec4 &v, vec4 &vp);
+
+protected:
+    double (*pfX)(double), (*pfY)(double), (*pfZ)(double), (*pfW)(double);
+};
+
+//  PopCorn 4D
+////////////////////////////////////////////////////////////////////////////
+class PopCorn4D : public PopCorn4Dset
+{
+public:
+    PopCorn4D() { stepFn = (stepPtrFn) &PopCorn4Dset::Step; 
+                  pfX = pfY = pfZ = pfW = sin; }
+};
+////////////////////////////////////////////////////////////////////////////
+class PopCorn4Dscss : public PopCorn4Dset
+{
+public:
+    PopCorn4Dscss() { stepFn = (stepPtrFn) &PopCorn4Dset::Step; 
+                      pfX = pfZ = pfW = sin;  pfY = cos; }
+};
+////////////////////////////////////////////////////////////////////////////
+class PopCorn4Dscsc : public PopCorn4Dset
+{
+public:
+    PopCorn4Dscsc() { stepFn = (stepPtrFn) &PopCorn4Dset::Step; 
+                      pfX = pfZ = sin;  pfY = pfW = cos; }
+};
+////////////////////////////////////////////////////////////////////////////
+class PopCorn4Dsscc : public PopCorn4Dset
+{
+public:
+    PopCorn4Dsscc() { stepFn = (stepPtrFn) &PopCorn4Dset::Step; 
+                      pfX = pfY = sin;  pfZ = pfW = cos; }
+};
+////////////////////////////////////////////////////////////////////////////
+class PopCorn4Drnd : public PopCorn4DBase
+{
+public:
+    PopCorn4Drnd() { stepFn = (stepPtrFn) &PopCorn4DBase::Step; }
+protected:
+    void Step(vec4 &v, vec4 &vp);
+};
+
+//  PopCorn 3D
+////////////////////////////////////////////////////////////////////////////
+class PopCorn3D : public attractorScalarK
+{
+public:
+
+    PopCorn3D() {
+        stepFn = (stepPtrFn) &PopCorn3D::Step;
+        vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
+
+        m_POV = vec3( 0.f, 0, 12.f);
+    }
+
+protected:
+    void Step(vec4 &v, vec4 &vp);
+    void startData();
+};
+//  Martin 4D
+////////////////////////////////////////////////////////////////////////////
+class Martin4DBase : public attractorScalarK
+{
+public:
+    Martin4DBase() {
+        vMin = .0; vMax = .5; kMin = 2.7; kMax = 3.0;
+
+        m_POV = vec3( 0.f, 0, 50.f);
+    }
+
+    int getPtSize() { return attPt4D; }
+
+    void Step(vec4 &v, vec4 &vp);
+protected:
+    double (*pfX)(double), (*pfZ)(double);
+    void startData();
+};
+
+class Martin4D : public Martin4DBase
+{
+public:
+    Martin4D() { stepFn = (stepPtrFn) &Martin4DBase::Step;  pfX = pfZ = sin; }
+};
+class Martin4Dsc : public Martin4DBase
+{
+public:
+    Martin4Dsc() { stepFn = (stepPtrFn) &Martin4DBase::Step;  pfX = sin; pfZ = cos; }
+};
+class Martin4Dcc : public Martin4DBase
+{
+public:
+    Martin4Dcc() { stepFn = (stepPtrFn) &Martin4DBase::Step;  pfX = pfZ = cos; }
+};
+
+//  Symmetric Icons
+////////////////////////////////////////////////////////////////////////////
+class SymmetricIcons4D : public attractorScalarK
+{
+public:
+
+    SymmetricIcons4D() {
+        stepFn = (stepPtrFn) &SymmetricIcons4D::Step;
+        vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
+
+        m_POV = vec3( 0.f, 0, 12.f);
+    }
+
+    int getPtSize() { return attPt4D; }
+protected:
+    void Step(vec4 &v, vec4 &vp);
+    void startData();
+};
+
+
+//  Hopalong 4D
+////////////////////////////////////////////////////////////////////////////
+class Hopalong4D : public attractorScalarK
+{
+public:
+
+    Hopalong4D() {
+        stepFn = (stepPtrFn) &Hopalong4D::Step;
+
+        vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
+        m_POV = vec3( 0.f, 0, 50.f);
+    }
+
+    int getPtSize() { return attPt4D; }
+protected:
+    void Step(vec4 &v, vec4 &vp);
+    void startData();
+    //void searchAttractor()  { searchLyapunov(); }
 };
 
 #if !defined(GLAPP_DISABLE_DLA)
@@ -1177,7 +1346,7 @@ protected:
     void initStep() {
         resetIndexData();
         resetQueue();
-        Insert(vec3(0.f));
+        Insert(vec4(0.f));
         Add(vec3(0.0));
         //addedPoints.clear();
         //startThreads(4);
@@ -1319,7 +1488,7 @@ protected:
         }
     }
 
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 
 private:
@@ -1375,7 +1544,7 @@ public:
         m_POV = vec3(0.f, .0, 40.f);
     }
 
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 /*
     void Step()
@@ -1415,7 +1584,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1432,7 +1601,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1449,7 +1618,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1466,7 +1635,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1483,7 +1652,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1500,7 +1669,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1517,7 +1686,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1534,7 +1703,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1551,7 +1720,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1568,7 +1737,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1585,7 +1754,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1602,7 +1771,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1619,7 +1788,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1636,7 +1805,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1653,7 +1822,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1670,7 +1839,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1687,7 +1856,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1704,7 +1873,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1721,7 +1890,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1738,7 +1907,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1755,7 +1924,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
@@ -1772,7 +1941,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 //  Multi Chua II
@@ -1788,7 +1957,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 //  Zhou-Chen
@@ -1804,7 +1973,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 //  SprottLinzB
@@ -1820,7 +1989,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 //  SprottLinzF
@@ -1836,7 +2005,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 //  Coullet 
@@ -1852,7 +2021,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 //  Coullet 
@@ -1868,7 +2037,7 @@ public:
     }
 
 protected:
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
  
@@ -1901,12 +2070,12 @@ public:
 protected:
     void initStep() {
         resetQueue();
-        Insert(vec3(0.f));
+        Insert(vec4(0.f));
         tmpElements = vVal.size();
         stabilize(STABILIZE_DIM);
     }
 
-    void Step(vec3 &v, vec3 &vp);
+    void Step(vec4 &v, vec4 &vp);
     void startData();
 
     //  Additional save vals
@@ -1943,8 +2112,8 @@ protected:
 
         int elements=nMagnets;
         while(n > elements) {
-            vVal.push_back(vec3(RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP)));
-            kVal.push_back(vec3(RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP))); 
+            vVal.push_back(vec4(RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP), 0.f));
+            kVal.push_back(vec4(RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP), 0.f)); 
             elements++;
         }
         while(n < elements) {
@@ -1967,8 +2136,8 @@ protected:
 
             for(int i=0; i<100; i++) AttractorBase::Step();
 
-            vec3 v0 = getCurrent();
-            vec3 v1 = getPrevious();
+            vec4 v0 = getCurrent();
+            vec4 v1 = getPrevious();
 
             //if(fabs(v0.x-v1.x)<.01 && fabs(v0.y-v1.y)<.01 && fabs(v0.z-v1.z)<.01) 
             if(fabs(v0.x-v1.x)>.01 || fabs(v0.y-v1.y)>.01 || fabs(v0.z-v1.z)>.01) break;
@@ -1977,8 +2146,8 @@ protected:
     
     void searchAttractor()  { searchLyapunov(); }
 
-    thread *th[4];
-    vec3 vth[4],vcurr;
+    //thread *th[4];
+    //vec3 vth[4],vcurr;
 
     magneticPtrFn increment;
     bool newItemsEnd = false;
@@ -2004,8 +2173,8 @@ protected:
         const float _dUP =  vMax;
         const float _dDW =  vMin;
 
-        for(auto &i : vVal) i = vec3(RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP));
-        for(auto &i : kVal) i = vec3(RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP));
+        for(auto &i : vVal) i = vec4(RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP), 0.f);
+        for(auto &i : kVal) i = vec4(RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP), 0.f);
 
         initStep();
     }
@@ -2079,77 +2248,89 @@ class AttractorsClass
 {
 public:
     AttractorsClass() {
-        PB(MagneticRight      , u8"\uf006" " MagneticRight"      )
-        PB(MagneticLeft       , u8"\uf006" " MagneticLeft"       )
-        PB(MagneticFull       , u8"\uf006" " MagneticFull"       )
-        PB(MagneticStraight   , u8"\uf006" " MagneticStraight"   )
-        PB(PolynomialA        , u8"\uf006" " Polynom A"          )
-        PB(PolynomialB        , u8"\uf006" " Polynom B"          )
-        PB(PolynomialC        , u8"\uf006" " Polynom C"          )
-        PB(PolynomialABS      , u8"\uf006" " Polynom Abs"        )
-        PB(PolynomialPow      , u8"\uf006" " Polynom Pow"        )
-        PB(PolynomialSin      , u8"\uf006" " Polynom Sin"        )
-        PB(PowerN3D           , u8"\uf006" " Polynom N-order"    )
-        PB(Rampe01            , u8"\uf006" " Rampe01"            )
-        PB(Rampe02            , u8"\uf006" " Rampe02"            )
-        PB(Rampe03            , u8"\uf006" " Rampe03"            )
-        PB(Rampe03A           , u8"\uf006" " Rampe03 mod."       )
-        PB(Rampe04            , u8"\uf006" " Rampe04"            )
-        PB(Rampe05            , u8"\uf006" " Rampe05"            )
-        PB(Rampe06            , u8"\uf006" " Rampe06"            )
-        PB(Rampe07            , u8"\uf006" " Rampe07"            )
-        PB(Rampe08            , u8"\uf006" " Rampe08"            )
-        PB(Rampe09            , u8"\uf006" " Rampe09"            )
-        PB(Rampe10            , u8"\uf006" " Rampe10"            )
-        PB(KingsDream         , u8"\uf006" " King's Dream"       )
-        PB(Pickover           , u8"\uf006" " Pickover"           )
-        PB(SinCos             , u8"\uf006" " Sin Cos"            )
+        PB(MagneticRight      , u8"\uf076" " MagneticRight"      )
+        PB(MagneticLeft       , u8"\uf076" " MagneticLeft"       )
+        PB(MagneticFull       , u8"\uf076" " MagneticFull"       )
+        PB(MagneticStraight   , u8"\uf076" " MagneticStraight"   )
+        PB(PolynomialA        , u8"\uf12b" " Polynom A"          )
+        PB(PolynomialB        , u8"\uf12b" " Polynom B"          )
+        PB(PolynomialC        , u8"\uf12b" " Polynom C"          )
+        PB(PolynomialABS      , u8"\uf12b" " Polynom Abs"        )
+        PB(PolynomialPow      , u8"\uf12b" " Polynom Pow"        )
+        PB(PolynomialSin      , u8"\uf12b" " Polynom Sin"        )
+        PB(PowerN3D           , u8"\uf12b" " Polynom N-order"    )
+        PB(Rampe01            , u8"\uf1db" " Rampe01"            )
+        PB(Rampe02            , u8"\uf1db" " Rampe02"            )
+        PB(Rampe03            , u8"\uf1db" " Rampe03"            )
+        PB(Rampe03A           , u8"\uf1db" " Rampe03 mod."       )
+        PB(Rampe04            , u8"\uf1db" " Rampe04"            )
+        PB(Rampe05            , u8"\uf1db" " Rampe05"            )
+        PB(Rampe06            , u8"\uf1db" " Rampe06"            )
+        PB(Rampe07            , u8"\uf1db" " Rampe07"            )
+        PB(Rampe08            , u8"\uf1db" " Rampe08"            )
+        PB(Rampe09            , u8"\uf1db" " Rampe09"            )
+        PB(Rampe10            , u8"\uf1db" " Rampe10"            )
+        PB(KingsDream         , u8"\uf096" " King's Dream"       )
+        PB(Pickover           , u8"\uf096" " Pickover"           )
+        PB(SinCos             , u8"\uf096" " Sin Cos"            )
+        PB(Hopalong4D         , u8"\uf006" " Hopalong4D"         )
+        PB(Martin4D           , u8"\uf006" " Martin4D ss"        )
+        PB(Martin4Dsc         , u8"\uf006" " Martin4D sc"        )
+        PB(Martin4Dcc         , u8"\uf006" " Martin4D cc"        )
         PB(Mira3D             , u8"\uf006" " Mira3D"             )
+        PB(Mira4D             , u8"\uf006" " Mira4D"             )
+        PB(PopCorn3D          , u8"\uf006" " PopCorn3D"          )
+        PB(PopCorn4D          , u8"\uf006" " PopCorn4D ssss"     )
+        PB(PopCorn4Dscss      , u8"\uf006" " PopCorn4D scss"     )
+        PB(PopCorn4Dscsc      , u8"\uf006" " PopCorn4D scsc"     )
+        PB(PopCorn4Dsscc      , u8"\uf006" " PopCorn4D sscc"     )
+        //PB(PopCorn4Drnd       , u8"\uf006" " PopCorn4D rnd"     )
+//        PB(SymmetricIcons4D   , u8"\uf006" " SymmetricIcons4D"   )
 #if !defined(GLAPP_DISABLE_DLA)
         PB(dla3D              , u8"\uf2dc" " DLA 3D"             )
 #endif
-        PB(Aizawa             , u8"\uf192" " Aizawa"             )
-        PB(Arneodo            , u8"\uf192" " Arneodo"            )
-        PB(Bouali             , u8"\uf192" " Bouali"             )
-        PB(ChenLee            , u8"\uf192" " Chen-Lee"           )
-        PB(Coullet            , u8"\uf192" " Coullet"            )
-        PB(Dadras             , u8"\uf192" " Dadras"             )
-        PB(DequanLi           , u8"\uf192" " Dequan-Li"          )
-        PB(FourWing           , u8"\uf192" " FourWing"           )
-        PB(FourWing2          , u8"\uf192" " FourWing 2"         )
-        PB(FourWing3          , u8"\uf192" " FourWing 3"         )
-        PB(GenesioTesi        , u8"\uf192" " Genesio-Tesi"       )
-        PB(Hadley             , u8"\uf192" " Hadley"             )
-        PB(Halvorsen          , u8"\uf192" " Halvorsen"          )
-        PB(LiuChen            , u8"\uf192" " Liu-Chen"           )
-        PB(Lorenz             , u8"\uf192" " Lorenz"             )
-        PB(MultiChuaII        , u8"\uf192" " Multi-Chua II"      )
-        PB(NewtonLeipnik      , u8"\uf192" " Newton-Leipnik"     )
-        PB(NoseHoover         , u8"\uf192" " Nose-Hoover"        )
-        PB(RayleighBenard     , u8"\uf192" " Rayleigh-Benard"    )
-        PB(Rossler            , u8"\uf192" " Rossler"            )
-        PB(Rucklidge          , u8"\uf192" " Rucklidge"          )
-        PB(Sakarya            , u8"\uf192" " Sakarya"            )
-        PB(SprottLinzB        , u8"\uf192" " Sprott-Linz B"      )
-        PB(SprottLinzF        , u8"\uf192" " Sprott-Linz F"      )
-        PB(Thomas             , u8"\uf192" " Thomas"             )
-        PB(TSUCS              , u8"\uf192" " TSUCS 1&2"          )
-        PB(YuWang             , u8"\uf192" " Yu-Wang"            )
-        PB(ZhouChen           , u8"\uf192" " Zhou-Chen"          )
+        PB(Aizawa             , u8"\uf185" " Aizawa"             )
+        PB(Arneodo            , u8"\uf185" " Arneodo"            )
+        PB(Bouali             , u8"\uf185" " Bouali"             )
+        PB(ChenLee            , u8"\uf185" " Chen-Lee"           )
+        PB(Coullet            , u8"\uf185" " Coullet"            )
+        PB(Dadras             , u8"\uf185" " Dadras"             )
+        PB(DequanLi           , u8"\uf185" " Dequan-Li"          )
+        PB(FourWing           , u8"\uf185" " FourWing"           )
+        PB(FourWing2          , u8"\uf185" " FourWing 2"         )
+        PB(FourWing3          , u8"\uf185" " FourWing 3"         )
+        PB(GenesioTesi        , u8"\uf185" " Genesio-Tesi"       )
+        PB(Hadley             , u8"\uf185" " Hadley"             )
+        PB(Halvorsen          , u8"\uf185" " Halvorsen"          )
+        PB(LiuChen            , u8"\uf185" " Liu-Chen"           )
+        PB(Lorenz             , u8"\uf185" " Lorenz"             )
+        PB(MultiChuaII        , u8"\uf185" " Multi-Chua II"      )
+        PB(NewtonLeipnik      , u8"\uf185" " Newton-Leipnik"     )
+        PB(NoseHoover         , u8"\uf185" " Nose-Hoover"        )
+        PB(RayleighBenard     , u8"\uf185" " Rayleigh-Benard"    )
+        PB(Rossler            , u8"\uf185" " Rossler"            )
+        PB(Rucklidge          , u8"\uf185" " Rucklidge"          )
+        PB(Sakarya            , u8"\uf185" " Sakarya"            )
+        PB(SprottLinzB        , u8"\uf185" " Sprott-Linz B"      )
+        PB(SprottLinzF        , u8"\uf185" " Sprott-Linz F"      )
+        PB(Thomas             , u8"\uf185" " Thomas"             )
+        PB(TSUCS              , u8"\uf185" " TSUCS 1&2"          )
+        PB(YuWang             , u8"\uf185" " Yu-Wang"            )
+        PB(ZhouChen           , u8"\uf185" " Zhou-Chen"          )
 //        PB(Robinson           , u8"\uf192" " Robinson"           )
-        PB(juliaBulb_IIM      , u8"\uf185" " JuliaBulb"          )
-        PB(juliaBulb4th_IIM   , u8"\uf185" " JuliaBulb Nth"      )
-        PB(BicomplexJ_IIM     , u8"\uf185" " biComplex Julia"    )
-        PB(BicomplexJMod0_IIM , u8"\uf185" " biCplxJ m.0"        )
-        PB(BicomplexJMod1_IIM , u8"\uf185" " biCplxJ m.1"        )
-        PB(BicomplexJMod2_IIM , u8"\uf185" " biCplxJ m.2"        )
-        PB(BicomplexJMod3_IIM , u8"\uf185" " biCplxJ m.3"        )
-        PB(BicomplexJMod4_IIM , u8"\uf185" " biCplxJ m.4"        )
-        PB(BicomplexJMod5_IIM , u8"\uf185" " biCplxJ m.5"        )
-        PB(BicomplexJMod6_IIM , u8"\uf185" " biCplxJ m.6"        )
-        PB(BicomplexJMod7_IIM , u8"\uf185" " biCplxJ m.7"        )
-        PB(quatJulia_IIM      , u8"\uf185" " quatJulia"          )
-        PB(BicomplexJExplorer , u8"\uf185" " biComplexJExplorer" )
+        PB(juliaBulb_IIM      , u8"\uf069" " JuliaBulb"          )
+        PB(juliaBulb4th_IIM   , u8"\uf069" " JuliaBulb Nth"      )
+        PB(BicomplexJ_IIM     , u8"\uf069" " biComplex Julia"    )
+        PB(BicomplexJMod0_IIM , u8"\uf069" " biCplxJ m.0"        )
+        PB(BicomplexJMod1_IIM , u8"\uf069" " biCplxJ m.1"        )
+        PB(BicomplexJMod2_IIM , u8"\uf069" " biCplxJ m.2"        )
+        PB(BicomplexJMod3_IIM , u8"\uf069" " biCplxJ m.3"        )
+        PB(BicomplexJMod4_IIM , u8"\uf069" " biCplxJ m.4"        )
+        PB(BicomplexJMod5_IIM , u8"\uf069" " biCplxJ m.5"        )
+        PB(BicomplexJMod6_IIM , u8"\uf069" " biCplxJ m.6"        )
+        PB(BicomplexJMod7_IIM , u8"\uf069" " biCplxJ m.7"        )
+        PB(quatJulia_IIM      , u8"\uf069" " quatJulia"          )
+        PB(BicomplexJExplorer , u8"\uf069" " biComplexJExplorer" )
             
 //        PB(glynnJB_IIM        , u8"\uf2dc" " Glynn JuliaBulb"    )
 //        PB(Hopalong        , "Hopalong"         )
