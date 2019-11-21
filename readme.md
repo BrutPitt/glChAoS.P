@@ -17,18 +17,14 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 <p>&nbsp;<br></p>
 
 ### New ver.1.4.2  feature: 11 unpublished attractor types: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
-An absolutely personal transposition in 3D/4D of famous 2D attractors, some new attractors examples:
+An absolutely personal and original transposition in 3D/4D of famous 2D attractors, some new attractors examples:
 
 | PopCorn 4D (ssss) | Martin 4D |
 | :---: | :---: |
 | ![sShot_20191118_173632](https://user-images.githubusercontent.com/16171743/69288769-cbf85300-0bfa-11ea-8b11-1d916e43af89.jpg) | ![sShot_20191113_43629](https://user-images.githubusercontent.com/16171743/69288951-5c369800-0bfb-11ea-8a24-53d4ae9909c6.jpg) |
-
-|  Mira 4D | Mira 3D |
-| :-----: | :----: |
+|  **Mira 4D** | **Mira 3D** |
 | ![sShot_20191113_22737](https://user-images.githubusercontent.com/16171743/69289055-a0299d00-0bfb-11ea-98ac-f18e4a62eed6.jpg) | ![sShot_20191113_2269](https://user-images.githubusercontent.com/16171743/69289104-c8b19700-0bfb-11ea-929b-28770887dc46.jpg) |
-
-|  PopCorn 4D (scsc) | Hopalong 4D |
-| :-----: | :----: |
+|  **PopCorn 4D (scsc)** | **Hopalong 4D** |
 | ![sShot_20191112_04710](https://user-images.githubusercontent.com/16171743/69289281-4d041a00-0bfc-11ea-91d0-31a9c00caf37.jpg) | ![sShot_20191113_22333](https://user-images.githubusercontent.com/16171743/69289313-65743480-0bfc-11ea-98d8-ed7f203eb623.jpg) |
 
 Full descriptions, math formulas and code in the relative page: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
