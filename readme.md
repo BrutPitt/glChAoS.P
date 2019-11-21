@@ -1,25 +1,39 @@
-<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.4.0</a> </h1>
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.4.2</a> </h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercompex fractals (new!) 
 
-To view all Attractors / Fractals currently inserted in this version, follow the link: [Attractors Formula](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
+To view all Attractors / Fractals currently inserted in this version, follow the link: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
+
+**now any single attractor is also explorable interactively via WebGL/WebAssembly directly from site.*
 
 
-## All availabe 1.4.0 releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
+## All availabe 1.4.2 releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X** 
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebGL** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
   - You can select **Advanced Mode** check box (*default*) or deselect it for **Standard Mode**, for low resources devices (mobiles/tablet/smartphones), also from **[wglChAoS.P Advanced Mode](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** page description
+- You can to explore any single attractor, interactively, via WebGL/WebAssembly directly from site: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
 
-#### New ver.1.4.0 *clipping planes* feature:
-| Boundary Coloring | w/o Boundary Coloring |
+<p>&nbsp;<br></p>
+
+### New ver.1.4.2  feature: 11 unpublished attractor types: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
+An absolutely personal transposition in 3D/4D of famous 2D attractors, some new attractors examples:
+
+| PopCorn 4D (ssss) | Martin 4D |
 | :---: | :---: |
-|![sShot_20191021_135142a](https://user-images.githubusercontent.com/16171743/67403343-11047780-f5b2-11e9-832d-ea1a8c30d412.jpg) | ![sShot_20191021_135216](https://user-images.githubusercontent.com/16171743/67403549-63de2f00-f5b2-11e9-9ed6-69cb9f93d2e2.jpg) |
+| ![sShot_20191118_173632](https://user-images.githubusercontent.com/16171743/69288769-cbf85300-0bfa-11ea-8b11-1d916e43af89.jpg) | ![sShot_20191113_43629](https://user-images.githubusercontent.com/16171743/69288951-5c369800-0bfb-11ea-8a24-53d4ae9909c6.jpg) |
 
-|  TWO planes | THREE planes |
+|  Mira 4D | Mira 3D |
 | :-----: | :----: |
-|![sShot_20191021_134829](https://user-images.githubusercontent.com/16171743/67403459-3f825280-f5b2-11e9-9956-2a8c42fecfe2.jpg) | ![sShot_20191021_13439](https://user-images.githubusercontent.com/16171743/67403416-29749200-f5b2-11e9-9717-5f05e553c2aa.jpg)|
+| ![sShot_20191113_22737](https://user-images.githubusercontent.com/16171743/69289055-a0299d00-0bfb-11ea-98ac-f18e4a62eed6.jpg) | ![sShot_20191113_2269](https://user-images.githubusercontent.com/16171743/69289104-c8b19700-0bfb-11ea-929b-28770887dc46.jpg) |
 
+|  PopCorn 4D (scsc) | Hopalong 4D |
+| :-----: | :----: |
+| ![sShot_20191112_04710](https://user-images.githubusercontent.com/16171743/69289281-4d041a00-0bfc-11ea-91d0-31a9c00caf37.jpg) | ![sShot_20191113_22333](https://user-images.githubusercontent.com/16171743/69289313-65743480-0bfc-11ea-98d8-ed7f203eb623.jpg) |
+
+Full descriptions, math formulas and code in the relative page: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
+
+**now any single attractor is also explorable interactively via WebGL/WebAssembly directly from site.*
 
 
 <p>&nbsp;<br>&nbsp;<br></p>
@@ -56,7 +70,7 @@ Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, a
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
-## wglChAoS.P - the WebGL2 online version (ver. 1.4.0)
+## wglChAoS.P - the WebGL2 online version (ver. 1.4.2)
 
 <p align="center"><a href="https://michelemorrone.eu/glchaosp/webGL.html"> 
 <img src="https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg"></a>
@@ -430,4 +444,4 @@ It is not necessary to build the library, only headers files is enough. (more in
 <p>&nbsp;<br></p>
 
 ## License
-[**glChAoS.P**](https://michelemorrone.eu/glchaosp) is licensed under the BSD 2-Clause License, see *license.txt* for more information.
+[**glChAoS.P** / **wglChAoS.P**](https://michelemorrone.eu/glchaosp) are licensed under the BSD 2-Clause License, see *license.txt* for more information.
