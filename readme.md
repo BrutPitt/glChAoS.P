@@ -1,7 +1,7 @@
 <h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.4.2</a> </h1>
 
-[**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**glChAoSP**](https://michelemorrone.eu/glchaosp): Open**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
-A real time 3D strange attractors scout... and hypercompex fractals (new!) 
+[**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**wglChAoS.P**](https://michelemorrone.eu/glchaosp): open**gl** / **w**eb**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
+A real time 3D strange attractors scout... and hypercompex fractals
 
 To view all Attractors / Fractals currently inserted in this version, follow the link: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
 
@@ -16,7 +16,7 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 
 <p>&nbsp;<br></p>
 
-### New ver.1.4.2  feature: 11 unpublished attractor types: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
+### New ver.1.4.2  feature: 11 unedited attractor types: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
 An absolutely personal and original transposition in 3D/4D of famous 2D attractors, some new attractors examples:
 
 | PopCorn 4D (ssss) | Martin 4D |
@@ -27,7 +27,7 @@ An absolutely personal and original transposition in 3D/4D of famous 2D attracto
 |  **PopCorn 4D (scsc)** | **Hopalong 4D** |
 | ![sShot_20191112_04710](https://user-images.githubusercontent.com/16171743/69289281-4d041a00-0bfc-11ea-91d0-31a9c00caf37.jpg) | ![sShot_20191113_22333](https://user-images.githubusercontent.com/16171743/69289313-65743480-0bfc-11ea-98d8-ed7f203eb623.jpg) |
 
-Full descriptions, math formulas and code in the relative page: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
+Full descriptions, math formulas and code in the relative webpage: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
 
 **now any single attractor is also explorable interactively via WebGL/WebAssembly directly from site.*
 
@@ -35,7 +35,7 @@ Full descriptions, math formulas and code in the relative page: [ **PopCorn, Mir
 <p>&nbsp;<br>&nbsp;<br></p>
 
 ## Particle System rendering features
-- **100M** of particles in minus of 1.6 GByte of VRAM.. until **265M** (4G VRAM): **S**light (**dot**) **P**articles
+- **100M** of particles in minus of 1.6 GByte of VRAM.. up to **265M** (4G VRAM): **S**light (**dot**) **P**articles
   - only a **vec4** (4-float) per vertex for position and color
 - **Rendering**: RealTime Surface Reconstruction / Shadows / Ambient Occlusion 
 - **Light Models**: Phong / Blinn-Phong / GGX
