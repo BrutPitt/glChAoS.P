@@ -92,6 +92,7 @@ void glWindow::onInit()
         attractorsList.getThreadStep()->stopThread();
         if(theApp->loadAttractor(theApp->getStartWithAttractorName().c_str())) {
             attractorsList.setFileName(theApp->getStartWithAttractorName());
+            theApp->setLastFile(theApp->getStartWithAttractorName().c_str());
             attractorsList.getThreadStep()->restartEmitter();
             attractorsList.get()->initStep();
             attractorsList.getThreadStep()->startThread();

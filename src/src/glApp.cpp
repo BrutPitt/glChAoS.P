@@ -576,27 +576,22 @@ int main(int argc, char **argv)
             theApp->setStartWithAttractorName(s.empty() ? "random" : s);
         
         theApp->onInit(w<256 ? 256 : (w>3840 ? 3840 : w), h<256 ? 256 : (h>2160 ? 2160 : h));
-    } else
-#endif        
+    } else theApp->onInit();
 
-    do {
+    emscripten_set_main_loop(newFrame,0,true);
+    theApp->onExit();
+#else
+    do { // test if app need restart
         theApp->needRestart(false);
         theApp->onInit();
    
-// Enter in GL main loop
-/////////////////////////////////////////////////
-#if !defined (__EMSCRIPTEN__)
         theApp->mainLoop();
-#else
-        emscripten_set_main_loop(newFrame,0,true);
-#endif
 
         theApp->onExit();
     } while(theApp->needRestart());
 
-// Exit procedures called from theApp destructor
-/////////////////////////////////////////////////
+#endif
+
     delete theApp;
-   
     return 0;
 }
