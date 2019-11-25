@@ -155,13 +155,8 @@ void BicomplexJExplorer::additionalDataCtrls()
 }
 
 //#define GLCHAOSP_FEATURE_WIP
-
-void attractorDtType::additionalDataCtrls()
+void slowMotionTool()
 {
-        
-    //ImGui::NewLine();
-    ImGui::SameLine();
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY()-ImGui::GetFrameHeightWithSpacing()); //repos previous line
     particlesSystemClass *pSys = theWnd->getParticlesSystem();
 
     bool b = pSys->slowMotion();
@@ -198,7 +193,24 @@ void attractorDtType::additionalDataCtrls()
         ImGui::AlignTextToFramePadding();
         ImGui::NewLine();
     }
-    
+}
+
+void PopCorn4DType::additionalDataCtrls()
+{
+    slowMotionTool();
+
+}
+
+void attractorDtType::additionalDataCtrls()
+{
+        
+    //ImGui::NewLine();
+    ImGui::SameLine();
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY()-ImGui::GetFrameHeightWithSpacing()); //repos previous line
+    particlesSystemClass *pSys = theWnd->getParticlesSystem();
+
+    slowMotionTool();
+
     ImGui::NewLine();
     headerAdditionalDataCtrls();
 
