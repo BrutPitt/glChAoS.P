@@ -374,7 +374,7 @@ void KingsDream::startData()
 
     Insert(vVal[0]);
 }
-void PopCorn4DBase::startData()
+void PopCorn4DType::startData()
 {
     vVal.push_back(vec4(0.6f, 0.2f, 0.3f, 0.f));
 
@@ -389,6 +389,19 @@ void PopCorn4DBase::startData()
 
     Insert(vVal[0]);
 }
+void PopCorn4Drnd::startData()
+{
+    vVal.push_back(vec4(0.6f, 0.2f, 0.3f, 0.f));
+    kVal.push_back( 1.0);
+    kVal.push_back(  .2);
+    kVal.push_back( 1.01);
+    kVal.push_back( 1.0);
+    kVal.push_back(  .2);
+    kVal.push_back( 1.01);
+
+    Insert(vVal[0]);
+}
+
 void PopCorn3D::startData()
 {
     vVal.push_back(vec4(0.6f, 0.2f, 0.3f, 0.f));

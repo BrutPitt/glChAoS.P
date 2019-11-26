@@ -72,11 +72,11 @@ LAYOUT_BINDING(9) uniform _clippingPlanes {
 } pl;
 
 LAYOUT_BINDING(4) uniform _tMat {
-    mat4 mMatrix;
     mat4 vMatrix;
-    mat4 invMV  ;
     mat4 pMatrix;
+    mat4 invP;
     mat4 mvMatrix;
+    mat4 invMV  ;
     mat4 mvpMatrix;
     mat4 mvLightM;
     mat4 mvpLightM;
@@ -426,8 +426,6 @@ vec3 getSelectedNormal(vec4 vtx, sampler2D depthData)
 
     float z = vtx.z;
 
-    //vec3 V1 = (abs(dotA-dotC)<u.dpNormalTune && dotA<dotC ? (vtx.xyz-vtxA.xyz) : (vtxC.xyz-vtx.xyz)) * invTanFOV;
-    //vec3 V2 = (abs(dotB-dotD)<u.dpNormalTune && dotB<dotD ? (vtx.xyz-vtxB.xyz) : (vtxD.xyz-vtx.xyz)) * invTanFOV;
     vec3 V1 = (abs(gradA-gradC)>=u.dpNormalTune && abs(gradA-z)<abs(z-gradC) ? (vtx.xyz-vtxA.xyz) : (vtxC.xyz-vtx.xyz)) * invTanFOV;
     vec3 V2 = (abs(gradB-gradD)>=u.dpNormalTune && abs(gradB-z)<abs(z-gradD) ? (vtx.xyz-vtxB.xyz) : (vtxD.xyz-vtx.xyz)) * invTanFOV;
     vec3 N0 = cross(V1, V2);

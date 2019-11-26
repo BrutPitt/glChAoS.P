@@ -643,19 +643,10 @@ void PopCorn4Dset::Step(vec4 &v, vec4 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void PopCorn4Drnd::Step(vec4 &v, vec4 &vp) 
 {
-    const uint32_t rnd = fastRand32::xorShift();
-    float (*pfX)(float) = (rnd&1) ? sinf : cosf;
-    float (*pfY)(float) = (rnd&2) ? sinf : cosf;
-    float (*pfZ)(float) = (rnd&4) ? sinf : cosf;
-    float (*pfW)(float) = (rnd&8) ? sinf : cosf;
-    
-    static int count = 0;
-    vp[ count   &3] = v.x - kVal[0] * sin(v.y+tan(kVal[1]*v.y));
-    vp[(count+1)&3] = v.y - kVal[2] * sin(v.x+tan(kVal[3]*v.x));
-    vp[(count+2)&3] = v.z - kVal[4] * sin(v.w+tan(kVal[5]*v.w));
-    vp[(count+3)&3] = v.w - kVal[6] * sin(v.z+tan(kVal[7]*v.z));
-    count++;
-    
+    vp.x = kVal[0] - kVal[1]*v.x*v.x + v.y;
+    vp.y = kVal[2]*v.x;
+    vp.z = kVal[3] - kVal[4]*v.z*v.z + v.w;
+    vp.w = kVal[5]*v.z;
 }
 ////////////////////////////////////////////////////////////////////////////
 void Martin4DBase::Step(vec4 &v, vec4 &vp) 
@@ -950,11 +941,11 @@ void juliaBulb_IIM::Step(vec4 &v, vec4 &vp)
 { // kVal[] -> a, k
     auto radiciEq = [&](const vec3 &p, float sign1, float sign2) {
         const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z;
-        float r = sqrtf(xQ+yQ+zQ);
-        float a = sign1 * sqrtf(yQ + xQ*(2.f+zQ/(xQ+yQ)) - 2.f*p.x*r);
-        float b = sign2 * sqrtf(r - p.x - a) * .5f;
-        float c = yQ*yQ + xQ * (yQ - zQ);
-        float d = a * (p.x * (r+p.x) + yQ);
+        const float r = sqrtf(xQ+yQ+zQ);
+        const float a = sign1 * sqrtf(yQ + xQ*(2.f+zQ/(xQ+yQ)) - 2.f*p.x*r);
+        const float b = sign2 * sqrtf(r - p.x - a) * .5f;
+        const float c = yQ*yQ + xQ * (yQ - zQ);
+        const float d = a * (p.x * (r+p.x) + yQ);
         vp = vec4(b * ((p.x*yQ-d) * (xQ+yQ) - p.x*xQ*zQ) / (p.y*c),
                   b,
                   -p.z/sqrtf(2 * (r - d *(xQ+yQ)/c)),

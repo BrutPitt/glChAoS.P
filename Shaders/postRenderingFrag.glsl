@@ -416,7 +416,7 @@ void main()
         vec4 color = texture(prevData,uv);
 
         vtx = vec4(viewRay, z, 1.0);
-        vtx = inverse(m.pMatrix) * vtx;
+        vtx = m.invP * vtx;
         vtx /= vtx.w;
         
         outColor = pixelColorLight(vtx.xyz, color, N, AO, shadow);

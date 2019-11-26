@@ -35,11 +35,11 @@ out float particleSize;
 
 
 LAYOUT_BINDING(4) uniform _tMat {
-    mat4 mMatrix;
     mat4 vMatrix;
-    mat4 invMV  ;
     mat4 pMatrix;
+    mat4 invP;
     mat4 mvMatrix;
+    mat4 invMV  ;
     mat4 mvpMatrix;
     mat4 mvLightM;
     mat4 mvpLightM;

@@ -69,7 +69,7 @@ Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, a
 ## wglChAoS.P - the WebGL2 online version (ver. 1.4.2)
 
 <p align="center"><a href="https://michelemorrone.eu/glchaosp/webGL.html"> 
-<img src="https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle.jpg"></a>
+<img src="https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle1024.jpg"></a>
 </p>
 
 This is a **WebGL2** / **WebAssembly** lightened **LIVE / ONLINE** version of **glChAoSP** and Supports touch screen for mobile devices, smartphones and tablets

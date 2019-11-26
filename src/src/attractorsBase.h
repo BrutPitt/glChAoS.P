@@ -1072,21 +1072,22 @@ protected:
 
 //  PopCorn 4D BaseClass
 ////////////////////////////////////////////////////////////////////////////
-class PopCorn4DBase : public attractorScalarK
+class PopCorn4DType : public attractorScalarK
 {
 public:
     
-    PopCorn4DBase() {
+    PopCorn4DType() {
         vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
         m_POV = vec3( 0.f, 0, 12.f);
     }
 
     int getPtSize() { return attPt4D; }
 protected:
-    void startData();
+    virtual void startData();
+    virtual void additionalDataCtrls();
 };
 
-class PopCorn4Dset : public PopCorn4DBase
+class PopCorn4Dset : public PopCorn4DType
 {
 public:
     void Step(vec4 &v, vec4 &vp);
@@ -1125,10 +1126,11 @@ public:
                       pfX = pfY = sin;  pfZ = pfW = cos; }
 };
 ////////////////////////////////////////////////////////////////////////////
-class PopCorn4Drnd : public PopCorn4DBase
+class PopCorn4Drnd : public PopCorn4DType
 {
 public:
-    PopCorn4Drnd() { stepFn = (stepPtrFn) &PopCorn4DBase::Step; }
+    void startData();
+    PopCorn4Drnd() { stepFn = (stepPtrFn) &PopCorn4DType::Step; }
 protected:
     void Step(vec4 &v, vec4 &vp);
 };
@@ -2284,7 +2286,7 @@ public:
         PB(PopCorn4Dscss      , u8"\uf006" " PopCorn4D scss"     )
         PB(PopCorn4Dscsc      , u8"\uf006" " PopCorn4D scsc"     )
         PB(PopCorn4Dsscc      , u8"\uf006" " PopCorn4D sscc"     )
-        //PB(PopCorn4Drnd       , u8"\uf006" " PopCorn4D rnd"     )
+        PB(PopCorn4Drnd       , u8"\uf006" " PopCorn4D rnd"     )
 //        PB(SymmetricIcons4D   , u8"\uf006" " SymmetricIcons4D"   )
 #if !defined(GLAPP_DISABLE_DLA)
         PB(dla3D              , u8"\uf2dc" " DLA 3D"             )

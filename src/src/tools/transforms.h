@@ -24,20 +24,21 @@
 struct transfMatrix {
     mat4 mMatrix   = mat4(1.0f);
     mat4 vMatrix   = mat4(1.0f);
-    mat4 invMV     = mat4(1.0f);
     mat4 pMatrix   = mat4(1.0f);  // Uniforms block starts HERE!!!
+    mat4 invP      = mat4(1.0f);
     mat4 mvMatrix  = mat4(1.0f);
+    mat4 invMV     = mat4(1.0f);
     mat4 mvpMatrix = mat4(1.0f);
     mat4 mvLightM  = mat4(1.0f);
     mat4 mvpLightM = mat4(1.0f);
 };
 
 class transformsClass {
-//#define SZ (sizeof(mat4)*4)
-//#define PTR value_ptr(tM.pMatrix)
+#define SZ (sizeof(transfMatrix)-offsetof(transfMatrix, vMatrix))
+#define PTR value_ptr(tM.vMatrix)
 
-#define SZ (sizeof(transfMatrix))
-#define PTR value_ptr(tM.mMatrix)
+//#define SZ (sizeof(transfMatrix))
+//#define PTR value_ptr(tM.mMatrix)
 public:
     transformsClass() {
         //setView(attractorsList.get()->getPOV(), attractorsList.get()->getTGT());         
@@ -110,10 +111,13 @@ public:
     void buid_invMV() {
         tM.invMV = inverse(tM.mvMatrix);
     }
+    void buid_invP() {
+        tM.invP = inverse(tM.pMatrix);
+    }
 
     void setModelMatrix(const mat4& m) { tM.mMatrix = m; }
     void setViewMatrix (const mat4& m) { tM.vMatrix = m; }
-    void setProjMatrix (const mat4& m) { tM.pMatrix = m; }
+    void setProjMatrix (const mat4& m) { tM.pMatrix = m; tM.invP = inverse(m); }
 
     mat4& getModelMatrix() { return tM.mMatrix; }
     mat4& getViewMatrix () { return tM.vMatrix; }
@@ -147,22 +151,25 @@ public:
     void setPerspective(float angle, float aspect, float _near, float _far) {        
         pAngle = angle; pAspect = aspect; pNear = _near <= MIN_NEAR ? MIN_NEAR : _near; pFar = _near>_far ? _near : _far;
         tM.pMatrix  = perspectiveFov(radians(pAngle),float(theApp->GetWidth()), float(theApp->GetHeight()),pNear, pFar); //the projection matrix
+        buid_invP();
         //tM.pMatrix  = perspective(radians(angle),aspect,_near, _far); //the projection matrix
     }
     void setPerspective(float aspect) {
         pAspect = aspect;
         //tM.pMatrix  = perspective(radians(pAngle),pAspect,pNear, pFar); //the projection matrix
         tM.pMatrix  = perspectiveFov(radians(pAngle),float(theApp->GetWidth()), float(theApp->GetHeight()),pNear, pFar); //the projection matrix
+        buid_invP();
     }
     void setPerspective() {
         //tM.pMatrix  = perspective(radians(pAngle),pAspect,pNear, pFar); //the projection matrix
         tM.pMatrix  = perspectiveFov(radians(pAngle),float(theApp->GetWidth()), float(theApp->GetHeight()),pNear, pFar); //the projection matrix
+        buid_invP();
     }
     void setPerspective(float angle, float _near, float _far) {
         pAngle = angle; pNear = _near <= MIN_NEAR ? MIN_NEAR : _near; pFar = _near>_far ? _near : _far;
         //tM.pMatrix  = perspective(radians(pAngle),pAspect,pNear, pFar); //the projection matrix
         tM.pMatrix  = perspectiveFov(radians(pAngle),float(theApp->GetWidth()), float(theApp->GetHeight()),pNear, pFar); //the projection matrix
-        
+        buid_invP();
     }
 
 //    void setLightOrtho() {
