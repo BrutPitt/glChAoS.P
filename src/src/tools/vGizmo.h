@@ -12,10 +12,10 @@
 //------------------------------------------------------------------------------
 #pragma once
 
-#include "vGizmoConfig.h"
-#include "vGizmoMath.h"
+#define VGIZMO_H_FILE
+#include "vgMath.h"
 
-#ifdef VGIZMO_USES_TEMPLATE
+#ifdef VGM_USES_TEMPLATE
     #define VGIZMO_BASE_CLASS virtualGizmoBaseClass<T>
 #else
     #define VGIZMO_BASE_CLASS virtualGizmoBaseClass
@@ -495,8 +495,8 @@ private:
     T wheelScale = T(5);   //dolly multiply for wheel
 };
 
-#ifdef VGIZMO_USES_TEMPLATE
-    #ifdef VGIZMO_USES_DOUBLE_PRECISION
+#ifdef VGM_USES_TEMPLATE
+    #ifdef VGM_USES_DOUBLE_PRECISION
         using vGizmo   = virtualGizmoClass<double>;
         using vGizmo3D = virtualGizmo3DClass<double>;
     #else
@@ -514,3 +514,4 @@ private:
 } // end namespace vg::
 
 #undef T  // if used T as #define, undef it
+#undef VGIZMO_H_FILE

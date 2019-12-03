@@ -279,7 +279,7 @@ public:
 #endif
 
 private:
-    ImVec4 guiThemeBaseColor = ImVec4(0.0f, 0.30f, 0.55f, 1.00f); //ImVec4(0.0f, 0.20f, 0.30f, 1.00f); //Solar; 
+    ImVec4 guiThemeBaseColor = ImVec4(0.17f, 0.24f, 0.41f, 1.00f); //ImVec4(0.0f, 0.20f, 0.30f, 1.00f); //Solar; 
     int selectedGuiTheme = 0;
 
     bool fontChanged = false;

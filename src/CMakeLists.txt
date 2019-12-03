@@ -69,8 +69,8 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/tools/glslShaderObject.cpp
         ${SRC}/tools/glslShaderObject.h
         ${SRC}/tools/transforms.h
-        ${SRC}/tools/vGizmoMath.h
-        ${SRC}/tools/vGizmoConfig.h
+        ${SRC}/tools/vgMath.h
+        ${SRC}/tools/vgConfig.h
         ${SRC}/tools/vGizmo.h
         ${SRC}/ui/uiAttractorsDlg.cpp
         ${SRC}/ui/uiMainDlg.cpp
