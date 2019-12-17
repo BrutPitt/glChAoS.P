@@ -19,6 +19,7 @@ out vec4 solidVtx;
 out float pointDistance;
 out vec4 particleColor;
 out float particleSize;
+out float alphaAttenuation;
 
 
 void main()
@@ -50,6 +51,9 @@ void main()
     particleSize = size*u.invScrnRes.y;
 
     vec4 pt  = m.pMatrix * vec4(vtxPos.xy + vec2(size) * u.ptSizeRatio , vtxPos.zw);
+
+    alphaAttenuation = getLifeTimeAtten();
+
 
     // NVidia & Intel do not supports gl_PointSize<1.0 -> point disappear
     // AMD driver (some times) supports gl_PointSize from 0.1

@@ -32,7 +32,8 @@ in vec2 vTexCoord;
 
 void main(void)
 {       
-    vec3 rgbM = texture(u_colorTexture, vTexCoord).rgb;
+    vec4 centerPix = texture(u_colorTexture, vTexCoord);
+    vec3 rgbM = centerPix.rgb;
 
     // Sampling neighbour texels. Offsets are adapted to OpenGL texture coordinates. 
     vec3 rgbNW = textureOffset(u_colorTexture, vTexCoord, ivec2(-1,  1)).rgb;
@@ -55,7 +56,7 @@ void main(void)
     float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));
 
     // If contrast is lower than a maximum threshold ...
-    if (lumaMax - lumaMin < lumaMax * fxaaData.x) { fragColor = vec4(rgbM, 1.0); return; }
+    if (lumaMax - lumaMin < lumaMax * fxaaData.x) { fragColor = vec4(rgbM, centerPix.a); return; }
 
     // Sampling is done along the gradient.
     vec2 dir = vec2(-((lumaNW + lumaNE) - (lumaSW + lumaSE)), 
@@ -71,16 +72,16 @@ void main(void)
     // Calculate final sampling direction vector by reducing, clamping to a range and finally adapting to the texture size. 
     dir = min(vec2(fxaaData.w, fxaaData.w), max(vec2(-fxaaData.w, -fxaaData.w), dir * rcpDirMin)) * invScrnSize;
 
-    vec3 rgbA = 0.5 * (
-        texture(u_colorTexture, vTexCoord + dir * (1.0/3.0 - 0.5)).rgb +
-        texture(u_colorTexture, vTexCoord + dir * (2.0/3.0 - 0.5)).rgb);    
-    vec3 rgbB = rgbA * 0.5 + 0.25 * (
-        texture(u_colorTexture, vTexCoord + dir * (0.0/3.0 - 0.5)).rgb +
-        texture(u_colorTexture, vTexCoord + dir * (3.0/3.0 - 0.5)).rgb);
+    vec4 rgbA = 0.5 * (
+        texture(u_colorTexture, vTexCoord + dir * (1.0/3.0 - 0.5)) +
+        texture(u_colorTexture, vTexCoord + dir * (2.0/3.0 - 0.5)));    
+    vec4 rgbB = rgbA * 0.5 + 0.25 * (
+        texture(u_colorTexture, vTexCoord + dir * (0.0/3.0 - 0.5)) +
+        texture(u_colorTexture, vTexCoord + dir * (3.0/3.0 - 0.5)));
 
     // Calculate luma for checking against the minimum and maximum value.
-    float lumaB = dot(rgbB, toLuma);
+    float lumaB = dot(rgbB.rgb, toLuma);
 
     // Are outer samples of the tab beyond the edge ... 
-    fragColor = vec4(lumaB  < lumaMin || lumaB  > lumaMax ? rgbA : rgbB, 1.0); 
+    fragColor = (lumaB  < lumaMin || lumaB  > lumaMax) ? rgbA : rgbB; 
 }

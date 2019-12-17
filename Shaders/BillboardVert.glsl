@@ -16,6 +16,8 @@
 out float pointDist;
 out vec4 vertParticleColor;
 out vec4 vertShadowlightView;
+out float alphaAttenuationVert;
+
 
 
 void main(void)
@@ -27,6 +29,8 @@ void main(void)
 
     float ptAtten = exp(-0.01*sign(pointDist)*pow(abs(pointDist)+1.f, u.pointDistAtten*.1));
     gl_PointSize = u.pointSize*u.invScrnRes.y * ptAtten * u.ySizeRatio;
+
+    alphaAttenuationVert = getLifeTimeAtten();
 
 #if defined(GL_ES)
     vertParticleColor = velColor();

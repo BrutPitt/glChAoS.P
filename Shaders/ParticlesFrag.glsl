@@ -30,6 +30,7 @@ in vec4 mvVtxPos;
 in float pointDistance;
 in vec4 particleColor;
 in float particleSize;
+in float alphaAttenuation;
 
 //in vec4 shadowlightView;
 
@@ -133,6 +134,11 @@ LAYOUT_INDEX(idxBLENDING) SUBROUTINE(_pixelColor)
 vec4 pixelColorBlending(vec4 color, vec4 N)
 {
     if(color.a < u.alphaSkip ) { discard; return vec4(0.0); }  //returm need for Angle error
+    
+    color *= alphaAttenuation;
+    float dist = -newVertex.z;
+    if(u.slowMotion!=uint(0) && dist<u.smoothDistance)
+        color *= 1.0-(u.smoothDistance-dist)/u.smoothDistance;
     return color;
 }
 

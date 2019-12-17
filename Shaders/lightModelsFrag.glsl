@@ -54,6 +54,12 @@ LAYOUT_BINDING(2) uniform _particlesData {
     float aoStrong;
     float dpAdjConvex;
     float dpNormalTune;
+    float elapsedTime;
+    float lifeTime;
+    float lifeTimeAtten;
+    float smoothDistance;
+    uint  slowMotion;
+
     uint  lightModel;
     uint  lightActive;
     uint  pass;

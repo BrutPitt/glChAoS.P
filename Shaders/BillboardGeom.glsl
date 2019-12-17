@@ -25,6 +25,7 @@ in vec4 vertParticleColor[];
 in vec4 vertShadowlightView[];
 
 in float pointDist[];
+in float alphaAttenuationVert[];
 
 out vec4 mvVtxPos;
 out vec2 texCoord;
@@ -32,6 +33,7 @@ out vec2 texCoord;
 out vec4 particleColor;
 out float pointDistance;
 out float particleSize;
+out float alphaAttenuation;
 
 
 LAYOUT_BINDING(4) uniform _tMat {
@@ -63,6 +65,7 @@ void main(void)
 {
     pointDistance = pointDist[0];
     particleColor = vertParticleColor[0];
+    alphaAttenuation = alphaAttenuationVert[0];
 
     float sz = gl_in[0].gl_PointSize;
     particleSize = sz;

@@ -15,6 +15,7 @@
 layout(std140) uniform;
 
 layout (location = 0) in vec4 a_ActualPoint;
+layout (location = 1) in vec4 a_Vel;
 
 LAYOUT_BINDING(0) uniform sampler2D paletteTex;
 
@@ -59,6 +60,12 @@ LAYOUT_BINDING(2) uniform _particlesData {
     float aoStrong;
     float dpAdjConvex;
     float dpNormalTune;
+    float elapsedTime;
+    float lifeTime;
+    float lifeTimeAtten;
+    float smoothDistance;
+    uint  slowMotion;
+
     uint  lightModel;
     uint  lightActive;
     uint  pass;
@@ -119,4 +126,19 @@ vec4 velColor()
 {
     float vel = a_ActualPoint.w*u.velIntensity;
     return vec4(texture(paletteTex, vec2(vel,0.f)).rgb,1.0);
+}
+
+
+float getLifeTimeAtten()
+{
+    float alphaAtten = 1.0;
+    if(u.slowMotion != uint(0) ) {
+        float time = a_Vel.w;
+        float life = time+u.lifeTime;
+        if(life<u.elapsedTime)
+            alphaAtten = max(1.0 - (u.elapsedTime-life) * u.lifeTimeAtten, 0.0);
+    } 
+
+    return alphaAtten;
+
 }
