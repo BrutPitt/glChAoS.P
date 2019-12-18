@@ -179,7 +179,7 @@ class mainProgramObj : public ProgramObject
 {
 public:
     mainProgramObj() { createProgram(); } 
-    virtual ~mainProgramObj() { removeAllShaders(true); deleteAllShaders(); }
+    virtual ~mainProgramObj() { removeAllShaders(false); deleteAllShaders(); }
 
     void useVertex(VertexShader *VS) { vertObj = VS; vsCloned = true; }
     void useVertex()   { vertObj = new VertexShader; }

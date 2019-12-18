@@ -157,13 +157,6 @@ void ShaderObject::Compile(const GLchar *code)
     checkShader(shaderID);
 }
 
-
-
-GLuint& ShaderObject::getShader()
-{
-    return(shaderID);
-}
-
 //#define USE_STDIO_TO_LOAD_SHADERS
 
 #ifndef USE_STDIO_TO_LOAD_SHADERS
