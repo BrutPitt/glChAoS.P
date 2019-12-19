@@ -83,18 +83,20 @@
         var tabletmode = url.searchParams.get("tabletmode");
         var glowOFF = url.searchParams.get("glowOFF");
         var lightGUI = url.searchParams.get("lightGUI");
+        var slowMotion = url.searchParams.get("slowMotion");
         var Attractor = url.searchParams.get("Attractor");
 
         var Module = {
             arguments: [width == null ? '1024' : width,
-            height == null ? '1024' : height,
-            maxbuffer == null ? '10' : maxbuffer,
-            lowprec == null ? '1' : lowprec,
-            intbuffer == null ? '20' : intbuffer,
-            tabletmode == null ? '0' : tabletmode,
-            glowOFF == null ? '0' : glowOFF,
-            lightGUI == null ? '0' : lightGUI,
-            Attractor == null ? 'random' : Attractor],
+                        height == null ? '1024' : height,
+                        maxbuffer == null ? '10' : maxbuffer,
+                        lowprec == null ? '1' : lowprec,
+                        intbuffer == null ? '20' : intbuffer,
+                        tabletmode == null ? '0' : tabletmode,
+                        glowOFF == null ? '0' : glowOFF,
+                        lightGUI == null ? '0' : lightGUI,
+                        slowMotion == null ? '0' : slowMotion,
+                        Attractor == null ? 'random' : Attractor],
         preRun: [],
         postRun: [],
         print: (function() {
