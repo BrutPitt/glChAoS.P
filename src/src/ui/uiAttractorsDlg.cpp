@@ -154,30 +154,53 @@ void BicomplexJExplorer::additionalDataCtrls()
     fractalIIMBase::additionalDataCtrls();
 }
 
-//#define GLCHAOSP_FEATURE_WIP
+#define GLCHAOSP_FEATURE_WIP
 void slowMotionTool()
 {
-    particlesSystemClass *pSys = theWnd->getParticlesSystem();
+#ifdef GLCHAOSP_FEATURE_WIP
+    bool b = attractorsList.slowMotion();
+    if(colCheckButton(b , b ? " slowMotion "  ICON_FA_CHECK_SQUARE_O " ": " slowMotion " ICON_FA_SQUARE_O " ")) {
+        attractorsList.getThreadStep()->stopThread();
+        attractorsList.slowMotion(b^1);
+        const enumEmitterEngine ee = attractorsList.slowMotion() ? enumEmitterEngine::emitterEngine_transformFeedback : enumEmitterEngine::emitterEngine_staticParticles;
 
-    bool b = pSys->slowMotion();
-    if(colCheckButton(b , b ? " slowMotion "  ICON_FA_CHECK_SQUARE_O " ": " slowMotion " ICON_FA_SQUARE_O " ")) pSys->slowMotion(b^1);
+        theWnd->getParticlesSystem()->changeEmitter(ee);
+
+        attractorsList.getThreadStep()->restartEmitter();
+        attractorsList.get()->initStep();
+        attractorsList.getThreadStep()->startThread();
+
+        //theApp->needRestart(true);
+    }
     //if(ImGui::Checkbox("slowMotion",&b)) pSys->slowMotion(b);
+#else
+    ImGui::AlignTextToFramePadding();
+    ImGui::NewLine();
+#endif
 
-    if(pSys->slowMotion()) {
-        ImGui::SameLine();
-
+    if(attractorsList.slowMotion()) {
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x*.5);
+/*
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*.5);
-        int DpS = pSys->getSlowMotionDpS();
-        if(ImGui::DragInt("##DpS_", &DpS, 1.0f, 0, INT32_MAX, "dots/s %d")) pSys->setSlowMotionDpS(DpS);
+
+        int DpS = attractorsList.getSlowMotionDpS();
+        if(ImGui::DragInt("##DpS_", &DpS, 1.0f, 1, INT32_MAX, "dots/s %d")) attractorsList.setSlowMotionDpS(DpS);
+        ImGui::PopItemWidth();
 
         ImGui::SameLine();
-
+*/
+        //ImGui::SetCursorPosX()
+        bool s = theDlg.cockpitDlg.visible();
+        if(colCheckButton(s , s ? " settings "  ICON_FA_CHECK_SQUARE_O " " : " settings " ICON_FA_SQUARE_O " ")) theDlg.cockpitDlg.visible(s^1);
+        ImGui::SameLine();
+        bool cP = attractorsList.getCockpit().cockPit();
+        if(colCheckButton(cP , cP ? " cockPit "  ICON_FA_CHECK_SQUARE_O " " : " cockPit " ICON_FA_SQUARE_O " ")) attractorsList.getCockpit().cockPit(cP^1);
+/*
         int maxDots = pSys->getSlowMotionMaxDots();
         if(ImGui::DragInt("##maxDots", &maxDots, 10.0f, 0, INT32_MAX, "dots# %d")) pSys->setSlowMotionMaxDots(maxDots);
-
-        ImGui::PopItemWidth();
-#ifdef GLCHAOSP_FEATURE_WIP
+*/
         
+#ifdef GLCHAOSP_FEATURE_WIP_
         bool cP = pSys->cockPit();
         if(colCheckButton(cP , cP ? " cockPit "  ICON_FA_CHECK_SQUARE_O " " : " cockPit " ICON_FA_SQUARE_O " ")) pSys->cockPit(cP^1);
         if(pSys->cockPit()) {
@@ -215,7 +238,6 @@ void attractorDtType::additionalDataCtrls()
     headerAdditionalDataCtrls();
 
     float f = dtStepInc;
-
     if(ImGui::DragFloat("##dtI", &f, .000001f, 0.0, 1.0, "dt: %.8f",1.0f)) { 
         dtStepInc = f;
         if(!pSys->getEmitter()->isEmitterOn()) pSys->getEmitter()->setEmitterOn();
@@ -317,7 +339,6 @@ void attractorDlgClass::view()
 
         ImGui::Columns(2);
 
-        static bool firstTime = true;
 #ifdef GLCHAOSP_LIGHTVER
         const float szReg = .3f;
 #else

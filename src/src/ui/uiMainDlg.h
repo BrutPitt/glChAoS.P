@@ -74,9 +74,12 @@ public:
     void onReload() {}
     void onRestart() {}
 
+    void resetFirstTime() { firstTime = true; }
+
     void view();
 
 private:
+    bool firstTime = true;
     int numElements;
 };
 
@@ -204,7 +207,7 @@ private:
 class cockpitDlgClass  : public baseDlgClass
 {
 public:
-    cockpitDlgClass() : baseDlgClass("cockpit") {}
+    cockpitDlgClass() : baseDlgClass("Slow Motion") {}
 
     void view();
 
@@ -278,6 +281,8 @@ public:
     void setInvertSettings(bool b) { invertSettings = b; }
 #endif
 
+    attractorDlgClass& getAttractorDlg() {return  attractorDlg; }
+
 private:
     ImVec4 guiThemeBaseColor = ImVec4(0.17f, 0.24f, 0.41f, 1.00f); //ImVec4(0.0f, 0.20f, 0.30f, 1.00f); //Solar; 
     int selectedGuiTheme = 0;
@@ -319,6 +324,7 @@ private:
 
 friend void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 friend void setGUIStyle();
+friend void slowMotionTool();
 friend class particlesDlgClass;
 friend class viewSettingDlgClass;
 friend class attractorDtType;

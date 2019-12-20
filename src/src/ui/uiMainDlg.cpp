@@ -507,7 +507,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::SetCursorPosX(INDENT(posA )); ImGui::TextDisabled("Range");
                 ImGui::SameLine(     INDENT(posB4)); ImGui::TextDisabled("Offset");
                 ImGui::SameLine(     INDENT(posC4)); ImGui::TextDisabled("Intens.");
-                ImGui::SameLine(     INDENT(posD4)); ImGui::TextDisabled("Col.Vel."); 
+                ImGui::SameLine(     INDENT(posD4)); ImGui::TextDisabled("colorVel"); 
                 
                 ImGui::PushItemWidth(wButt4);
                 {
@@ -1376,7 +1376,7 @@ void particlesDlgClass::view()
                                                      emit->getSizeAllocatedBuffer()*.000001f,"%.3f M")) {
                         uint maxBuff = uint(f*1000000.f);
                         emit->setSizeCircularBuffer(maxBuff>emit->getSizeAllocatedBuffer() ? emit->getSizeAllocatedBuffer() : maxBuff);
-                        emit->getVBO()->resetVertexCount();
+                        emit->getVertexBase()->resetVertexCount();
                         if(!emit->isEmitterOn()) emit->setEmitterOn();
 
                     }
@@ -1637,6 +1637,7 @@ void progSettingDlgClass::view()
 
         if(emitterChanges) { pushColorButton();
             if(ImGui::Button("Apply Emitter Changes", ImVec2(w,0))) {
+                attractorsList.getThreadStep()->stopThread();
                 theApp->setMaxAllocatedBuffer(maxBuff * 1000000.f);
                 theApp->setEmissionStepBuffer(emitStep<<10);
                 theApp->selectEmitterType(idxEmitt);
@@ -1754,6 +1755,7 @@ void progSettingDlgClass::view()
         ImGui::NewLine();
         if(optionChanges) pushColorButton();
         if(ImGui::Button("Save Prog.Settings",ImVec2(wButt,0))) {
+            attractorsList.getThreadStep()->stopThread();
             theApp->setPosX(wantSavePos ? x : -1);
             theApp->setPosY(wantSavePos ? y : -1);
             theApp->setMaxAllocatedBuffer(maxBuff * 1000000.f);
@@ -1960,47 +1962,290 @@ void cockpitDlgClass::view()
     //bool wndVisible;
     if(ImGui::Begin(getTitle(), &isVisible, ImGuiWindowFlags_NoScrollbar)) { 
         particlesSystemClass *pSys = theWnd->getParticlesSystem();
-        cockpitClass &cPit = pSys->getCockpit();
+        emitterBaseClass *e = pSys->getEmitter();
+        cockpitClass &cPit = attractorsList.getCockpit();
 
+        const ImU32 titleCol = ImGui::GetColorU32(ImGuiCol_PlotLines); 
+/*
         {
-            float f = cPit.getPerspAngle();
-            if(ImGui::DragFloat("angle", &f, .01f, 5.f, 170.f, "%.2f")) cPit.setPerspAngle(f);
+            ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+            const bool isOpen = ImGui::TreeNodeEx("##PartSM",ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SHIELD  " SlowMotion Particles  " ICON_FA_COMMENT_O);
+            ImGui::PopStyleColor();
+            ShowHelpOnTitle(GLAPP_HELP_AO_TREE);
+            if(isOpen) {
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                ImGui::BeginChild("##PartSMChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2), true);
+
+                const float w = ImGui::GetContentRegionAvail().x;
+                const float w2 = w*.5;
+                const float spaceX = ImGui::GetStyle().ItemSpacing.x;
+
+                ImGui::TextDisabled(" colorVel"); ImGui::SameLine(w2+spaceX*.5);
+                ImGui::TextDisabled(" stepInc dt");
+
+                ImGui::PushItemWidth(w2-spaceX*.5);
+                {
+                    float f = cPit.getColorVel();
+                    if(ImGui::DragFloatEx("##colVelSM", &f,.001f, 0.001f, FLT_MAX, "% .3f",1.0f,ImVec2(.93,0.5))) cPit.setColorVel(f);
+                }
+                ImGui::SameLine();
+                {
+                    float f = cPit.getDtStepInc();
+                    if(ImGui::DragFloat("##dtISM", &f, .000001f, 0.00001, 1.0, "%.8f",1.0f)) { 
+                        cPit.setDtStepInc(f);
+                        if(!pSys->getEmitter()->isEmitterOn()) pSys->getEmitter()->setEmitterOn();
+                    }
+                }
+                ImGui::PopItemWidth();
+
+                ImGui::EndChild();
+                ImGui::PopStyleVar();
+            }
         }
+*/
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+        {
+            int DpS = attractorsList.getSlowMotionDpS();
+            if(ImGui::DragInt("##DpS__", &DpS, 1.0f, 0, INT32_MAX, "emit dots/s %d")) attractorsList.setSlowMotionDpS(DpS);
+        }
+        ImGui::PopItemWidth();
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+            const bool isOpen = ImGui::TreeNodeEx("##EmitSM",ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SHOWER  " Emitter   " ICON_FA_COMMENT_O);
+            ImGui::PopStyleColor();
+            ShowHelpOnTitle(GLAPP_HELP_EMIT_SM);
+            if(isOpen) {
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                ImGui::BeginChild("##EmitSMChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*7+ImGui::GetStyle().ItemSpacing.y), true);
+                const float w = ImGui::GetContentRegionAvail().x;
+                const float w2 = w*.5;
+                const float w3 = w*.3333;
+                const float w6 = w*.6666;
+                const float spaceX = ImGui::GetStyle().ItemSpacing.x;
+
+
+
+                ImGui::TextDisabled(" Emit #");  ImGui::SameLine(w3+spaceX);
+                ImGui::TextDisabled(" emitVel"); ImGui::SameLine(w6+spaceX);
+                ImGui::TextDisabled(" airFriction");
+                
+                ImGui::PushItemWidth(w3-spaceX*.3333);
+                {
+                    int i = cPit.getTransformedEmission();
+                    if(ImGui::DragInt("##Emission", &i, .1f, 1, cPit.getMaxTransformedEmission(), "%d")) cPit.setTransformedEmission(i);
+                }
+                ImGui::SameLine();
+                {
+                    float f = cPit.getInitialSpeed();
+                    if(ImGui::DragFloat("##Init speed", &f, .01f, .01f, FLT_MAX, "%.2f")) cPit.setInitialSpeed(f);
+                }
+                ImGui::SameLine();
+                {
+                    float f = cPit.getAirFriction();
+                    if(ImGui::DragFloat("##airFriction", &f, .01f, .01f, FLT_MAX, "%.2f")) cPit.setAirFriction(f);
+                }
+                ImGui::PopItemWidth();
+
+                ImGui::TextDisabled(" lifeTime");      ImGui::SameLine(w2+spaceX*.5);
+                ImGui::TextDisabled(" lifeTimeAtten"); 
+                ImGui::PushItemWidth(w2-spaceX*.5);
+                {
+                    float f = cPit.getLifeTime();
+                    if(ImGui::DragFloat("##lifeTime", &f, .05f, 1.0f, FLT_MAX, "%.2f")) cPit.setLifeTime(f);
+                }
+                ImGui::SameLine();
+                {
+                    float f = cPit.getLifeTimeAtten();
+                    if(ImGui::DragFloat("##lifeTimeAtten", &f, .001f, 0.0f, 1.0, "%.3f")) cPit.setLifeTimeAtten(f);
+                }
+                ImGui::PopItemWidth();
+
+                ImGui::PushItemWidth(w);
+                ImGui::TextDisabled(" Wind x y z startTime");
+                {
+                    float *f = value_ptr(cPit.getUdata().wind);
+                    if(ImGui::DragFloat4("##wind", f, .01f)) cPit.getUdata().wind = *((vec4 *)f);
+                }
+                ImGui::TextDisabled(" Gravity x y z startTime");
+                {
+                    float *f = value_ptr(cPit.getUdata().gravity);
+                    if(ImGui::DragFloat4("##gravity", f, .01f)) cPit.getUdata().gravity = *((vec4 *)f);
+                }
+                ImGui::PopItemWidth();
+
+                ImGui::EndChild();
+                ImGui::PopStyleVar();
+            }
+        }
+        ImGui::NewLine();
+        bool cP = attractorsList.getCockpit().cockPit();
+        if(colCheckButton(cP , cP ? " CockPit "  ICON_FA_CHECK_SQUARE_O " " : " CockPit " ICON_FA_SQUARE_O " ",ImGui::GetContentRegionAvail().x)) attractorsList.getCockpit().cockPit(cP^1);
+
+        if(cP) {
+            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+            {
+                int DpS = cPit.getSlowMotionDpS();
+                if(ImGui::DragInt("##DpSCP", &DpS, 1.0f, 0, INT32_MAX, "CockPit dots/s %d")) cPit.setSlowMotionDpS(DpS);
+            }
+
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+                const bool isOpen = ImGui::TreeNodeEx("##PartCP",ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_BRAILLE  " Particles   " ICON_FA_COMMENT_O);
+                ImGui::PopStyleColor();
+                ShowHelpOnTitle(GLAPP_HELP_COCKPIT_PARTICLES);
+                if(isOpen) {
+                    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                    ImGui::BeginChild("##PartCPChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2), true);
+
+                    const float w = ImGui::GetContentRegionAvail().x;
+                    const float w2 = w*.5;
+                    const float spaceX = ImGui::GetStyle().ItemSpacing.x;
+
+                    ImGui::TextDisabled(" pointSize");   ImGui::SameLine(w2+spaceX*.5);
+                    ImGui::TextDisabled(" smoothDistance");
+
+                    ImGui::PushItemWidth(w2-spaceX*.5);
+                    {
+                        float f = cPit.getPointSize();
+                        if(ImGui::DragFloat("##pointSzSM", &f, .001f, .001f, FLT_MAX, "%.3f")) cPit.setPointSize(f);
+                    }
+                    ImGui::SameLine();
+                    {
+                        float f = cPit.getSmoothDistance();
+                        if(ImGui::DragFloat("##smoothD", &f, .001f, 0.0f, 5.0, "%.3f")) cPit.setSmoothDistance(f);
+                    }
+                    ImGui::PopItemWidth();
+
+                    ImGui::EndChild();
+                    ImGui::PopStyleVar();
+                }
+            }
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+                const bool isOpen = ImGui::TreeNodeEx("##PiPSM",ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_OBJECT_GROUP  " PiP   " ICON_FA_COMMENT_O);
+                ImGui::PopStyleColor();
+                ShowHelpOnTitle(GLAPP_HELP_COCKPIT_PIP);
+                if(isOpen) {
+                    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                    ImGui::BeginChild("##PiPSMChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*3+ImGui::GetStyle().ItemSpacing.y), true);
+                    {
+                        int pos = cPit.getPIPposition();
+                        float a = ImGui::GetCursorPosX();
+                        if(ImGui::RadioButton("##lTop", pos == cPit.pip::lTop)) { cPit.setPIPposition(cPit.pip::lTop); } 
+                        ImGui::SameLine(); 
+                        float b = ImGui::GetCursorPosX();
+                        float size = b - a; 
+                        ImGui::SetCursorPosX(b+size);
+                        if(ImGui::RadioButton("##rTop", pos == cPit.pip::rTop)) { cPit.setPIPposition(cPit.pip::rTop); }
+                        ImGui::SameLine();
+                        a = ImGui::GetCursorPosX();
+                        {
+                            bool b = cPit.invertPIP();
+                            if(ImGui::Checkbox(" Invert PIP", &b)) cPit.invertPIP(b);
+                        }
+
+                        ImGui::SetCursorPosX(ImGui::GetCursorPosX()+size);
+                        if(ImGui::RadioButton("##noPIP", pos == cPit.pip::noPIP)) { cPit.setPIPposition(cPit.pip::noPIP); } 
+                        ImGui::SameLine();
+                        ImGui::SetCursorPosX(a);
+                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+                        {
+                            float f = cPit.getPIPzoom();
+                            if(ImGui::SliderFloat("##zoomPIP", &f, .25, 1.0,"size PiP %.3f")) cPit.setPIPzoom(f);
+                        }
+                        ImGui::PopItemWidth();
+
+                        if(ImGui::RadioButton("##lBottom", pos == cPit.pip::lBottom)) { cPit.setPIPposition(cPit.pip::lBottom); } 
+                        ImGui::SameLine(); 
+                        ImGui::SetCursorPosX(b+size);
+                        if(ImGui::RadioButton("##rBottom", pos == cPit.pip::rBottom)) { cPit.setPIPposition(cPit.pip::rBottom); } 
+
+                    }
+                    ImGui::EndChild();
+                    ImGui::PopStyleVar();
+                }
+            }
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+                const bool isOpen = ImGui::TreeNodeEx("##viewSM",ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SPACE_SHUTTLE  " View settings   " ICON_FA_COMMENT_O);
+                ImGui::PopStyleColor();
+                ShowHelpOnTitle(GLAPP_HELP_COCKPIT_VIEW);
+                if(isOpen) {
+                    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                    ImGui::BeginChild("##viewSMChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*5+ImGui::GetStyle().ItemSpacing.y*2), true);
+                    const float gizmoDim = ImGui::GetFrameHeightWithSpacing()*4;
+                    const float w = ImGui::GetContentRegionAvail().x;
+                    const float w2 = w*.5;
+                    const float w3 = w*.3333;
+                    const float w6 = w*.6666;
+                    const float spaceX = ImGui::GetStyle().ItemSpacing.x;
+                    const float posY = ImGui::GetCursorPosY();
+
+
+                    ImGui::TextDisabled(" fov angle");  ImGui::SameLine(w3+spaceX);
+                    ImGui::TextDisabled(" tail POV"); 
+
+                    ImGui::PushItemWidth(w3-spaceX*.3333);
+                    {
+                        float f = cPit.getPerspAngle();
+                        if(ImGui::DragFloat("##fov", &f, .01f, 5.f, 170.f, "%.2f")) cPit.setPerspAngle(f);
+                    }
+                        ImGui::SameLine();
+                    {
+                        float f = cPit.getTailPosition();
+                        if(ImGui::DragFloat("##tailPos", &f, .001f, 0.0f, 1.0, "%.3f")) cPit.setTailPosition(f);
+                    }
+                    ImGui::PopItemWidth();
+
+                    ImGui::PushItemWidth(w6);
+                    ImGui::TextDisabled(" move Target / POV");
+                    {
+                        float f[2] = { cPit.getMovePositionHead(), cPit.getMovePositionTail() };
+                        if(ImGui::DragFloat2("##TgtPOV", f, .001f, -FLT_MAX, FLT_MAX, "%.3f")) {
+                            cPit.setMovePositionHead(f[0]);
+                            cPit.setMovePositionTail(f[1]);
+                        }
+                    }
+                    ImGui::PopItemWidth();
+
+                    ImGui::SetCursorPos(ImVec2(w6+spaceX*3, posY));
+                    {
+                        quat q(cPit.getRotation());
+                        //imguiGizmo::resizeSolidOf(.75); // sphere resize
+                        if(ImGui::gizmo3D("##RotB1", q, gizmoDim, imguiGizmo::sphereAtOrigin))  { cPit.setRotation(q); } 
+                    }
+                    {
+                        bool b = cPit.invertView();
+                        if(ImGui::Checkbox("InvertView", &b)) cPit.invertView(b);
+                    }
+                    ImGui::SameLine();
+                    {
+                        ImGui::SetCursorPosX(w6+spaceX*3);
+                        if(ImGui::Button("Reset",ImVec2(gizmoDim, 0.0))) cPit.setRotation(quat(1.f, 0.f, 0.f, 0.f));
+                    }
+
+                    ImGui::EndChild();
+                    ImGui::PopStyleVar();
+                }
+            }
+        }
+
+/*
         {
             float f = cPit.getPerspNear();
             if(ImGui::DragFloat("near", &f, .001f, .001f, FLT_MAX, "%.3f")) cPit.setPerspNear(f);
         }
         {
-            int pos = cPit.getPIPposition();
-            float a = ImGui::GetCursorPosX();
-            if(ImGui::RadioButton("##lTop", pos == cPit.pip::lTop)) { cPit.setPIPposition(cPit.pip::lTop); } 
-            ImGui::SameLine(); 
-            float b = ImGui::GetCursorPosX();
-            float size = b - a; 
-            ImGui::SetCursorPosX(b+size);
-            if(ImGui::RadioButton("##rTop", pos == cPit.pip::rTop)) { cPit.setPIPposition(cPit.pip::rTop); } 
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX()+size);
-            if(ImGui::RadioButton("##noPIP", pos == cPit.pip::noPIP)) { cPit.setPIPposition(cPit.pip::noPIP); } 
-            if(ImGui::RadioButton("##lBottom", pos == cPit.pip::lBottom)) { cPit.setPIPposition(cPit.pip::lBottom); } 
-            ImGui::SameLine(); 
-            ImGui::SetCursorPosX(b+size);
-            if(ImGui::RadioButton("##rBottom", pos == cPit.pip::rBottom)) { cPit.setPIPposition(cPit.pip::rBottom); } 
-            float f = cPit.getPIPzoom();
-            if(ImGui::SliderFloat("zoomPIP", &f, .25, 1.0)) cPit.setPIPzoom(f);
+            bool b = cPit.pipTransparentBckgrnd();
+            if(ImGui::Checkbox("TranspBack", &b)) cPit.pipTransparentBckgrnd(b);
         }
+        ImGui::SameLine();
         {
             vec3 v(cPit.getPanDollyPos());
             if(ImGui::DragFloat3("Pan/Dolly",value_ptr(v),.01,0.0,0.0)) cPit.setPanDollyPos(v);
 
         }
-        {
-            quat q(cPit.getRotation());
-            //imguiGizmo::resizeSolidOf(.75); // sphere resize
-            if(ImGui::gizmo3D("##RotB1", q, IMGUIZMO_DEF_SIZE, imguiGizmo::sphereAtOrigin))  { cPit.setRotation(q); } 
-            ImGui::SameLine();
-            if(ImGui::Button("Reset")) cPit.setRotation(quat(1.f, 0.f, 0.f, 0.f));
-        }
-
+*/
     }
     ImGui::End();
 }
@@ -2757,8 +3002,7 @@ void mainImGuiDlgClass::renderImGui()
         fastViewDlg.view();
         particleEditDlg.view();
         clippingDlg.view();
-        if(attractorsList.get()->dtType() && theWnd->getParticlesSystem()->slowMotion() && theWnd->getParticlesSystem()->cockPit()) 
-            cockpitDlg.view();
+        if(attractorsList.get()->dtType() && attractorsList.slowMotion()) cockpitDlg.view();
 #if !defined(GLCHAOSP_LIGHTVER)
         progSettingDlg.view();
         dataDlg.view();
@@ -2769,4 +3013,3 @@ void mainImGuiDlgClass::renderImGui()
     }
 
 }
-

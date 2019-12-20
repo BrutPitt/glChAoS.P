@@ -10,10 +10,11 @@
 //  
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
+#include "../appDefines.h"
 #define GLAPP_HELP_ABOUT\
     "   glChAoS.P - glChAoSP / wglChAoS.P - wglChAoSP\n"\
     "openGL/WebGL CHaotic Attractor Of Slight (dot) Particles\n"\
-    "                   Version: 1.3\n\n"\
+    "                   Version: " GLCHAOSP_VERSION "\n\n"\
     "open source - multiplatform - 3D real time strange attractors scout\n"\
     "         and Hypercomplex Fractals via Stochastic IIM\n\n"\
     "Copyright (c) 2018/2019 Michele Morrone\n"\
@@ -222,7 +223,37 @@
     "     Checked - Particles have fixed size when resizing window\n"\
     "   unChecked - Particles are proportional to window height\n\n"\
     "Default: unChecked"
-
+#define GLAPP_HELP_EMIT_SM\
+    "Emitter settings:\n"\
+    "   Emit # - Number of dots for single step\n"\
+    "   EmitVel - Strating max random vel for dot\n"\
+    "   airFriction - Air resistence\n"\
+    "   lifeTime - time of particle with full bright\n"\
+    "   lifeTimeAtten - Attenuation factor to hide particle after\n"\
+    "                   lifeTime\n"\
+    "   wind - wind speed (x,y,z) and start time (w)\n"\
+    "   gravity - gravity speed (x,y,z) and start time (w)"
+#define GLAPP_HELP_COCKPIT_PARTICLES\
+    "Cockpit Particles settings:\n"\
+    "   pointSize - pointSize used only in cockpit view\n"\
+    "   smoothDistance - smoothing distance for near particles"
+#define GLAPP_HELP_COCKPIT_PIP\
+    "Cockpit Picture in Picture:\n"\
+    "   Corner - Activate PiP in that corner\n"\
+    "   Center - Deselect PiP\n"\
+    "   Invert PiP - switch Cockpit/staticView in PiP\n"\
+    "   size PiP - trim size from 1/32 to up to 1/4 of screen"
+#define GLAPP_HELP_COCKPIT_VIEW\
+    "Cockpit view settings:\n\n"\
+    "-The target view is placed on emitter head\n"\
+    "-The POV view is placed on emitter tail\n\n"\
+    "   fov angle - focal angle\n"\
+    "   tail POV - move POV far from head follow attractor wake\n"\
+    "   move Target - move Target view point long POV-TGT vector\n"\
+    "   move POV - move POV long POV-TGT vector\n"\
+    "   Invert view - POV <-> TGT inversion\n"\
+    "   GIZMO trackball - rotate POV around TGT\n"\
+    "   Reset - Reset GIZMO trackball"
 #define GLAPP_HELP_FORCE_PNTSPRT_SZ\
     "Force minimum PointSprite size to 1.0\n"\
     "Currently NVidia and Intel supports PoininSprite with values >= 1.0, below this size the point disappear\n"\
