@@ -277,11 +277,43 @@ void saveSettings(Config &cfg, particlesSystemClass *pSys)
         *((vec3 *)v.data())= pSys->getTMat()->getTrackball().getRotationCenter();
         c["camRotCent"   ] = Config::array(v);
 
-        vector<float> q(4); 
-        *((quat *)q.data())= pSys->getTMat()->getTrackball().getRotation();
-        c["camRot"       ] = Config::array(q);
+        {
+            vector<float> q(4); 
+            *((quat *)q.data())= pSys->getTMat()->getTrackball().getRotation();
+            c["camRot"       ] = Config::array(q);
+        }
 
-
+        if(attractorsList.get()->dtType()) {
+            cockpitClass &cPit = attractorsList.getCockpit();
+            c["slowMotionOn"     ] = attractorsList.slowMotion();
+            c["emitDotsSec"      ] = attractorsList.getSlowMotionDpS();
+            c["emitGenPoints"    ] = cPit.getTransformedEmission();
+            c["emitInitVel"      ] = cPit.getInitialSpeed();
+            c["emitAirFriction"  ] = cPit.getAirFriction();
+            c["emitLifeTime"     ] = cPit.getLifeTime();
+            c["emitLifeTimeAtten"] = cPit.getLifeTimeAtten();
+            {
+                vector<float> v(4); 
+                *((vec4 *)v.data())= cPit.getUdata().wind;
+                c["emitWind"       ] = Config::array(v);
+                *((vec4 *)v.data())= cPit.getUdata().gravity;
+                c["emitGravity"    ] = Config::array(v);
+            }
+            c["cpitOn"          ] = cPit.cockPit();
+            c["cpitDotsSec"     ] = cPit.getSlowMotionDpS();
+            c["cpitPointSize"   ] = cPit.getPointSize();
+            c["cpitSmoothDist"  ] = cPit.getSmoothDistance();
+            c["cpitFOVangle"    ] = cPit.getPerspAngle();
+            c["cpitTailPos"     ] = cPit.getTailPosition();
+            c["cpitMovPosHead"  ] = cPit.getMovePositionHead();
+            c["cpitMovPosTail"  ] = cPit.getMovePositionTail();
+            c["cpitInvertView"  ] = cPit.invertView();
+            {
+                vector<float> q(4); 
+                *((quat *)q.data())= cPit.getRotation();
+                c["cpitRotation"       ] = Config::array(q);
+            }
+        }
 
     }
 #if !defined(GLCHAOSP_LIGHTVER)
@@ -294,6 +326,7 @@ void saveSettings(Config &cfg, particlesSystemClass *pSys)
         auto &c = cfg["RenderMode1"] = Config::object();
         saveParticlesSettings(c,pSys->shaderPointClass::getPtr());
     }
+
 }
 
 void mainGLApp::saveSettings(const char *name) 
@@ -573,6 +606,30 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
             for (const Config& e : c["camRot"].as_array()) v.push_back(e.as_float());
             pSys->getTMat()->getTrackball().setRotation(*((quat *)v.data()));
         }
+
+        if(attractorsList.get()->dtType()) {
+                vec4 v4; quat q;
+                cockpitClass &cPit = attractorsList.getCockpit();
+                attractorsList.slowMotion(      c.get_or("slowMotionOn"     , false   ));
+                attractorsList.setSlowMotionDpS(c.get_or("emitDotsSec"      , attractorsList.getSlowMotionDpS()            ));
+                cPit.setTransformedEmission(    c.get_or("emitGenPoints"    , cPit.getTransformedEmission() ));
+                cPit.setInitialSpeed(           c.get_or("emitInitVel"      , cPit.getInitialSpeed()        ));
+                cPit.setAirFriction(            c.get_or("emitAirFriction"  , cPit.getAirFriction()         ));
+                cPit.setLifeTime(               c.get_or("emitLifeTime"     , cPit.getLifeTime()                           ));
+                cPit.setLifeTimeAtten(          c.get_or("emitLifeTimeAtten", cPit.getLifeTimeAtten()                      ));
+                if(getVec_asArray(c, "emitWind"        , v4)) cPit.getUdata().wind = v4;
+                if(getVec_asArray(c, "emitGravity"     , v4)) cPit.getUdata().gravity = v4;
+                cPit.cockPit(            c.get_or("cpitOn"        , false)); 
+                cPit.setSlowMotionDpS(   c.get_or("cpitDotsSec"   , cPit.getSlowMotionDpS()   ));
+                cPit.setPointSize(       c.get_or("cpitPointSize" , cPit.getPointSize()       )); 
+                cPit.setSmoothDistance(  c.get_or("cpitSmoothDist", cPit.getSmoothDistance()  )); 
+                cPit.setPerspAngle(      c.get_or("cpitFOVangle"  , cPit.getPerspAngle()      )); 
+                cPit.setTailPosition(    c.get_or("cpitTailPos"   , cPit.getTailPosition()    )); 
+                cPit.setMovePositionHead(c.get_or("cpitMovPosHead", cPit.getMovePositionHead())); 
+                cPit.setMovePositionTail(c.get_or("cpitMovPosTail", cPit.getMovePositionTail())); 
+                cPit.invertView(         c.get_or("cpitInvertView", cPit.invertView()         )); 
+                if(getVec_asArray(c, "cpitRotation"     , q)) cPit.setRotation(q);
+        }
     }
 
     {
@@ -587,8 +644,8 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
 #endif
         particlesBaseClass *ptr1 = pSys->shaderPointClass::getPtr();
         getRenderMode(c1,ptr1);
-
     }
+
 
 }
 
@@ -664,13 +721,13 @@ std::ostringstream &buildDatatedFilename(std::ostringstream &out)
 }
 
 
-void mainGLApp::saveScreenShot(unsigned char *data, int w, int h)  
+void mainGLApp::saveScreenShot(unsigned char *data, int w, int h, bool is32bit)  
 {        
 #if !defined(GLCHAOSP_LIGHTVER)
     std::string filename;
     std::ostringstream out;
 
-    if(screenShotRequest == ScreeShotReq::ScrnSht_FILE_NAME) {    
+    if(screenShotRequest == ScreeShotReq::ScrnSht_FILE_NAME || screenShotRequest == ScreeShotReq::ScrnSht_FILE_NAME_ALPHA) {    
         char const * patterns[] = { "*.png" };        
         const char *name = saveFile(capturePath.c_str(), patterns, 1);
         filename = name != nullptr ? name : "";
@@ -681,7 +738,7 @@ void mainGLApp::saveScreenShot(unsigned char *data, int w, int h)
     }
 
     if(filename.length()>0) {
-        unsigned error = lodepng_encode24_file(filename.c_str(), data, w, h);
+        unsigned error = is32bit ? lodepng_encode32_file(filename.c_str(), data, w, h) : lodepng_encode24_file(filename.c_str(), data, w, h);
         if(error) std::cerr << "error " << error << ": " << lodepng_error_text(error) << std::endl;
         tinyfd_beep();
     }

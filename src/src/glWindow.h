@@ -94,11 +94,44 @@ class particlesSystemClass : public shaderPointClass
 #endif
 {
 public:
-    particlesSystemClass(emitterBaseClass *sh) : emitter(sh) 
-    {
+    particlesSystemClass() { buildEmitter((enumEmitterEngine) theApp->getEmitterEngineType());}
+
+    void buildEmitter(enumEmitterEngine ee) {
+        emitter = ee == enumEmitterEngine::emitterEngine_staticParticles ? 
+                        (emitterBaseClass*) new singleEmitterClass : 
+                        (emitterBaseClass*) new transformedEmitterClass;
+
+        emitter->buildEmitter(); // post build for WebGL texture ID outRange
+    //start new thread (if aux thread enabled)
+#if !defined(GLCHAOSP_LIGHTVER)
+    //lock aux thread until initialization is complete
+        std::lock_guard<std::mutex> l( attractorsList.getStepMutex() );
+#endif
+        attractorsList.newStepThread(emitter);    
+    }
+    
+    void deleteEmitter() { 
+        attractorsList.deleteStepThread();
+        delete emitter; 
     }
 
-    ~particlesSystemClass() { delete emitter; }
+    void changeEmitter(enumEmitterEngine ee) {
+
+        GLuint circBuffer = emitter->getSizeCircularBuffer();
+        bool fStop = emitter->stopFull();
+        bool restart = emitter->restartCircBuff();
+        deleteEmitter();
+
+        theApp->setEmitterEngineType(ee);
+
+        buildEmitter(ee);
+        emitter->setSizeCircularBuffer(circBuffer);
+        emitter->stopFull(fStop);
+        emitter->restartCircBuff(restart);
+
+    }
+
+    ~particlesSystemClass() { deleteEmitter(); }
 
     void onReshape(int w, int h) {
         if(w==0 || h==0) return; //Is in iconic (GLFW do not intercept on Window)
@@ -200,9 +233,12 @@ public:
     emitterBaseClass *getEmitter() { return emitter; }
     
     //emitterBaseClass *getTransformInterlieve() { return emitter; }
+    bool clearScreen() { return canClearScreen; }
+    void clearScreen(bool b) {  canClearScreen=b; }
 
 private:
     emitterBaseClass* emitter;
+    bool canClearScreen = true;
 };
 
 class glWindow 
@@ -219,7 +255,7 @@ public:
     virtual void onExit();
 
     virtual void onIdle();
-    virtual void onRender();
+    virtual GLint onRender();
     virtual void onReshape(GLint w, GLint h);
 
     virtual void onMouseButton(int button, int upOrDown, int x, int y);
@@ -244,7 +280,7 @@ public:
     
 private:
     vaoClass *vao;
-
+    
     bool isInitialized;
 
     friend class particlesSystemClass;

@@ -16,22 +16,21 @@ public:
         szAllocatedBuffer = theApp->getMaxAllocatedBuffer();
         //setParticlesCount(0L);
         setSizeStepBuffer(theApp->getEmissionStepBuffer());
-        setEmitterOff();
     }
 
     virtual ~emitterBaseClass() {}
 
-    virtual void resetVBOindexes() {
-        //setParticlesCount(0L);
-        startPointSlowMotion = 0.f;
-        InsertVbo->resetVertexCount();
-    }
+    virtual void resetVBOindexes()  = 0;
 
-    virtual void preRenderEvents() {}
-    virtual void postRenderEvents() {}
-    virtual void renderEvents() {}
+    virtual void preRenderEvents()  = 0;
+    virtual void postRenderEvents() = 0;
+    virtual void renderEvents()     = 0;
 
-    void render();
+    virtual void render() = 0;
+    virtual void storeData() = 0;
+    virtual void setEmitter(bool emit) = 0;
+
+    virtual void buildEmitter() = 0;
 
     void checkRestartCircBuffer() {
         if(needRestartCircBuffer()) {
@@ -42,9 +41,6 @@ public:
         }
     }
 
-    void storeData();
-
-
     GLuint getSizeAllocatedBuffer() { return szAllocatedBuffer; }     //getLimitMaxParticlesToEmit
     void setSizeAllocatedBuffer(GLuint p) { szAllocatedBuffer = p; }
 
@@ -54,7 +50,15 @@ public:
     void setSizeStepBuffer(GLuint step) {  szStepBuffer =  step; }    //getEmittedParticles
     GLuint getSizeStepBuffer() { return szStepBuffer; }
 
-    GLuint64 getParticlesCount() { return InsertVbo->getVertexUploaded(); }
+
+    //void setMaxTransformedEmission(int i)  {  maxTransformedEmission =  i; }    //Max 
+
+    virtual GLuint getVBO() = 0;
+    virtual vertexBufferBaseClass *getVertexBase() = 0;
+    //vertexBufferBaseClass *getVBO() { return InsertVbo; }
+
+
+    GLuint64 getParticlesCount() { return getVertexBase()->getVertexUploaded(); }
     //inline void setParticlesCount(GLuint val) { ParticlesCount=val; }               
 
     bool loopCanStart() {
@@ -77,8 +81,7 @@ public:
 
     bool isEmitterOn() { return bEmitter; }
 
-    void setEmitter(bool emit);
-    void setEmitterOn();
+    void setEmitterOn()  { setEmitter(true ); }
     void setEmitterOff() { setEmitter(false); }
 
     bool stopFull() { return bStopFull; }
@@ -89,8 +92,6 @@ public:
 
     bool needRestartCircBuffer() { return needRestartBuffer; }
     void needRestartCircBuffer(bool b) { needRestartBuffer = b; }
-
-    vertexBufferBaseClass *getVBO() { return InsertVbo; }
 
     void setThreadRunning(bool b) { threadRunning=b; }
     bool getThreadRunning() { return threadRunning; }
@@ -104,23 +105,30 @@ public:
     void useMappedMem(bool b) { bUseMappedMem = b; }
 
     void setEmitterType(int type) {
-        switch(type) {
+        if(theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback) {
+            bUseThread = false; bUseMappedMem = false; 
+        } else {
+            switch(type) {
 #ifdef GLAPP_REQUIRE_OGL45
-            case emitter_separateThread_mappedBuffer:
-                bUseThread = true; bUseMappedMem = true; break;
+                case emitter_separateThread_mappedBuffer:
+                    bUseThread = true; bUseMappedMem = true; break;
 #endif
-            case emitter_separateThread_externalBuffer:
-                bUseThread = true; bUseMappedMem = false; break;
-            case emitter_singleThread_externalBuffer:
-            default:
-                bUseThread = false; bUseMappedMem = false; break;
+                case emitter_separateThread_externalBuffer:
+                    bUseThread = true; bUseMappedMem = false; break;
+                case emitter_singleThread_externalBuffer:
+                default:
+                    bUseThread = false; bUseMappedMem = false; break;
+            }
         }
     }
 
     float getStartPointSlowMotion() { return startPointSlowMotion; }
 
+
+
 protected:
     friend class particlesSystemClass; 
+
 
     GLuint szAllocatedBuffer ;
     GLuint szCircularBuffer;
@@ -136,8 +144,6 @@ protected:
     
     bool bBufferRendered = false, bStopLoop = false;
 
-    vertexBufferBaseClass *InsertVbo;
-
     bool threadRunning=false;
     bool needRestartBuffer = false;
 
@@ -146,10 +152,13 @@ protected:
 class singleEmitterClass : public emitterBaseClass
 {
 public:
-    singleEmitterClass() {        
+    singleEmitterClass() { setEmitterOff(); }
+
+    void buildEmitter() {        
         InsertVbo = useMappedMem() ? (vertexBufferBaseClass *) new mappedVertexBuffer(GL_POINTS, getSizeStepBuffer(), 1) : 
                                      (vertexBufferBaseClass *) new vertexBuffer(GL_POINTS, getSizeStepBuffer(), 1);
         InsertVbo->initBufferStorage(getSizeAllocatedBuffer());
+        InsertVbo->buildVertexAttrib();
     }
 
     ~singleEmitterClass() {
@@ -175,102 +184,219 @@ public:
             //else
             //attractorsList.getThreadStep()->notify();
         }
+    }
+    void renderEvents() { render(); }
+    void postRenderEvents() {}
 
+    GLuint getVBO() { return InsertVbo->getVBO(); }
+
+    void resetVBOindexes() {
+        startPointSlowMotion = 0.f;
+        getVertexBase()->resetVertexCount();
     }
 
-    void renderEvents() {
-        render();
-    }
+    vertexBufferBaseClass *getVertexBase() { return InsertVbo; }
 
-    virtual void postRenderEvents() 
-    {
-        
-    }
- 
+    void render();
+    void storeData();
+    void setEmitter(bool emit);
+
+
+private:
+    vertexBufferBaseClass *InsertVbo = nullptr;
 };
 
+#if !defined(GLCHAOSP_DISABLE_FEEDBACK)
+
+class transformFeedbackInterleaved {
+public:
+    transformFeedbackInterleaved(GLenum primitive, uint32_t stepBuffer, int attributesPerVertex)
+    {
+        trasformVB = new transformVertexBuffer(primitive, stepBuffer, attributesPerVertex);
+        trasformVB->initBufferStorage(stepBuffer, GL_TRANSFORM_FEEDBACK_BUFFER, GL_DYNAMIC_COPY); // stepBuffer is whole buffer
+        trasformVB->buildTransformVertexAttrib();
+    }
+    ~transformFeedbackInterleaved() {
+        delete trasformVB;
+    }
+
+
+
+    void Pause() {
+        glPauseTransformFeedback();
+
+    }
+
+    void Resume() {
+        glResumeTransformFeedback();
+    }
+
+    vertexBufferBaseClass *getVertexBase() { return trasformVB; }
+    vertexBufferBaseClass *getTrasformVB() { return trasformVB; }
+    uint64_t getTransformSize() { return transformSize; }
+    void setTransformSize(uint64_t v = 0L) { transformSize = v; }
+
+
+    void Begin(GLuint query, GLsizeiptr sz) {
+        if (FeedbackActive) return;
+
+        FeedbackActive = true;
+        trasformVB->BindToFeedback(0, sz);
+
+        glBeginTransformFeedback(trasformVB->getPrimitive());
+
+        if (bDiscard) glEnable(GL_RASTERIZER_DISCARD);
+
 #if !defined(GLCHAOSP_LIGHTVER)
-class transformedEmitterClass : public mainProgramObj, public emitterBaseClass
+      glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, query);
+#endif
+    }
+
+    GLuint End(GLuint query, GLsizeiptr sz) {
+        GLuint iPrimitivesWritten = 0;
+        if(!FeedbackActive)  return -1;
+        FeedbackActive = false;
+
+        //glGetQueryiv(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, GL_CURRENT_QUERY ,&iPrimitivesWritten);
+        if(bDiscard)  glDisable(GL_RASTERIZER_DISCARD);
+        glEndTransformFeedback();
+        trasformVB->endBindToFeedback(0);
+
+#if !defined(GLCHAOSP_LIGHTVER)
+        glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+        glGetQueryObjectuiv(query,GL_QUERY_RESULT,&iPrimitivesWritten);
+#endif
+/*
+#ifdef __EMSCRIPTEN__
+        iPrimitivesWritten = EM_ASM_INT({ 
+            return Module.ctx.getQueryParameter(GL.queries[$0], Module.ctx.QUERY_RESULT);
+        }, query);
+#endif
+*/
+        if(iPrimitivesWritten == 0) iPrimitivesWritten = sz;
+
+        return iPrimitivesWritten;
+    }
+    
+    void SetDiscard(bool value=true){ bDiscard = value; }
+
+
+private:
+    vertexBufferBaseClass *trasformVB;
+    static bool FeedbackActive;
+    bool bDiscard = true;
+    uint64_t transformSize = 0L;
+};
+
+
+class transformedEmitterClass : public mainProgramObj, public emitterBaseClass, public uniformBlocksClass
 {
+
 public:      
 
-    transformedEmitterClass(int num, GLuint bitMap) {
-        
+    transformedEmitterClass() { setEmitterOff(); }
 
-        attribBitMap = bitMap;
-        Sizes[0] = Sizes[1] =0L;
+    void buildEmitter() {
+        const int numVtxAttrib = 2;
 
         //Feedback
-        vbos[0] = new vertexBuffer(GL_POINTS, 1, 2);
-        vbos[0]->initBufferStorage(getSizeAllocatedBuffer());
-        vbos[1] = new vertexBuffer(GL_POINTS, 1, 2);
-        vbos[1]->initBufferStorage(getSizeAllocatedBuffer());
+        GLsizeiptr size = 1000 * attractorsList.getCockpit().getMaxTransformedEmission();
 
-        tfbs[0] = new transformFeedbackInterleaved(vbos[0]);
-        tfbs[1] = new transformFeedbackInterleaved(vbos[1]);
+        tfbs[0] = new transformFeedbackInterleaved(GL_POINTS, getSizeAllocatedBuffer(), numVtxAttrib);
+        tfbs[1] = new transformFeedbackInterleaved(GL_POINTS, getSizeAllocatedBuffer(), numVtxAttrib);
+
+#if !defined(GLCHAOSP_LIGHTVER)
+        glGenQueries(1,&query);
+#endif
 
         //InsertVbo = new vertexBuffer(GL_POINTS, 1, 2);
-        InsertVbo = new vertexBuffer(GL_POINTS, 1, 2);
+        InsertVbo = new transformVertexBuffer(GL_POINTS, size, numVtxAttrib);
+        InsertVbo->initBufferStorage(size, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, true);
+        InsertVbo->buildTransformVertexAttrib();
+
         //InsertVbo->storeSpace(2);
 
         activeBuffer = 0;
 
         //build shader
 
-        const GLchar *namesParticlesLoc[] {"PositionOut", "ColorOut", "TexCoord0Out", "TexCoord1Out", "TexCoord2Out"};
+        const GLchar *namesParticlesLoc[] {"posOut", "velTOut", "TexCoord0Out", "TexCoord1Out", "TexCoord2Out"};
         useVertex();
-        //useAll();
-        //useFragment();
+        useFragment();
 
-        getVertex()->Load(SHADER_PATH "particlesVShader.glsl");
-        //geomObj->Load(SHADER_PATH "BillboardGeom.glsl");
-        //fragObj->Load(SHADER_PATH "BillboardFrag.glsl");
+        getVertex()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "transformEmitterVert.glsl");
+        fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "transformEmitterFrag.glsl");
 
         addVertex();
+        addFragment();
 
-        glTransformFeedbackVaryings(getHandle(), num+1, namesParticlesLoc, GL_INTERLEAVED_ATTRIBS);
+        glTransformFeedbackVaryings(getHandle(), numVtxAttrib, namesParticlesLoc, GL_INTERLEAVED_ATTRIBS);
 
 
         link();
 
-        bindPipeline();
+        removeAllShaders(true);
 
+#ifdef GLAPP_REQUIRE_OGL45
+        uniformBlocksClass::create(GLuint(sizeof(cockpitClass::uTFData)), (void *) &attractorsList.getCockpit().getUdata());
+#else
         USE_PROGRAM
 
-        vec4 v(0.0f);
-        for(int i=0; i<InsertVbo->getNumComponents(); i++) InsertVbo->getBuffer()[i] = 0.f;
+        uniformBlocksClass::create(GLuint(sizeof(cockpitClass::uTFData)), (void *) &attractorsList.getCockpit().getUdata(), getProgram(), "_TFData");
+#endif
 
-        InsertVbo->uploadData(1);
+        //USE_PROGRAM
 
-        mainProgramObj::reset();
+        //for(int i=0; i<InsertVbo->getNumComponents(); i++) InsertVbo->getBuffer()[i] = 0.f;
 
+        //InsertVbo->uploadData(1);
 
+        //mainProgramObj::reset();
     }
 
-    ~transformedEmitterClass() {
-        delete vbos[0];
-        delete vbos[1];
 
+    ~transformedEmitterClass() {
         delete tfbs[0];
         delete tfbs[1];
-
+#if !defined(GLCHAOSP_LIGHTVER)
+        glDeleteQueries(1,&query);
+#endif
         delete InsertVbo;
     }
 
+
     void renderFeedbackData() {
-        vbos[activeBuffer]->drawRange(0, Sizes[activeBuffer]<szCircularBuffer ? Sizes[activeBuffer] : szCircularBuffer);
+/*
+        glBindVertexArray(tfbs[activeBuffer]->getVertexBase()->getVAO());
+        glBindBuffer(GL_ARRAY_BUFFER, tfbs[activeBuffer]->getVertexBase()->getVBO());
+
+        glVertexAttribPointer(0 , 4, GL_FLOAT, GL_FALSE, tfbs[activeBuffer]->getVertexBase()->getBytesPerVertex(), 0L);
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, tfbs[activeBuffer]->getVertexBase()->getBytesPerVertex(), (GLvoid *)sizeof(vec4));
+        glEnableVertexAttribArray(0 );
+        glEnableVertexAttribArray(1 );
+*/
+
+        const uint64_t sz = tfbs[activeBuffer]->getTransformSize();
+        tfbs[activeBuffer]->getTrasformVB()->drawRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sz<szCircularBuffer ? sz : szCircularBuffer,0);
     }
 
     void preRenderEvents() { renderOfflineFeedback(attractorsList.get()); }
-    void renderEvents() { renderFeedbackData();  }
+    void renderEvents() {  render(); }
     void postRenderEvents() { rotateActiveBuffer(); }
 
+    void render() { renderFeedbackData(); }
+    void storeData() {}
+    void setEmitter(bool emit);
+
+    GLuint getVBO() { return tfbs[activeBuffer]->getVertexBase()->getVBO(); }
+    vertexBufferBaseClass *getVertexBase() { return tfbs[activeBuffer]->getVertexBase(); }
 
     void resetVBOindexes()
     {
         activeBuffer = 0;
-        Sizes[0] =  Sizes[1] = 0L;
-
+        getVertexBase()->resetVertexCount();
+        tfbs[0]->setTransformSize();
+        tfbs[1]->setTransformSize();
     }
 
     void rotateActiveBuffer() { activeBuffer ^= 1; }
@@ -278,12 +404,12 @@ public:
     void renderOfflineFeedback(AttractorBase *att);
 
 protected:
-    GLuint attribBitMap;
     int activeBuffer;
-    long Sizes[2];
+    GLuint query = 0;
 
-    vertexBuffer *vbos[2];
+
     transformFeedbackInterleaved *tfbs[2];
+    vertexBufferBaseClass *InsertVbo = nullptr;
 
 };
 #endif

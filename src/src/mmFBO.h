@@ -14,7 +14,7 @@
 #define _mm_FBO_
 
 #include <vector>
-#include <vGizmoMath.h>
+#include <vgMath.h>
 
 //#include "GPU.h"
 

@@ -100,7 +100,8 @@ void particlesBaseClass::clearScreenBuffers()
         glClearBufferfv(GL_DEPTH , 0, &f);
     }
 
-    if(!showAxes()) glClearBufferfv(GL_COLOR,  0, value_ptr(backgroundColor()));
+    if(!showAxes()) 
+        glClearBufferfv(GL_COLOR,  0, value_ptr(backgroundColor()));
     if(blendActive || showAxes()) {
         glEnable(GL_BLEND);
         glBlendFunc(getSrcBlend(), getDstBlend());
@@ -132,7 +133,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         getUData().lightDir = vec3(getTMat()->tM.vMatrix * vec4(getLightDir(), 1.0));
         getUData().shadowDetail = float(shadowDetail);
         getUData().rotCenter = getTMat()->getTrackball().getRotationCenter();
-
     };
 
 
@@ -183,14 +183,20 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
     if(checkFlagUpdate()) updateCommons();
 
     for(int i=0; i<3; i++) {
-        //if(getUPlanes().planeSettings[i]&planesState::planeON) {            
-            getUPlanes().clipPlane[i] = getClippingPlane(i);
-        //}
+        getUPlanes().clipPlane[i] = getClippingPlane(i);
     }
 
     getUData().zNear = getTMat()->getPerspNear();
     getUData().zFar  = getTMat()->getPerspFar();
-    //getUData().zFar  = getTMat()->getPOV().z*3.f;
+
+    getUData().slowMotion = attractorsList.get()->dtType() && attractorsList.slowMotion();
+    
+    cockpitClass &cPit = attractorsList.getCockpit();
+    getUData().elapsedTime   = cPit.getUdata().elapsedTime;
+    getUData().lifeTime      = cPit.getLifeTime();
+    getUData().lifeTimeAtten = cPit.getLifeTimeAtten();
+    getUData().smoothDistance= cPit.getSmoothDistance();
+
 
 // Shadow pass
 /////////////////////////////////////////////
@@ -531,7 +537,9 @@ GLuint motionBlurClass::render(GLuint renderedTex)
     return mBlurFBO.getFB(rotationBuff);
 
 }
+#endif
 
+#if !defined(GLCHAOSP_DISABLE_FEEDBACK)
 
 //
 //  transformedEmitter
@@ -539,60 +547,103 @@ GLuint motionBlurClass::render(GLuint renderedTex)
 ////////////////////////////////////////////////////////////////////////////////
 bool transformFeedbackInterleaved::FeedbackActive = false;
 
+float stdRandom(float lo, float hi)  {
+    static thread_local std::mt19937 gen(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    std::uniform_real_distribution<tPrec> dist(lo, hi); return dist(gen);
+}
+
+
 void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
 {
     bindPipeline();
     USE_PROGRAM
 
-    tfbs[activeBuffer]->Begin();
+    static auto start = std::chrono::high_resolution_clock::now();
+    static const auto startEvent = start;
+    cockpitClass &cPit = attractorsList.getCockpit();
+
+    auto end = std::chrono::high_resolution_clock::now();
 
     //const GLint index = program->getAttribLocation(p->name);
+    cPit.getUdata().diffTime    = std::chrono::duration<double>(end-start).count();
+    cPit.getUdata().elapsedTime = std::chrono::duration<double>(end-startEvent).count();
 
+    start = end;
+    updateBufferData();
 
-    int emiss = getSizeStepBuffer();
-    while(isEmitterOn() && emiss-- && (getParticlesCount()<getSizeCircularBuffer())) {
+    //setUniform1f(4, cTime);
+    static float restEmiss = 0.f;
+    float fEmiss = float(cPit.cockPit() ? cPit.getSlowMotionDpS() : attractorsList.getSlowMotionDpS()) * theApp->getTimer().fps()+restEmiss;
+
+    int emiss = fEmiss; //getSizeStepBuffer();
+    restEmiss = fEmiss-float(emiss);
+    if(emiss>cPit.getMaxEmissionFrame()) emiss = cPit.getMaxEmissionFrame();
+
+    int count = 0;
+    int vtxCount = 0;
+    const GLuint szCircular = getSizeCircularBuffer();
+    const GLuint64 pCount = getParticlesCount();
+    while(isEmitterOn() && emiss-- && (pCount<szCircular)) {
         attractorsList.get()->Step();
 
-        vec3 oldPosAttractor(attractorsList.get()->getPrevious());
-        vec3 newPosAttractor(attractorsList.get()->getCurrent());
+        const vec3 oldPosAttractor(attractorsList.get()->getPrevious());
+        const vec3 newPosAttractor(attractorsList.get()->getCurrent());
+        const float dist = distance(newPosAttractor, oldPosAttractor);
+        const vec3 vStep = (newPosAttractor-oldPosAttractor)/float(cPit.getTransformedEmission());
+        vec3 vInc(0.0);
+        const float bornTime = std::chrono::duration<double> (std::chrono::high_resolution_clock::now()-startEvent).count();
 
         //glGetUniformfv(progParticles->getHandle(),locPosProgress, posProgress._array);
         //while(fStep >= EmissionTime
+        for(int i=cPit.getTransformedEmission(); i>0; i--) {
+            InsertVbo->getBuffer()[count++] = newPosAttractor.x + vInc.x;
+            InsertVbo->getBuffer()[count++] = newPosAttractor.y + vInc.y;
+            InsertVbo->getBuffer()[count++] = newPosAttractor.z + vInc.z;
+            InsertVbo->getBuffer()[count++] = dist;
+            //(*InsertVbo)[3] =
 
-        InsertVbo->getBuffer()[0] = oldPosAttractor.x;
-        InsertVbo->getBuffer()[1] = oldPosAttractor.y;
-        InsertVbo->getBuffer()[2] = oldPosAttractor.z;
-        InsertVbo->getBuffer()[3] = 0.0;
-        //(*InsertVbo)[3] =
+            InsertVbo->getBuffer()[count++] = fastRandom.VNI() * cPit.getInitialSpeed();
+            InsertVbo->getBuffer()[count++] = fastRandom.VNI() * cPit.getInitialSpeed();
+            InsertVbo->getBuffer()[count++] = fastRandom.VNI() * cPit.getInitialSpeed();
+            InsertVbo->getBuffer()[count++] = -bornTime; //bron time: negative for first pass
 
-        InsertVbo->getBuffer()[4] = newPosAttractor.x;
-        InsertVbo->getBuffer()[5] = newPosAttractor.y;
-        InsertVbo->getBuffer()[6] = newPosAttractor.z;
-        InsertVbo->getBuffer()[7] = 0.0; //color control
-
+            vInc += vStep;
+            vtxCount++;
+        }
         
-        InsertVbo->uploadData(1);
-
-        // OCCHIO!!!
-        // Controllare, era :
-        // InsertVbo->drawVtx();  -->  glDrawArrays(primitive,0,numVertex);
-        // ma forse c'e' un errore di ridondanza "numVertex"
-        InsertVbo->drawRange(0,InsertVbo->getAttribPerVtx());
-        
-
     }
-    vbos[activeBuffer^1]->drawRange(0, Sizes[activeBuffer^1]<getSizeCircularBuffer() ? Sizes[activeBuffer^1] : getSizeCircularBuffer());
 
-    Sizes[activeBuffer] = tfbs[activeBuffer]->End();
-//    setParticlesCount(Sizes[activeBuffer]);
+    int bytePerVertx = InsertVbo->getBytesPerVertex();
+    int bufferSize = vtxCount * bytePerVertx;
+    InsertVbo->uploadData(vtxCount);
+    tfbs[activeBuffer]->Begin(query, getSizeCircularBuffer()*bytePerVertx);
+    if(vtxCount) InsertVbo->drawRange(GL_ARRAY_BUFFER, 0,vtxCount);
 
+    CHECK_GL_ERROR();
 
-    ProgramObject::reset();
+    const long szI =  tfbs[activeBuffer^1]->getTransformSize();
+    const GLuint szBuff = getSizeCircularBuffer();
+/*
+    glBindVertexArray(tfbs[activeBuffer^1]->getVertexBase()->getVAO());
+    glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, tfbs[activeBuffer]->getVertexBase()->getVBO());
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, tfbs[activeBuffer]->getVertexBase()->getBytesPerVertex(), 0L);
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, tfbs[activeBuffer]->getVertexBase()->getBytesPerVertex(), (GLvoid *)sizeof(vec4));
+    glEnableVertexAttribArray(5 );
+    glEnableVertexAttribArray(6 );
+*/
+    if(szI) tfbs[activeBuffer^1]->getVertexBase()->drawRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, szI<szBuff ? szI : szBuff);
+    CHECK_GL_ERROR();
 
+    const GLuint countV = tfbs[activeBuffer]->End(query, szI+vtxCount);
+    tfbs[activeBuffer]->setTransformSize(countV);
+    tfbs[activeBuffer^1]->getVertexBase()->setVertexCount(countV);
+    //tfbs[activeBuffer]->getVertexBase()->setVertexCount(countV);
+    //InsertVbo->setVertexCount(countV);
 
+    //printf("%d - %d - %d\n", countV, tfbs[activeBuffer]->getTransformSize());
 }
-
 #endif
+
 
 //
 // RenderBase

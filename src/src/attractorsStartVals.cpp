@@ -921,11 +921,11 @@ void juliaBulb4th_IIM::startData()
 
 void glynnJB_IIM::startData()
 {
-    vVal.push_back(vec4(-.61f, 0.0f, -.41f, 0.f));
+    vVal.push_back(vec4(-.0f, 0.0f, -.0f, 0.f));
     //vVal.push_back(vec4(0.0f));
 
     kVal.push_back(- .2f);
-    kVal.push_back(  .8f);
+    kVal.push_back(  .0f);
     kVal.push_back( 0.0f);
 
     Insert(vVal[0]);

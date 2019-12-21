@@ -40,7 +40,7 @@ bool loadObjFile()
     ifs >> nVtx;
 
     theWnd->getParticlesSystem()->getEmitter()->resetVBOindexes();
-    GLfloat *ptr = theWnd->getParticlesSystem()->getEmitter()->getVBO()->getBuffer();
+    GLfloat *ptr = theWnd->getParticlesSystem()->getEmitter()->getVertexBase()->getBuffer();
         //theWnd->getParticlesSystem()->getEmitter()->getVBO()->mapBuffer(nVtx);
 
     vec3 lum(0.299, 0.587, 0.114), col(1.f), pt;
@@ -51,8 +51,8 @@ bool loadObjFile()
     for(int i=0; i<nVtx; i++, j++) {
 
         if(j == buffSize) {
-            theWnd->getParticlesSystem()->getEmitter()->getVBO()->uploadSubBuffer(buffSize,theWnd->getParticlesSystem()->getEmitter()->getSizeCircularBuffer());
-            ptr = theWnd->getParticlesSystem()->getEmitter()->getVBO()->getBuffer();
+            theWnd->getParticlesSystem()->getEmitter()->getVertexBase()->uploadSubBuffer(buffSize,theWnd->getParticlesSystem()->getEmitter()->getSizeCircularBuffer());
+            ptr = theWnd->getParticlesSystem()->getEmitter()->getVertexBase()->getBuffer();
             j=0;
         }
 
@@ -71,7 +71,7 @@ bool loadObjFile()
         //*ptr++ = dot(lum, col);
 
     }  
-    theWnd->getParticlesSystem()->getEmitter()->getVBO()->uploadSubBuffer(j,theWnd->getParticlesSystem()->getEmitter()->getSizeCircularBuffer());
+    theWnd->getParticlesSystem()->getEmitter()->getVertexBase()->uploadSubBuffer(j,theWnd->getParticlesSystem()->getEmitter()->getSizeCircularBuffer());
 
     
     //theWnd->getParticlesSystem()->getEmitter()->getVBO()->unmapBuffer(nVtx);
@@ -140,7 +140,7 @@ bool importPLY(bool wantColors, int velType)
         
         vec4 *mappedBuffer;
         if(e->useMappedMem())   // USE_MAPPED_BUFFER
-            mappedBuffer = (vec4 *) e->getVBO()->getBuffer();
+            mappedBuffer = (vec4 *) e->getVertexBase()->getBuffer();
         else
             mappedBuffer = new vec4[nVtx];
 
@@ -180,15 +180,15 @@ bool importPLY(bool wantColors, int velType)
 #endif
         }
 
-        e->getVBO()->setVertexCount(nVtx);
+        e->getVertexBase()->setVertexCount(nVtx);
         if(attractorsList.continueDLA()) ((dla3D *)attractorsList.get())->buildIndex();
 
         if(!e->useMappedMem()) {   // !defined(USE_MAPPED_BUFFER)
 #ifdef GLAPP_REQUIRE_OGL45
-            glNamedBufferSubData(e->getVBO()->getVBO(), 0, nVtx * e->getVBO()->getBytesPerVertex(), (void *) mappedBuffer); 
+            glNamedBufferSubData(e->getVBO(), 0, nVtx * e->getVertexBase()->getBytesPerVertex(), (void *) mappedBuffer); 
 #else
-            glBindBuffer(GL_ARRAY_BUFFER, e->getVBO()->getVBO());
-            glBufferSubData(GL_ARRAY_BUFFER, 0, nVtx * e->getVBO()->getBytesPerVertex(), (void *) mappedBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, e->getVBO());
+            glBufferSubData(GL_ARRAY_BUFFER, 0, nVtx * e->getVertexBase()->getBytesPerVertex(), (void *) mappedBuffer);
 #endif
         }
         delete [] mappedBuffer;
@@ -306,19 +306,19 @@ void exportPLY(bool wantBinary, bool wantColors, bool alphaDist, bool wantNormal
         std::ostream os(&fbOut);
         if (os.fail()) throw std::runtime_error("failed to open " + filename);
 
-        const uint32_t sizeBuff = e->getSizeCircularBuffer()>e->getVBO()->getVertexUploaded() ? 
-                                  e->getVBO()->getVertexUploaded() : e->getSizeCircularBuffer();
+        const uint32_t sizeBuff = e->getSizeCircularBuffer()>e->getVertexBase()->getVertexUploaded() ? 
+                                  e->getVertexBase()->getVertexUploaded() : e->getSizeCircularBuffer();
 
         vec4 *mappedBuffer = nullptr;
         if(e->useMappedMem())   // USE_MAPPED_BUFFER
-            mappedBuffer = (vec4 *) e->getVBO()->getBuffer();
+            mappedBuffer = (vec4 *) e->getVertexBase()->getBuffer();
         else {
             mappedBuffer = new vec4[sizeBuff];
 #ifdef GLAPP_REQUIRE_OGL45
-            glGetNamedBufferSubData(e->getVBO()->getVBO(), 0, sizeBuff * e->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
+            glGetNamedBufferSubData(e->getVBO(), 0, sizeBuff * e->getVertexBase()->getBytesPerVertex(), (void *)mappedBuffer);
 #else
-            glBindBuffer(GL_ARRAY_BUFFER, e->getVBO()->getVBO());
-            glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeBuff * e->getVBO()->getBytesPerVertex(), (void *)mappedBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, e->getVBO());
+            glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeBuff * e->getVertexBase()->getBytesPerVertex(), (void *)mappedBuffer);
 #endif
         }
 
@@ -386,9 +386,8 @@ bool loadAttractorFile(bool fileImport, const char *file)
     else  {
         if(theApp->loadAttractor(fileName))
             attractorsList.setFileName(fileName);
-
-                
     }
+    attractorsList.checkCorrectEmitter();
     attractorsList.getThreadStep()->restartEmitter();
     attractorsList.get()->initStep();
     attractorsList.getThreadStep()->startThread();

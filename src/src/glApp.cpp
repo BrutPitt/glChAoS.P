@@ -36,8 +36,8 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
     ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
     if(ImGui::GetIO().WantCaptureKeyboard) return;
 
+    static bool leftShift = true, leftCtrl = true;
     if(action == GLFW_PRESS) {
-
         theWnd->onSpecialKeyDown(key, 0, 0);
         switch(key) {
             case GLFW_KEY_ESCAPE : theDlg.visible(theDlg.visible()^1); break;
@@ -85,17 +85,28 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
                 int idx = theApp->selectedListQuickView();
                 theApp->loadQuikViewSelection((idx <= 0) ? theApp->getListQuickView().size()-1 : --idx);
                 } break;
+            case GLFW_KEY_LEFT_SHIFT :
+                leftShift = true;
+                break;
+            case GLFW_KEY_RIGHT_SHIFT:
+                leftShift = false;
+                break;
+            case GLFW_KEY_LEFT_CONTROL :
+                leftCtrl = true;
+                break;
+            case GLFW_KEY_RIGHT_CONTROL:
+                leftCtrl = false;
+                break;
             case GLFW_KEY_PRINT_SCREEN :  
                 if(mods & GLFW_MOD_CONTROL) // CTRL+PrtScr -> request FileName
-                    theApp->setScreenShotRequest(ScreeShotReq::ScrnSht_FILE_NAME);
+                    theApp->setScreenShotRequest(leftCtrl ? ScreeShotReq::ScrnSht_FILE_NAME : ScreeShotReq::ScrnSht_FILE_NAME_ALPHA);
                 if(mods & GLFW_MOD_SHIFT) // SHIFT+PrtScr -> silent capture
-                    theApp->setScreenShotRequest(ScreeShotReq::ScrnSht_SILENT_MODE);
+                    theApp->setScreenShotRequest(leftShift ? ScreeShotReq::ScrnSht_SILENT_MODE : ScreeShotReq::ScrnSht_SILENT_MODE_ALPHA);
                 if((mods & GLFW_MOD_ALT) || (mods & GLFW_MOD_SUPER)) // ALT+PrtScr -> capture also GUI
                     theApp->setScreenShotRequest(ScreeShotReq::ScrnSht_CAPTURE_ALL);
                 break;
             default:
                 break;
-
         }
     }
 }
@@ -272,6 +283,7 @@ void mainGLApp::imguiInit()
     ImGui_ImplOpenGL3_Init(get_glslVer().c_str());
     //ImGui::StyleColorsDark();
     setGUIStyle();
+    theDlg.getAttractorDlg().resetFirstTime();
 }
 
 int mainGLApp::imguiExit()
@@ -284,24 +296,25 @@ int mainGLApp::imguiExit()
     return 0;
 }
 
-void mainGLApp::getScreenShot() 
+void mainGLApp::getScreenShot(GLuint tex, bool is32bit) 
 {
     const int w = glEngineWnd->getParticlesSystem()->getWidth(), h = glEngineWnd->getParticlesSystem()->getHeight();
-    const int rowDim = w*3;
+    const int rowDim = w*(is32bit ? 4 : 3);
     unsigned char *buffer = new unsigned char [rowDim*h], *flipped = new unsigned char [rowDim*h];
     unsigned char *tmpBuff = buffer, *tmpFlip = flipped+rowDim*(h-1);
 
-        
-    glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+
+    glReadPixels(0, 0, w, h, (is32bit ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, buffer);
     while(tmpFlip >= flipped) {
         memcpy(tmpFlip, tmpBuff, rowDim);
         tmpFlip-=rowDim; 
         tmpBuff+=rowDim;
     }
-    theApp->saveScreenShot(flipped, w, h);
+    theApp->saveScreenShot(flipped, w, h, is32bit);
 
     delete[] buffer, flipped;
 }
+
 
 
 GLFWwindow *secondary;
@@ -472,18 +485,12 @@ void mainGLApp::onInit(int w, int h)
     //initVR();
 #endif
 
-//Init OpenGL & engine
-    glEngineWnd->onInit();
-
-    imguiInit();
-
 }
+
+
 
 int mainGLApp::onExit()  
 {
-    glEngineWnd->onExit();
-// Exit from both FrameWorks
-    imguiExit();
 
     glfwExit();
 
@@ -493,6 +500,12 @@ int mainGLApp::onExit()
 
 void newFrame()
 {
+    if(theApp->needRestart()) {
+        theWnd->onInit();
+        theApp->imguiInit();
+        theApp->needRestart(false);
+    }
+
     theApp->getTimer().tick();
     glfwPollEvents();
 
@@ -504,6 +517,11 @@ void newFrame()
 
     //glfwMakeContextCurrent(theApp->getGLFWWnd());
     glfwSwapBuffers(theApp->getGLFWWnd());
+
+    if(theApp->needRestart()) {
+        theWnd->onExit();
+        theApp->imguiExit();
+    }
 }
 
 void mainGLApp::mainLoop() 
@@ -518,20 +536,21 @@ void mainGLApp::mainLoop()
 #if !defined(GLCHAOSP_LIGHTVER)
             theWnd->onIdle();
             getMainDlg().renderImGui();
+            theApp->needRestart();
 
             // debug interface
             //glClearColor(0.0, 0.0, 0.0, 0.1);
             //glClear(GL_COLOR_BUFFER_BIT);
-            theWnd->onRender();
+            GLuint tex = theWnd->onRender();
 
 
             if(screenShotRequest) {
                 if(screenShotRequest == ScreeShotReq::ScrnSht_CAPTURE_ALL) {
                     getMainDlg().postRenderImGui();
                 //glfwMakeContextCurrent(getGLFWWnd());
-                    getScreenShot();
+                    getScreenShot(0);
                 } else {
-                    getScreenShot();
+                    getScreenShot(tex, screenShotRequest == ScreeShotReq::ScrnSht_SILENT_MODE_ALPHA || screenShotRequest == ScreeShotReq::ScrnSht_FILE_NAME_ALPHA);
                     getMainDlg().postRenderImGui();
                 }
             } else  getMainDlg().postRenderImGui();
@@ -551,7 +570,7 @@ int main(int argc, char **argv)
     theApp = new mainGLApp;          
 
 #ifdef GLCHAOSP_LIGHTVER
-    if(argc>1 && argc!=8 ) {
+    if(argc>1 && argc>=9) {
         int w = atoi(argv[1]);
         int h = atoi(argv[2]);
         {// 3
@@ -571,25 +590,45 @@ int main(int argc, char **argv)
             theApp->startWithGlowOFF(atoi(argv[7])==1 ? true : false);
         // 8
             theApp->useLightGUI(atoi(argv[8])==1 ? true : false);
-        // 9        
-            std::string s(argv[9]);
+        // 9
+            if(atoi(argv[9])==1) {
+                theApp->setEmitterEngineType(enumEmitterEngine::emitterEngine_transformFeedback);
+                attractorsList.slowMotion(true);
+                attractorsList.getCockpit().cockPit(true);
+            }
+        // 10        
+            std::string s(argv[10]);
             theApp->setStartWithAttractorName(s.empty() ? "random" : s);
         
         theApp->onInit(w<256 ? 256 : (w>3840 ? 3840 : w), h<256 ? 256 : (h>2160 ? 2160 : h));
     } else theApp->onInit();
 
+//Init OpenGL & engine
+    theWnd->onInit();
+    theApp->imguiInit();
+
     emscripten_set_main_loop(newFrame,0,true);
+
+// Exit from both FrameWorks
+    theWnd->onExit();
+    theApp->imguiExit();
     theApp->onExit();
 #else
+    theApp->onInit();
     do { // test if app need restart
         theApp->needRestart(false);
-        theApp->onInit();
+//Init OpenGL & engine
+        theWnd->onInit();
+        theApp->imguiInit();
    
         theApp->mainLoop();
 
-        theApp->onExit();
-    } while(theApp->needRestart());
+// Exit from both FrameWorks
+        theWnd->onExit();
+        theApp->imguiExit();
 
+    } while(theApp->needRestart());
+    theApp->onExit();
 #endif
 
     delete theApp;

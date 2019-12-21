@@ -279,69 +279,6 @@ class mergedRenderingClass;
 #endif
 
 //
-//  cockpitClass
-//
-////////////////////////////////////////////////////////////////////////////////
-class cockpitClass
-{
-public:
-    enum pip { noPIP, lTop, rTop, lBottom, rBottom };
-
-
-    void setViewport(int w, int h) {
-        float szX = float(w)*pipZoom*.5+.5, szY = float(h)*pipZoom*.5+.5;
-        w++; h++;
-        switch(getPIPposition()) {
-            case pip::lTop:
-                glViewport(0, h-szY, szX, szY);
-                break;
-            case pip::lBottom:
-                glViewport(0,  0, szX, szY);
-                break;
-            case pip::rTop:
-                glViewport(w-szX,h-szY, szX, szY);
-                break;
-            case pip::rBottom:
-                glViewport(w-szX,0 , szX, szY);
-                break;
-            default:
-            case pip::noPIP:
-                glViewport(0,0, w, h);
-                break;
-        }
-    }
-
-    int  getPIPposition() { return pipPosition; }
-    void setPIPposition(int f)   { pipPosition = f; }
-
-    float getPIPzoom() { return pipZoom; }
-    void  setPIPzoom(float f) { pipZoom = f; }
-
-    float getPerspAngle() { return perspAngle; }
-    void  setPerspAngle(float f) { perspAngle = f; }
-
-    float getPerspNear() { return perspNear; }
-    void  setPerspNear(float f) { perspNear = f; }
-
-    bool invertPIP() { return invertPip; }
-    void invertPIP(bool b)  { invertPip = b; }
-
-    vec3& getPanDollyPos() { return panDollyPos; }
-    void  setPanDollyPos(const vec3& v) { panDollyPos = v; }
-
-    quat& getRotation() { return qRot; }
-    void  setRotation(const quat& q) { qRot = q; }
-private:
-    int pipPosition = noPIP;
-    float pipZoom = .5; // 1.0 -> 1/4 Window
-    float perspAngle = 65.f;
-    float perspNear = .001f;
-    bool invertPip = false;
-    vec3 panDollyPos = vec3(0.f);
-    quat qRot = quat(1.0f,0.0f, 0.0f, 0.0f);
-};
-
-//
 //  shadowClass
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -518,19 +455,6 @@ public:
 
     uClippingPlanes &getUPlanes() { return uPlanes; }
 
-    GLint getSlowMotionDpS() { return slowMotionDpS; }
-    void  setSlowMotionDpS(GLint v) { slowMotionDpS = v; }
-
-    GLsizei getSlowMotionMaxDots() { return slowMotionMaxDots; }
-    void  setSlowMotionMaxDots(GLsizei v) { slowMotionMaxDots = v; }
-
-    bool slowMotion() { return isSlowMotion; }
-    void slowMotion(bool b) {  isSlowMotion = b; }
-    bool cockPit() { return isCockPit; }
-    void cockPit(bool b) {  isCockPit = b; }
-
-    cockpitClass& getCockpit() { return cockpit; }
-
 
 protected:
     int whichRenderMode;    
@@ -546,10 +470,6 @@ protected:
 #endif
     int axesShow = noShowAxes;
 
-    GLint slowMotionDpS = 1000;
-    GLsizei slowMotionMaxDots = 10000;
-    bool isSlowMotion = false, isCockPit = false;
-
     cmContainerClass colorMapContainer;
 
     vec4 clippingPlane[3] = { vec4(1.f, 0.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f) };
@@ -560,7 +480,6 @@ protected:
 //        , msaaFBO;
 
     transformsClass tMat;
-    cockpitClass cockpit;
 
     VertexShader commonVShader;
     GLuint separableVertex;
@@ -957,6 +876,11 @@ struct uParticlesData {
     GLfloat aoStrong = 0.0;
     GLfloat dpAdjConvex = .250;
     GLfloat dpNormalTune = .025;
+    GLfloat elapsedTime = 0.0;
+    GLfloat lifeTime = 10.0;
+    GLfloat lifeTimeAtten = .1;
+    GLfloat smoothDistance = 0.0;
+    GLuint  slowMotion = 0;
 // __APPLE__ & GL_ES
     GLuint lightModel = modelBlinnPhong - modelOffset;
     GLuint lightActive = GLuint(on);

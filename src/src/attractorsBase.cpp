@@ -56,7 +56,7 @@ void AttractorsClass::endlessStep(emitterBaseClass *emitter)
         vec4 vp = v;
 
         if(emitter->useMappedMem()) {   // USE_MAPPED_BUFFER
-            GLuint64 &inc = *emitter->getVBO()->getPtrVertexUploaded();
+            GLuint64 &inc = *emitter->getVertexBase()->getPtrVertexUploaded();
             const uint szBuffer = emitter->getSizeCircularBuffer(); 
             uint countVtx = inc%szBuffer;
             float *newPtr = ptr + (countVtx << 2);
@@ -78,14 +78,14 @@ void AttractorsClass::endlessStep(emitterBaseClass *emitter)
 
         emitter->checkRestartCircBuffer();
         if(emitter->useMappedMem()) {   // USE_MAPPED_BUFFER
-            singleStep(emitter->getVBO()->getBuffer()); 
+            singleStep(emitter->getVertexBase()->getBuffer()); 
             if(emitter->isEmitterOn()) {
                 if(emitter->stopFull()) emitter->setEmitterOff();
                 if(emitter->restartCircBuff()) emitter->needRestartCircBuffer(true);
             }
         } else {
             emitter->setThreadRunning(true);
-            singleStep(emitter->getVBO()->getBuffer()); 
+            singleStep(emitter->getVertexBase()->getBuffer()); 
             emitter->setThreadRunning(false);
         }
     };
@@ -402,6 +402,7 @@ void Hopalong::Step(vec4 &v, vec4 &vp) {
 
 //  PowerN3D Attractor
 ////////////////////////////////////////////////////////////////////////////
+
 void PowerN3D::Step(vec4 &v, vec4 &vp) 
 {
     elv[0] = vec3(1.f);
@@ -423,7 +424,33 @@ void PowerN3D::Step(vec4 &v, vec4 &vp)
     for(auto &it : kVal) vt += (vec3)it * *itCf++;
 
     vp = vec4(vt, 0.f);
+} 
+
+/*
+void PowerN3D::Step(vec4 &v, vec4 &vp) 
+{
+    elv[0] = dvec3(1.f);
+    for(int i=1; i<=order; i++) elv[i] = elv[i-1] * (dvec3)v;
+
+    std::vector<double> dcf(cf.size()); 
+    auto itCf = dcf.begin();
+
+    for(int x=order-1; x>=0; x--)
+        for(int y=order-1; y>=0; y--)
+            for(int z=order-1; z>=0; z--) 
+                if(x+y+z <= order) *itCf++ = elv[x].x * elv[y].y * elv[z].z;
+
+    *itCf++ = elv[order].x;
+    *itCf++ = elv[order].y;
+    *itCf++ = elv[order].z;
+
+    itCf = dcf.begin();
+    dvec3 vNew(0.0);
+    for(auto &it : kVal) vNew += dvec3(it.x, it.y, it.z)  * *itCf++;
+
+    vp = vec4(vNew.x, vNew.y, vNew.z, 0.f);
 }
+*/
 
 /*
     static int i = 0;
@@ -936,6 +963,7 @@ void Dadras::Step(vec4 &v, vec4 &vp)
 }
 
 // stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set
+// http://bugman123.com/Hypercomplex/index.html
 ////////////////////////////////////////////////////////////////////////////
 void juliaBulb_IIM::Step(vec4 &v, vec4 &vp) 
 { // kVal[] -> a, k
@@ -955,9 +983,11 @@ void juliaBulb_IIM::Step(vec4 &v, vec4 &vp)
     preStep(v);
     const uint32_t rnd = fastRand32::xorShift();
     radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)kRnd), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
+    //if(depth<10) Step(v, vp);
 
 }
 // stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set
+// http://bugman123.com/Hypercomplex/index.html
 ////////////////////////////////////////////////////////////////////////////
 void juliaBulb4th_IIM::Step(vec4 &v, vec4 &vp) 
 { // kVal[] -> a, k
@@ -981,6 +1011,7 @@ void juliaBulb4th_IIM::Step(vec4 &v, vec4 &vp)
 }
 
 // stochastic adaptation of P.Nylander's Mathematica formula of quaternion Julia set
+// http://bugman123.com/Hypercomplex/index.html
 ////////////////////////////////////////////////////////////////////////////
 void quatJulia_IIM::Step(vec4 &v, vec4 &vp) 
 { // kVal[] -> a, k
@@ -1025,10 +1056,77 @@ void quatJulia_IIM::Step(vec3 &v, vec3 &vp)
 
 }
 */
+
+// stochastic adaptation of P.Nylander's Mathematica formula of quaternion Julia set
+// http://bugman123.com/Hypercomplex/index.html
+////////////////////////////////////////////////////////////////////////////
 void glynnJB_IIM::Step(vec4 &v, vec4 &vp) 
 {
 //Glynn roots: {x,y,z}^(1/1.5) = {x,y,z}^(2/3)
-    const vec3 p = (vec3)v-((vec3 &)*kVal.data()+(vec3)kRnd);
+
+    const vec3 p = vec3(v)-(vec3(kVal[0], kVal[1], kVal[2])+vec3(kRnd)); //    ((vec3 &)*kVal.data()+(vec3)kRnd);
+    const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z;
+    const float r = sqrtf(xQ+yQ+zQ);
+    const uint32_t rnd = fastRandom.KISS();
+    const uint32_t rndR = fastRandom.KISS();
+    const int px = rnd&0x10;
+    const int py = rnd&0x20;
+    const int pz = rnd&0x40;
+    const int pw = rnd&0x80;
+    //const bool isCone = bool(zQ > xQ + yQ);
+    const int isCone = rnd&1;
+
+    auto powN = [&] (vec3 &p, float n) -> vec3 {
+        const float theta = n * atan2f(p.x, p.y);
+        const float phi = n * asinf(p.z/r);
+        return pow(vec3(r), r*vec3(cosf(theta) * cosf(phi), sinf(theta) * cosf(phi), sinf(phi)));
+    };
+
+    auto numRadici = [&] () -> int {
+        return (isCone) ? rndR%3 : (px ? rndR%2 : 0);
+    };
+
+    auto radiciEq = [&] (int k) {
+        const float n = kVal[3];
+
+        float ktheta, kphi;
+        const float uno = kVal[4], due = kVal[5], zeroCinque = kVal[6], dueCinque = kVal[7];
+
+        if(!k) { ktheta = kphi = 0.0; }
+        else { 
+            if(isCone) { ktheta=(py ? due:uno); kphi=0.0; } 
+            else {
+                if(k==1) {
+                    if(pw) {ktheta=due; kphi=0.0;} else {ktheta=zeroCinque; kphi=(pz?zeroCinque:dueCinque);}
+                }
+                else {
+                    if(pw) {ktheta=uno; kphi=0.0;} else {ktheta=dueCinque; kphi=(pz?zeroCinque:dueCinque);}
+                }
+            }
+        }
+
+        const float theta  = (atan2f(p.y,p.x)+ ktheta * T_PI)/n;
+        const float phi    = (asinf(p.z/(r == 0.f ? FLT_EPSILON : r))   + kphi   * T_PI)/n;
+
+        const float cosphi = cosf(phi);
+        vp = vec4(powf(r,1.0f/n) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi)), 0.f);
+    };
+    
+
+
+    preStep(v);
+    int nRad = numRadici();
+    radiciEq( nRad);
+
+}
+
+
+/*
+void glynnJB_IIM::Step(vec4 &v, vec4 &vp) 
+{
+//Glynn roots: {x,y,z}^(1/1.5) = {x,y,z}^(2/3)
+
+    const vec3 p = vec3(v)-(vec3(kVal[0], kVal[1], kVal[2])+vec3(kRnd)); //    ((vec3 &)*kVal.data()+(vec3)kRnd);
     const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z;
     const float r = sqrtf(xQ+yQ+zQ);
     const bool isCone = bool(zQ > xQ + yQ);
@@ -1040,72 +1138,45 @@ void glynnJB_IIM::Step(vec4 &v, vec4 &vp)
     };
 
     auto numRadici = [&] () -> int {
-        return (isCone) ? 3 : (p.x < 0 ? 2 : 1);
+        const uint32_t rnd = fastRandom.KISS();
+        return (isCone) ? rnd%3 : (p.x > 0 ? rnd%2 : 0);
     };
 
     auto radiciEq = [&] (int k) {
         const float n = 1.5f;
+        const uint32_t rnd = fastRandom.KISS();
 
         float ktheta, kphi;
 
         if(!k) { ktheta = kphi = 0.0; }
         else { 
-            if(!isCone) { ktheta=(p.y<0.0?2.0:1.0); kphi=0.0; } 
+            if(!isCone) { ktheta=(p.y<0 ? 2.0:1.0); kphi=0.0; } 
             else {
                 if(k==1) {
-                    if(p.x<0.0 && p.y<0.0) {ktheta=2.0; kphi=0.0;} else {ktheta=0.5; kphi=(p.z>0.0?0.5:2.5);}
+                    if(p.x<0 && p.y<0) {ktheta=2.0; kphi=0.0;} else {ktheta=0.5; kphi=(p.z>0?0.5:2.5);}
                 }
                 else {
-                    if(p.x<0.0 && p.y>0.0) {ktheta=1.0; kphi=0.0;} else {ktheta=2.5; kphi=(p.z>0.0?0.5:2.5);}
+                    if(p.x<0 && p.y>0) {ktheta=1.0; kphi=0.0;} else {ktheta=2.5; kphi=(p.z>0?0.5:2.5);}
                 }
             }
         }
 
-/*
-        if(!k) { ktheta = kphi = 0.0; }
-        else { 
-            if(!(zQ > xQ + yQ)) { ktheta=(p.y<0.0?2.0:1.0); kphi=0.0; } 
-            else {
-                if(k==1) {
-                    if(p.x<0.0 && p.y<0.0) {ktheta=2.0; kphi=0.0;} else {ktheta=0.5; kphi=(p.z>0.0?0.5:2.5);}
-                }
-                else {
-                    if(p.x<0.0 && p.y>0.0) {ktheta=1.0; kphi=0.0;} else {ktheta=2.5; kphi=(p.z>0.0?0.5:2.5);}
-                }
-            }
-        }
-*/
         const float theta  = (atan2f(p.y,p.x)+ ktheta * T_PI)/n;
-        const float phi    = (acosf(p.z/(r == 0.f ? FLT_EPSILON : r))   + kphi   * T_PI)/n;
+        const float phi    = (asinf(p.z/(r == 0.f ? FLT_EPSILON : r))   + kphi   * T_PI)/n;
 
         const float cosphi = cosf(phi);
         vp = vec4(powf(r,1.0f/n) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi)), 0.f);
     };
     
 
-/*
-    auto radiciEqA = [&](const vec3 &p, float kTheta, float kPhi) {
-        float dN = 1.5;
-        const float r = length(p);
-        const int k1 = (dN - (p.z<0 ? 0 : 1)), k2 = (3*dN + (p.z<0 ? 4 : 2));
-
-        const int dk = ((kPhi*4.f)>k1 && (kPhi*4.f)<k2) ? (sign(p.z) * 1 ) : 0;
-        const float theta  = (atan2f(p.y,p.x) + (2 * kTheta + dk) * T_PI) / float(dN);
-        const float phi    = (asinf(p.z/r)    + (2 * kPhi   - dk) * T_PI) / float(dN);
-        const float cosphi = cosf(phi);
-        vp = powf(r, 1.0f/float(dN)) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi));
-    };
-
-    preStep(v,vp);
-    radiciEqA(v-((vec3 &)*kVal.data()+vec3(kRnd)), Random::get<int>(0, INT_MAX) % degreeN, Random::get<int>(0, INT_MAX) % degreeN);
-*/
-
     preStep(v);
     int nRad = numRadici();
     const uint32_t rnd = fastRandom.KISS();
-    radiciEq(rnd & 3);
+    radiciEq( nRad);
 
 }
+*/
+
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1171,6 +1242,31 @@ const vec3 Magnetic::tryed(const vec3 &vx, int i)
     return vx;
 }
 
+
+void cockpitClass::setViewport(int w, int h) {
+    float szX = float(w)*pipZoom*.5+.5, szY = float(h)*pipZoom*.5+.5;
+    w++; h++;
+    switch(getPIPposition()) {
+        case pip::lTop:
+            glViewport(0, h-szY, szX, szY);
+            break;
+        case pip::lBottom:
+            glViewport(0,  0, szX, szY);
+            break;
+        case pip::rTop:
+            glViewport(w-szX,h-szY, szX, szY);
+            break;
+        case pip::rBottom:
+            glViewport(w-szX,0 , szX, szY);
+            break;
+        default:
+        case pip::noPIP:
+            glViewport(0,0, w, h);
+            break;
+    }
+}
+
+
 //  Attractors Thread helper class
 ////////////////////////////////////////////////////////////////////////////
 void threadStepClass::newThread()
@@ -1209,8 +1305,10 @@ void threadStepClass::stopThread() {
 #if !defined(GLCHAOSP_LIGHTVER)
     if(getEmitter()->useThread()) {
         emitter->setEmitterOff();
-        while(emitter->isLoopRunning())
+        while(emitter->isLoopRunning()) {
+            //emitter->setEmitterOff();
             std::this_thread::sleep_for(200ms);
+        }
     }
 #endif
 }
@@ -1237,9 +1335,25 @@ void AttractorsClass::newSelection(int i) {
 #ifdef GLCHAOSP_LIGHTVER
     theApp->setLastFile(getFileName()); //to reload invert settings
 #endif
+    checkCorrectEmitter();
     getThreadStep()->restartEmitter();
     get()->initStep();
     getThreadStep()->startThread();
+
+}
+
+void AttractorsClass::checkCorrectEmitter()
+{
+    if(get()->dtType()) {
+        if(slowMotion() && theApp->getEmitterEngineType()==enumEmitterEngine::emitterEngine_staticParticles)
+            theWnd->getParticlesSystem()->changeEmitter(enumEmitterEngine::emitterEngine_transformFeedback);
+        else if(!slowMotion() && theApp->getEmitterEngineType()==enumEmitterEngine::emitterEngine_transformFeedback)
+            theWnd->getParticlesSystem()->changeEmitter(enumEmitterEngine::emitterEngine_staticParticles);
+
+    } else {
+        if(theApp->getEmitterEngineType()!=enumEmitterEngine::emitterEngine_staticParticles)
+            theWnd->getParticlesSystem()->changeEmitter(enumEmitterEngine::emitterEngine_staticParticles);
+    }
 
 }
 void AttractorsClass::selection(int i) {

@@ -31,7 +31,8 @@
 
 #include <fastRandom.h>
 
-#include <vGizmoMath.h>
+#include <vgMath.h>
+#include "tools\glslProgramObject.h"
 
 using namespace std;
 using namespace configuru;
@@ -41,7 +42,7 @@ using namespace fstRnd;
 extern fFastRand32 fastRandom;
 
 
-#define BUFFER_DIM 100
+#define BUFFER_DIM 200
 #define STABILIZE_DIM 1500
 
 //#define RANDOM(MIN, MAX) ((MIN)+((float)rand()/(float)RAND_MAX)*((MAX)-(MIN)))
@@ -50,6 +51,7 @@ extern fFastRand32 fastRandom;
 class attractorDlgClass;
 class AttractorsClass;
 class emitterBaseClass;
+class transformedEmitterClass;
 
 //  Attractor base class
 ////////////////////////////////////////////////////////////////////////////
@@ -107,6 +109,9 @@ public:
 
     virtual int getKType() = 0;
 
+    virtual float getDtStepInc() { return 0.0; }
+    virtual void setDtStepInc(float f) { }
+
     //thread Step with shared GPU memory
     void Step(float *&ptr, vec4 &v, vec4 &vp);
     //single step
@@ -132,6 +137,8 @@ public:
 #else
     vec4& getCurrent()  { return stepQueue.front(); }
     vec4& getPrevious() { return stepQueue[1]; }
+    vec4& getAt(int i)  { return stepQueue[i]; }
+    float getQueueSize() { return stepQueue.size(); }
     void Insert(const vec4 &vect)
     {
         stepQueue.push_front(vect);
@@ -281,6 +288,10 @@ protected:
 
     virtual void saveAdditionalData(Config &cfg);
     virtual void loadAdditionalData(Config &cfg);
+
+    float getDtStepInc() { return dtStepInc; }
+    void setDtStepInc(float f) { dtStepInc = f; }
+
     // dTime step 
     float dtStepInc = 0.001f;
 
@@ -1275,7 +1286,7 @@ TEMPLATE_TYPENAME_T struct pointCloud
     // Returns the dim'th component of the idx'th point in the class:
     // Since this is inlined and the "dim" argument is typically an immediate value, the
     //  "if/else's" are actually solved at compile time.
-    inline T kdtree_get_pt(const size_t idx, const size_t dim) const
+    inline tPrec kdtree_get_pt(const size_t idx, const size_t dim) const
     { return pts[idx][dim]; }
     
     // Optional bounding-box computation: return false to default to a standard bbox computation loop.
@@ -2234,6 +2245,130 @@ private:
 
 };
 
+
+//
+//  cockpitClass
+//
+////////////////////////////////////////////////////////////////////////////////
+class cockpitClass : public uniformBlocksClass
+{
+protected:
+struct uTFData {
+    vec4 wind = vec4(vec3(0.0), 60.0);
+    vec4 gravity = vec4(vec3(0.0), 60.0);
+    GLfloat airFriction = 10.0;
+    GLfloat diffTime = 0;
+    GLfloat elapsedTime = 0;
+} uData;
+
+public:
+    enum pip { noPIP, lTop, rTop, lBottom, rBottom };
+
+    uTFData& getUdata() { return uData; }
+
+    void setViewport(int w, int h);
+
+    bool cockPit() { return isCockPit; }
+    void cockPit(bool b) {  isCockPit = b; }
+
+    bool pipTransparentBckgrnd() { return pipTransparentBackground; }
+    void pipTransparentBckgrnd(bool b) {  pipTransparentBackground = b; }
+
+    int  getPIPposition() { return pipPosition; }
+    void setPIPposition(int f)   { pipPosition = f; }
+
+    float getPIPzoom() { return pipZoom; }
+    void  setPIPzoom(float f) { pipZoom = f; }
+
+    float getPerspAngle() { return perspAngle; }
+    void  setPerspAngle(float f) { perspAngle = f; }
+
+    float getPerspNear() { return perspNear; }
+    void  setPerspNear(float f) { perspNear = f; }
+
+    bool invertPIP() { return invertPip; }
+    void invertPIP(bool b)  { invertPip = b; }
+    bool invertView() { return isInvertView; }
+    void invertView(bool b)  { isInvertView = b; }
+
+    vec3& getPanDollyPos() { return panDollyPos; }
+    void  setPanDollyPos(const vec3& v) { panDollyPos = v; }
+
+    quat& getRotation() { return qRot; }
+    void  setRotation(const quat& q) { qRot = q; }
+
+    float getPointSize() { return pointSize; }
+    void  setPointSize(float f) { pointSize = f; }
+    float getTailPosition() { return tailPosition; }
+    void  setTailPosition(float f) { tailPosition = f; }
+    float getMovePositionHead() { return movePositionHead; }
+    void  setMovePositionHead(float f) { movePositionHead = f; }
+    float getMovePositionTail() { return movePositionTail; }
+    void  setMovePositionTail(float f) { movePositionTail = f; }
+
+    float getLifeTime() { return lifeTime; }
+    void  setLifeTime(float f) { lifeTime = f; }
+    float getLifeTimeAtten() { return lifeTimeAtten; }
+    void  setLifeTimeAtten(float f) { lifeTimeAtten = f; }
+
+    float getSmoothDistance() { return smoothDistance; }
+    void  setSmoothDistance(float f) { smoothDistance = f; }
+
+    float getDtStepInc() { return dtStepInc; }
+    void  setDtStepInc(float f) { dtStepInc = f; }
+
+    float getColorVel() { return colorVel; }
+    void  setColorVel(float f) { colorVel = f; }
+
+    void  setAirFriction(float f) { uData.airFriction =  f; }    
+    float getAirFriction() { return uData.airFriction; }
+
+    void  setInitialSpeed(float f) { initialSpeed =  f; }    
+    float getInitialSpeed() { return initialSpeed; }
+
+    int getSlowMotionDpS() { return slowMotionDpS; }
+    void  setSlowMotionDpS(int v) { slowMotionDpS = v; }
+
+
+//Feedback Funcs
+    int  getMaxTransformedEmission() { return maxTransformedEmission; }
+    void setTransformedEmission(int i)  {  transformedEmission =  i; }    //getEmittedParticles
+    int  getTransformedEmission() { return transformedEmission; }
+    void setMaxEmissionFrame(int i)  {  maxEmissionFrame =  i; }    //getEmittedParticles
+    int  getMaxEmissionFrame() { return maxEmissionFrame; }
+
+    
+private:
+    float colorVel = .3f;
+    float dtStepInc = 0.001f;
+    float smoothDistance = .250;
+    float lifeTime = 120.0;
+    float lifeTimeAtten = .1;
+    float movePositionHead = 0, movePositionTail = 0;
+    bool isInvertView = false;
+    float tailPosition = .25;
+    float pointSize = 0;
+    bool isCockPit = false;
+    bool pipTransparentBackground = true;
+    int pipPosition = noPIP;
+    float pipZoom = .5; // 1.0 -> 1/4 Window
+    float perspAngle = 65.f;
+    float perspNear = .001f;
+    bool invertPip = false;
+    vec3 panDollyPos = vec3(0.f);
+    quat qRot = quat(1.0f,0.0f, 0.0f, 0.0f);
+    int slowMotionDpS = 100;
+
+//Feedback Data
+    int maxTransformedEmission = 50;
+    int transformedEmission = 4;
+    int maxEmissionFrame = 1000;
+    float initialSpeed = 1.0;
+
+    friend transformedEmitterClass;
+};
+
+
 //  Attractor Class container
 ////////////////////////////////////////////////////////////////////////////
 #define ATT_PATH "startData/"
@@ -2243,8 +2378,6 @@ private:
                              ptr.back()->fileName = (ATT_PATH #ATT ATT_EXT);\
                              ptr.back()->nameID = (#ATT);\
                              ptr.back()->displayName = (DISPLAY_NAME);
-
-
 
 class AttractorsClass 
 {
@@ -2286,7 +2419,7 @@ public:
         PB(PopCorn4Dscss      , u8"\uf006" " PopCorn4D scss"     )
         PB(PopCorn4Dscsc      , u8"\uf006" " PopCorn4D scsc"     )
         PB(PopCorn4Dsscc      , u8"\uf006" " PopCorn4D sscc"     )
-        PB(PopCorn4Drnd       , u8"\uf006" " PopCorn4D rnd"     )
+//        PB(PopCorn4Drnd       , u8"\uf006" " PopCorn4D rnd"     )
 //        PB(SymmetricIcons4D   , u8"\uf006" " SymmetricIcons4D"   )
 #if !defined(GLAPP_DISABLE_DLA)
         PB(dla3D              , u8"\uf2dc" " DLA 3D"             )
@@ -2334,7 +2467,7 @@ public:
         PB(quatJulia_IIM      , u8"\uf069" " quatJulia"          )
         PB(BicomplexJExplorer , u8"\uf069" " biComplexJExplorer" )
             
-//        PB(glynnJB_IIM        , u8"\uf2dc" " Glynn JuliaBulb"    )
+        PB(glynnJB_IIM        , u8"\uf2dc" " Glynn JuliaBulb"    )
 //        PB(Hopalong        , "Hopalong"         )
 
         selected = 0;
@@ -2375,6 +2508,8 @@ public:
     void setSelection(int i) { newSelection(i);  }
 
     void resetSelection() { selected = -1; }
+
+    void checkCorrectEmitter();
 
     void setSelectionByName(const string &s) {
         for (int i = 0; i < ptr.size(); i++) 
@@ -2423,15 +2558,21 @@ public:
     void continueDLA(bool b) { wantContinueDLA = b; }
     void selectToContinueDLA(int i);
 
-    //void lockStep() { mtxStep.lock(); }
-    //void unlockStep() { mtxStep.unlock(); }
+
+// SlowMotion
+    int getSlowMotionDpS() { return slowMotionDpS; }
+    void  setSlowMotionDpS(int v) { slowMotionDpS = v; }
+
+    bool slowMotion() { return isSlowMotion; }
+    void slowMotion(bool b) {  isSlowMotion = b; }
+
+    cockpitClass& getCockpit() { return cockpit; }
+
 private:
 
     void newSelection(int i);
     void selection(int i);
 
-    //thread helper
-    //bool breakLoop = false;
 
     bool endlessLoop = true;
     bool wantContinueDLA = false;
@@ -2441,12 +2582,16 @@ private:
 
     std::mutex mtxStep;
 
-//vector<string> name;
-
     threadStepClass *threadStep = nullptr;
 
     vector<AttractorBase *> ptr;
     int selected;
+
+// SlowMotion & cockPit
+    int slowMotionDpS = 1000;
+    bool isSlowMotion = false;
+    cockpitClass cockpit;
+
 
     friend AttractorBase;
     friend threadStepClass;

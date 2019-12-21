@@ -12,8 +12,11 @@
 //------------------------------------------------------------------------------
 #pragma once
 
+#define GLCHAOSP_VERSION "1.43"
+
 #define APP_USE_FBO
 //#define __APPLE__
+
 
 //#define GLCHAOSP_NO_USES_GLSL_SUBS
 

@@ -1,32 +1,33 @@
 #include "emitter.h"
 #include "glWindow.h"
 
-void emitterBaseClass::render() {
+void singleEmitterClass::render() {
     particlesSystemClass *pSys = theWnd->getParticlesSystem();
+/*
     if(attractorsList.get()->dtType() && pSys->slowMotion()) {
         stopFull(true);
         const float increment = float(pSys->getSlowMotionDpS()) * theApp->getTimer().fps();
         const float start = startPointSlowMotion+pSys->getSlowMotionMaxDots()+increment<szCircularBuffer ? 
                                 startPointSlowMotion : 0;
 
-        InsertVbo->draw(int(start+.5), pSys->getSlowMotionMaxDots(), szCircularBuffer);
+        getVertexBase()->draw(int(start+.5), pSys->getSlowMotionMaxDots(), szCircularBuffer);
         startPointSlowMotion= start + increment;
     }
-    else InsertVbo->draw(szCircularBuffer);
+    else */ getVertexBase()->draw(szCircularBuffer);
 }
 
 
-void emitterBaseClass::storeData() {
+void singleEmitterClass::storeData() {
     if(isEmitterOn()) { 
         if(!useMappedMem()) {   // ! USE_MAPPED_BUFFER
             bool bufferFull;
             if(useThread()) {    // USE_THREAD_TO_FILL 
-                bufferFull = InsertVbo->uploadSubBuffer(attractorsList.get()->getEmittedParticles(), szCircularBuffer);
+                bufferFull = getVertexBase()->uploadSubBuffer(attractorsList.get()->getEmittedParticles(), szCircularBuffer);
             } else {
                 checkRestartCircBuffer();
-                GLfloat *ptrBuff = InsertVbo->getBuffer();
+                GLfloat *ptrBuff = getVertexBase()->getBuffer();
                 uint32_t numElem = attractorsList.get()->Step(ptrBuff, getSizeStepBuffer());
-                bufferFull = InsertVbo->uploadSubBuffer(numElem, getSizeCircularBuffer());
+                bufferFull = getVertexBase()->uploadSubBuffer(numElem, getSizeCircularBuffer());
                 //attractorsList.get()->Step(ptrBuff, 1);
                 //bufferFull = InsertVbo->uploadSubBuffer(1, getSizeCircularBuffer());
             }
@@ -40,7 +41,7 @@ void emitterBaseClass::storeData() {
     }
 }
 
-void emitterBaseClass::setEmitter(bool emit) 
+void singleEmitterClass::setEmitter(bool emit) 
 { 
     bEmitter = emit;
     if(emit) startPointSlowMotion = 0;
@@ -50,11 +51,11 @@ void emitterBaseClass::setEmitter(bool emit)
 #endif
 }
 
-void emitterBaseClass::setEmitterOn() 
+void transformedEmitterClass::setEmitter(bool emit) 
 { 
-    setEmitter(true); 
+    bEmitter = emit;
 #if !defined(GLCHAOSP_LIGHTVER)
-    theWnd->getParticlesSystem()->viewObjOFF(); 
+    if(emit) theWnd->getParticlesSystem()->viewObjOFF();
 #endif
 }
 

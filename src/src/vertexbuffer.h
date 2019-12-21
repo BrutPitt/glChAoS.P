@@ -33,7 +33,7 @@ class vertexBufferBaseClass
 {
 public:
     vertexBufferBaseClass(GLenum primitive, uint32_t numVertex, int attributesPerVertex) : 
-        attributesPerVertex(attributesPerVertex), primitive(primitive), nVtxStepBuffer(numVertex)
+        primitive(primitive), nVtxStepBuffer(numVertex), attributesPerVertex(attributesPerVertex) 
     {
 #ifdef GLAPP_REQUIRE_OGL45 
         glCreateVertexArrays(1, &vao);
@@ -61,16 +61,18 @@ public:
     void     incVertexCount() { uploadedVtx++;  }
     void     resetVertexCount()  { uploadedVtx = 0; }
     void     setVertexCount(GLuint i) { uploadedVtx = i; }
+    GLuint   getVAO()            { return vao; };
     GLuint   getVBO()            { return vbo; };
     GLenum   getPrimitive() { return primitive; }
 
 
-    virtual void initBufferStorage(GLsizeiptr numElements) = 0;
+    virtual void initBufferStorage(GLsizeiptr numElements) {}
+    virtual void initBufferStorage(GLsizeiptr nVtx, GLenum target, GLenum usage, bool allocMemBuffer=false) {}
     virtual void buildVertexAttrib() {
         const int locID = 0;
 #ifdef GLAPP_REQUIRE_OGL45
         glVertexArrayAttribBinding(vao,locID, 0);
-        glVertexArrayAttribFormat(vao, locID, COMPONENTS_PER_ATTRIBUTE, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribFormat(vao, locID, COMPONENTS_PER_ATTRIBUTE, GL_FLOAT, GL_FALSE, 0L);
         glEnableVertexArrayAttrib(vao, locID);        
 
         glVertexArrayVertexBuffer(vao, 0, vbo, 0, bytesPerVertex);
@@ -79,6 +81,28 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glVertexAttribPointer(locID, COMPONENTS_PER_ATTRIBUTE, GL_FLOAT, GL_FALSE, bytesPerVertex, 0L);
         glEnableVertexAttribArray(locID);
+#endif
+        CHECK_GL_ERROR();
+    }
+    virtual void buildTransformVertexAttrib() {
+        enum { locPos, locVelT };
+#ifdef GLAPP_REQUIRE_OGL45
+        glVertexArrayAttribBinding(vao,locPos, 0);
+        glVertexArrayAttribFormat(vao, locPos, COMPONENTS_PER_ATTRIBUTE, GL_FLOAT, GL_FALSE, 0L);
+        glEnableVertexArrayAttrib(vao, locPos);        
+
+        glVertexArrayAttribBinding(vao,locVelT, 0);
+        glVertexArrayAttribFormat(vao, locVelT, COMPONENTS_PER_ATTRIBUTE, GL_FLOAT, GL_FALSE, sizeof(vec4));
+        glEnableVertexArrayAttrib(vao, locVelT);        
+
+        glVertexArrayVertexBuffer(vao, 0, vbo, 0, bytesPerVertex);
+#else
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glVertexAttribPointer(locPos , 4, GL_FLOAT, GL_FALSE, bytesPerVertex, 0L);
+        glVertexAttribPointer(locVelT, 4, GL_FLOAT, GL_FALSE, bytesPerVertex, (GLvoid *)sizeof(vec4));
+        glEnableVertexAttribArray(locPos );
+        glEnableVertexAttribArray(locVelT);
 #endif
         CHECK_GL_ERROR();
     }
@@ -133,28 +157,42 @@ public:
         CHECK_GL_ERROR();
     }
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_DISABLE_FEEDBACK)
 //  Feedback functions
 ////////////////////////////////////////////////////////////////////////////
-    void BindToFeedback(int index)
+    void BindToFeedback(int index, GLsizeiptr sz)
     {
-        glTransformFeedbackBufferRange(0,index,vbo,0,uploadedVtx*bytesPerVertex);
+#ifdef GLAPP_REQUIRE_OGL45
+        glTransformFeedbackBufferRange(0,index,vbo,0,sz);
+#else
+        //glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,index,vbo);
+        glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, vbo, 0, sz);
+#endif
+    }
+    void endBindToFeedback(int index)
+    {
+#ifdef GLAPP_REQUIRE_OGL45
+        glTransformFeedbackBufferBase(0,index,0);
+#else
+        glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,index,0);
+        //glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, vbo, 0, sz);
+#endif
     }
 #endif
     void uploadData(int numVtx) 
     {
         int bufferSize = numVtx * bytesPerVertex;
-        uploadedVtx = numVtx;
    
         glBindBuffer(GL_ARRAY_BUFFER,vbo);
-        glBufferData(GL_ARRAY_BUFFER,bufferSize,&vtxBuffer[0],GL_STATIC_DRAW);        
-        //glBufferSubData(GL_ARRAY_BUFFER,0,bufferSize,&vtxBuffer[0]);        
+        //glBufferData(GL_ARRAY_BUFFER,bufferSize,&vtxBuffer[0],GL_STATIC_DRAW);        
+        glBufferSubData(GL_ARRAY_BUFFER,0,bufferSize,vtxBuffer);
         //glInvalidateBufferData(vbo);
-        glBindBuffer(GL_ARRAY_BUFFER,0);
+//        glBindBuffer(GL_ARRAY_BUFFER,0);
     }
-    void drawRange(GLuint start, GLuint size) 
+    void drawRange(GLenum type, GLuint start, GLuint size, int startAttrib=5) 
     {
         glBindVertexArray(vao);
+        glBindBuffer(type, vbo);
         glDrawArrays(primitive,start,size);
     }
 
@@ -198,7 +236,6 @@ public:
         //vtxBuffer = (GLfloat *) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE  );   //| GL_MAP_COHERENT_BIT
 #endif
         CHECK_GL_ERROR();
-        buildVertexAttrib();
     }
 
 
@@ -215,68 +252,40 @@ public:
     void initBufferStorage(GLsizeiptr nVtx) {
         GLsizeiptr storageSize = nVtx * bytesPerVertex;
 
-#ifdef GLAPP_REQUIRE_OGL45
         vtxBuffer = new GLfloat[nVtxStepBuffer * attributesPerVertex * COMPONENTS_PER_ATTRIBUTE];
+#ifdef GLAPP_REQUIRE_OGL45
         glNamedBufferStorage(vbo, storageSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
         //glNamedBufferData(vbo, storageSize,nullptr,GL_DYNAMIC_DRAW);
 #else
-        vtxBuffer = new GLfloat[nVtxStepBuffer * attributesPerVertex * COMPONENTS_PER_ATTRIBUTE];
         glBindBuffer(GL_ARRAY_BUFFER,vbo);        
         glBufferData(GL_ARRAY_BUFFER,storageSize,nullptr,GL_DYNAMIC_DRAW);
 #endif
         CHECK_GL_ERROR();
-
-        buildVertexAttrib();
     }
 };
 
-#if !defined(GLCHAOSP_LIGHTVER)
+class transformVertexBuffer : public vertexBufferBaseClass 
+{
+public:
+    transformVertexBuffer(GLenum primitive, uint32_t numVertex, int attributesPerVertex) : 
+        vertexBufferBaseClass(primitive, numVertex, attributesPerVertex) { }
 
-class transformFeedbackInterleaved {
-  private:
-    GLuint query;
-    vertexBuffer *vbo;
-    static bool FeedbackActive;
-    bool bDiscard;
+    ~transformVertexBuffer() { delete [] vtxBuffer; }
 
-  public:
-    transformFeedbackInterleaved(vertexBuffer *vbo)
-    {
-      this->vbo = vbo;
-      glGenQueries(1,&query);
-      bDiscard = true;
-    }
+    void initBufferStorage(GLsizeiptr nVtx, GLenum target, GLenum usage, bool allocMemBuffer=false) {
+        GLsizeiptr storageSize = nVtx * bytesPerVertex;
 
-    void Begin() {
-        if (FeedbackActive) return;
-
-        FeedbackActive = true;
-        vbo->BindToFeedback(0);
-
-        glBeginTransformFeedback(vbo->getPrimitive());
-
-        if (bDiscard) glEnable(GL_RASTERIZER_DISCARD);
-
-        glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, query);
-    }
-
-    int End() {
-        int iPrimitivesWritten;
-        if(!FeedbackActive)  return -1;
-        FeedbackActive = false;
-
-        if(bDiscard)  glDisable(GL_RASTERIZER_DISCARD);
-        glEndTransformFeedback();
-
-        glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
-        glGetQueryObjectiv(query,GL_QUERY_RESULT,&iPrimitivesWritten);
-  
-        return iPrimitivesWritten;
-
-    }
-    void SetDiscard(bool value){ bDiscard = true; }
-};
+        if(allocMemBuffer) vtxBuffer = new GLfloat[nVtxStepBuffer * attributesPerVertex * COMPONENTS_PER_ATTRIBUTE];
+#ifdef GLAPP_REQUIRE_OGL45
+        glNamedBufferStorage(vbo, storageSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
+        //glNamedBufferData(vbo, storageSize,nullptr,GL_DYNAMIC_DRAW);
+#else
+        glBindBuffer(target,vbo);        
+        glBufferData(target,storageSize,nullptr,usage);
 #endif
+        CHECK_GL_ERROR();
+    }
+};
 
 #ifdef PRINT_TIMING
         //glBeginQuery(GL_TIME_ELAPSED, queries[0]);

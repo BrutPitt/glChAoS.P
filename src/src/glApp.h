@@ -26,7 +26,9 @@ enum ScreeShotReq {
     ScrnSht_NO_REQUEST,     //0x00
     ScrnSht_SILENT_MODE,    //0x01
     ScrnSht_FILE_NAME,      //0x02
-    ScrnSht_CAPTURE_ALL = 4 //0x04
+    ScrnSht_CAPTURE_ALL = 4, //0x04
+    ScrnSht_SILENT_MODE_ALPHA = 0x8,
+    ScrnSht_FILE_NAME_ALPHA = 0x10
 };
 
 enum normalType { ptCoR, ptPt1, ptPt1CoR };
@@ -34,6 +36,9 @@ enum normalType { ptCoR, ptPt1, ptPt1CoR };
 enum enumEmitterType { emitter_singleThread_externalBuffer,    // webGL
                        emitter_separateThread_externalBuffer,  // max performance for OGL 4.1
                        emitter_separateThread_mappedBuffer};    // max performance for OGL 4.5
+
+enum enumEmitterEngine { emitterEngine_staticParticles,
+                         emitterEngine_transformFeedback };
 
 
 #define GLAPP_PROG_NAME "glChAoS.P"
@@ -104,6 +109,8 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 #define ALLOCATED_BUFFER 10000000
 #define CIRCULAR_BUFFER  5000000
 #endif
+
+#define GET_TIME_FUNC glfwGetTime()
 
 enum loadSettings { ignoreNone, ignoreCircBuffer };
 
@@ -202,11 +209,11 @@ public:
 //  Request for scrrenshot
 //////////////////////////////////////////////////////////////////
     void setScreenShotRequest(int val) { screenShotRequest = val; }
-    void getScreenShot();
+    void getScreenShot(GLuint tex, bool is32bit=false);
 
     char const *openFile(char const *startDir, char const * patterns[], int numPattern);
     char const *saveFile(char const *startDir, char const * patterns[], int numPattern);
-    void saveScreenShot(unsigned char *data, int w, int h);
+    void saveScreenShot(unsigned char *data, int w, int h, bool is32bit=false);
 
     void saveSettings(const char *name);
     bool loadSettings(const char *name, const int type = loadSettings::ignoreNone);
@@ -302,6 +309,10 @@ public:
 
     bool idleRotation() { return isIdleRotation; }
     void idleRotation(bool b) { isIdleRotation = b; }
+// imGui utils
+/////////////////////////////////////////////////
+    void imguiInit();
+    int imguiExit();
 
     void selectEmitterType(int type) {
 #if !defined(GLCHAOSP_LIGHTVER)
@@ -314,6 +325,9 @@ public:
     }
 
     int getEmitterType() { return emitterType; }
+
+    void setEmitterEngineType(int i) { emitterEngineType = i; }
+    int  getEmitterEngineType() { return emitterEngineType; }
 
     timerClass& getTimer() { return timer; }
 
@@ -338,10 +352,8 @@ protected:
     
     
 private:
-// imGui utils
+// imGui Dlg
 /////////////////////////////////////////////////
-    void imguiInit();
-    int imguiExit();
     mainImGuiDlgClass mainImGuiDlg;
 
 // glfw utils
@@ -359,6 +371,8 @@ private:
     bool isIdleRotation = false;
     bool isSlowGPU = false;
     bool appNeedRestart = false;
+
+    int emitterEngineType = emitterEngine_staticParticles;
 
     std::string startWithAttractorName = std::string("random"); // -1 Random start
 
