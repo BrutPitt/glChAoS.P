@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -35,6 +35,7 @@ in float alphaAttenuation;
 //in vec4 shadowlightView;
 
 layout (location = 0) out vec4 outColor;
+layout (location = 1) out vec4 baseColor;
 
 // multi out
 //layout (location = 1) out vec4 vtxOut;
@@ -50,7 +51,7 @@ float luminance(vec3 c) { return dot(c, vec3(0.2990, 0.5870, 0.1140)); }
 float getAlpha(float alpha)
 {
 
-    CONST float alphaAtten = exp(-0.1*sign(pointDistance)*pow(abs(pointDistance+1.f)+1.f, u.alphaDistAtten*.1));
+    float alphaAtten = exp(-0.1*sign(pointDistance)*pow(abs(pointDistance+1.f)+1.f, u.alphaDistAtten*.1));
     return clamp(alpha * alphaAtten * u.alphaK, 0.0, 1.0);
 
 }
@@ -120,14 +121,15 @@ vec4 pixelColorAO(vec4 color, vec4 N)
 
     vec3 lColor =  color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
                     u.lightColor * specular * u.lightSpecInt;
-
-    return vec4(packing2Colors16bit(lColor, color.rgb), getFragDepth(newVertex.z));
+    
+    //return vec4(packing2Colors16bit(lColor, color.rgb), getFragDepth(newVertex.z));
+    return vec4(lColor, color.a);
 }
 
 LAYOUT_INDEX(idxSOLID_DR) SUBROUTINE(_pixelColor)
 vec4 pixelColorDR(vec4 color, vec4 N)
 {
-   return vec4(color.xyz, getFragDepth(newVertex.z));
+   return color;
 }
 
 LAYOUT_INDEX(idxBLENDING) SUBROUTINE(_pixelColor)  
@@ -142,6 +144,19 @@ vec4 pixelColorBlending(vec4 color, vec4 N)
     return color;
 }
 
+vec4 getParticleNormal(sampler2D t, vec2 coord)
+{
+    vec4 N;
+    N.xy = (coord - vec2(.5))*2.0;  // diameter ZERO centred -> radius    
+    N.z = texture(t, coord).r;            // Z convexity
+    if(N.z==0.0) discard;
+    N.w = N.z*N.z;          // magnitudo
+    N.xyz = normalize(N.xyz); 
+    
+    return N;
+}
+
+
 vec4 mainFunc(vec2 ptCoord)
 {
 
@@ -150,14 +165,17 @@ vec4 mainFunc(vec2 ptCoord)
 
     newVertex = mvVtxPos + vec4(0., 0., N.z * particleSize, 0.);
 
-    if(N.w >= 1.0 || N.z < u.alphaSkip || -newVertex.z<u.clippingDist || clippedPoint(newVertex)) { discard;   } //returm need for Angle error
+    if(N.w > 1.0 || N.z < u.alphaSkip || -newVertex.z<u.clippingDist || clippedPoint(newVertex)) { discard;   } //returm need for Angle error
 
     gl_FragDepth = getFragDepth(newVertex.z);
 
     vec4 color = acquireColor(ptCoord);
 
+    // plane bound color
     vec4 bound = colorBoundary(newVertex, 0) + colorBoundary(newVertex, 1) + colorBoundary(newVertex, 2);
     color.xyz = mix(color.xyz, bound.xyz, bound.a);
+
+    baseColor = color;
 
 #if defined(GL_ES) || defined(GLCHAOSP_NO_USES_GLSL_SUBS)
     #if defined(GL_ES) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)

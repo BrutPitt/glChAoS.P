@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -16,15 +16,12 @@
 in vec2 viewRay;
 in vec2 vTexCoord;
 
-uniform vec4 aoVals; // x = Bias, y = Radius, z = darkness
-
-//uniform vec3 ssaoSamples[64];
-
 out vec4 outColor;
 
 LAYOUT_BINDING(5) uniform sampler2D prevData;
 LAYOUT_BINDING(6) uniform sampler2D noise;
 LAYOUT_BINDING(7) uniform sampler2D ssaoSample;
+LAYOUT_BINDING(10) uniform sampler2D zTex;
 //LAYOUT_BINDING(7) uniform sampler2D shadowTex;
 
 /*
@@ -123,9 +120,6 @@ vec4 SampleTextureCatmullRom( vec2 uv)
 }
 
 
-
-
-
 float buildSmoothShadowB(vec4 frag)
 {
     vec4 pt = vec4(viewRay*-frag.z-u.POV.xy, frag.z-u.POV.z, 1.0);
@@ -162,20 +156,20 @@ float getBlurredZ(ivec2 uv)
     float result = 0.0;
     for (int x = -2; x <= 2; ++x) 
         for (int y = -2; y <= 2; ++y) 
-            result += texelFetch(prevData,uv+ivec2(x,y), 0).w;
+            result += texelFetch(zTex,uv+ivec2(x,y), 0).x;
     return result * .04; // -> result / 25.;
 }
 
 
 void main()
 {
-    float depth = texture(prevData,gl_FragCoord.xy*u.invScrnRes).w;
-    if(depth<=.01) { discard; outColor = vec4(0.0); return; }
+    float depth = texture(zTex,gl_FragCoord.xy*u.invScrnRes).x;
+    if(depth>.9999) { discard; outColor = vec4(0.0); return; }
 
     float z = restoreZ(depth);
     vec4 vtx = getVertexFromDepth(viewRay,z);
 
-    vec3 N = getSimpleNormal(vtx, prevData);
+    vec3 N = getSimpleNormal(vtx, zTex);
     
     float AO = 0.0;
     const int RAD = 64;
@@ -196,7 +190,7 @@ void main()
             offset.xy /= -offset.w;
             offset.xy = offset.xy * 0.5 + 0.5;
 
-            float sampleDepth = restoreZ(texture(prevData,offset.xy).w);
+            float sampleDepth = restoreZ(texture(zTex,offset.xy).x);
             //float sampleDepth = CalcViewZ(offset.xy);
 
             AO += sampleDepth >= sampleP.z + u.aoBias ? (1.0-u.aoDarkness) * u.aoMul : 0.0;

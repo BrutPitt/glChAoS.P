@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -43,6 +43,8 @@ out vec4 outColor;
 LAYOUT_BINDING(5) uniform sampler2D prevData;
 LAYOUT_BINDING(6) uniform sampler2D aoTex;
 LAYOUT_BINDING(7) uniform sampler2D shadowTex;
+LAYOUT_BINDING(8) uniform sampler2D texBaseColor;
+LAYOUT_BINDING(10) uniform sampler2D zTex;
 
 
 float f(vec2 uv) {
@@ -390,8 +392,8 @@ void main()
     //if(test>.5) {
 //        if(zEye>=1.0) discard;
 
-    float depth = texture(prevData,uv).w;
-    if(depth<=.01) { discard; outColor = vec4(0.0); return; }
+    float depth = texture(zTex,uv).x;
+    if(depth>.9999) { discard; outColor = vec4(0.0); return; }
 
     float z = restoreZ(depth);
     vec4 vtx = getVertexFromDepth(viewRay, z);
@@ -410,10 +412,10 @@ void main()
 
         //vec4 N = vec4(getSelectedNormal(z, prevData), 1.0);      
 
-        vec4 N = vec4(getSelectedNormal(vtx, prevData), 1.0);
+        vec4 N = vec4(getSelectedNormal(vtx, zTex), 1.0);
         //vec4 N = vec4(getSimpleNormal(vtx, prevData), 1.0);
 
-        vec4 color = texture(prevData,uv);
+        vec4 color = vec4(texture(prevData,uv).rgb, texture(texBaseColor,uv).a);
 
         vtx = vec4(viewRay, z, 1.0);
         vtx = m.invP * vtx;
@@ -426,20 +428,19 @@ void main()
     } else {
         //vec3 lightColor = texture(prevData,uv).rgb;
 
-        vec3 packedColor = texelFetch(prevData,ivec2(gl_FragCoord.xy),0).rgb;
-        vec2 c = unPackColor16(packedColor.y);
-        vec3 lightColor = vec3(unPackColor16(packedColor.x), c.x);
-        vec3 baseColor  = vec3(c.y, unPackColor16(packedColor.z));
-/*
-        vec3 packedColor = texture(prevData,uv).rgb;
-        vec3 lightColor = unPackColor8(packedColor.x).yzw;
-        vec3 baseColor  = unPackColor8(packedColor.y).yzw;
-*/
+        //vec3 packedColor = texelFetch(prevData,ivec2(gl_FragCoord.xy),0).rgb;
+        //vec2 c = unPackColor16(packedColor.y);
+        //vec3 lightColor = vec3(unPackColor16(packedColor.x), c.x);
+        //vec3 baseColor  = vec3(c.y, unPackColor16(packedColor.z));
+
+        vec3 lightColor = texelFetch(prevData,ivec2(gl_FragCoord.xy),0).rgb;
+        vec4 baseColor =  texelFetch(texBaseColor,ivec2(gl_FragCoord.xy), 0);
+
         float aoD = getStrongAO(AO);
         lightColor = smoothstep(u.sstepColorMin, u.sstepColorMax, 
                                  aoD *lightColor * shadow + 
-                                AO * (baseColor*u.lightAmbInt + vec3(u.lightAmbInt)) * .5);
-        outColor = vec4(lightColor,  1.0) ;
+                                AO * (baseColor.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5);
+        outColor = vec4(lightColor, baseColor.a) ;
         //outColor = vec4( 1.0) ;
 
     }

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -345,7 +345,7 @@ float specularGGX(vec3 V, vec3 L, vec3 N)
 vec4 getParticleNormal(vec2 coord)
 {
     vec4 N;
-    N.xy = (coord - vec2(.5))*2.0;  // diameter ZERO centred -> radius
+    N.xy = (coord - vec2(.5))*2.0;  // diameter ZERO centred -> radius    
     N.w = dot(N.xy, N.xy);          // magnitudo
     N.z = sqrt(1.0-N.w);            // Z convexity
     N.xyz = normalize(N.xyz); 
@@ -358,8 +358,8 @@ vec3 getSimpleNormal(float z, sampler2D depthData)
 {
     //float gradA = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 1., 0.)), 0).w) - z;
     //float gradB = restoreZ(texelFetch(depthData,ivec2(gl_FragCoord.xy + vec2( 0., 1.)), 0).w) - z;
-    float gradA = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 1., 0.))*u.invScrnRes ).w) - z;
-    float gradB = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 0., 1.))*u.invScrnRes ).w) - z;
+    float gradA = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 1., 0.))*u.invScrnRes ).x) - z;
+    float gradB = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 0., 1.))*u.invScrnRes ).x) - z;
 
     vec2 m = u.invScrnRes * -z;// * vec2(u.scrnRes.x/u.scrnRes.y * u.halfTanFOV, u.halfTanFOV);
     float invTanFOV = u.dpAdjConvex /u.halfTanFOV;
@@ -372,10 +372,10 @@ vec3 getSimpleNormal(float z, sampler2D depthData)
 vec3 getSelectedNormal(float z, sampler2D depthData)
 {
 
-    float gradA = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 1., 0.))*u.invScrnRes ).w) - z;
-    float gradB = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 0., 1.))*u.invScrnRes ).w) - z;
-    float gradC = z - restoreZ(texture(depthData,(gl_FragCoord.xy + vec2(-1., 0.))*u.invScrnRes ).w);
-    float gradD = z - restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 0.,-1.))*u.invScrnRes ).w);
+    float gradA = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 1., 0.))*u.invScrnRes ).x) - z;
+    float gradB = restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 0., 1.))*u.invScrnRes ).x) - z;
+    float gradC = z - restoreZ(texture(depthData,(gl_FragCoord.xy + vec2(-1., 0.))*u.invScrnRes ).x);
+    float gradD = z - restoreZ(texture(depthData,(gl_FragCoord.xy + vec2( 0.,-1.))*u.invScrnRes ).x);
 
     vec2 m = u.invScrnRes * -z; //vec2(u.scrnRes.x/u.scrnRes.y * u.halfTanFOV, u.halfTanFOV);
     float invTanFOV = u.dpAdjConvex/u.halfTanFOV;
@@ -397,8 +397,8 @@ vec3 getSimpleNormal(vec4 vtx, sampler2D depthData)
 {
     vec2 uv1 = (gl_FragCoord.xy + vec2( 1., 0.))*u.invScrnRes;
     vec2 uv2 = (gl_FragCoord.xy + vec2( 0., 1.))*u.invScrnRes;
-    float gradA = restoreZ(texture(depthData, uv1).w);
-    float gradB = restoreZ(texture(depthData, uv2).w);
+    float gradA = restoreZ(texture(depthData, uv1).x);
+    float gradB = restoreZ(texture(depthData, uv2).x);
 
     vec4 vtxA = getVertexFromDepth(getFOVPos(uv1), gradA);
     vec4 vtxB = getVertexFromDepth(getFOVPos(uv2), gradB);
@@ -419,10 +419,10 @@ vec3 getSelectedNormal(vec4 vtx, sampler2D depthData)
     vec2 uv2 = (gl_FragCoord.xy + vec2( 0., 1.))*u.invScrnRes;
     vec2 uv3 = (gl_FragCoord.xy + vec2(-1., 0.))*u.invScrnRes;
     vec2 uv4 = (gl_FragCoord.xy + vec2( 0.,-1.))*u.invScrnRes;
-    float gradA = restoreZ(texture(depthData, uv1).w);
-    float gradB = restoreZ(texture(depthData, uv2).w);
-    float gradC = restoreZ(texture(depthData, uv3).w);
-    float gradD = restoreZ(texture(depthData, uv4).w);
+    float gradA = restoreZ(texture(depthData, uv1).x);
+    float gradB = restoreZ(texture(depthData, uv2).x);
+    float gradC = restoreZ(texture(depthData, uv3).x);
+    float gradD = restoreZ(texture(depthData, uv4).x);
     vec4 vtxA = getVertexFromDepth(getFOVPos(uv1), gradA);
     vec4 vtxB = getVertexFromDepth(getFOVPos(uv2), gradB);
     vec4 vtxC = getVertexFromDepth(getFOVPos(uv3), gradC);

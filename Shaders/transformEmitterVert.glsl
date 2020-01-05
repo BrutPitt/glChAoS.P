@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -46,6 +46,7 @@ void main(void)
 
     if(time<0.0) {
         time = -time;
+        pos.xyz += vel*.5 * u.diffTime;
     } else {
         float dTime = u.elapsedTime-time;
 

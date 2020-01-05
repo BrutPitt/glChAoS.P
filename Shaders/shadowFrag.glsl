@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -20,10 +20,6 @@ in vec4 mvVtxPos;
 in vec4 solidVtx;
 in float particleSize;
 
-#ifdef GL_ES
-out vec4 color;
-#endif
-
 void main()
 {
 
@@ -31,12 +27,7 @@ void main()
     vec4 N = getParticleNormal(ptCoord);
 
     if(N.w > 1.0 || N.z < u.alphaSkip || clippedPoint(solidVtx)) { discard; } //return black color and max depth
+    
+    gl_FragDepth = getFragDepth((mvVtxPos.z + N.z * particleSize*u.shadowDetail));
 
-    gl_FragDepth = getFragDepth(mvVtxPos.z + N.z * particleSize*u.shadowDetail);
-
-// for Chrome76 message: "exture is not renderable" if only zBuffer... need ColorBuffer 
-// FireFox68 Works fine also only with zBuffer w/o ColorBuffer
-#ifdef GL_ES 
-    color = vec4(vec3(gl_FragDepth), 1.0);
-#endif
 } 
