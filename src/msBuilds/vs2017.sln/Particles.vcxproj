@@ -280,7 +280,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>VGIZMO_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VGM_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
@@ -303,7 +303,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>GLCHAOSP_NO_USES_GLSL_SUBS;GLAPP_NO_GLSL_PIPELINE;VGIZMO_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;GLM_ENABLE_EXPERIMENTAL;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLAPP_NO_GLSL_PIPELINE;VGM_USES_TEMPLATE;GLCHAOSP_NO_USES_GLSL_SUBS;GLAPP_NO_GLSL_PIPELINE;VGIZMO_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;_DEBUG;_WINDOWS;GLM_ENABLE_EXPERIMENTAL;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\src\tools\;$(ProjectDir)..\..\src\libs\;$(ProjectDir)..\..\src\libs\glfw\include\</AdditionalIncludeDirectories>
@@ -324,7 +324,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>VGIZMO_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VGM_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -419,7 +419,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>VGIZMO_USES_GLM;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VGM_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -455,7 +455,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Viewports|x64'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>GLAPP_IMGUI_VIEWPORT;VGIZMO_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLAPP_IMGUI_VIEWPORT;VGM_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;GLAPP_REQUIRE_OGL45;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -491,7 +491,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|x64'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <PreprocessorDefinitions>GLCHAOSP_NO_USES_GLSL_SUBS;GLAPP_NO_GLSL_PIPELINE;VGIZMO_USES_TEMPLATE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VGM_USES_TEMPLATE;GLAPP_NO_GLSL_PIPELINE;GLFW_INCLUDE_NONE;GLM_ENABLE_EXPERIMENTAL;IMGUI_IMPL_OPENGL_LOADER_GLAD;IMGUI_DISABLE_OBSOLETE_FUNCTIONS;_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -530,6 +530,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\libs\lodePNG\lodepng.cpp" />
+    <ClCompile Include="..\..\src\shine7.cpp" />
     <ClCompile Include="..\..\src\tools\fastRandom.cpp" />
     <ClCompile Include="..\..\src\tools\glslProgramObject.cpp" />
     <ClCompile Include="..\..\src\tools\glslShaderObject.cpp" />
@@ -560,7 +561,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\emitter.h" />
     <ClInclude Include="..\..\src\emsTouch.h" />
-    <ClInclude Include="..\..\src\libs\imgui_markdown\imgui_markdown.h" />
     <ClInclude Include="..\..\src\libs\lodePNG\lodepng.h" />
     <ClInclude Include="..\..\src\libs\nanoflann\nanoflann.hpp" />
     <ClInclude Include="..\..\src\libs\tinyPLY\tinyply.h" />
@@ -571,9 +571,8 @@
     <ClInclude Include="..\..\src\tools\imGuIZMOquat.h" />
     <ClInclude Include="..\..\src\tools\oglAxes.h" />
     <ClInclude Include="..\..\src\tools\transforms.h" />
+    <ClInclude Include="..\..\src\tools\vgConfig.h" />
     <ClInclude Include="..\..\src\tools\vGizmo.h" />
-    <ClInclude Include="..\..\src\tools\vGizmoConfig.h" />
-    <ClInclude Include="..\..\src\tools\vGizmoMath.h" />
     <ClInclude Include="..\..\src\appDefines.h" />
     <ClInclude Include="..\..\src\attractorsBase.h" />
     <ClInclude Include="..\..\src\glApp.h" />
@@ -596,6 +595,8 @@
     <ClInclude Include="..\..\src\palettes.h" />
     <ClInclude Include="..\..\src\ParticlesUtils.h" />
     <ClInclude Include="..\..\src\ShadersClasses.h" />
+    <ClInclude Include="..\..\src\tools\vGizmoMath.h" />
+    <ClInclude Include="..\..\src\tools\vgMath.h" />
     <ClInclude Include="..\..\src\ui\uiHelpEng.h" />
     <ClInclude Include="..\..\src\ui\uiMainDlg.h" />
     <ClInclude Include="..\..\src\vertexbuffer.h" />
@@ -622,6 +623,8 @@
     <None Include="..\..\..\Shaders\postRenderingVert.glsl" />
     <None Include="..\..\..\Shaders\RadialBlur2PassFrag.glsl" />
     <None Include="..\..\..\Shaders\shadowFrag.glsl" />
+    <None Include="..\..\..\Shaders\transformEmitterFrag.glsl" />
+    <None Include="..\..\..\Shaders\transformEmitterVert.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\ReadMe.txt" />

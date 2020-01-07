@@ -42,9 +42,6 @@
     <Filter Include="3th party Libs\lodePNG">
       <UniqueIdentifier>{f49a71cc-0a4d-412c-8da2-1c1007ce2eaf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3th party Libs\imgui_markdown">
-      <UniqueIdentifier>{9e69864a-90a7-4701-8c3e-00e95f7112e0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3th party Libs\tinyPLY">
       <UniqueIdentifier>{5b720012-a29c-4444-bd2c-3551cb7b0bc7}</UniqueIdentifier>
     </Filter>
@@ -138,6 +135,9 @@
       <Filter>Tools\imguiTools</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\emitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shine7.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -238,9 +238,6 @@
     <ClInclude Include="..\..\src\tools\fastRandom.h">
       <Filter>Tools</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libs\imgui_markdown\imgui_markdown.h">
-      <Filter>3th party Libs\imgui_markdown</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\emsTouch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -253,17 +250,20 @@
     <ClInclude Include="..\..\src\tools\imGuIZMOquat.h">
       <Filter>Tools\imguiTools</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\tools\vGizmoConfig.h">
-      <Filter>Tools</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\tools\vGizmoMath.h">
-      <Filter>Tools</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\tools\vGizmo.h">
       <Filter>Tools</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\emitter.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\vGizmoMath.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\vgConfig.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\tools\vgMath.h">
+      <Filter>Tools</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -328,6 +328,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\..\Shaders\shadowFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\transformEmitterVert.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\Shaders\transformEmitterFrag.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
