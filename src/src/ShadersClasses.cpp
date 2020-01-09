@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -90,36 +90,7 @@ void shaderPointClass::initShader()
 //  particlesBase 
 //
 ////////////////////////////////////////////////////////////////////////////////
-void particlesBaseClass::clearScreenBuffers()
-{
-
-    if(depthBuffActive) {
-        glEnable(GL_DEPTH_TEST);
-        glDepthMask(GL_TRUE);
-        const GLfloat f=1.0f;
-        glClearBufferfv(GL_DEPTH , 0, &f);
-    }
-
-    if(!showAxes()) 
-        glClearBufferfv(GL_COLOR,  0, value_ptr(backgroundColor()));
-    if(blendActive || showAxes()) {
-        glEnable(GL_BLEND);
-        glBlendFunc(getSrcBlend(), getDstBlend());
-    }
-
-}
-
-void particlesBaseClass::restoreGLstate()
-{
-    glDisable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-
-    //glDisable(GL_MULTISAMPLE);
-}
-
-
-GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter) 
+GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool eraseBkg, int fbIn) 
 {
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
     const float lightReduction = theApp->useDetailedShadows() ? .3333 : .25f;
@@ -208,7 +179,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
             
             getTMat()->setPOV(getTMat()->getPOV()-vec3(0.f, 0.f, getTMat()->getTrackball().getDollyPosition().z));
             getTMat()->getTrackball().setDollyPosition(0.f);
-            getTMat()->applyTransforms();
+            //getTMat()->applyTransforms();
             
             float dist = getTMat()->getPOV().z;
             if(dist<FLT_EPSILON) dist = FLT_EPSILON;
@@ -222,9 +193,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         getPlanesUBlock().updateBufferData();
 
         tMat.setLightView(getLightDir()*lightReduction);
-        tMat.tM.mvLightM = tMat.tM.mvLightM * tMat.tM.mMatrix;
-
-
+        tMat.tM.mvLightM = tMat.tM.mvLightM * tMat.tM.mMatrix;;
 
         tMat.updateBufferData();
         updateBufferData();
@@ -233,9 +202,26 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         emitter->renderEvents();
 
         getShadow()->releaseRender();
+        if(shadowDetail>1) glViewport(0,0, getWidth(), getHeight());
     }
 #endif
-    if(shadowDetail>1) glViewport(0,0, getWidth(), getHeight());
+
+    if(fbIn >= 0) {
+#ifdef GLAPP_REQUIRE_OGL45
+        glBlitNamedFramebuffer(fbIn,
+                                getRenderFBO().getFB(fbIdx),
+                                0,0,getWidth(), getHeight(),
+                                0,0,theApp->GetWidth(), theApp->GetHeight(),
+                                GL_COLOR_BUFFER_BIT, GL_NEAREST );
+#else
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbIn);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, getRenderFBO().getFB(fbIdx));
+
+        glBlitFramebuffer(0,0,getWidth(), getHeight(),
+                            0,0,theApp->GetWidth(), theApp->GetHeight(),
+                            GL_COLOR_BUFFER_BIT, GL_NEAREST );
+#endif
+    }
 
 // Normal Render
 /////////////////////////////////////////////
@@ -244,7 +230,22 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
     GLuint returnedTex = getRenderFBO().getTex(fbIdx);
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, getRenderFBO().getFB(fbIdx));
-    clearScreenBuffers();
+
+    // Clear Depth buffer
+    if(depthBuffActive) {
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_TRUE);
+        const GLfloat f=1.0f;
+        glClearBufferfv(GL_DEPTH , 0, &f);
+    }
+
+    // clear Color buffer
+    if(!showAxes() && eraseBkg) glClearBufferfv(GL_COLOR,  0, value_ptr(backgroundColor()));
+
+    if(blendActive || showAxes()) {
+        glEnable(GL_BLEND);
+        glBlendFunc(getSrcBlend(), getDstBlend());
+    }
 
     if(checkFlagUpdate()) updateCommons();
     getPlanesUBlock().updateBufferData();
@@ -285,12 +286,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 // SecondPass Rendering 
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-#if defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-    if(!getBlendState() && isAO_RD_SHDW)  {
-#else
     if(!blendActive && isAO_RD_SHDW)  {
-#endif
-
         tMat.setLightView(getLightDir()*lightReduction);
         mat4 m(1.f);
         m = translate(m,getTMat()->getPOV()/*+getTMat()->getTrackball().getPosition()*/);
@@ -310,10 +306,16 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
 
 #ifdef GLAPP_REQUIRE_OGL45
             glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
+            glBindTextureUnit(10, getRenderFBO().getDepth(0));
 #else
             glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTex(fbIdx));
             glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTex(fbIdx));
-            getAO()->setUniform1i(getAO()->getLocPrevData(), getRenderFBO().getTex(fbIdx));
+            getAO()->setUniform1i(getAO()->locPrevData, getRenderFBO().getTex(fbIdx));
+
+            glActiveTexture(GL_TEXTURE0 + getRenderFBO().getDepth(0));
+            glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getDepth(0));
+            getAO()->setUniform1i(getAO()->locZTex,     getRenderFBO().getDepth(0));
+
 #endif
 
             getAO()->render();
@@ -337,12 +339,22 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
         GLuint subIDX = uData.lightModel + lightMDL::modelOffset; 
 
         glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
+        glBindTextureUnit(8, getRenderFBO().getTexMultiFB(0));
+        glBindTextureUnit(10, getRenderFBO().getDepth(0));
 #else
         GLuint subIDX = getPostRendering()->getSubIdx(uData.lightModel);
 
         glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTex(fbIdx));
         glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTex(fbIdx));
-        getPostRendering()->setUniform1i(getPostRendering()->getLocPrevData(), getRenderFBO().getTex(fbIdx));
+        getPostRendering()->setUniform1i(getPostRendering()->locPrevData,     getRenderFBO().getTex(fbIdx));
+
+        glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTexMultiFB(0));
+        glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTexMultiFB(0));
+        getPostRendering()->setUniform1i(getPostRendering()->locTexBaseColor, getRenderFBO().getTexMultiFB(0));
+
+        glActiveTexture(GL_TEXTURE0 + getRenderFBO().getDepth(0));
+        glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getDepth(0));
+        getPostRendering()->setUniform1i(getPostRendering()->locZTex,         getRenderFBO().getDepth(0));
 
 #endif
 #if !defined(GLCHAOSP_NO_USES_GLSL_SUBS) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
@@ -355,7 +367,12 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter)
     }
 #endif
 
-    restoreGLstate();
+    //restore GL state
+    glDisable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    //glDisable(GL_MULTISAMPLE);
+
     return returnedTex;
 }
 
@@ -571,11 +588,12 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
     start = end;
     updateBufferData();
 
-    //setUniform1f(4, cTime);
     static float restEmiss = 0.f;
     float fEmiss = float(cPit.cockPit() ? cPit.getSlowMotionDpS() : attractorsList.getSlowMotionDpS()) * theApp->getTimer().fps()+restEmiss;
+    //if(cPit.getPIPposition()!=cockpitClass::pip::noPIP) fEmiss*=.5; // with PiP there is double emission (dual pass)
+    //fEmiss+=restEmiss;                                              // add prefious pass fraction
 
-    int emiss = fEmiss; //getSizeStepBuffer();
+    int emiss = fEmiss; 
     restEmiss = fEmiss-float(emiss);
     if(emiss>cPit.getMaxEmissionFrame()) emiss = cPit.getMaxEmissionFrame();
 
@@ -591,11 +609,9 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
         const float dist = distance(newPosAttractor, oldPosAttractor);
         const vec3 vStep = (newPosAttractor-oldPosAttractor)/float(cPit.getTransformedEmission());
         vec3 vInc(0.0);
-        const float bornTime = std::chrono::duration<double> (std::chrono::high_resolution_clock::now()-startEvent).count();
 
-        //glGetUniformfv(progParticles->getHandle(),locPosProgress, posProgress._array);
-        //while(fStep >= EmissionTime
         for(int i=cPit.getTransformedEmission(); i>0; i--) {
+            const float bornTime = std::chrono::duration<double> (std::chrono::high_resolution_clock::now()-startEvent).count();
             InsertVbo->getBuffer()[count++] = newPosAttractor.x + vInc.x;
             InsertVbo->getBuffer()[count++] = newPosAttractor.y + vInc.y;
             InsertVbo->getBuffer()[count++] = newPosAttractor.z + vInc.z;
@@ -623,15 +639,10 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
 
     const long szI =  tfbs[activeBuffer^1]->getTransformSize();
     const GLuint szBuff = getSizeCircularBuffer();
-/*
-    glBindVertexArray(tfbs[activeBuffer^1]->getVertexBase()->getVAO());
-    glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, tfbs[activeBuffer]->getVertexBase()->getVBO());
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, tfbs[activeBuffer]->getVertexBase()->getBytesPerVertex(), 0L);
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, tfbs[activeBuffer]->getVertexBase()->getBytesPerVertex(), (GLvoid *)sizeof(vec4));
-    glEnableVertexAttribArray(5 );
-    glEnableVertexAttribArray(6 );
-*/
-    if(szI) tfbs[activeBuffer^1]->getVertexBase()->drawRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, szI<szBuff ? szI : szBuff);
+
+    // if GL_TRANSFORM_FEEDBACK_BUFFER get error ONLY on FireFox 71 Mobile: 
+    // Error: WebGL warning: drawArrays: Vertex attrib 1's buffer is bound for transform feedback.
+    if(szI) tfbs[activeBuffer^1]->getVertexBase()->drawRange(GL_ARRAY_BUFFER, 0, szI<szBuff ? szI : szBuff);
     CHECK_GL_ERROR();
 
     const GLuint countV = tfbs[activeBuffer]->End(query, szI+vtxCount);
@@ -688,14 +699,7 @@ renderBaseClass::renderBaseClass()
         separableVertex = glCreateShaderProgramv(GL_VERTEX_SHADER, 1, s);
 #endif
     }
-
-#if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA16F); 
-#else
-    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F);
-#endif
-    renderFBO.attachDB(mmFBO::depthBuiltIn);
-
+    renderBaseClass::buildFBO();
 
 #if !defined(GLCHAOSP_LIGHTVER)
     //msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision(), true, 4);
@@ -719,6 +723,23 @@ renderBaseClass::renderBaseClass()
 #endif
 
     // create(); // Now called from particlesBaseClass for Texture WebGL issue
+}
+
+void renderBaseClass::buildFBO()
+{
+#if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+    GLuint precision = GL_RGBA16F;
+#else
+    GLuint precision = theApp->getFBOInternalPrecision();
+#endif
+    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(),  precision); 
+    renderFBO.attachMultiFB(1);
+
+#if defined(GLCHAOSP_LIGHTVER)
+    renderFBO.attachDB(mmFBO::depthTexture,GL_NEAREST,GL_CLAMP_TO_EDGE);  
+#else
+    renderFBO.attachDB(mmFBO::depthTexture,GL_LINEAR,GL_CLAMP_TO_BORDER);
+#endif
 }
 
 void renderBaseClass::create()
@@ -1021,23 +1042,15 @@ void postRenderingClass::create() {
         locAOTex = getUniformLocation("aoTex");
         locShadowTex = getUniformLocation("shadowTex");
         locPrevData = getUniformLocation("prevData");
+        locZTex = getUniformLocation("zTex");
+        locTexBaseColor = getUniformLocation("texBaseColor");
+
+
 
         uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
         renderEngine->getTMat()->blockBinding(getProgram());
         //if present in the shader, WebGL want to bindIndex also if not used
         uniformBlocksClass::bindIndex(getProgram(), "_clippingPlanes", GLuint(renderBaseClass::bind::planesIDX));
-
-        setUniform1i(getLocAOTex(), renderEngine->getAO()->getFBO().getTex(0));
-
-    // for Chrome76 message: "texture is not renderable" if only zBuffer... need ColorBuffer 
-    // FireFox68 Works fine also only with zBuffer w/o ColorBuffer
-    ////////////////////////////////////////////////////////////////////////////////
-    #if !defined(GLCHAOSP_LIGHTVER)
-        setUniform1i(getLocShadowTex(), renderEngine->getShadow()->getFBO().getDepth(0));
-    #else
-        setUniform1i(getLocShadowTex(), renderEngine->getShadow()->getFBO().getTex(0));
-    #endif 
-
 
     #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
         locSubLightModel = glGetSubroutineUniformLocation(getProgram(), GL_FRAGMENT_SHADER, "lightModel");
@@ -1075,17 +1088,11 @@ void postRenderingClass::bindRender()
         USE_PROGRAM
         glActiveTexture(GL_TEXTURE0 + renderEngine->getAO()->getFBO().getTex(0));
         glBindTexture(GL_TEXTURE_2D,  renderEngine->getAO()->getFBO().getTex(0));
+        setUniform1i(getLocAOTex(), renderEngine->getAO()->getFBO().getTex(0));
 
-// for Chrome76 message: "texture is not renderable" if only zBuffer... need ColorBuffer 
-// FireFox68 Works fine also only with zBuffer w/o ColorBuffer
-////////////////////////////////////////////////////////////////////////////////
-    #if !defined(GLCHAOSP_LIGHTVER)
         glActiveTexture(GL_TEXTURE0 + renderEngine->getShadow()->getFBO().getDepth(0));
         glBindTexture(GL_TEXTURE_2D,  renderEngine->getShadow()->getFBO().getDepth(0));
-    #else 
-        glActiveTexture(GL_TEXTURE0 + renderEngine->getShadow()->getFBO().getTex(0));
-        glBindTexture(GL_TEXTURE_2D,  renderEngine->getShadow()->getFBO().getTex(0));
-    #endif
+        setUniform1i(getLocShadowTex(), renderEngine->getShadow()->getFBO().getDepth(0));
 #endif
 
 }
@@ -1153,9 +1160,11 @@ ambientOcclusionClass::ambientOcclusionClass(renderBaseClass *ptrRE) : renderEng
     glTextureParameteri(noiseTexture, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTextureParameteri(noiseTexture, GL_TEXTURE_WRAP_T, GL_REPEAT);
 #else
+    //GLuint precision = theApp->useLowPrecision() ? GL_RGB16F : GL_RGB32F;
+    GLuint precision = theApp->useLowPrecision() ? GL_RGB16F : GL_RGB32F;
     glGenTextures(1, &ssaoKernelTex);
     glBindTexture(GL_TEXTURE_2D, ssaoKernelTex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, kernelSize, 1, 0, GL_RGB, GL_FLOAT, ssaoKernel.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, precision, kernelSize, 1, 0, GL_RGB, GL_FLOAT, ssaoKernel.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -1163,7 +1172,7 @@ ambientOcclusionClass::ambientOcclusionClass(renderBaseClass *ptrRE) : renderEng
 
     glGenTextures(1, &noiseTexture);
     glBindTexture(GL_TEXTURE_2D, noiseTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, 4, 4, 0, GL_RGB, GL_FLOAT, ssaoNoise.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, precision, 4, 4, 0, GL_RGB, GL_FLOAT, ssaoNoise.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -1193,6 +1202,7 @@ void ambientOcclusionClass::create() {
     USE_PROGRAM
     locNoiseTexture = getUniformLocation("noise");
     locPrevData = getUniformLocation("prevData");
+    locZTex = getUniformLocation("zTex");
     locKernelTexture = getUniformLocation("ssaoSample");
     bindIDX = uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
     //if present in the shader, WebGL want to bindIndex also if not used
@@ -1254,16 +1264,13 @@ void ambientOcclusionClass::releaseRender()
 ////////////////////////////////////////////////////////////////////////////////
 shadowClass::shadowClass(renderBaseClass *ptrRE) : renderEngine(ptrRE) 
 {
-// for Chrome76 message: "texture is not renderable" if only zBuffer... need ColorBuffer 
-// FireFox68 Works fine also only with zBuffer w/o ColorBuffer
-////////////////////////////////////////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER)
     const int detail = theApp->useDetailedShadows() ? 2 : 1;
-    fbo.buildOnlyFBO(1, theApp->GetWidth()*detail, theApp->GetHeight()*detail, GL_RGBA32F); //
+    fbo.buildOnlyFBO(1, theApp->GetWidth()*detail, theApp->GetHeight()*detail, GL_RGBA32F); 
     fbo.attachDB(mmFBO::depthTexture,GL_LINEAR,GL_CLAMP_TO_BORDER);
 #else
-    fbo.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F);
-    fbo.attachDB(mmFBO::depthBuiltIn, GL_NEAREST, GL_CLAMP_TO_EDGE);
+    fbo.buildOnlyFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F); 
+    fbo.attachDB(mmFBO::depthTexture,GL_NEAREST,GL_CLAMP_TO_EDGE);  
 #endif
     //create();
 }
@@ -1296,13 +1303,6 @@ void shadowClass::bindRender()
     const GLfloat f=1.0f;
     glClearBufferfv(GL_DEPTH , 0, &f);
 
-// for Chrome76 message: "texture is not renderable" if only zBuffer... need ColorBuffer 
-// FireFox68 Works fine also only with zBuffer w/o ColorBuffer
-////////////////////////////////////////////////////////////////////////////////
-#ifdef GLCHAOSP_LIGHTVER
-    const GLfloat fc=0.0f;
-    glClearBufferfv(GL_COLOR , 0, &fc);
-#endif
 
 #if !defined(GLAPP_REQUIRE_OGL45)
     USE_PROGRAM

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -119,7 +119,9 @@ private:
 
     float reduction;
 };
- 
+
+//extern unsigned char shine7[];
+
 template <class T> class gaussianMap
 {
 public:
@@ -145,9 +147,9 @@ public:
             X = -1.0f+Incr;
             for(int x=0; x<size; x++, X+=Incr) {
                 Dist = (float)sqrtf(X*X+Y2);
-                //if (Dist>1) Dist=1;
+                if (Dist>1) Dist=1;
                 const float ev = evalHermite(hermVals,Dist); 
-                *m++ = (Dist>=1.f) ? 0.f : typeSolid ? 1.f :  ev <= 0.0 ? 0.0 : ev * factor;
+                *m++ = (Dist>=1.f) ? 0.f : typeSolid ? 1.f :  ev < 0.0 ? 0.0 : ev > 1.0 ? 1.0 : ev;
             }
         }
 
@@ -159,7 +161,14 @@ public:
                     *b++ = *m++; //(unsigned char)(M[i] * 255);
             delete [] M;
             M = B;
-        };
+        }
+/*
+             unsigned char *b = shine7;
+                m = M;
+                for(int k=128*128; k>0; k--)
+                    *m++ = float(*b++)/255.f; //(unsigned char)(M[i] * 255);
+*/
+
     }
 
     ~gaussianMap() { delete [] M; }
@@ -253,7 +262,11 @@ public:
 
         //glTexStorage2D(GL_TEXTURE_2D, 7, GL_R32F, w, h);
         //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RED, GL_FLOAT, buffer);
+#if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
+#else
         glTexImage2D(GL_TEXTURE_2D, 0, theApp->getTexInternalPrecision(), w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
+#endif
 
         CHECK_GL_ERROR();
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -263,7 +276,6 @@ public:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

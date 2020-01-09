@@ -366,18 +366,11 @@ public:
 
 
     void renderFeedbackData() {
-/*
-        glBindVertexArray(tfbs[activeBuffer]->getVertexBase()->getVAO());
-        glBindBuffer(GL_ARRAY_BUFFER, tfbs[activeBuffer]->getVertexBase()->getVBO());
-
-        glVertexAttribPointer(0 , 4, GL_FLOAT, GL_FALSE, tfbs[activeBuffer]->getVertexBase()->getBytesPerVertex(), 0L);
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, tfbs[activeBuffer]->getVertexBase()->getBytesPerVertex(), (GLvoid *)sizeof(vec4));
-        glEnableVertexAttribArray(0 );
-        glEnableVertexAttribArray(1 );
-*/
-
+        // if GL_TRANSFORM_FEEDBACK_BUFFER get error ONLY on FireFox 71 Mobile: 
+        // Error: WebGL warning: drawArrays: Vertex attrib 1's buffer is bound for transform feedback.
         const uint64_t sz = tfbs[activeBuffer]->getTransformSize();
-        tfbs[activeBuffer]->getTrasformVB()->drawRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sz<szCircularBuffer ? sz : szCircularBuffer,0);
+        tfbs[activeBuffer]->getTrasformVB()->drawRange(GL_ARRAY_BUFFER, 0, sz<szCircularBuffer ? sz : szCircularBuffer,0);
+        CHECK_GL_ERROR();
     }
 
     void preRenderEvents() { renderOfflineFeedback(attractorsList.get()); }

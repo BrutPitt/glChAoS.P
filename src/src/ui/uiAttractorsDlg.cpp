@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -157,7 +157,6 @@ void BicomplexJExplorer::additionalDataCtrls()
 #define GLCHAOSP_FEATURE_WIP
 void slowMotionTool()
 {
-#ifdef GLCHAOSP_FEATURE_WIP
     bool b = attractorsList.slowMotion();
     if(colCheckButton(b , b ? " slowMotion "  ICON_FA_CHECK_SQUARE_O " ": " slowMotion " ICON_FA_SQUARE_O " ")) {
         attractorsList.getThreadStep()->stopThread();
@@ -169,17 +168,11 @@ void slowMotionTool()
         attractorsList.getThreadStep()->restartEmitter();
         attractorsList.get()->initStep();
         attractorsList.getThreadStep()->startThread();
-
-        //theApp->needRestart(true);
     }
-    //if(ImGui::Checkbox("slowMotion",&b)) pSys->slowMotion(b);
-#else
-    ImGui::AlignTextToFramePadding();
-    ImGui::NewLine();
-#endif
 
     if(attractorsList.slowMotion()) {
-        ImGui::SameLine(ImGui::GetContentRegionAvail().x*.5);
+        //ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetStyle().ItemSpacing.x);
 /*
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*.5);
 
@@ -190,11 +183,12 @@ void slowMotionTool()
         ImGui::SameLine();
 */
         //ImGui::SetCursorPosX()
+        const float halfW = (ImGui::GetContentRegionAvail().x)*.5-ImGui::GetStyle().ItemSpacing.x;
         bool s = theDlg.cockpitDlg.visible();
-        if(colCheckButton(s , s ? " settings "  ICON_FA_CHECK_SQUARE_O " " : " settings " ICON_FA_SQUARE_O " ")) theDlg.cockpitDlg.visible(s^1);
+        if(colCheckButton(s , s ? " settings "  ICON_FA_CHECK_SQUARE_O " " : " settings " ICON_FA_SQUARE_O " ",halfW)) theDlg.cockpitDlg.visible(s^1);
         ImGui::SameLine();
         bool cP = attractorsList.getCockpit().cockPit();
-        if(colCheckButton(cP , cP ? " cockPit "  ICON_FA_CHECK_SQUARE_O " " : " cockPit " ICON_FA_SQUARE_O " ")) attractorsList.getCockpit().cockPit(cP^1);
+        if(colCheckButton(cP , cP ? " cockPit "  ICON_FA_CHECK_SQUARE_O " " : " cockPit " ICON_FA_SQUARE_O " ", halfW)) attractorsList.getCockpit().cockPit(cP^1);
 /*
         int maxDots = pSys->getSlowMotionMaxDots();
         if(ImGui::DragInt("##maxDots", &maxDots, 10.0f, 0, INT32_MAX, "dots# %d")) pSys->setSlowMotionMaxDots(maxDots);
@@ -209,8 +203,8 @@ void slowMotionTool()
             if(colCheckButton(s , s ? " settings "  ICON_FA_CHECK_SQUARE_O " " : " settings " ICON_FA_SQUARE_O " ")) theDlg.cockpitDlg.visible(s^1);
         }
 #else
-        ImGui::AlignTextToFramePadding();
-        ImGui::NewLine();
+        //ImGui::AlignTextToFramePadding();
+        //ImGui::NewLine();
 #endif
     } else {
         ImGui::AlignTextToFramePadding();

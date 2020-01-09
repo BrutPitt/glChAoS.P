@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -12,7 +12,7 @@
 //------------------------------------------------------------------------------
 #pragma once
 
-#define GLCHAOSP_VERSION "1.43"
+#define GLCHAOSP_VERSION "1.5.0"
 
 #define APP_USE_FBO
 //#define __APPLE__

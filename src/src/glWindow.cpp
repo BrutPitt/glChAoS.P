@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -74,8 +74,6 @@ void glWindow::onInit()
 
     T.viewportSize(theApp->GetWidth(), theApp->GetHeight());
 
-    mmFBO::Init(theApp->GetWidth(), theApp->GetHeight()); 
-
     //load attractor file (if exist) and (if exist) override default parameters
     //attractorsList.setSelection(attractorsList.getSelection()); 
 
@@ -96,6 +94,7 @@ void glWindow::onInit()
         if(theApp->loadAttractor(theApp->getStartWithAttractorName().c_str())) {
             attractorsList.setFileName(theApp->getStartWithAttractorName());
             theApp->setLastFile(theApp->getStartWithAttractorName().c_str());
+            attractorsList.checkCorrectEmitter();
             attractorsList.getThreadStep()->restartEmitter();
             attractorsList.get()->initStep();
             attractorsList.getThreadStep()->startThread();
@@ -207,6 +206,7 @@ GLint glWindow::onRender()
     return texRendered;
 }
 
+
 //  render Attractor
 //////////////////////////////////////////////////////////////////
 GLuint glWindow::renderAttractor()
@@ -226,17 +226,22 @@ GLuint glWindow::renderAttractor()
 
         cockpitClass &cPit = attractorsList.getCockpit();
 
+        particlesSystem->getEmitter()->preRenderEvents();
+
         auto renderProcedure = [&]() {
             particlesSystem->setFlagUpdate();
-            texRendered = particlesSystem->render();
+            texRendered = particlesSystem->renderParticles();
+            texRendered = particlesSystem->renderGlowEffect(texRendered);
+#if !defined(GLCHAOSP_NO_FXAA)
+            texRendered = particlesSystem->renderFXAA(texRendered);
+#endif                                                           
         };
 
+        //Render standard View in FullScreen (CockPitView is in PiP)
         if(cPit.invertPIP() && cPit.getPIPposition() != cPit.pip::noPIP) {
             glViewport(0,0, w, h);
             renderProcedure();
         }
-
-        if(cPit.getPointSize() <= 0.0) cPit.setPointSize(getParticlesSystem()->shaderPointClass::getPtr()->getSize());
 
         const vec3 head(attractorsList.get()->getCurrent());
         const vec3 vecA(vec3(attractorsList.get()->getCurrent() ));
@@ -246,12 +251,15 @@ GLuint glWindow::renderAttractor()
 
         const vec3 vecB(vec3(attractorsList.get()->getAt(idx<1 ? 1 : (idx>buffSize ? buffSize : idx))));
 
-        const vec3 vecDirH = (vecB-vecA)*cPit.getMovePositionHead();
-        const vec3 vecDirT = (vecB-vecA)*cPit.getMovePositionTail();
 
-        vec3 cpPOV((cPit.invertView() ? vecA : vecB) + vecDirT);
-        vec3 cpTGT((cPit.invertView() ? vecB : vecA) + vecDirH);
+        vec3 cpPOV((cPit.invertView() ? vecA : vecB));
+        vec3 cpTGT((cPit.invertView() ? vecB : vecA));
 
+        const vec3 vecDirH = (cpPOV-cpTGT)*cPit.getMovePositionHead();
+        const vec3 vecDirT = (cpPOV-cpTGT)*cPit.getMovePositionTail();
+
+        cpPOV+=vecDirT;
+        cpTGT+=vecDirH;
 
         // Saving transform status
         transformsClass *objT = getParticlesSystem()->getTMat();
@@ -262,80 +270,73 @@ GLuint glWindow::renderAttractor()
         quat qRot = objT->getTrackball().getRotation();
         float pNear = objT->getPerspNear();
 
-        //const float dt = attractorsList.get()->getDtStepInc();
-        //attractorsList.get()->setDtStepInc(cPit.getDtStepInc());
-
         mat4 m = translate(mat4(1.f), cpTGT);
         m = m * mat4_cast(cPit.getRotation());
-        //m = translate(m, cpPOV);
         cpPOV = mat4(m) * vec4(cpPOV-cpTGT, 1.0);
-
-#if !defined(GLCHAOSP_LIGHTVER)
-        shaderBillboardClass *bb = getParticlesSystem()->shaderBillboardClass::getPtr();
-        const float ptSizeB = bb->getSize();
-        bb->setSize(cPit.getPointSize());
-        //const float colVelB = bb->getCMSettings()->getVelIntensity();
-        //bb->getCMSettings()->setVelIntensity(cPit.getColorVel());
-#endif
-        shaderPointClass *ps = getParticlesSystem()->shaderPointClass::getPtr();
-        const float ptSizeP = ps->getSize();
-        ps->setSize(cPit.getPointSize());
-        //const float colVelP = ps->getCMSettings()->getVelIntensity();
-        //ps->getCMSettings()->setVelIntensity(cPit.getColorVel());
 
         particlesSystem->getTMat()->setPerspective(attractorsList.getCockpit().getPerspAngle(), float(w)/float(h), attractorsList.getCockpit().getPerspNear(), objT->getPerspFar());
         particlesSystem->getTMat()->setView(cpPOV, cpTGT);
 
-        // New view cockpit
+        // New settings for cockpit
         particlesSystem->getTMat()->getTrackball().setRotation(quat(1.0f,0.0f, 0.0f, 0.0f));
         particlesSystem->getTMat()->getTrackball().setRotationCenter(vec3(0.f));
 
         particlesSystem->getTMat()->getTrackball().setPosition(vec3(0.f));
-        particlesSystem->getTMat()->getTrackball().viewportSize(w, h);
         particlesSystem->getTMat()->applyTransforms();
 
-
-        if(cPit.invertPIP()) { cPit.setViewport(w,h);  }
-        else                 { glViewport(0,0, w, h);  }
-
-        renderProcedure();
-
-        // Restore transform status
-        //attractorsList.get()->setDtStepInc(dt);
+        shaderPointClass *ps = getParticlesSystem()->shaderPointClass::getPtr();
+        const float ptSizeP = ps->getSize();
+        //ps->setSize(cPit.invertPIP() && cPit.getPIPposition()!=cockpitClass::pip::noPIP ? cPit.getPointSize()*.5*cPit.getPIPzoom() : cPit.getPointSize());
+        ps->setSize(cPit.getPointSize());
 
 #if !defined(GLCHAOSP_LIGHTVER)
-        bb->setSize(ptSizeB);
-        //bb->getCMSettings()->setVelIntensity(colVelB);
+        shaderBillboardClass *bb = getParticlesSystem()->shaderBillboardClass::getPtr();
+        const float ptSizeB = bb->getSize();
+        bb->setSize(ps->getSize());
 #endif
-        ps->setSize(ptSizeP);
-        //ps->getCMSettings()->setVelIntensity(colVelP);
 
-        particlesSystem->getTMat()->setView(vPOV, vTGT);
+        //Render CockPit view 
+        if(cPit.invertPIP()) { 
+            cPit.setViewport(w,h); 
+            texRendered = particlesSystem->renderParticles(false, particlesSystem->shaderPointClass::getPtr()->getGlowRender()->getFBO().getFB(1)); 
+            texRendered = particlesSystem->renderGlowEffect(texRendered);
+        }  
+        else  { glViewport(0,0, w, h);  renderProcedure(); }
+
+        
+
+        // Restore transform status
         particlesSystem->getTMat()->setPerspective(perspAngle, float(w)/float(h), pNear, objT->getPerspFar());
-
-        //objT->setModelMatrix(mModel);
-        //objT->setProjMatrix(mView);
-        //objT->setProjMatrix(mProj);        
-
-        particlesSystem->getTMat()->getTrackball().viewportSize(w, h);
+        particlesSystem->getTMat()->setView(vPOV, vTGT);
 
         particlesSystem->getTMat()->getTrackball().setRotation(qRot);
         particlesSystem->getTMat()->getTrackball().setPosition(vPos);
         particlesSystem->getTMat()->getTrackball().setRotationCenter(vCoR);
         particlesSystem->getTMat()->applyTransforms();
 
-        if(!cPit.invertPIP() && cPit.getPIPposition() != cPit.pip::noPIP){
+        //If StandardView in PiP
+        if(!cPit.invertPIP() && cPit.getPIPposition() != cPit.pip::noPIP) {
+            ps->setSize(ptSizeP); //*.5*cPit.getPIPzoom()
+#if !defined(GLCHAOSP_LIGHTVER)
+            bb->setSize(ptSizeB); //
+#endif                                                           
             cPit.setViewport(w,h);
-            renderProcedure();
+            texRendered = particlesSystem->renderParticles(false, particlesSystem->shaderPointClass::getPtr()->getGlowRender()->getFBO().getFB(1)); 
+            texRendered = particlesSystem->renderGlowEffect(texRendered);
+            //renderProcedure();
         }
 
+        ps->setSize(ptSizeP);
+#if !defined(GLCHAOSP_LIGHTVER)
+        bb->setSize(ptSizeB);
+#endif
+        particlesSystem->getEmitter()->postRenderEvents();
     } else {
         glViewport(0,0, w, h);
         texRendered = particlesSystem->render();
     }
 
     return texRendered;
-
 }
 
 

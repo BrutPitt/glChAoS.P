@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -32,7 +32,7 @@
 #include <fastRandom.h>
 
 #include <vgMath.h>
-#include "tools\glslProgramObject.h"
+#include "tools/glslProgramObject.h"
 
 using namespace std;
 using namespace configuru;

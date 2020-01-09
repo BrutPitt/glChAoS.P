@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -15,9 +15,6 @@
 #include <ImGui/imgui_impl_glfw.h>
 #include <ImGui/imgui_impl_opengl3.h>
 #include <IconsFontAwesome/IconsFontAwesome.h>
-#ifdef GLCHAOSP_USE_MARKDOWN
-#include <imgui_markdown/imgui_markdown.h>
-#endif
 
 void fillAttractorData();
 void writePalette(const char *filename, int idx);
@@ -94,7 +91,6 @@ protected:
 };
 
                                
-
 class particlesDlgClass : public baseDlgClass
 {
 public:
@@ -145,6 +141,7 @@ public:
 
 private:
 };
+#endif
 
 class dataDlgClass  : public baseDlgClass
 {
@@ -153,11 +150,30 @@ public:
 
     void view();
 
+    bool getPSSettings() { return psSettings; }
+    bool getBBSettings() { return bbSettings; }
+
+    bool getRendering() { return rendering; }
+    bool getColor()     { return color; }
+    bool getLight()     { return light; }
+    bool getShadow()    { return shadow; }
+    bool getAO()        { return ao; }
+    bool getAdjust()    { return adjust; }
+    bool getGlow()      { return glow; }
+    bool getFxaa()      { return fxaa; }
+
+    bool getViewSettings() { return viewSettings; }
+    bool getSlowMotion()   { return slowMotion; }
+
 private:
+    bool psSettings = true, bbSettings = true;
+    bool rendering = true, color = true, light = true;
+    bool shadow = true, ao = true, adjust = true;
+    bool glow = true, fxaa = true;
+
+    bool viewSettings = false;
+    bool slowMotion = true;
 };
-
-
-#endif
 
 class particleEditDlgClass  : public baseDlgClass
 {
@@ -272,9 +288,8 @@ public:
 
     fastViewDlgClass & getfastViewDlg() { return fastViewDlg; }
 
-#ifdef GLCHAOSP_USE_MARKDOWN
-    ImGui::MarkdownConfig & getMarkDownConfig() { return mdConfig; }
-#endif
+    dataDlgClass& getDataDlg() { return dataDlg; }
+
 
 #ifdef GLCHAOSP_LIGHTVER
     bool getInvertSettings() { return invertSettings; }
@@ -292,9 +307,6 @@ private:
        
     float fontSize = 13.f, fontZoom = 1.f;
 
-#ifdef GLCHAOSP_USE_MARKDOWN
-    ImGui::MarkdownConfig mdConfig = { NULL, ICON_FA_LINK, { NULL, true, NULL, false, NULL, false } };
-#endif
 
 
 
@@ -313,8 +325,8 @@ fastViewDlgClass fastViewDlg;
 particleEditDlgClass particleEditDlg;
 clippingDlgClass clippingDlg;
 cockpitDlgClass cockpitDlg;
-#if !defined(GLCHAOSP_LIGHTVER)
 dataDlgClass dataDlg;
+#if !defined(GLCHAOSP_LIGHTVER)
 progSettingDlgClass progSettingDlg;
 friend class progSettingDlgClass;
 #else

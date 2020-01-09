@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -22,6 +22,8 @@ extern void initVR();
 class emsMDeviceClass
 {
 public:
+
+#define TOUCH(I,P) (theApp->useFixedCanvas() ? (e->touches[I].target##P) : (float(e->touches[I].target##P) * float(float(theApp->getSize##P()) / float(theApp->getCanvas##P()))))
 
 enum touchAct {
     tCancel, tStart, tEnd, tMove

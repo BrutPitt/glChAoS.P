@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -112,7 +112,7 @@ inline void IntData() { IntDataHelper<sizeof(size_t)>(); }
 
 #define GET_TIME_FUNC glfwGetTime()
 
-enum loadSettings { ignoreNone, ignoreCircBuffer };
+enum loadSettings { ignoreNone, ignoreCircBuffer, ignoreConfig=0x4 };
 
 
 void exportPLY(bool wantBinary, bool wantColors, bool alphaDist, bool wantNormals, bool bCoR, bool wantNormalized, normalType nType = normalType::ptCoR);
@@ -287,6 +287,9 @@ public:
     void useLowPrecision(bool b) { lowPrecision = b; }
     bool useLightGUI() { return lightGUI; }
     void useLightGUI(bool b) {  lightGUI = b; }
+    bool useFixedCanvas() { return fixedCanvas; }
+    void useFixedCanvas(bool b) {  fixedCanvas = b; }
+
     bool startWithGlowOFF() { return initialGlowOFF; }
     void startWithGlowOFF(bool b) {  initialGlowOFF = b; }
     bool slowGPU() { return isSlowGPU; }
@@ -366,6 +369,7 @@ private:
     unsigned emissionStepBuffer = EMISSION_STEP;
     bool tabletMode = false;
     bool lightGUI = false;
+    bool fixedCanvas = false;
     bool initialGlowOFF = false;
     bool detailedShadows = false;
     bool isIdleRotation = false;
@@ -410,8 +414,15 @@ private:
 #ifdef __EMSCRIPTEN__
 public:
     emsMDeviceClass &getEmsDevice() { return emsDevice; }
+    int getCanvasX() { return canvasX; }
+    int getCanvasY() { return canvasY; }
+    int getSizeX() { return GetWidth(); }
+    int getSizeY() { return GetHeight(); }
+    void setCanvasX(int i) { canvasX = i; }
+    void setCanvasY(int i) { canvasY = i; }
 private:
     emsMDeviceClass emsDevice;
+    int canvasX=0, canvasY=0;
 #endif
     
 

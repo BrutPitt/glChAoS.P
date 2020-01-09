@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -80,6 +80,29 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
                 int idx = theApp->selectedListQuickView();
                 theApp->loadQuikViewSelection((idx >= theApp->getListQuickView().size()-1) ? 0 : ++idx);
                 } break;
+            case GLFW_KEY_V    :
+            case GLFW_KEY_C    :
+                attractorsList.getCockpit().cockPit(attractorsList.getCockpit().cockPit()^1);
+                break;
+            case GLFW_KEY_PAGE_UP :
+                attractorsList.getCockpit().setPIPposition(cockpitClass::pip::rTop);
+                break;
+            case GLFW_KEY_PAGE_DOWN :  
+                attractorsList.getCockpit().setPIPposition(cockpitClass::pip::rBottom);
+                break;
+            case GLFW_KEY_HOME :  
+                attractorsList.getCockpit().setPIPposition(cockpitClass::pip::lTop);
+                break;
+            case GLFW_KEY_END :  
+                attractorsList.getCockpit().setPIPposition(cockpitClass::pip::lBottom);
+                break;
+            case GLFW_KEY_P :  
+                attractorsList.getCockpit().invertPIP(attractorsList.getCockpit().invertPIP()^1);
+                break;
+            case GLFW_KEY_DELETE :  
+            case GLFW_KEY_INSERT :  
+                attractorsList.getCockpit().setPIPposition(cockpitClass::pip::noPIP);
+                break;
             case GLFW_KEY_LEFT :  
             case GLFW_KEY_L    :  {
                 int idx = theApp->selectedListQuickView();
@@ -407,6 +430,9 @@ void mainGLApp::glfwInit()
     emscripten_set_touchend_callback("#canvas", &getEmsDevice(), true, emsMDeviceClass::touchEnd);
     emscripten_set_touchmove_callback("#canvas", &getEmsDevice(), true, emsMDeviceClass::touchMove);
     emscripten_set_touchcancel_callback("#canvas", &getEmsDevice(), true, emsMDeviceClass::touchCancel);
+
+    EM_ASM(if(!Module.ctx.getExtension('EXT_color_buffer_float')) alert("wglChAoS.P need EXT_color_buffer_float"););
+    EM_ASM(if(!Module.ctx.getExtension('EXT_float_blend'))        alert("wglChAoS.P need EXT_float_blend"););
     //emscripten_set_deviceorientation_callback(getEmsDevice(), true, emsMDeviceClass::devOrientation);
     //emscripten_set_orientationchange_callback(getEmsDevice(), true, emsMDeviceClass::devOrientChange);
     //emscripten_set_devicemotion_callback(getEmsDevice(), true, emsMDeviceClass::devMotion);
@@ -500,12 +526,17 @@ int mainGLApp::onExit()
 
 void newFrame()
 {
-    if(theApp->needRestart()) {
-        theWnd->onInit();
-        theApp->imguiInit();
-        theApp->needRestart(false);
-    }
+//    static int oldSizeX = theApp->GetWidth();
+//    static int oldSizeY = theApp->GetHeight();
+#ifdef __EMSCRIPTEN__    
+    //theApp->setCanvasX(EM_ASM_INT({ return Module.canvas.width; }));
+    //theApp->setCanvasY(EM_ASM_INT({ return Module.canvas.height; }));
+    theApp->setCanvasX(EM_ASM_INT({ return window.innerWidth;  }));
+    theApp->setCanvasY(EM_ASM_INT({ return window.innerHeight; }));
 
+
+//    if(oldSizeX != theApp->getCanvasX() || oldSizeY != theApp->getCanvasY()) 
+//        theWnd->getParticlesSystem()->onReshape(theApp->getCanvasX(), theApp->getCanvasY());
     theApp->getTimer().tick();
     glfwPollEvents();
 
@@ -515,13 +546,11 @@ void newFrame()
     theWnd->onRender();
     theApp->getMainDlg().postRenderImGui();
 
-    //glfwMakeContextCurrent(theApp->getGLFWWnd());
     glfwSwapBuffers(theApp->getGLFWWnd());
+//    oldSizeX = theApp->getCanvasX();
+//    oldSizeY = theApp->getCanvasY();
+#endif
 
-    if(theApp->needRestart()) {
-        theWnd->onExit();
-        theApp->imguiExit();
-    }
 }
 
 void mainGLApp::mainLoop() 
@@ -570,7 +599,7 @@ int main(int argc, char **argv)
     theApp = new mainGLApp;          
 
 #ifdef GLCHAOSP_LIGHTVER
-    if(argc>1 && argc>=9) {
+    if(argc>1 && argc!=8) {
         int w = atoi(argv[1]);
         int h = atoi(argv[2]);
         {// 3
@@ -578,8 +607,12 @@ int main(int argc, char **argv)
             theApp->setMaxAllocatedBuffer((sz<0 ? 10 : (sz>50) ? 50 : sz) * 1000 * 1000); 
         }
         // 4
+    #if defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
             if(atoi(argv[4])==1) theApp->setLowPrecision();
             else                 theApp->setHighPrecision();
+    #else
+            theApp->setLowPrecision();
+    #endif
         {// 5
             int sz = atoi(argv[5]);
             theApp->setEmissionStepBuffer((sz<0 ? 20 : (sz>200) ? 200 : sz) * 1000); 
@@ -589,15 +622,17 @@ int main(int argc, char **argv)
         // 7
             theApp->startWithGlowOFF(atoi(argv[7])==1 ? true : false);
         // 8
-            theApp->useLightGUI(atoi(argv[8])==1 ? true : false);
-        // 9
+            theApp->useLightGUI((atoi(argv[8])&1) ? true : false);
+            theApp->useFixedCanvas((atoi(argv[8])&2) ? true : false);
+/*        // 9
             if(atoi(argv[9])==1) {
                 theApp->setEmitterEngineType(enumEmitterEngine::emitterEngine_transformFeedback);
                 attractorsList.slowMotion(true);
                 attractorsList.getCockpit().cockPit(true);
             }
-        // 10        
-            std::string s(argv[10]);
+*/
+        // 9
+            std::string s(argv[9]);
             theApp->setStartWithAttractorName(s.empty() ? "random" : s);
         
         theApp->onInit(w<256 ? 256 : (w>3840 ? 3840 : w), h<256 ? 256 : (h>2160 ? 2160 : h));

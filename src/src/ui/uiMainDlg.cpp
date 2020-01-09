@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -30,7 +30,7 @@ void selectTheme(int style_idx);
 bool loadObjFile();
 
 void saveSettingsFile();
-void loadSettingsFile();
+void loadSettingsFile(bool isImportConfig=false);
 
 
 
@@ -39,9 +39,10 @@ bool show_another_window = false;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 // Helper to display a little (?) mark which shows a tooltip when hovered.
-static void ShowHelpMarker(const char* desc)
+static void ShowHelpMarker(const char* desc, bool disabled = true)
 {
-    ImGui::TextDisabled("  " ICON_FA_COMMENT_O);
+    if(disabled) ImGui::TextDisabled("  " ICON_FA_COMMENT_O);
+    else         ImGui::Text("  " ICON_FA_COMMENT_O);
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
@@ -63,36 +64,6 @@ static void ShowHelpOnTitle(const char* desc)
         ImGui::EndTooltip();
     }
 }
-
-#ifdef GLCHAOSP_USE_MARKDOWN
-void showTooltipHelpMarkdown( const char *desc ) {
-    ImGui::TextDisabled("  " ICON_FA_COMMENT_O);
-    if (ImGui::IsItemHovered())
-    {
-        ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 35.0f, -1));
-
-        ImGui::BeginTooltip();
-        ImGui::Markdown( desc, strlen(desc), theDlg.getMarkDownConfig() );
-        ImGui::EndTooltip();
-    }
-}
-
-void showTooltipHelpMarkdown( std::string desc ) {
-    ImGui::TextDisabled("  " ICON_FA_COMMENT_O);
-    if (ImGui::IsItemHovered())
-    {
-        ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 35.0f, -1));
-        ImGui::BeginTooltip();
-        ImGui::Markdown( desc.c_str(), desc.length(), theDlg.getMarkDownConfig() );
-        ImGui::EndTooltip();
-    }
-}
-void showHelpMarkdown( const char *desc ) {
-
-    ImGui::Markdown( desc, strlen(desc), theDlg.getMarkDownConfig() );
-
-}
-#endif
 
 void paletteDlgClass::view() 
 {
@@ -906,8 +877,8 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                     {
                         int idx = mode-1;
-                        if (ImGui::Combo(buildID(base, idA++, id), &idx, "gaussian blur\0"\
-                                                                          "gaussian + bilateral\0"\
+                        if (ImGui::Combo(buildID(base, idA++, id), &idx, "Gaussian blur\0"\
+                                                                          "Gaussian + bilateral\0"\
                                                                           "bilateral threshold\0"))
                             { glow->setGlowState(idx+1); }
                     }
@@ -1055,7 +1026,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             }
             {
                 ImGui::SameLine(posC4);
-                ImGui::TextDisabled("Thresold:"); ImGui::SameLine();
+                ImGui::TextDisabled("Threshold:"); ImGui::SameLine();
                 ImGui::PushItemWidth(w-ImGui::GetCursorPosX()-border);
 
                 float f = fxaa->getThreshold();
@@ -1206,18 +1177,22 @@ void particlesDlgClass::view()
 {
     if(!visible()) return;
 
-    bool bbSelected = theWnd->getParticlesSystem()->whichRenderMode==RENDER_USE_BILLBOARD || theWnd->getParticlesSystem()->getRenderMode() == RENDER_USE_BOTH;
-    bool psSelected = theWnd->getParticlesSystem()->whichRenderMode==RENDER_USE_POINTS    || theWnd->getParticlesSystem()->getRenderMode() == RENDER_USE_BOTH;
+    particlesSystemClass *pSys = theWnd->getParticlesSystem();
+    bool bbSelected = pSys->whichRenderMode==RENDER_USE_BILLBOARD || pSys->getRenderMode() == RENDER_USE_BOTH;
+    bool psSelected = pSys->whichRenderMode==RENDER_USE_POINTS    || pSys->getRenderMode() == RENDER_USE_BOTH;
 
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-    const int wSZ = 270, hSZ = 1020;
+    #if defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
+        const int wSZ = 270, chSZ = 1020;
+        const int hSZ = chSZ > pSys->getHeight() ? pSys->getHeight() : chSZ;
+    #else
+        const int wSZ = 270, hSZ = 1020;
+    #endif
 #else
-    const int wSZ = theApp->isTabletMode() ? 300 : 270, hSZ = theApp->isTabletMode() ? 900 : 820;
+    const int wSZ = theApp->isTabletMode() ? 300 : 270, chSZ = theApp->isTabletMode() ? 900 : 820;
+    const int hSZ = chSZ > pSys->getHeight() ? pSys->getHeight() : chSZ;
 #endif
-
-    
     const float border = DLG_BORDER_SIZE;    
-    particlesSystemClass *pSys = theWnd->getParticlesSystem();
 
     ImGui::SetNextWindowSize(ImVec2(wSZ, hSZ), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
@@ -1798,11 +1773,14 @@ void dataDlgClass::view()
         static int idxNorm = 0;
         static int idxDistType = 0;
 
+        const ImU32 titleCol = ImGui::GetColorU32(ImGuiCol_PlotLines); 
 
-
-        ImGui::Text(" " ICON_FA_FLOPPY_O "  Export vertex data");
+        ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+        ImGui::Text(" " ICON_FA_FLOPPY_O "  Export PLY vertex");
         ImGui::SameLine();
-        ShowHelpMarker(GLAPP_HELP_EXPORT_PLY);
+        ImGui::Text("  " ICON_FA_COMMENT_O);
+        ImGui::PopStyleColor();
+        ShowHelpOnTitle(GLAPP_HELP_EXPORT_PLY);
 
         ImGui::Checkbox("Binary fileType", &bBinary);
         ImGui::Checkbox("Colors##E", &bColors);
@@ -1832,9 +1810,12 @@ void dataDlgClass::view()
         if(ImGui::Button(ICON_FA_FLOPPY_O " Export PLY", ImVec2(w,0))) exportPLY(bBinary, bColors, bAlphaDist, bNormals, bCoR, bNormalized, (normalType) idxNorm);
 
         ImGui::NewLine();
-        ImGui::Text(" " ICON_FA_FOLDER_OPEN_O "  Import vertex data");
+        ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+        ImGui::Text(" " ICON_FA_FOLDER_OPEN_O "  Import PLY vertex");
         ImGui::SameLine();
-        ShowHelpMarker(GLAPP_HELP_IMPORT_PLY);
+        ImGui::Text("  " ICON_FA_COMMENT_O);
+        ImGui::PopStyleColor();
+        ShowHelpOnTitle(GLAPP_HELP_IMPORT_PLY);
         bool b = theWnd->getParticlesSystem()->wantPlyObjColor();
         if(ImGui::Checkbox("PLY Colors##I", &b)) theWnd->getParticlesSystem()->wantPlyObjColor(b);
         if(!b) {            
@@ -1846,9 +1827,7 @@ void dataDlgClass::view()
             bool b = attractorsList.continueDLA();
             if(ImGui::Checkbox("continue DLA", &b)) attractorsList.continueDLA(b);
             ImGui::PopItemWidth();
-        } else {
-            ImGui::NewLine();
-        }
+        } 
 
         if(ImGui::Button(ICON_FA_FOLDER_OPEN_O " Import PLY", ImVec2(w,0))) {
             if(attractorsList.continueDLA()) { 
@@ -1862,12 +1841,47 @@ void dataDlgClass::view()
 
         ImGui::AlignTextToFramePadding();
         ImGui::NewLine();
-        ImGui::Text("Import/Export render settings");
+        ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+        ImGui::Text(" " ICON_FA_FLOPPY_O " Export render settings");
         ImGui::SameLine();
-        ShowHelpMarker(GLAPP_HELP_IMP_EXP_CFG);
-        if(ImGui::Button(ICON_FA_FOLDER_OPEN_O " Import CFG", ImVec2(wButtH,0))) loadSettingsFile();
-        ImGui::SameLine(wH);
-        if(ImGui::Button(ICON_FA_FLOPPY_O " Export CFG", ImVec2(wButtH,0))) saveSettingsFile();
+        ImGui::Text("  " ICON_FA_COMMENT_O);
+        ImGui::PopStyleColor();
+        ShowHelpOnTitle(GLAPP_HELP_EXP_RENDR_CFG);
+        if(ImGui::Button(ICON_FA_FLOPPY_O " Export to CFG", ImVec2(w,0))) saveSettingsFile();
+        ImGui::NewLine();
+
+        ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+        ImGui::Text(" " ICON_FA_FOLDER_OPEN_O " Import render settings");
+        ImGui::SameLine();
+        ImGui::Text("  " ICON_FA_COMMENT_O);
+        ImGui::PopStyleColor();
+        ShowHelpOnTitle(GLAPP_HELP_IMP_RENDR_CFG);
+        ImGui::TextDisabled("Select particles type");
+
+        ImGui::Checkbox("PointSprite", &psSettings);  ImGui::SameLine(wH);
+        ImGui::Checkbox("Billboard", &bbSettings);
+
+        ImGui::TextDisabled("Select data groups");
+
+        ImGui::Checkbox("Rendering", &rendering);  ImGui::SameLine(wH);
+        ImGui::Checkbox("Colors", &color);
+        ImGui::Checkbox("Light", &light);  ImGui::SameLine(wH);
+        ImGui::Checkbox("Glow", &glow);
+        ImGui::Checkbox("Shadow", &shadow);  ImGui::SameLine(wH);
+        ImGui::Checkbox("AO", &ao);
+        ImGui::Checkbox("FXAA", &fxaa);  ImGui::SameLine(wH);
+        ImGui::Checkbox("Adjust", &adjust);
+
+        ImGui::Checkbox("View/Model settings", &viewSettings);
+        if(attractorsList.get()->dtType()) 
+            ImGui::Checkbox("SlowMotion/CockPit (if available)", &adjust);
+        if(ImGui::Button(ICON_FA_FOLDER_OPEN_O " Import from CFG/SCA", ImVec2(w,0))) loadSettingsFile(true);
+/*
+    bool psSettings = true, bbSettings = true;
+    bool particles = true, palette = true, lightModel = true;
+    bool shadow = true, ao = true, adjoust = true;
+    bool glow = true, fxaa = true;
+*/
 
     }
     ImGui::End();
@@ -1951,10 +1965,10 @@ void cockpitDlgClass::view()
 
     if(!isVisible) return;
 
-    const int posH = 0;
-    const int szH = 365+7*ImGui::GetFrameHeightWithSpacing();
-    const int posW = 190;
-    const int szW = 300;
+    const int posH = 225;
+    const int szH = 400+7*ImGui::GetFrameHeightWithSpacing();
+    const int posW = 0;
+    const int szW = 250;
 
     ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-szW-posW,posH ), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(szW, szH), ImGuiCond_FirstUseEver);
@@ -2005,8 +2019,12 @@ void cockpitDlgClass::view()
 */
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
         {
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextDisabled("FixedView dots/s "); ImGui::SameLine();
+            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
             int DpS = attractorsList.getSlowMotionDpS();
-            if(ImGui::DragInt("##DpS__", &DpS, 1.0f, 0, INT32_MAX, "emit dots/s %d")) attractorsList.setSlowMotionDpS(DpS);
+            if(ImGui::DragInt("##DpS__", &DpS, 1.0f, 0, INT32_MAX, "%d")) attractorsList.setSlowMotionDpS(DpS);
+            ImGui::PopItemWidth();
         }
         ImGui::PopItemWidth();
         {
@@ -2037,12 +2055,12 @@ void cockpitDlgClass::view()
                 ImGui::SameLine();
                 {
                     float f = cPit.getInitialSpeed();
-                    if(ImGui::DragFloat("##Init speed", &f, .01f, .01f, FLT_MAX, "%.2f")) cPit.setInitialSpeed(f);
+                    if(ImGui::DragFloat("##InitSpeed", &f, .01f, .0f, FLT_MAX, "%.2f")) cPit.setInitialSpeed(f);
                 }
                 ImGui::SameLine();
                 {
                     float f = cPit.getAirFriction();
-                    if(ImGui::DragFloat("##airFriction", &f, .01f, .01f, FLT_MAX, "%.2f")) cPit.setAirFriction(f);
+                    if(ImGui::DragFloat("##airFriction", &f, .01f, .0f, FLT_MAX, "%.2f")) cPit.setAirFriction(f);
                 }
                 ImGui::PopItemWidth();
 
@@ -2077,7 +2095,6 @@ void cockpitDlgClass::view()
                 ImGui::PopStyleVar();
             }
         }
-        ImGui::NewLine();
         bool cP = attractorsList.getCockpit().cockPit();
         if(colCheckButton(cP , cP ? " CockPit "  ICON_FA_CHECK_SQUARE_O " " : " CockPit " ICON_FA_SQUARE_O " ",ImGui::GetContentRegionAvail().x)) attractorsList.getCockpit().cockPit(cP^1);
 
@@ -2085,7 +2102,11 @@ void cockpitDlgClass::view()
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
             {
                 int DpS = cPit.getSlowMotionDpS();
-                if(ImGui::DragInt("##DpSCP", &DpS, 1.0f, 0, INT32_MAX, "CockPit dots/s %d")) cPit.setSlowMotionDpS(DpS);
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextDisabled("CockPit dots/s "); ImGui::SameLine();
+                ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+                if(ImGui::DragInt("##DpSCP", &DpS, 1.0f, 0, INT32_MAX, "%d")) cPit.setSlowMotionDpS(DpS);
+                ImGui::PopItemWidth();
             }
 
             {
@@ -2825,7 +2846,7 @@ void mainImGuiDlgClass::view()
     ImGuiStyle& style = ImGui::GetStyle();
 
     const float wndSizeX = fontSize * fontZoom * 12.f; // 26 char * .5 (fontsize/2);
-    const int posH = 225;
+    const int posH = 0;
 #if !defined(GLCHAOSP_LIGHTVER)
     const int numItems = 9;
 #else
@@ -2834,7 +2855,7 @@ void mainImGuiDlgClass::view()
 
 
     ImGui::SetNextWindowSize(ImVec2(wndSizeX, ImGui::GetFrameHeightWithSpacing()*numItems), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-wndSizeX, posH), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-190-wndSizeX, posH), ImGuiCond_FirstUseEver);
 
 
     if(ImGui::Begin(getTitle(),  NULL ,ImGuiWindowFlags_NoResize)) {

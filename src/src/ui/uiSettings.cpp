@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -865,14 +865,7 @@ void setGUIStyle()
 
     theDlg.iconFont = io.Fonts->AddFontFromFileTTF( "Fonts/fontawesome-webfont.ttf", theDlg.getFontSize()+1, &icons_config, icons_ranges );
 
-#ifdef GLCHAOSP_USE_MARKDOWN
-    theDlg.mdConfig.headingFormats[ 0 ].font = io.Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", theDlg.getFontSize() * 2.0);
-    theDlg.mdConfig.headingFormats[ 1 ].font = io.Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", theDlg.getFontSize() * 1.5);
-    theDlg.mdConfig.headingFormats[ 2 ].font = io.Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", theDlg.getFontSize() * 1.2);
-#endif
     //theDlg.testFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", theDlg.getFontSize(), &theDlg.fontCFG);
-
-
 }
 
 

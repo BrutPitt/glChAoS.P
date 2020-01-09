@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -330,7 +330,7 @@ private:
     GLuint noiseTexture;
     const int kernelSize = 64;
 #if !defined(GLAPP_REQUIRE_OGL45)
-    GLuint locNoiseTexture, locPrevData, locKernelTexture;
+    GLuint locNoiseTexture, locPrevData, locKernelTexture, locZTex;
     GLuint bindIDX;
 #endif
     friend particlesBaseClass;
@@ -366,9 +366,10 @@ private:
     renderBaseClass *renderEngine;
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locSubLightModel;
-    GLuint locAOTex, locPrevData, locShadowTex;
+    GLuint locAOTex, locPrevData, locShadowTex, locTexBaseColor, locZTex;
     GLuint idxSubLightModel[3];
 #endif
+    friend particlesBaseClass;
 };
 
 //
@@ -396,6 +397,7 @@ public:
     renderBaseClass();
 
     void create();
+    void buildFBO();
     void resizeShadow(int w, int h) {}
 
     enum { noShowAxes, showAxesToViewCoR, showAxesToSetCoR };
@@ -477,6 +479,7 @@ protected:
     bool flagUpdate;
 
     mmFBO renderFBO;
+    mmFBO drawFBO;
 //        , msaaFBO;
 
     transformsClass tMat;
@@ -506,9 +509,9 @@ public:
     radialBlurClass(renderBaseClass *ptrRE) {
         renderEngine = ptrRE;
 #if !defined(GLCHAOSP_LIGHTVER)
-        glowFBO.buildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false);
+        glowFBO.buildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());
 #else
-        glowFBO.buildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), false);
+        glowFBO.buildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());
 #endif
         //BlurBaseClass::create();
     }
@@ -544,7 +547,7 @@ class fxaaClass : public mainProgramObj
 public:
     fxaaClass(renderBaseClass *ptrRE) { 
         renderEngine = ptrRE;
-        fbo.declareFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0);
+        fbo.declareFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());
         create();
     }
 
@@ -585,7 +588,7 @@ public:
     float getMinMax() { return minMax; }
 
 private:
-    void on()  { fbo.reBuildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0); }
+    void on()  { fbo.reBuildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision()); }
     void off() { fbo.deleteFBO(); }
 
     renderBaseClass *renderEngine;
@@ -616,7 +619,7 @@ public:
         blurIntensity = .5;
         isActive = false;
         
-        mBlurFBO.declareFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0);        
+        mBlurFBO.declareFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());        
         create();
     }
 
@@ -638,7 +641,7 @@ public:
     void Active(bool b) { 
         if(b==isActive) return;
         if(b) {
-            mBlurFBO.reBuildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0);            
+            mBlurFBO.reBuildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());            
         } else {
             mBlurFBO.deleteFBO();
         }
@@ -679,7 +682,7 @@ public:
     mergedRenderingClass(renderBaseClass *ptrRE) { 
         renderEngine = ptrRE;
         mixingVal=0.0;
-        mergedFBO.declareFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0); 
+        mergedFBO.declareFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision()); 
         create();
     }
 
@@ -687,12 +690,12 @@ public:
     void create();
 
     void Activate()   { 
-        renderEngine->getRenderFBO().reBuildFBO(2,renderEngine->getWidth(),renderEngine->getHeight(), GL_RGBA32F, 0);
-        mergedFBO.reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision(), 0); 
+        renderEngine->getRenderFBO().reBuildFBO(2,renderEngine->getWidth(),renderEngine->getHeight(), GL_RGBA32F);
+        mergedFBO.reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision()); 
         renderEngine->setFlagUpdate();
     }
     void Deactivate() { 
-        renderEngine->getRenderFBO().reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), GL_RGBA32F, 0);
+        renderEngine->getRenderFBO().reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), GL_RGBA32F);
         mergedFBO.deleteFBO(); 
         renderEngine->setFlagUpdate();
     }
@@ -751,7 +754,7 @@ public:
         flagUpdate = true;
 
         //cmTex.buildMultiDrawFBO(1,256,1);
-        cmTex.buildFBO(1,256,1, theApp->getFBOInternalPrecision(), false);        
+        cmTex.buildFBO(1,256,1, theApp->getFBOInternalPrecision());        
     }
 
     void create();
@@ -896,7 +899,6 @@ public:
     enum subsLoc { lightModel, pixelColor };
 
     particlesBaseClass ()  { 
-        
         glowRender = new radialBlurClass(this);
 
         colorMap = new ColorMapSettingsClass(this);
@@ -906,13 +908,8 @@ public:
         dotTex.build(DOT_TEXT_SHFT, vec4(.7f, 0.f, .3f, 0.f), dotsTextureClass::dotsAlpha);
         selectColorMap(0);
 
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-        renderBaseClass::create();
-#endif
-
         glowRender->create();
         colorMap->create();
-
     }
 
     ~particlesBaseClass ()  {  delete glowRender; delete colorMap;
@@ -966,7 +963,7 @@ public:
 
     uParticlesData &getUData() { return uData; }
 
-    virtual GLuint render(GLuint fbOut, emitterBaseClass *em);
+    virtual GLuint render(GLuint fbOut, emitterBaseClass *em, bool eraseBkg = true, int fbIn = -1);
 
     GLuint getDstBlend() { return dstBlendAttrib; }
     GLuint getSrcBlend() { return srcBlendAttrib; }
@@ -1141,9 +1138,6 @@ protected:
 
 
 private:
-    void clearScreenBuffers();
-    void restoreGLstate();
-
 
 
 friend class particlesDlgClass;

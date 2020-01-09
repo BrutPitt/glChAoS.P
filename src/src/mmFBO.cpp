@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -17,28 +17,6 @@
 #include "mmFBO.h"
 
 
-
-#define POSITION 0
-#define TEXCOORD 4
-
-
-ivec2 mmFBO::m_winSize = ivec2(0,0);
-vec2 mmFBO::m_winAspect = vec2(0.f,0.f);
-vec2 mmFBO::m_winInvSize = vec2(0.f,0.f);
-float mmFBO::m_reduction = 1.f;
-
-
-GLuint mmFBO::vboVertexBufferID = 0;
-GLuint mmFBO::vboTexBufferID = 0;
-GLuint mmFBO::vbaID = 0;
-
-
-typedef struct { 
-  vec2 vtxCoor;  
-  vec2 texCoor;  
-} Vertex;  
-
-
 void mmFBO::resetData()
 {
     m_NumFB = 0;
@@ -48,16 +26,6 @@ void mmFBO::resetData()
     m_sizeX = m_sizeY = 0;
     multiDrawFB = m_depth = m_rb = m_fb = m_tex = nullptr;
     numMultiDraw = 0;
-}
-
-
-void mmFBO::onReshape(int w, int h)
-{
-    mmFBO::m_winSize = ivec2(w,h); 
-
-    mmFBO::m_winInvSize = vec2(1.0/(float)w,1.0/(float)h) / mmFBO::m_reduction;
-
-    mmFBO::m_winAspect = (w<h) ? vec2(1.0,(float)h/(float)w) : vec2((float)w/(float)h, 1.0);
 }
 
 void mmFBO::deleteFBO()
@@ -79,15 +47,15 @@ void mmFBO::deleteFBO()
     resetData();
 }
 
-void mmFBO::reBuildFBO(int num, int sizeX, int sizeY, GLenum precision, int AA)
+void mmFBO::reBuildFBO(int num, int sizeX, int sizeY, GLenum intFormat, GLuint format, int AA)
 {
     bool tmpHaveRB = haveRB, tmpIsBuiltIn = isBuiltIn;
     int tmpNumMultiDraw = numMultiDraw;
     secondaryBufferType tmpBufferType = dsBufferType;
 
     deleteFBO();
-    if(haveColors) buildFBO(num, sizeX, sizeY, precision, AA);
-    else           buildOnlyFBO(num, sizeX, sizeY, precision);
+    if(haveColors) buildFBO(num, sizeX, sizeY, intFormat, format, AA);
+    else           buildOnlyFBO(num, sizeX, sizeY, intFormat);
     if(tmpHaveRB) attachSecondaryBuffer(tmpIsBuiltIn, tmpBufferType);
     if(tmpNumMultiDraw) attachMultiFB(tmpNumMultiDraw); 
 }
@@ -100,12 +68,13 @@ void mmFBO::reSizeFBO(int sizeX, int sizeY)
     bool tmpHaveRB = haveRB, tmpIsBuiltIn = isBuiltIn;
     int tmpNumMultiDraw = numMultiDraw;
     GLenum tmpPrecision = glPrecision;
+    GLuint tmpFormat = glFormat;
     int tmpAA = aaLevel;
     secondaryBufferType tmpBufferType = dsBufferType;
     
 
     deleteFBO();
-    if(haveColors) buildFBO(tmpNumFB,sizeX,sizeY,tmpPrecision,tmpAA);
+    if(haveColors) buildFBO(tmpNumFB,sizeX,sizeY,tmpPrecision,tmpFormat,tmpAA);
     else           buildOnlyFBO(tmpNumFB,sizeX,sizeY,tmpPrecision);
     if(tmpHaveRB) attachSecondaryBuffer(tmpIsBuiltIn, tmpBufferType);
     if(tmpNumMultiDraw) attachMultiFB(tmpNumMultiDraw); 
@@ -218,7 +187,7 @@ void mmFBO::attachMultiFB(int num)
     glNamedFramebufferDrawBuffers(m_fb[0], num, drawBuffers);
 #else
     glBindFramebuffer(GL_FRAMEBUFFER, m_fb[0]);
-    glGenTextures(num, multiDrawFB);
+    glGenTextures(numMultiDraw, multiDrawFB);
     // Bind and allocate storage for it   
     for (int i = 0; i < numMultiDraw; i++) defineTexture(multiDrawFB[i], glPrecision);
     for (int i = 0; i < num; i++) {
@@ -292,9 +261,9 @@ void mmFBO::attachSecondaryBuffer(bool builtIN, secondaryBufferType bufferType, 
     }
 }
 
-void mmFBO::buildOnlyFBO(int num, int sizeX, int sizeY, GLenum precision)
+void mmFBO::buildOnlyFBO(int num, int sizeX, int sizeY, GLenum intFormat)
 {
-    glPrecision = precision;
+    glPrecision = intFormat;
     m_NumFB = num;
     m_sizeX = sizeX;
     m_sizeY = sizeY;
@@ -310,9 +279,10 @@ void mmFBO::buildOnlyFBO(int num, int sizeX, int sizeY, GLenum precision)
     isBuilded = true;
 }
 
-void mmFBO::declareFBO(int num, int sizeX, int sizeY, GLenum precision, int AA)
+void mmFBO::declareFBO(int num, int sizeX, int sizeY, GLenum intFormat, GLuint format, int AA)
 {
-    glPrecision = precision;
+    glPrecision = intFormat;
+    glFormat = format;
     m_NumFB = num;
     m_sizeX = sizeX;
     m_sizeY = sizeY;
@@ -320,10 +290,10 @@ void mmFBO::declareFBO(int num, int sizeX, int sizeY, GLenum precision, int AA)
     haveColors = true;
 
 }
-void mmFBO::buildFBO(int num, int sizeX, int sizeY, GLenum precision, int AA)
+void mmFBO::buildFBO(int num, int sizeX, int sizeY, GLenum intFormat, GLuint format, int AA)
 {
 
-    declareFBO(num,sizeX,sizeY,precision,AA);
+    declareFBO(num,sizeX,sizeY,intFormat,AA);
 
     m_fb    = new GLuint[num];
     m_tex   = new GLuint[num];

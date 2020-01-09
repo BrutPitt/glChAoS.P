@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -168,14 +168,18 @@ public:
         //glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,index,vbo);
         glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, vbo, 0, sz);
 #endif
+
     }
+    
     void endBindToFeedback(int index)
     {
+        // Need this in WebGL
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=853978
 #ifdef GLAPP_REQUIRE_OGL45
         glTransformFeedbackBufferBase(0,index,0);
 #else
         glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,index,0);
-        //glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, vbo, 0, sz);
+        //glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER,0);
 #endif
     }
 #endif
@@ -184,16 +188,15 @@ public:
         int bufferSize = numVtx * bytesPerVertex;
    
         glBindBuffer(GL_ARRAY_BUFFER,vbo);
-        //glBufferData(GL_ARRAY_BUFFER,bufferSize,&vtxBuffer[0],GL_STATIC_DRAW);        
         glBufferSubData(GL_ARRAY_BUFFER,0,bufferSize,vtxBuffer);
-        //glInvalidateBufferData(vbo);
-//        glBindBuffer(GL_ARRAY_BUFFER,0);
     }
     void drawRange(GLenum type, GLuint start, GLuint size, int startAttrib=5) 
     {
         glBindVertexArray(vao);
         glBindBuffer(type, vbo);
+
         glDrawArrays(primitive,start,size);
+
     }
 
 protected:

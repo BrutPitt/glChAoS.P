@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  mailto:me@michelemorrone.eu
@@ -27,6 +27,8 @@ EM_JS(int, screent_width, (), {
 EM_JS(int, screent_height, (), {
   return screen.height;
 });
+
+
 
 
 EM_JS(int, get_orientation, (), {
@@ -171,8 +173,8 @@ EM_BOOL emsMDeviceClass::touchStart(int eventType, const EmscriptenTouchEvent *e
 
     t.oldTouchX = t.touchX;
     t.oldTouchY = t.touchY;
-    t.touchX = e->touches[0].targetX; 
-    t.touchY = e->touches[0].targetY;
+    t.touchX = TOUCH(0,X);
+    t.touchY = TOUCH(0,Y);
 
     t.touched = true;
 
@@ -191,8 +193,8 @@ EM_BOOL emsMDeviceClass::touchStart(int eventType, const EmscriptenTouchEvent *e
     }
 
     if(e->numTouches==2) {
-        t.prevDist = distance(vec2(e->touches[0].targetX, e->touches[0].targetY),
-                                   vec2(e->touches[1].targetX, e->touches[1].targetY));
+        t.prevDist = distance(vec2(TOUCH(0,X), TOUCH(0,Y)),
+                              vec2(TOUCH(1,X), TOUCH(1,Y)));
             
         t.pinchStart = true;
         return true;
@@ -200,7 +202,7 @@ EM_BOOL emsMDeviceClass::touchStart(int eventType, const EmscriptenTouchEvent *e
 
     if(ImGui::GetIO().WantCaptureMouse) return true;
         
-    theWnd->onMouseButton(0, APP_MOUSE_BUTTON_DOWN, e->touches[0].targetX, e->touches[0].targetY); 
+    theWnd->onMouseButton(0, APP_MOUSE_BUTTON_DOWN, TOUCH(0,X), TOUCH(0,Y)); 
 
     return true;
 }
@@ -212,8 +214,8 @@ EM_BOOL emsMDeviceClass::touchEnd(int eventType, const EmscriptenTouchEvent *e, 
     t.dblTouch = false;
     t.actualTouchEvent = touchAct::tEnd;
 
-    t.touchX = e->touches[0].targetX; 
-    t.touchY = e->touches[0].targetY;
+    t.touchX = TOUCH(0,X); 
+    t.touchY = TOUCH(0,Y);
 
     if(e->numTouches!=2) t.pinchStart = false;
 
@@ -221,7 +223,7 @@ EM_BOOL emsMDeviceClass::touchEnd(int eventType, const EmscriptenTouchEvent *e, 
 
     if(ImGui::GetIO().WantCaptureMouse) return true;
         
-    theWnd->onMouseButton(0, APP_MOUSE_BUTTON_UP, e->touches[0].targetX, e->touches[0].targetY); 
+    theWnd->onMouseButton(0, APP_MOUSE_BUTTON_UP, TOUCH(0,X), TOUCH(0,Y)); 
     return true;
 }
 
@@ -231,8 +233,8 @@ EM_BOOL emsMDeviceClass::touchMove(int eventType, const EmscriptenTouchEvent *e,
 
     t.actualTouchEvent = touchAct::tMove;
     if(t.touched) {
-        t.touchX = e->touches[0].targetX; 
-        t.touchY = e->touches[0].targetY;
+        t.touchX = TOUCH(0,X); 
+        t.touchY = TOUCH(0,Y);
 
         if(t.dblTouch) {
             const float scl = .25;
@@ -248,11 +250,11 @@ EM_BOOL emsMDeviceClass::touchMove(int eventType, const EmscriptenTouchEvent *e,
             
         if(e->numTouches==1) {
             if(ImGui::GetIO().WantCaptureMouse) return true;
-            theWnd->onMotion(e->touches[0].targetX, e->touches[0].targetY);
+            theWnd->onMotion(TOUCH(0,X), TOUCH(0,Y));
         } else if(t.pinchStart && e->numTouches==2) { // pinch
 
-            float d = distance(vec2(e->touches[0].targetX, e->touches[0].targetY), 
-                                    vec2(e->touches[1].targetX, e->touches[1].targetY));
+            float d = distance(vec2(TOUCH(0,X), TOUCH(0,Y)), 
+                               vec2(TOUCH(1,X), TOUCH(1,Y)));
 
             vg::vGizmo3D &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
             if(abs(t.prevDist-d)>4) {

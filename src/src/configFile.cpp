@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -308,6 +308,9 @@ void saveSettings(Config &cfg, particlesSystemClass *pSys)
             c["cpitMovPosHead"  ] = cPit.getMovePositionHead();
             c["cpitMovPosTail"  ] = cPit.getMovePositionTail();
             c["cpitInvertView"  ] = cPit.invertView();
+            c["cpitPiPsize"     ] = cPit.getPIPzoom();
+            c["cpitPiPpos"      ] = cPit.getPIPposition();
+            c["cpitPiPinvert"   ] = cPit.invertPIP();
             {
                 vector<float> q(4); 
                 *((quat *)q.data())= cPit.getRotation();
@@ -423,7 +426,7 @@ template <class T> bool getVec_asArray(Config& c, const char *name, T &outV)
         return false;
 }
 
-void getRenderMode(Config &c, particlesBaseClass *ptr)
+void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSettings::ignoreNone)
 {
 
     auto getBlendIdx = [&] (GLuint blendCode) -> int
@@ -435,137 +438,156 @@ void getRenderMode(Config &c, particlesBaseClass *ptr)
     
 //Rendering
     vec4 v4;
-    ptr->backgroundColor(getVec_asArray(c, "backgroundColor", v4) ? v4 : vec4(0.f));
+    const bool checkSelectGroup = !bool(typeToIgnore & loadSettings::ignoreConfig);
 
-    ptr->setDstBlend(       c.get_or("dstBlendAttrib"  , ptr->getDstBlend()       ));
-    ptr->setSrcBlend(       c.get_or("srcBlendAttrib"  , ptr->getSrcBlend()       ));
-    ptr->setDepthState(     c.get_or("DepthState"      , ptr->getDepthState()     ));
-    ptr->setBlendState(     c.get_or("BlendState"      , ptr->getBlendState()     ));
-    ptr->setLightState(     c.get_or("LightState"      , ptr->getLightState()     ));
-    ptr->setSize(           c.get_or("pointSize"       , ptr->getSize()           ));
-    ptr->setPointSizeFactor(c.get_or("pointSizeFactor" , ptr->getPointSizeFactor())); 
-    ptr->setClippingDist(   c.get_or("clippingDist"    , ptr->getClippingDist()   ));
-    ptr->setAlphaKFactor(   c.get_or("alphaKFactor"    , ptr->getAlphaKFactor()   ));
-    ptr->setAlphaAtten(     c.get_or("alphaAttenFactor", ptr->getAlphaAtten()     ));
-    ptr->setAlphaSkip(      c.get_or("alphaSkip"       , ptr->getAlphaSkip()      ));
+    if(theDlg.getDataDlg().getRendering() || checkSelectGroup) {
+        ptr->backgroundColor(getVec_asArray(c, "backgroundColor", v4) ? v4 : vec4(0.f));
 
-
-    ptr->getDotTex().rebuild( c.get_or("dotsSize"        , DOT_TEXT_SHFT),
-                              getVec_asArray(c, "HermiteVals", v4) ? v4 : vec4(.7f, 0.f, .3f, 0.f),
-                              c.get_or("dotsType"        , 0));
-
-    ptr->useAO(                    c.get_or("AOenabled"   , false               ));
-    ptr->setAOStrong(              c.get_or("AOstrong"    , 0.0                 ));
-    ptr->setAOBias(                c.get_or("AObias"      , .02                 ));
-    ptr->setAORadius(              c.get_or("AOradius"    , ptr->getAORadius()  ));
-    ptr->setAODarkness(            c.get_or("AOdarkness"  , .25                 ));
-    ptr->setAOMul(                 c.get_or("AOmul"       , 1.0                 ));
-    ptr->setAOModulate(            c.get_or("AOmodulate"  , 1.0                 ));
+        ptr->setDstBlend(       c.get_or("dstBlendAttrib"  , ptr->getDstBlend()       ));
+        ptr->setSrcBlend(       c.get_or("srcBlendAttrib"  , ptr->getSrcBlend()       ));
+        ptr->setDepthState(     c.get_or("DepthState"      , ptr->getDepthState()     ));
+        ptr->setBlendState(     c.get_or("BlendState"      , ptr->getBlendState()     ));
+        ptr->setLightState(     c.get_or("LightState"      , ptr->getLightState()     ));
+        ptr->setSize(           c.get_or("pointSize"       , ptr->getSize()           ));
+        ptr->setPointSizeFactor(c.get_or("pointSizeFactor" , ptr->getPointSizeFactor())); 
+        ptr->setClippingDist(   c.get_or("clippingDist"    , ptr->getClippingDist()   ));
+        ptr->setAlphaKFactor(   c.get_or("alphaKFactor"    , ptr->getAlphaKFactor()   ));
+        ptr->setAlphaAtten(     c.get_or("alphaAttenFactor", ptr->getAlphaAtten()     ));
+        ptr->setAlphaSkip(      c.get_or("alphaSkip"       , ptr->getAlphaSkip()      ));
 
 
-    ptr->postRenderingActive(             c.get_or("depthRender" , false));
-    //ptr->dpAdjConvex(                     c.get_or("dpAdjConvex" , 0.250));
-    //ptr->dpNormalTune(                    c.get_or("dpNormalTune", 0.025));
-    ptr->dpAdjConvex(                     c.get_or("dpAdjConvex2" , 1.00));
-    ptr->dpNormalTune(                    c.get_or("dpNormalTune2", 0.15));
+        ptr->getDotTex().rebuild( c.get_or("dotsSize"        , DOT_TEXT_SHFT),
+                                  getVec_asArray(c, "HermiteVals", v4) ? v4 : vec4(.7f, 0.f, .3f, 0.f),
+                                  c.get_or("dotsType"        , 0));
+        ptr->postRenderingActive(             c.get_or("depthRender" , false));
+        //ptr->dpAdjConvex(                     c.get_or("dpAdjConvex" , 0.250));
+        //ptr->dpNormalTune(                    c.get_or("dpNormalTune", 0.025));
+        ptr->dpAdjConvex(                     c.get_or("dpAdjConvex2" , 1.00));
+        ptr->dpNormalTune(                    c.get_or("dpNormalTune2", 0.15));
+
+        ptr->dstBlendIdx(getBlendIdx(ptr->getDstBlend()));
+        ptr->srcBlendIdx(getBlendIdx(ptr->getSrcBlend()));
+    }
+
+    if(theDlg.getDataDlg().getAO() || checkSelectGroup) {
+        ptr->useAO(                    c.get_or("AOenabled"   , false               ));
+        ptr->setAOStrong(              c.get_or("AOstrong"    , 0.0                 ));
+        ptr->setAOBias(                c.get_or("AObias"      , .02                 ));
+        ptr->setAORadius(              c.get_or("AOradius"    , ptr->getAORadius()  ));
+        ptr->setAODarkness(            c.get_or("AOdarkness"  , .25                 ));
+        ptr->setAOMul(                 c.get_or("AOmul"       , 1.0                 ));
+        ptr->setAOModulate(            c.get_or("AOmodulate"  , 1.0                 ));
+    }
 
 
-    ptr->useShadow(            c.get_or("ShadowEnabled"      , false ));
-    ptr->setShadowBias(        c.get_or("ShadowBias"         , 0.0   ));
-    ptr->setShadowDarkness(    c.get_or("ShadowDarkness"     , 0.0   ));
-    ptr->setShadowRadius(      c.get_or("ShadowRadius"       , 2.0   ));
-    ptr->setShadowGranularity( c.get_or("ShadowGranularity"  , 1.0   ));
-    ptr->autoLightDist(        c.get_or("ShadowAutoLightDist", true  ));
 
+    if(theDlg.getDataDlg().getShadow() || checkSelectGroup) {
+        ptr->useShadow(            c.get_or("ShadowEnabled"      , false ));
+        ptr->setShadowBias(        c.get_or("ShadowBias"         , 0.0   ));
+        ptr->setShadowDarkness(    c.get_or("ShadowDarkness"     , 0.0   ));
+        ptr->setShadowRadius(      c.get_or("ShadowRadius"       , 2.0   ));
+        ptr->setShadowGranularity( c.get_or("ShadowGranularity"  , 1.0   ));
+        ptr->autoLightDist(        c.get_or("ShadowAutoLightDist", true  ));
+    }
 
-    ptr->dstBlendIdx(getBlendIdx(ptr->getDstBlend()));
-    ptr->srcBlendIdx(getBlendIdx(ptr->getSrcBlend()));
 
 //Colors
-    ptr->                 setColIntensity(c.get_or("ColorInt"  , 1.0));
-    ptr->getCMSettings()->setVelIntensity(c.get_or("ColorVel"  , ptr->getCMSettings()->getVelIntensity()));
-    ptr->getCMSettings()->setReverse(     c.get_or("PalInvert" , ptr->getCMSettings()->getReverse()     ));
-    ptr->getCMSettings()->setClamp(       c.get_or("PalClamp"  , ptr->getCMSettings()->getClamp()       ));
-    ptr->getCMSettings()->setOffsetPoint( c.get_or("PalOffset" , ptr->getCMSettings()->getOffsetPoint() ));
-    ptr->getCMSettings()->setRange(       c.get_or("PalRange"  , ptr->getCMSettings()->getRange()       ));
-    ptr->getCMSettings()->setH(           c.get_or("PalH"      , ptr->getCMSettings()->getH()           ));
-    ptr->getCMSettings()->setS(           c.get_or("PalS"      , ptr->getCMSettings()->getS()           ));
-    ptr->getCMSettings()->setL(           c.get_or("PalL"      , ptr->getCMSettings()->getL()           ));
-
-//light
-    ptr->getUData().lightShinExp  = c.get_or("lightShinExp"    , ptr->getUData().lightShinExp );
-    ptr->getUData().lightDiffInt  = c.get_or("lightDiffInt"    , ptr->getUData().lightDiffInt );
-    ptr->getUData().lightSpecInt  = c.get_or("lightSpecInt"    , ptr->getUData().lightSpecInt );
-    ptr->getUData().lightAmbInt   = c.get_or("lightAmbInt"     , ptr->getUData().lightAmbInt  );
-    ptr->getUData().sstepColorMin = c.get_or("lightStepMin"    , ptr->getUData().sstepColorMin);
-    ptr->getUData().sstepColorMax = c.get_or("lightStepMax"    , ptr->getUData().sstepColorMax);
-    ptr->getUData().lightModel    = c.get_or("lightModel"      , int(ptr->modelBlinnPhong-ptr->modelOffset));
-    ptr->getUData().ggxRoughness  = c.get_or("ggxRoughness"    , ptr->getUData().ggxRoughness);
-    ptr->getUData().ggxFresnel    = c.get_or("ggxFresnel"      , ptr->getUData().ggxFresnel);
+    if(theDlg.getDataDlg().getColor() || checkSelectGroup) {
+        ptr->                 setColIntensity(c.get_or("ColorInt"  , 1.0));
+        ptr->getCMSettings()->setVelIntensity(c.get_or("ColorVel"  , ptr->getCMSettings()->getVelIntensity()));
+        ptr->getCMSettings()->setReverse(     c.get_or("PalInvert" , ptr->getCMSettings()->getReverse()     ));
+        ptr->getCMSettings()->setClamp(       c.get_or("PalClamp"  , ptr->getCMSettings()->getClamp()       ));
+        ptr->getCMSettings()->setOffsetPoint( c.get_or("PalOffset" , ptr->getCMSettings()->getOffsetPoint() ));
+        ptr->getCMSettings()->setRange(       c.get_or("PalRange"  , ptr->getCMSettings()->getRange()       ));
+        ptr->getCMSettings()->setH(           c.get_or("PalH"      , ptr->getCMSettings()->getH()           ));
+        ptr->getCMSettings()->setS(           c.get_or("PalS"      , ptr->getCMSettings()->getS()           ));
+        ptr->getCMSettings()->setL(           c.get_or("PalL"      , ptr->getCMSettings()->getL()           ));
+    }
 
     vec3 v3;
-    ptr->setLightDir( (getVec_asArray(c, "lightDir"  , v3) ? v3 : vec3(50.f, 15.f, 25.f)));
-    ptr->getUData().lightColor = (getVec_asArray(c, "lightColor", v3) ? v3 : vec3(1.f));
+//light
+    if(theDlg.getDataDlg().getLight() || checkSelectGroup) {
+        ptr->getUData().lightShinExp  = c.get_or("lightShinExp"    , ptr->getUData().lightShinExp );
+        ptr->getUData().lightDiffInt  = c.get_or("lightDiffInt"    , ptr->getUData().lightDiffInt );
+        ptr->getUData().lightSpecInt  = c.get_or("lightSpecInt"    , ptr->getUData().lightSpecInt );
+        ptr->getUData().lightAmbInt   = c.get_or("lightAmbInt"     , ptr->getUData().lightAmbInt  );
+        ptr->getUData().sstepColorMin = c.get_or("lightStepMin"    , ptr->getUData().sstepColorMin);
+        ptr->getUData().sstepColorMax = c.get_or("lightStepMax"    , ptr->getUData().sstepColorMax);
+        ptr->getUData().lightModel    = c.get_or("lightModel"      , int(ptr->modelBlinnPhong-ptr->modelOffset));
+        ptr->getUData().ggxRoughness  = c.get_or("ggxRoughness"    , ptr->getUData().ggxRoughness);
+        ptr->getUData().ggxFresnel    = c.get_or("ggxFresnel"      , ptr->getUData().ggxFresnel);
+
+        ptr->setLightDir( (getVec_asArray(c, "lightDir"  , v3) ? v3 : vec3(50.f, 15.f, 25.f)));
+        ptr->getUData().lightColor = (getVec_asArray(c, "lightColor", v3) ? v3 : vec3(1.f));
+    }
 
 //glow    
     radialBlurClass *glow = ptr->getGlowRender();
-    if(c.has_key("glowOn")) { //last version
-        glow->setGlowOn(c.get_or("glowOn"  , glow->isGlowOn() ));
-        glow->setGlowState( c.get_or("glowSelect"  , glow->getGlowState() ));
-    } else {
-        if(c.has_key("glowState")) { //first version
-            glow->setGlowOn(c.get_or("glowState",false));
-            glow->setGlowState(glow->glowType_Blur);
-        } else {                  //second version
-            int gSel = c.get_or("glowSelect" , glow->getGlowState() );
-            glow->setGlowOn(gSel>0);
-            glow->setGlowState( gSel>0 ? gSel : glow->glowType_Threshold);            
+    if(theDlg.getDataDlg().getGlow() || checkSelectGroup) {
+        if(c.has_key("glowOn")) { //last version
+            glow->setGlowOn(c.get_or("glowOn"  , glow->isGlowOn() ));
+            glow->setGlowState( c.get_or("glowSelect"  , glow->getGlowState() ));
+        } else {
+            if(c.has_key("glowState")) { //first version
+                glow->setGlowOn(c.get_or("glowState",false));
+                glow->setGlowState(glow->glowType_Blur);
+            } else {                  //second version
+                int gSel = c.get_or("glowSelect" , glow->getGlowState() );
+                glow->setGlowOn(gSel>0);
+                glow->setGlowState( gSel>0 ? gSel : glow->glowType_Threshold);            
+            }
         }
-    }
-    if(theApp->startWithGlowOFF()) glow->setGlowOn(false);    
+        if(theApp->startWithGlowOFF()) glow->setGlowOn(false);    
 #ifdef GLCHAOSP_LIGHTVER
-    if(glow->isGlowOn()) glow->setGlowState(glow->glowType_Bilateral);
+        if(glow->isGlowOn()) glow->setGlowState(glow->glowType_Bilateral);
 #endif
 
-    glow->setSigma(     c.get_or("sigma"       , glow->getSigma()     ));
-    glow->setSigmaRadX( c.get_or("sigmaRadX"   , glow->getSigmaRadX() ));
-    glow->setMixTexture(c.get_or("mixTexture"  , glow->getMixTexture()));
-    glow->setThreshold(c.get_or("glowThreshold", glow->getThreshold()));
+        glow->setSigma(     c.get_or("sigma"       , glow->getSigma()     ));
+        glow->setSigmaRadX( c.get_or("sigmaRadX"   , glow->getSigmaRadX() ));
+        glow->setMixTexture(c.get_or("mixTexture"  , glow->getMixTexture()));
+        glow->setThreshold(c.get_or("glowThreshold", glow->getThreshold()));
 
-    glow->getImgTuning()->setTextComponent(c.get_or("renderInt", glow->getImgTuning()->getTextComponent()));
-    glow->getImgTuning()->setBlurComponent(c.get_or("blurInt"  , glow->getImgTuning()->getBlurComponent()));
-    glow->getImgTuning()->setBlatComponent(c.get_or("bilatInt" , glow->getImgTuning()->getBlatComponent()));
-    glow->getImgTuning()->setMixBilateral (c.get_or("bilatMix" , glow->getImgTuning()->getMixBilateral() ));
+        glow->getImgTuning()->setTextComponent(c.get_or("renderInt", glow->getImgTuning()->getTextComponent()));
+        glow->getImgTuning()->setBlurComponent(c.get_or("blurInt"  , glow->getImgTuning()->getBlurComponent()));
+        glow->getImgTuning()->setBlatComponent(c.get_or("bilatInt" , glow->getImgTuning()->getBlatComponent()));
+        glow->getImgTuning()->setMixBilateral (c.get_or("bilatMix" , glow->getImgTuning()->getMixBilateral() ));
+    }
+
 #if !defined(GLCHAOSP_NO_FXAA)
 //FXAA
-    fxaaClass *fxaa = ptr->getFXAA();
-    fxaa->activate(    c.get_or("fxaaOn"       , fxaa->isOn()));
-    fxaa->setThreshold(c.get_or("fxaaThreshold", fxaa->getThreshold()));
-    fxaa->setReductMul(c.get_or("ReductMul"    , fxaa->getReductMul()));
-    fxaa->setReductMin(c.get_or("ReductMin"    , fxaa->getReductMin()));
-    fxaa->setSpan     (c.get_or("Span"         , fxaa->getSpan     ()));
-    if(fxaa->getSpan()     >fxaa->getSpanMax()) fxaa->setSpan(     fxaa->getSpanMax());
-    if(fxaa->getReductMul()>fxaa->getMulMax() ) fxaa->setReductMul(fxaa->getMulMax() );
-    if(fxaa->getReductMin()>fxaa->getMinMax() ) fxaa->setReductMin(fxaa->getMinMax() );
+    if(theDlg.getDataDlg().getGlow() || checkSelectGroup) {
+        fxaaClass *fxaa = ptr->getFXAA();
+        fxaa->activate(    c.get_or("fxaaOn"       , fxaa->isOn()));
+        fxaa->setThreshold(c.get_or("fxaaThreshold", fxaa->getThreshold()));
+        fxaa->setReductMul(c.get_or("ReductMul"    , fxaa->getReductMul()));
+        fxaa->setReductMin(c.get_or("ReductMin"    , fxaa->getReductMin()));
+        fxaa->setSpan     (c.get_or("Span"         , fxaa->getSpan     ()));
+        if(fxaa->getSpan()     >fxaa->getSpanMax()) fxaa->setSpan(     fxaa->getSpanMax());
+        if(fxaa->getReductMul()>fxaa->getMulMax() ) fxaa->setReductMul(fxaa->getMulMax() );
+        if(fxaa->getReductMin()>fxaa->getMinMax() ) fxaa->setReductMin(fxaa->getMinMax() );
+    }
 #endif
 
-//DisplayAdjoust
-    glow->getImgTuning()->setGamma(    c.get_or("Gamma"     , glow->getImgTuning()->getGamma()    ));
-    glow->getImgTuning()->setBright(   c.get_or("Bright"    , glow->getImgTuning()->getBright()   ));
-    glow->getImgTuning()->setContrast( c.get_or("Contrast"  , glow->getImgTuning()->getContrast() ));
-    glow->getImgTuning()->setExposure( c.get_or("Exposure"  , glow->getImgTuning()->getExposure() ));
-    glow->getImgTuning()->setToneMap(  c.get_or("ToneMap"   , glow->getImgTuning()->getToneMap()  ));
-    glow->getImgTuning()->setToneMap_A(c.get_or("ToneMapVal", glow->getImgTuning()->getToneMap_A()));
-    glow->getImgTuning()->setToneMap_G(c.get_or("ToneMapExp", glow->getImgTuning()->getToneMap_G()));
+//DisplayAdjust
+    if(theDlg.getDataDlg().getAdjust() || checkSelectGroup) {
+        glow->getImgTuning()->setGamma(    c.get_or("Gamma"     , glow->getImgTuning()->getGamma()    ));
+        glow->getImgTuning()->setBright(   c.get_or("Bright"    , glow->getImgTuning()->getBright()   ));
+        glow->getImgTuning()->setContrast( c.get_or("Contrast"  , glow->getImgTuning()->getContrast() ));
+        glow->getImgTuning()->setExposure( c.get_or("Exposure"  , glow->getImgTuning()->getExposure() ));
+        glow->getImgTuning()->setToneMap(  c.get_or("ToneMap"   , glow->getImgTuning()->getToneMap()  ));
+        glow->getImgTuning()->setToneMap_A(c.get_or("ToneMapVal", glow->getImgTuning()->getToneMap_A()));
+        glow->getImgTuning()->setToneMap_G(c.get_or("ToneMapExp", glow->getImgTuning()->getToneMap_G()));
+    }
 
-
-    loadPalette(c, ptr);
+    if(theDlg.getDataDlg().getColor() || checkSelectGroup) loadPalette(c, ptr);
 }
 
 void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = loadSettings::ignoreNone) 
 {
 
     vec3 v3;
+    const bool checkSelectGroup = !bool(typeToIgnore & loadSettings::ignoreConfig);
+
     {
         auto& c = cfg["Render"];
 
@@ -577,7 +599,7 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
         pSys->getMergedRendering()->setMixingVal( c.get_or("mixingVal"    , pSys->getMergedRendering()->getMixingVal() ));
 #endif
 
-        if(typeToIgnore != loadSettings::ignoreCircBuffer) {
+        if(!(typeToIgnore & loadSettings::ignoreCircBuffer)) {
             pSys->getEmitter()->setSizeCircularBuffer(c.get_or("circBuff"     , pSys->getEmitter()->getSizeCircularBuffer()));
 #ifdef GLCHAOSP_LIGHTVER
             //pSys->getEmitter()->setSizeCircularBuffer(pSys->getEmitter()->getSizeCircularBuffer()>>1);
@@ -594,41 +616,46 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
         }
 
 
-        if(getVec_asArray(c, "camPOV"        , v3)) pSys->getTMat()->setPOV(v3);
-        if(getVec_asArray(c, "camTGT"        , v3)) pSys->getTMat()->setTGT(v3);
-        if(getVec_asArray(c, "camPerspective", v3)) pSys->getTMat()->setPerspective(v3.x, v3.y, v3.z < pSys->getTMat()->getPOV().z*3 ? pSys->getTMat()->getPOV().z*3 : v3.z);
-        if(getVec_asArray(c, "camDolly"      , v3)) pSys->getTMat()->getTrackball().setDollyPosition(v3);
-        if(getVec_asArray(c, "camPan"        , v3)) pSys->getTMat()->getTrackball().setPanPosition(v3);
-        if(getVec_asArray(c, "camRotCent"    , v3)) pSys->getTMat()->getTrackball().setRotationCenter(v3);
+        if(theDlg.getDataDlg().getViewSettings() || checkSelectGroup) {
+            if(getVec_asArray(c, "camPOV"        , v3)) pSys->getTMat()->setPOV(v3);
+            if(getVec_asArray(c, "camTGT"        , v3)) pSys->getTMat()->setTGT(v3);
+            if(getVec_asArray(c, "camPerspective", v3)) pSys->getTMat()->setPerspective(v3.x, v3.y, v3.z < pSys->getTMat()->getPOV().z*3 ? pSys->getTMat()->getPOV().z*3 : v3.z);
+            if(getVec_asArray(c, "camDolly"      , v3)) pSys->getTMat()->getTrackball().setDollyPosition(v3);
+            if(getVec_asArray(c, "camPan"        , v3)) pSys->getTMat()->getTrackball().setPanPosition(v3);
+            if(getVec_asArray(c, "camRotCent"    , v3)) pSys->getTMat()->getTrackball().setRotationCenter(v3);
 
-        if(c.has_key("camRot")) {
-            vector<float> v;
-            for (const Config& e : c["camRot"].as_array()) v.push_back(e.as_float());
-            pSys->getTMat()->getTrackball().setRotation(*((quat *)v.data()));
+            if(c.has_key("camRot")) {
+                vector<float> v;
+                for (const Config& e : c["camRot"].as_array()) v.push_back(e.as_float());
+                pSys->getTMat()->getTrackball().setRotation(*((quat *)v.data()));
+            }
         }
 
-        if(attractorsList.get()->dtType()) {
-                vec4 v4; quat q;
-                cockpitClass &cPit = attractorsList.getCockpit();
-                attractorsList.slowMotion(      c.get_or("slowMotionOn"     , false   ));
-                attractorsList.setSlowMotionDpS(c.get_or("emitDotsSec"      , attractorsList.getSlowMotionDpS()            ));
-                cPit.setTransformedEmission(    c.get_or("emitGenPoints"    , cPit.getTransformedEmission() ));
-                cPit.setInitialSpeed(           c.get_or("emitInitVel"      , cPit.getInitialSpeed()        ));
-                cPit.setAirFriction(            c.get_or("emitAirFriction"  , cPit.getAirFriction()         ));
-                cPit.setLifeTime(               c.get_or("emitLifeTime"     , cPit.getLifeTime()                           ));
-                cPit.setLifeTimeAtten(          c.get_or("emitLifeTimeAtten", cPit.getLifeTimeAtten()                      ));
-                if(getVec_asArray(c, "emitWind"        , v4)) cPit.getUdata().wind = v4;
-                if(getVec_asArray(c, "emitGravity"     , v4)) cPit.getUdata().gravity = v4;
-                cPit.cockPit(            c.get_or("cpitOn"        , false)); 
-                cPit.setSlowMotionDpS(   c.get_or("cpitDotsSec"   , cPit.getSlowMotionDpS()   ));
-                cPit.setPointSize(       c.get_or("cpitPointSize" , cPit.getPointSize()       )); 
-                cPit.setSmoothDistance(  c.get_or("cpitSmoothDist", cPit.getSmoothDistance()  )); 
-                cPit.setPerspAngle(      c.get_or("cpitFOVangle"  , cPit.getPerspAngle()      )); 
-                cPit.setTailPosition(    c.get_or("cpitTailPos"   , cPit.getTailPosition()    )); 
-                cPit.setMovePositionHead(c.get_or("cpitMovPosHead", cPit.getMovePositionHead())); 
-                cPit.setMovePositionTail(c.get_or("cpitMovPosTail", cPit.getMovePositionTail())); 
-                cPit.invertView(         c.get_or("cpitInvertView", cPit.invertView()         )); 
-                if(getVec_asArray(c, "cpitRotation"     , q)) cPit.setRotation(q);
+        if(attractorsList.get()->dtType() && theDlg.getDataDlg().getSlowMotion() || checkSelectGroup) {
+            vec4 v4; quat q;
+            cockpitClass &cPit = attractorsList.getCockpit();
+            attractorsList.slowMotion(      c.get_or("slowMotionOn"     , false   ));
+            attractorsList.setSlowMotionDpS(c.get_or("emitDotsSec"      , attractorsList.getSlowMotionDpS()            ));
+            cPit.setTransformedEmission(    c.get_or("emitGenPoints"    , cPit.getTransformedEmission() ));
+            cPit.setInitialSpeed(           c.get_or("emitInitVel"      , cPit.getInitialSpeed()        ));
+            cPit.setAirFriction(            c.get_or("emitAirFriction"  , cPit.getAirFriction()         ));
+            cPit.setLifeTime(               c.get_or("emitLifeTime"     , cPit.getLifeTime()                           ));
+            cPit.setLifeTimeAtten(          c.get_or("emitLifeTimeAtten", cPit.getLifeTimeAtten()                      ));
+            if(getVec_asArray(c, "emitWind"        , v4)) cPit.getUdata().wind = v4;
+            if(getVec_asArray(c, "emitGravity"     , v4)) cPit.getUdata().gravity = v4;
+            cPit.cockPit(            c.get_or("cpitOn"        , false)); 
+            cPit.setSlowMotionDpS(   c.get_or("cpitDotsSec"   , cPit.getSlowMotionDpS()   ));
+            cPit.setPointSize(       c.get_or("cpitPointSize" , cPit.getPointSize()       )); 
+            cPit.setSmoothDistance(  c.get_or("cpitSmoothDist", cPit.getSmoothDistance()  )); 
+            cPit.setPerspAngle(      c.get_or("cpitFOVangle"  , cPit.getPerspAngle()      )); 
+            cPit.setTailPosition(    c.get_or("cpitTailPos"   , cPit.getTailPosition()    )); 
+            cPit.setMovePositionHead(c.get_or("cpitMovPosHead", cPit.getMovePositionHead())); 
+            cPit.setMovePositionTail(c.get_or("cpitMovPosTail", cPit.getMovePositionTail())); 
+            cPit.invertView(         c.get_or("cpitInvertView", cPit.invertView()         )); 
+            cPit.setPIPzoom(         c.get_or("cpitPiPsize"   , cPit.getPIPzoom()         ));
+            cPit.setPIPposition(     c.get_or("cpitPiPpos"    , cPit.getPIPposition()     ));
+            cPit.invertPIP(          c.get_or("cpitPiPinvert" , cPit.invertPIP()          ));
+            if(getVec_asArray(c, "cpitRotation"     , q)) cPit.setRotation(q);
         }
     }
 
@@ -636,14 +663,14 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
 #if !defined(GLCHAOSP_LIGHTVER)
         auto &c0 = cfg["RenderMode0"];
         particlesBaseClass *ptr0 = pSys->shaderBillboardClass::getPtr();
-        getRenderMode(c0, ptr0);
+        if(theDlg.getDataDlg().getBBSettings() || checkSelectGroup) getRenderMode(c0, ptr0, typeToIgnore);
 
         auto &c1 = cfg["RenderMode1"];
 #else
         auto &c1 = cfg[(!theDlg.getInvertSettings())^(pSys->getRenderMode()==RENDER_USE_BILLBOARD) ? "RenderMode1" : "RenderMode0"];
 #endif
         particlesBaseClass *ptr1 = pSys->shaderPointClass::getPtr();
-        getRenderMode(c1,ptr1);
+        if(theDlg.getDataDlg().getPSSettings() || checkSelectGroup) getRenderMode(c1,ptr1, typeToIgnore);
     }
 
 
@@ -788,7 +815,7 @@ void saveSettingsFile()
     if(isOn) attractorsList.getThreadStep()->startThread();
 }
 
-void loadSettingsFile()  
+void loadSettingsFile(bool isImportConfig)  
 {
     bool isOn = theWnd->getParticlesSystem()->getEmitter()->isEmitterOn();
 
@@ -798,7 +825,7 @@ void loadSettingsFile()
     char const * fileName = theApp->openFile(theApp->getRenderCfgPath().c_str(), patterns, 2);
 
     if(fileName!=nullptr) 
-        theApp->loadSettings(fileName, loadSettings::ignoreCircBuffer);
+        theApp->loadSettings(fileName, loadSettings::ignoreCircBuffer | (isImportConfig ? loadSettings::ignoreConfig : 0));
 
     if(isOn) attractorsList.getThreadStep()->startThread();
 }

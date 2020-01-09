@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -94,14 +94,21 @@ class particlesSystemClass : public shaderPointClass
 #endif
 {
 public:
-    particlesSystemClass() { buildEmitter((enumEmitterEngine) theApp->getEmitterEngineType());}
+    particlesSystemClass() { 
+        buildEmitter((enumEmitterEngine) theApp->getEmitterEngineType());
+    }
 
     void buildEmitter(enumEmitterEngine ee) {
         emitter = ee == enumEmitterEngine::emitterEngine_staticParticles ? 
                         (emitterBaseClass*) new singleEmitterClass : 
                         (emitterBaseClass*) new transformedEmitterClass;
 
+#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
+        renderBaseClass::create();
+#endif
+
         emitter->buildEmitter(); // post build for WebGL texture ID outRange
+
     //start new thread (if aux thread enabled)
 #if !defined(GLCHAOSP_LIGHTVER)
     //lock aux thread until initialization is complete
@@ -136,7 +143,6 @@ public:
     void onReshape(int w, int h) {
         if(w==0 || h==0) return; //Is in iconic (GLFW do not intercept on Window)
         
-        mmFBO::onReshape(w,h);
 
         getTMat()->setPerspective(float(w)/float(h));
 
@@ -152,58 +158,66 @@ public:
         shaderBillboardClass::getGlowRender()->getFBO().reSizeFBO(w, h);
         shaderBillboardClass::getFXAA()->getFBO().reSizeFBO(w, h);
         getMotionBlur()->getFBO().reSizeFBO(w, h);
-        getMergedRendering()->getFBO().reSizeFBO(w, h);
+        getMergedRendering()->getFBO().reSizeFBO(w, h);        
 #endif
 
         //shaderPointClass::getGlowRender()->isToUpdate(true);
         setFlagUpdate();
     }
 
+    particlesBaseClass *getParticleRenderPtr() {
+#if !defined(GLCHAOSP_LIGHTVER)
+        return getRenderMode() == RENDER_USE_BILLBOARD ? 
+               (particlesBaseClass *) shaderBillboardClass::getPtr() : 
+               (particlesBaseClass *) shaderPointClass::getPtr();
+#else
+        return (particlesBaseClass *) shaderPointClass::getPtr();
+#endif
+    }
+
+    GLuint renderParticles(bool eraseBkg = true, GLint fbOut = -1) {
+#if !defined(GLCHAOSP_LIGHTVER)
+        if(showAxes()) {
+            getAxes()->getTransforms()->applyTransforms();
+            getAxes()->renderOnFB(getRenderFBO().getFB(0));
+            float zoomK = getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z;
+            getAxes()->setZoomFactor(vec3(vec2(zoomK/10.f), zoomK/7.f) * getTMat()->getPerspAngle()/30.f);
+        }            
+#endif
+        return getParticleRenderPtr()->render(0, getEmitter(), eraseBkg, fbOut);
+    }
+
+    GLuint renderGlowEffect(GLuint texRendered) {
+#if !defined(GLCHAOSP_LIGHTVER)
+        particlesBaseClass *particles = getParticleRenderPtr();                                       
+
+        const GLuint fbo = (getMotionBlur()->Active() || particles->getFXAA()->isOn()) ? particles->getGlowRender()->getFBO().getFB(1) : 0;
+        particles->getGlowRender()->render(texRendered, fbo); 
+        return particles->getGlowRender()->getFBO().getTex(1);  // used only if FXAA and/or Motionblur
+#else
+        shaderPointClass::getPtr()->getGlowRender()->render(texRendered, 0); 
+        return 0;
+#endif
+    }
+
+#if !defined(GLCHAOSP_NO_FXAA)
+    GLuint renderFXAA(GLuint texRendered) {
+        particlesBaseClass *particles = getParticleRenderPtr();                                       
+
+        return particles->getFXAA()->isOn() ? particles->getFXAA()->render(texRendered) : texRendered;
+    }
+#endif
+
     GLuint render() {
-
-        //
-
-        //getShader()->renderOfflineFeedback(attractorsList.get());
-
-
         GLuint texRendered;        
-
-        mat4 m;
-
-    //particlesSystem->getAxes()->getTransforms()->tM.mvMatrix = particlesSystem->getTMat()->tM.mvMatrix;
-
-            //shaderPointClass::render(getMSAAFBO().getFB(0), getEmitter());
-            //glBlitNamedFramebuffer(getMSAAFBO().getFB(0),
-            //                   getRenderFBO().getFB(0),
-            //                   0,0,getMSAAFBO().getSizeX(), getMSAAFBO().getSizeY(),
-            //                   0,0,getRenderFBO().getSizeX(), getRenderFBO().getSizeY(),
-            //                   GL_COLOR_BUFFER_BIT, GL_NEAREST );
-
 
         emitter->preRenderEvents();
 
 #if !defined(GLCHAOSP_LIGHTVER)
-        auto renderSelection = [&](particlesBaseClass *particles) {
-            getAxes()->getTransforms()->applyTransforms();
-            if(showAxes()) {
-                getAxes()->renderOnFB(getRenderFBO().getFB(0));
-                float zoomK = particles->getTMat()->getPOV().z - particles->getTMat()->getTrackball().getDollyPosition().z;
-                getAxes()->setZoomFactor(vec3(vec2(zoomK/10.f), zoomK/7.f) * particles->getTMat()->getPerspAngle()/30.f);
-            }            
-            texRendered = particles->render(0, getEmitter());
-
-            const GLuint fbo = (getMotionBlur()->Active() || particles->getFXAA()->isOn()) ? particles->getGlowRender()->getFBO().getFB(1) : 0;
-            particles->getGlowRender()->render(texRendered, fbo); 
-            texRendered = particles->getGlowRender()->getFBO().getTex(1);  // used only if Motionblur
-
-            if(particles->getFXAA()->isOn()) 
-                texRendered = particles->getFXAA()->render(texRendered);
-        };
-
-        if(getRenderMode() == RENDER_USE_POINTS) {
-            renderSelection(shaderPointClass::getPtr());
-        }  else if(getRenderMode() == RENDER_USE_BILLBOARD) {
-            renderSelection(shaderBillboardClass::getPtr());
+        if(getRenderMode() != RENDER_USE_BOTH) {
+            texRendered = renderParticles();
+            texRendered = renderGlowEffect(texRendered);
+            texRendered = renderFXAA(texRendered);
         } else {
             GLuint tex1 = shaderBillboardClass::render(0, getEmitter());
             shaderBillboardClass::getGlowRender()->render(tex1, shaderBillboardClass::getGlowRender()->getFBO().getFB(1));  
@@ -213,18 +227,13 @@ public:
             texRendered = getMergedRendering()->render(shaderBillboardClass::getGlowRender()->getFBO().getTex(1), shaderPointClass::getGlowRender()->getFBO().getTex(1));  // only if Motionblur
         }
 #else
-        particlesBaseClass *particles = shaderPointClass::getPtr();
-        texRendered = particles->render(0, getEmitter());
-        //particles->render(0, getEmitter());
-        const GLuint fbo = 0;
-        particles->getGlowRender()->render(texRendered, fbo); 
-
+        texRendered = renderParticles();
+        texRendered = renderGlowEffect(texRendered);
     #if !defined(GLCHAOSP_NO_FXAA)
-        if(particles->getFXAA()->isOn()) 
-            texRendered = particles->getFXAA()->render(texRendered);
+        if(shaderPointClass::getPtr()->getFXAA()->isOn()) 
+            texRendered = shaderPointClass::getPtr()->getFXAA()->render(texRendered);
     #endif
 #endif
-
         emitter->postRenderEvents();
         return texRendered;
 

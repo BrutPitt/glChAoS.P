@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-#  Copyright (c) 2018-2019 Michele Morrone
+#  Copyright (c) 2018-2020 Michele Morrone
 #  All rights reserved.
 #
 #  https://michelemorrone.eu - https://BrutPitt.com
@@ -143,7 +143,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 # BUILD TYPE: [Debug|RelWithDebInfo|Release|MinSizeRel]    
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-        set(M_EMCC_BINARYEN "-s WASM=0 -s DEMANGLE_SUPPORT=1 ")
+        set(M_EMCC_BINARYEN "-s WASM=0 -s DEMANGLE_SUPPORT=1 -s LZ4=1")
         set(M_EMCC_SHELL_FILE "--shell-file \"${CMAKE_SOURCE_DIR}/shell_minimal.html\"")
     else()
         #  -s BINARYEN_METHOD='native-wasm,asmjs' 'interpret-asm2wasm' -s BINARYEN_ASYNC_COMPILATION=0

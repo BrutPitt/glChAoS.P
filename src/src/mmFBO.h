@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2019 Michele Morrone
+//  Copyright (c) 2018-2020 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://BrutPitt.com
@@ -28,11 +28,11 @@ public:
     mmFBO()  { resetData(); }
     ~mmFBO() { deleteFBO(); }
 
-    void buildOnlyFBO(int num,int sizeX,int sizeY,GLenum precision);
+    void buildOnlyFBO(int num,int sizeX,int sizeY,GLenum intFormat);
     
-    void declareFBO(int num, int sizeX, int sizeY, GLenum precision, int levelAA=0);
-    void buildFBO(int num, int sizeX, int sizeY, GLenum precision, int levelAA=0);
-    void reBuildFBO(int num, int sizeX, int sizeY, GLenum precision, int levelAA=0);
+    void declareFBO(int num, int sizeX, int sizeY, GLenum intFormat, GLuint format = GL_RGBA, int levelAA=0);
+    void buildFBO  (int num, int sizeX, int sizeY, GLenum intFormat, GLuint format = GL_RGBA, int levelAA=0);
+    void reBuildFBO(int num, int sizeX, int sizeY, GLenum intFormat, GLuint format = GL_RGBA, int levelAA=0);
     void reSizeFBO(int sizeX, int sizeY);
     void deleteFBO();
 
@@ -42,7 +42,7 @@ public:
     GLuint getDepth(int num) { return num<m_NumFB ? m_depth[num] : -1; }
     GLuint getTexMultiFB(int num) { return num<numMultiDraw ? multiDrawFB[num] : -1; }
 
-    void attachDB   (bool builtIN, GLuint interpol = GL_NEAREST , GLuint clamp = GL_REPEAT) { attachSecondaryBuffer(builtIN, depthBuffer); }
+    void attachDB   (bool builtIN, GLuint interpol = GL_NEAREST, GLuint clamp = GL_REPEAT) { attachSecondaryBuffer(builtIN, depthBuffer); }
     void attachSB   (bool builtIN, GLuint interpol = GL_NEAREST, GLuint clamp = GL_REPEAT) { attachSecondaryBuffer(builtIN, stencilBuffer); }
     void attachDB_SB(bool builtIN, GLuint interpol = GL_NEAREST, GLuint clamp = GL_REPEAT) { attachSecondaryBuffer(builtIN, depthStencilBuffer); };
 
@@ -51,25 +51,10 @@ public:
 
     void attachMultiFB(int num);
 
-// static members
-    static void onReshape() { onReshape(mmFBO::m_winSize.x, mmFBO::m_winSize.y); }
-    static void onReshape(int w, int h);
-    static void Init(int w, int h) { mmFBO::onReshape(w, h); }
-
-    static ivec2 m_winSize;
-    static vec2 m_winAspect;     
-    static vec2 m_winInvSize;
-    static float m_reduction;
-
-static GLuint vboVertexBufferID;
-static GLuint vboTexBufferID;
-static GLuint vbaID;
-
-
 private:
     void initFB(GLuint fbuff, GLuint iText);
     void attachSecondaryBuffer(bool builtIN, secondaryBufferType type, 
-                               GLuint interpol = GL_LINEAR, GLuint clamp = GL_CLAMP_TO_EDGE); //depthBuffer + Stencil
+                               GLuint interpol = GL_NEAREST, GLuint clamp = GL_CLAMP_TO_EDGE); //depthBuffer + Stencil
     void CheckFramebufferStatus(GLenum status);
 #ifdef GLCHAOSP_LIGHTVER
     void defineTexture(GLuint iTex, GLuint intFormat, GLuint format = GL_RGBA, GLuint type = GL_FLOAT, 
@@ -87,7 +72,7 @@ private:
     bool haveColors = false;
 
 
-    GLuint glPrecision;
+    GLuint glPrecision, glFormat = GL_RGBA;
 
     GLuint *m_fb    = nullptr;
     GLuint *m_rb    = nullptr;
