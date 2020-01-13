@@ -85,6 +85,7 @@ LAYOUT_INDEX(idxSOLID) SUBROUTINE(_pixelColor)
 vec4 pixelColorDirect(vec4 color, vec4 N)
 {
 
+    if(alphaAttenuation<.25) { discard; return vec4(0.0); } // timeout particle slowMotion 
     //Light @ vertex position
     vec3 light =  normalize(u.lightDir);  // +vtx
     
@@ -108,6 +109,7 @@ vec4 pixelColorDirect(vec4 color, vec4 N)
 LAYOUT_INDEX(idxSOLID_AO) SUBROUTINE(_pixelColor) 
 vec4 pixelColorAO(vec4 color, vec4 N)
 {
+    if(alphaAttenuation<.25) { discard; return vec4(0.0); } // timeout particle slowMotion 
     vec3 light =  normalize(u.lightDir);  // +vtx
     
     float lambertian = max(0.0, dot(light, N.xyz)); 
@@ -129,6 +131,7 @@ vec4 pixelColorAO(vec4 color, vec4 N)
 LAYOUT_INDEX(idxSOLID_DR) SUBROUTINE(_pixelColor)
 vec4 pixelColorDR(vec4 color, vec4 N)
 {
+   if(alphaAttenuation<.25) { discard; return vec4(0.0); } // timeout particle slowMotion 
    return color;
 }
 
@@ -165,7 +168,7 @@ vec4 mainFunc(vec2 ptCoord)
 
     newVertex = mvVtxPos + vec4(0., 0., N.z * particleSize, 0.);
 
-    if(N.w > 1.0 || N.z < u.alphaSkip || -newVertex.z<u.clippingDist || clippedPoint(newVertex)) { discard;   } //returm need for Angle error
+    if(N.w > 1.0 || N.z < u.alphaSkip || -mvVtxPos.z<u.clippingDist || clippedPoint(newVertex)) { discard; } //returm need for Angle error
 
     gl_FragDepth = getFragDepth(newVertex.z);
 
