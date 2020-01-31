@@ -86,6 +86,7 @@ void shaderPointClass::initShader()
     setCommonData();
 }
 
+
 //
 //  particlesBase 
 //
@@ -95,78 +96,24 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
     const float lightReduction = theApp->useDetailedShadows() ? .3333 : .25f;
 
-    auto updateCommons = [&] () {
-        getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
-        getUData().invScrnRes = 1.f/getUData().scrnRes;
-        getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getRenderFBO().getSizeY()/1024.0);
-        getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
-        getUData().velocity = getCMSettings()->getVelIntensity();
-        getUData().lightDir = vec3(getTMat()->tM.vMatrix * vec4(getLightDir(), 1.0));
-        getUData().shadowDetail = float(shadowDetail);
-        getUData().rotCenter = getTMat()->getTrackball().getRotationCenter();
-    };
-
-
-    auto buildInvMV_forPlanes = [&] () {
-        if(getUPlanes().planeActive[0] || getUPlanes().planeActive[1] || getUPlanes().planeActive[2]) {
-            getTMat()->buid_invMV(); 
-            getUPlanes().atLeastOneActive = true;
-        } else getUPlanes().atLeastOneActive = false;
-    };
-
     const bool blendActive = getBlendState() || showAxes();
     const bool isAO_SHDW = ( useAO() || useShadow());
     const bool isAO_RD_SHDW = (isAO_SHDW || postRenderingActive());
     const bool isSolid = ( getDepthState() ||  getLightState());
     const bool isShadow = ( useShadow() && isSolid);
-    const uint idxPixelColor  = 
-             uData.renderType = (blendActive && !isSolid)        ? pixColIDX::pixBlendig :
-                                 blendActive || !isAO_RD_SHDW    ? pixColIDX::pixDirect  :
-                                 isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
-                                                                       pixColIDX::pixDR      ;
-    auto selectSubroutines = [&]() {
-        GLuint subIDX[2];        
-#ifdef GLCHAOSP_LIGHTVER
-        GLuint subVtxIdx = particlesViewColor::paletteIndex;
-#else
-        GLuint subVtxIdx = idxViewOBJ && plyObjGetColor ? particlesViewColor::packedRGB : particlesViewColor::paletteIndex;
-#endif
-#ifdef GLAPP_REQUIRE_OGL45 
-        glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &subVtxIdx);
 
-        subIDX[subsLoc::pixelColor] = idxPixelColor;
-        subIDX[subsLoc::lightModel] = uData.lightModel + lightMDL::modelOffset;
-        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
-#else
-        uData.renderType = idxPixelColor;
-        uData.colorizingMethod = subVtxIdx;
-    #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
-        subIDX[locSubPixelColor] = idxSubPixelColor[idxPixelColor-pixColIDX::pixOffset];
-        subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel];
-
-        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
-        glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), subVtxIdx == particlesViewColor::packedRGB ? &idxSubOBJ : &idxSubVEL);
-    #endif
-#endif
-    };
-
-    buildInvMV_forPlanes();
-    if(checkFlagUpdate()) updateCommons();
-
-    for(int i=0; i<3; i++) {
-        getUPlanes().clipPlane[i] = getClippingPlane(i);
-    }
-
-    getUData().zNear = getTMat()->getPerspNear();
-    getUData().zFar  = getTMat()->getPerspFar();
-
-    getUData().slowMotion = attractorsList.get()->dtType() && attractorsList.slowMotion();
+    uData.renderType = (blendActive && !isSolid)            ? pixColIDX::pixBlendig :
+                        blendActive || !isAO_RD_SHDW        ? pixColIDX::pixDirect  :
+                        isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
+                                                              pixColIDX::pixDR;
     
-    cockpitClass &cPit = attractorsList.getCockpit();
-    getUData().elapsedTime   = cPit.getUdata().elapsedTime;
-    getUData().lifeTime      = cPit.getLifeTime();
-    getUData().lifeTimeAtten = cPit.getLifeTimeAtten();
-    getUData().smoothDistance= cPit.getSmoothDistance();
+    
+    getUPlanes().buildInvMV_forPlanes(this);    // checkPlanes and eventually build invMat
+    
+    updateCommons();                            // update uData struct (UniformBuffer)
+
+    // pass, used w/o subroutines
+    getUData().pass = (isShadow ? 4:0) | (postRenderingActive() ? 2:0) | (useAO() ? 1:0);
 
 
 // Shadow pass
@@ -179,26 +126,22 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
             
             getTMat()->setPOV(getTMat()->getPOV()-vec3(0.f, 0.f, getTMat()->getTrackball().getDollyPosition().z));
             getTMat()->getTrackball().setDollyPosition(0.f);
-            //getTMat()->applyTransforms();
             
             float dist = getTMat()->getPOV().z;
             if(dist<FLT_EPSILON) dist = FLT_EPSILON;
             setLightDir(vL * (dist*(theApp->useDetailedShadows() ? 5.5f : 4.f) + dist*.1f));
         }
-        //const float oldAngle = getTMat()->getPerspAngle();
-        //getTMat()->setPerspective(radians(45.f), getTMat()->getPerspNear(), getTMat()->getPerspFar());
 
         getShadow()->bindRender();
-
-        getPlanesUBlock().updateBufferData();
 
         tMat.setLightView(getLightDir()*lightReduction);
         tMat.tM.mvLightM = tMat.tM.mvLightM * tMat.tM.mMatrix;;
 
         tMat.updateBufferData();
+        getPlanesUBlock().updateBufferData();
         updateBufferData();
 
-        //render
+        // render shadow
         emitter->renderEvents();
 
         getShadow()->releaseRender();
@@ -223,10 +166,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 #endif
     }
 
-// Normal Render
+// Select and clear main FBO to draw 
 /////////////////////////////////////////////
-    bindPipeline();
-
     GLuint returnedTex = getRenderFBO().getTex(fbIdx);
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, getRenderFBO().getFB(fbIdx));
@@ -247,17 +188,15 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         glBlendFunc(getSrcBlend(), getDstBlend());
     }
 
-    if(checkFlagUpdate()) updateCommons();
+// Normal Render
+/////////////////////////////////////////////
+    bindPipeline();
+
     getPlanesUBlock().updateBufferData();
-
-
-    getUData().zNear = getTMat()->getPerspNear();
-    getUData().zFar  = getTMat()->getPerspFar();
-
     tMat.updateBufferData();
-    getUData().pass = (isShadow ? 4:0) | (postRenderingActive() ? 2:0) | (useAO() ? 1:0);
-
     updateBufferData();
+
+    selectSubroutine();
        
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, colorMap->getModfTex());
@@ -274,16 +213,12 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     setUniform1i(locDotsTex, dotTex.getTexID());
     updatePalTex();
 #endif
-    selectSubroutines();
 
-    //transformInterlieve->renderFeedbackData();
+    // render particles
     emitter->renderEvents();
 
-#if !defined(GLAPP_REQUIRE_OGL45)
-    //ProgramObject::reset();
-#endif
 
-// SecondPass Rendering 
+// AO & Shadows process
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
     if(!blendActive && isAO_RD_SHDW)  {
@@ -299,25 +234,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 // AO frag
 /////////////////////////////////////////////
         if(useAO()) {
-            getAO()->bindRender();
-
-            tMat.updateBufferData();
-            updateBufferData();
-
-#ifdef GLAPP_REQUIRE_OGL45
-            glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
-            glBindTextureUnit(10, getRenderFBO().getDepth(0));
-#else
-            glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTex(fbIdx));
-            glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTex(fbIdx));
-            getAO()->setUniform1i(getAO()->locPrevData, getRenderFBO().getTex(fbIdx));
-
-            glActiveTexture(GL_TEXTURE0 + getRenderFBO().getDepth(0));
-            glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getDepth(0));
-            getAO()->setUniform1i(getAO()->locZTex,     getRenderFBO().getDepth(0));
-
-#endif
-
+            getAO()->bindRender(this, fbIdx);
             getAO()->render();
             getAO()->releaseRender();
             //returnedTex = getAO()->getFBO().getTex(0);
@@ -328,41 +245,10 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
           //const float oldAngle = getTMat()->getPerspAngle();
           //getTMat()->setPerspective(radians(45.f), getTMat()->getPerspNear(), getTMat()->getPerspFar());
 
-        getPostRendering()->bindRender();
-
-        tMat.updateBufferData();
-        updateBufferData();
-
-
-#ifdef GLAPP_REQUIRE_OGL45
-
-        GLuint subIDX = uData.lightModel + lightMDL::modelOffset; 
-
-        glBindTextureUnit(5, getRenderFBO().getTex(fbIdx));
-        glBindTextureUnit(8, getRenderFBO().getTexMultiFB(0));
-        glBindTextureUnit(10, getRenderFBO().getDepth(0));
-#else
-        GLuint subIDX = getPostRendering()->getSubIdx(uData.lightModel);
-
-        glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTex(fbIdx));
-        glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTex(fbIdx));
-        getPostRendering()->setUniform1i(getPostRendering()->locPrevData,     getRenderFBO().getTex(fbIdx));
-
-        glActiveTexture(GL_TEXTURE0 + getRenderFBO().getTexMultiFB(0));
-        glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getTexMultiFB(0));
-        getPostRendering()->setUniform1i(getPostRendering()->locTexBaseColor, getRenderFBO().getTexMultiFB(0));
-
-        glActiveTexture(GL_TEXTURE0 + getRenderFBO().getDepth(0));
-        glBindTexture(GL_TEXTURE_2D,  getRenderFBO().getDepth(0));
-        getPostRendering()->setUniform1i(getPostRendering()->locZTex,         getRenderFBO().getDepth(0));
-
-#endif
-#if !defined(GLCHAOSP_NO_USES_GLSL_SUBS) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
-#endif
-
+        getPostRendering()->bindRender(this, fbIdx);
         getPostRendering()->render();
         getPostRendering()->releaseRender();
+
         returnedTex = getPostRendering()->getFBO().getTex(0);
     }
 #endif
@@ -585,6 +471,10 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
     cPit.getUdata().diffTime    = std::chrono::duration<double>(end-start).count();
     cPit.getUdata().elapsedTime = std::chrono::duration<double>(end-startEvent).count();
 
+    static std::uniform_real_distribution<GLfloat> randomFloats(-1.0, 1.0); // generates random floats between 0.0 and 1.0
+    static std::default_random_engine generator;
+
+
     start = end;
     updateBufferData();
 
@@ -618,9 +508,9 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
             InsertVbo->getBuffer()[count++] = dist;
             //(*InsertVbo)[3] =
 
-            InsertVbo->getBuffer()[count++] = fastRandom.VNI() * cPit.getInitialSpeed();
-            InsertVbo->getBuffer()[count++] = fastRandom.VNI() * cPit.getInitialSpeed();
-            InsertVbo->getBuffer()[count++] = fastRandom.VNI() * cPit.getInitialSpeed();
+            InsertVbo->getBuffer()[count++] = /*randomFloats(generator)*/ fastRandom.VNI() * cPit.getInitialSpeed();
+            InsertVbo->getBuffer()[count++] = /*randomFloats(generator)*/ fastRandom.VNI() * cPit.getInitialSpeed();
+            InsertVbo->getBuffer()[count++] = /*randomFloats(generator)*/ fastRandom.VNI() * cPit.getInitialSpeed();
             InsertVbo->getBuffer()[count++] = -bornTime; //bron time: negative for first pass
 
             vInc += vStep;
@@ -977,12 +867,12 @@ void fxaaClass::create() {
 
 }
 
-GLuint fxaaClass::render(GLuint texIn)
+GLuint fxaaClass::render(GLuint texIn, bool useFB)
 {
     bindPipeline();
 
 #if !defined(GLCHAOSP_LIGHTVER)
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,  renderEngine->getMotionBlur()->Active() ? fbo.getFB(0) : 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,  useFB || renderEngine->getMotionBlur()->Active() ? fbo.getFB(0) : 0);
 #else
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER,  0);
 #endif
@@ -1064,8 +954,12 @@ void postRenderingClass::create() {
 
 }
 
-void postRenderingClass::bindRender()
+void postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx)
 {
+    renderEngine->getTMat()->updateBufferData();
+    particle->updateBufferData();
+    mmFBO &renderFBO = particle->getRenderFBO();
+
     bindPipeline();
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
@@ -1084,16 +978,42 @@ void postRenderingClass::bindRender()
 #ifdef GLAPP_REQUIRE_OGL45
         glBindTextureUnit(6, renderEngine->getAO()->getFBO().getTex(0));
         glBindTextureUnit(7, renderEngine->getShadow()->getFBO().getDepth(0));
+
+        GLuint subIDX = particle->getUData().lightModel + particlesBaseClass::lightMDL::modelOffset; 
+
+        glBindTextureUnit( 5, renderFBO.getTex(fbIdx));
+        glBindTextureUnit( 8, renderFBO.getTexMultiFB(fbIdx, 0));
+        glBindTextureUnit(10, renderFBO.getDepth(fbIdx));
+
 #else
         USE_PROGRAM
         glActiveTexture(GL_TEXTURE0 + renderEngine->getAO()->getFBO().getTex(0));
         glBindTexture(GL_TEXTURE_2D,  renderEngine->getAO()->getFBO().getTex(0));
-        setUniform1i(getLocAOTex(), renderEngine->getAO()->getFBO().getTex(0));
+        setUniform1i(getLocAOTex() ,  renderEngine->getAO()->getFBO().getTex(0));
 
-        glActiveTexture(GL_TEXTURE0 + renderEngine->getShadow()->getFBO().getDepth(0));
-        glBindTexture(GL_TEXTURE_2D,  renderEngine->getShadow()->getFBO().getDepth(0));
+        glActiveTexture(GL_TEXTURE0 +   renderEngine->getShadow()->getFBO().getDepth(0));
+        glBindTexture(GL_TEXTURE_2D,    renderEngine->getShadow()->getFBO().getDepth(0));
         setUniform1i(getLocShadowTex(), renderEngine->getShadow()->getFBO().getDepth(0));
+
+        GLuint subIDX = getSubIdx(particle->getUData().lightModel);
+
+        glActiveTexture(GL_TEXTURE0 + renderFBO.getTex(fbIdx));
+        glBindTexture(GL_TEXTURE_2D,  renderFBO.getTex(fbIdx));
+        setUniform1i(locPrevData,     renderFBO.getTex(fbIdx));
+
+        glActiveTexture(GL_TEXTURE0 + renderFBO.getTexMultiFB(fbIdx, 0));
+        glBindTexture(GL_TEXTURE_2D,  renderFBO.getTexMultiFB(fbIdx, 0));
+        setUniform1i(locTexBaseColor, renderFBO.getTexMultiFB(fbIdx, 0));
+
+        glActiveTexture(GL_TEXTURE0 + renderFBO.getDepth(fbIdx));
+        glBindTexture(GL_TEXTURE_2D,  renderFBO.getDepth(fbIdx));
+        setUniform1i(locZTex,         renderFBO.getDepth(fbIdx));
+
 #endif
+#if !defined(GLCHAOSP_NO_USES_GLSL_SUBS) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
+#endif
+
 
 }
 
@@ -1215,8 +1135,12 @@ void ambientOcclusionClass::create() {
     //setUniform3fv(getUniformLocation("ssaoSamples"), kernelSize, (const GLfloat*)ssaoKernel.data());
 }
 
-void ambientOcclusionClass::bindRender()
+void ambientOcclusionClass::bindRender(particlesBaseClass *particle, GLuint fbIdx)
 {
+    renderEngine->getTMat()->updateBufferData();
+    particle->updateBufferData();
+    mmFBO &renderFBO = particle->getRenderFBO();
+
     bindPipeline();
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
@@ -1231,8 +1155,12 @@ void ambientOcclusionClass::bindRender()
     glClearBufferfv(GL_COLOR,  0, value_ptr(bkg));
 
 #ifdef GLAPP_REQUIRE_OGL45
-    glBindTextureUnit(6, noiseTexture);
-    glBindTextureUnit(7, ssaoKernelTex);
+    glBindTextureUnit( 6, noiseTexture);
+    glBindTextureUnit( 7, ssaoKernelTex);
+
+    glBindTextureUnit( 5, renderFBO.getTex(fbIdx));
+    glBindTextureUnit(10, renderFBO.getDepth(fbIdx));
+
 
 #else
     USE_PROGRAM
@@ -1241,6 +1169,15 @@ void ambientOcclusionClass::bindRender()
 
     glActiveTexture(GL_TEXTURE0 + ssaoKernelTex);
     glBindTexture(GL_TEXTURE_2D,  ssaoKernelTex);
+
+    glActiveTexture(GL_TEXTURE0 + renderFBO.getTex(fbIdx));
+    glBindTexture(GL_TEXTURE_2D,  renderFBO.getTex(fbIdx));
+    setUniform1i(locPrevData,     renderFBO.getTex(fbIdx));
+
+    glActiveTexture(GL_TEXTURE0 + renderFBO.getDepth(fbIdx));
+    glBindTexture(GL_TEXTURE_2D,  renderFBO.getDepth(fbIdx));
+    setUniform1i(locZTex,         renderFBO.getDepth(fbIdx));
+
     
 #endif
 }

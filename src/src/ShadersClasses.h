@@ -312,7 +312,7 @@ public:
 
     void create();
 
-    void bindRender();
+    void bindRender(particlesBaseClass *particle, GLuint fbIdx);
     void render();
     void releaseRender();
 
@@ -347,7 +347,7 @@ public:
 
     void create();
 
-    void bindRender();
+    void bindRender(particlesBaseClass *particle, GLuint fbIdx);
     void render();
     void releaseRender();
 
@@ -388,6 +388,9 @@ struct uClippingPlanes {
     GLfloat     thickness = .005;
     uint32_t    additiveSpace = true;
     uint32_t    atLeastOneActive = false;
+
+    void buildInvMV_forPlanes(particlesBaseClass *particles);
+
 } uPlanes;
 
 
@@ -552,7 +555,7 @@ public:
     }
 
     void create();
-    GLuint render(GLuint texIn);
+    GLuint render(GLuint texIn, bool useFB=false);
 
     bool isOn() { return bIsOn; }
     void activate(bool b) {
@@ -953,9 +956,58 @@ public:
         idxSubVEL = glGetSubroutineIndex(getProgram(),GL_VERTEX_SHADER, "velColor"); 
     #endif
 #endif
-
     }
 
+    void selectSubroutine() {
+        GLuint subIDX[2];        
+#ifdef GLCHAOSP_LIGHTVER
+        GLuint subVtxIdx = particlesViewColor::paletteIndex;
+#else
+        GLuint subVtxIdx = idxViewOBJ && plyObjGetColor ? particlesViewColor::packedRGB : particlesViewColor::paletteIndex;
+#endif
+#ifdef GLAPP_REQUIRE_OGL45 
+        glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &subVtxIdx);
+
+        subIDX[subsLoc::pixelColor] = uData.renderType;
+        subIDX[subsLoc::lightModel] = uData.lightModel + lightMDL::modelOffset;
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
+#else
+        uData.renderType = idxPixelColor;
+        uData.colorizingMethod = subVtxIdx;
+    #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+        subIDX[locSubPixelColor] = idxSubPixelColor[uData.renderType-pixColIDX::pixOffset];
+        subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel];
+
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
+        glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), subVtxIdx == particlesViewColor::packedRGB ? &idxSubOBJ : &idxSubVEL);
+    #endif
+#endif
+    }
+
+    void updateCommons() {
+        if(checkFlagUpdate()) {
+            getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
+            getUData().invScrnRes = 1.f/getUData().scrnRes;
+            getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getRenderFBO().getSizeY()/1024.0);
+            getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
+            getUData().velocity = getCMSettings()->getVelIntensity();
+            getUData().lightDir = vec3(getTMat()->tM.vMatrix * vec4(getLightDir(), 1.0));
+            getUData().shadowDetail = float(theApp->useDetailedShadows() ? 2.0f : 1.f);
+            getUData().rotCenter = getTMat()->getTrackball().getRotationCenter();
+        }
+
+        getUData().zNear = getTMat()->getPerspNear();
+        getUData().zFar  = getTMat()->getPerspFar();
+
+        getUData().slowMotion = attractorsList.get()->dtType() && attractorsList.slowMotion();
+
+        cockpitClass &cPit = attractorsList.getCockpit();
+        getUData().elapsedTime   = cPit.getUdata().elapsedTime;
+        getUData().lifeTime      = cPit.getLifeTime();
+        getUData().lifeTimeAtten = cPit.getLifeTimeAtten();
+        getUData().smoothDistance= cPit.getSmoothDistance();
+
+    }
 
 #ifndef GLAPP_REQUIRE_OGL45
     void updatePalTex()  { setUniform1i(locPaletteTex, getCMSettings()->getModfTex()); }
@@ -1150,6 +1202,17 @@ inline GLuint colorMapTexturedClass::getOrigTex() { return particles->getPalette
 inline void dataBlurClass::setFlagUpdate() { renderEngine->setFlagUpdate(); }
 inline void dataBlurClass::clearFlagUpdate() { renderEngine->clearFlagUpdate(); }
 inline void dataBlurClass::flagUpdate(bool b) { b ? renderEngine->setFlagUpdate() : renderEngine->clearFlagUpdate(); }
+
+inline void renderBaseClass::uClippingPlanes::buildInvMV_forPlanes(particlesBaseClass *particles) {
+    if(planeActive[0] || planeActive[1] || planeActive[2]) {
+        particles->getTMat()->buid_invMV(); 
+        atLeastOneActive = true;
+    } else atLeastOneActive = false;
+    clipPlane[0] = particles->getClippingPlane(0);
+    clipPlane[1] = particles->getClippingPlane(1);
+    clipPlane[2] = particles->getClippingPlane(2);
+}
+
 
 class emitterBaseClass;
 
