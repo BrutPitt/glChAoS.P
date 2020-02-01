@@ -40,7 +40,7 @@ public:
     GLuint getTex(int num) { return num<m_NumFB ? m_tex[num] : -1; }
     GLuint getRB(int num)  { return num<m_NumFB ? m_rb[num] : -1; }
     GLuint getDepth(int num) { return num<m_NumFB ? m_depth[num] : -1; }
-    GLuint getTexMultiFB(int num) { return num<numMultiDraw ? multiDrawFB[num] : -1; }
+    GLuint getTexMultiFB(int fbIDX, int multiIDX) { return fbIDX<m_NumFB && multiIDX<numMultiDraw ? multiDrawFB[fbIDX*numMultiDraw+multiIDX] : -1; }
 
     void attachDB   (bool builtIN, GLuint interpol = GL_NEAREST, GLuint clamp = GL_REPEAT) { attachSecondaryBuffer(builtIN, depthBuffer); }
     void attachSB   (bool builtIN, GLuint interpol = GL_NEAREST, GLuint clamp = GL_REPEAT) { attachSecondaryBuffer(builtIN, stencilBuffer); }

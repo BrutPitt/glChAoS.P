@@ -170,37 +170,40 @@ void mmFBO::defineTexture(GLuint iTex, GLuint intFormat, GLuint format, GLuint t
 
 void mmFBO::attachMultiFB(int num)
 {
-    multiDrawFB = new GLuint[num];
+    int totalMultiAttached = num*m_NumFB; // attaching "num" textures to any FB
+
+    multiDrawFB = new GLuint[totalMultiAttached];
     numMultiDraw = num;
     
-    num++;
-    GLuint *drawBuffers = new GLuint[num];
+    GLuint *drawBuffers = new GLuint[num+1];
 
 #ifdef GLAPP_REQUIRE_OGL45
-    glCreateTextures(GL_TEXTURE_2D ,numMultiDraw, multiDrawFB);
-    for (int i = 0; i < numMultiDraw; i++) defineTexture(multiDrawFB[i], glPrecision);
+    glCreateTextures(GL_TEXTURE_2D ,totalMultiAttached, multiDrawFB);
+#else
+    glGenTextures(totalMultiAttached, multiDrawFB);
+#endif
+    for (int i = 0; i < totalMultiAttached; i++) defineTexture(multiDrawFB[i], glPrecision);
 
-    for (int i = 0; i < num; i++) {
-        drawBuffers[i] = GL_COLOR_ATTACHMENT0+i;
-        glNamedFramebufferTexture(m_fb[0], GL_COLOR_ATTACHMENT0+i, i==0 ? m_tex[0] : multiDrawFB[i-1], 0);
-    }
-    glNamedFramebufferDrawBuffers(m_fb[0], num, drawBuffers);
+    for(int countFB = 0; countFB<m_NumFB; countFB++) {
+        for (int i = 0; i <= num; i++) {
+            drawBuffers[i] = GL_COLOR_ATTACHMENT0+i;
+
+#ifdef GLAPP_REQUIRE_OGL45
+            glNamedFramebufferTexture(m_fb[countFB], GL_COLOR_ATTACHMENT0+i, i==0 ? m_tex[countFB] : multiDrawFB[(countFB*num)+(i-1)], 0);
+        }
+        glNamedFramebufferDrawBuffers(m_fb[countFB], num, drawBuffers);
 #else
-    glBindFramebuffer(GL_FRAMEBUFFER, m_fb[0]);
-    glGenTextures(numMultiDraw, multiDrawFB);
-    // Bind and allocate storage for it   
-    for (int i = 0; i < numMultiDraw; i++) defineTexture(multiDrawFB[i], glPrecision);
-    for (int i = 0; i < num; i++) {
-        // Attach it to our framebuffer object as color attachments
-        drawBuffers[i] = GL_COLOR_ATTACHMENT0+i;
-#if !defined(GLCHAOSP_LIGHTVER)
-            glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i,i==0 ? m_tex[0] : multiDrawFB[i-1], 0);
-#else
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, i==0 ? m_tex[0] : multiDrawFB[i-1], 0);
+            glBindFramebuffer(GL_FRAMEBUFFER, m_fb[countFB]);
+    #if !defined(GLCHAOSP_LIGHTVER)
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i,i==0 ? m_tex[countFB] : multiDrawFB[(countFB*num)+(i-1)], 0);
+    #else
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, i==0 ? m_tex[countFB] : multiDrawFB[(countFB*num)+(i-1)], 0);
+    #endif
+        }
+        glDrawBuffers(num, drawBuffers);
 #endif
     }
-    glDrawBuffers(num, drawBuffers);
-#endif
+
     delete[] drawBuffers;
 
 }
