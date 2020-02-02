@@ -201,10 +201,10 @@ public:
     }
 
 #if !defined(GLCHAOSP_NO_FXAA)
-    GLuint renderFXAA(GLuint texRendered) {
+    GLuint renderFXAA(GLuint texRendered, bool useFB=false) {
         particlesBaseClass *particles = getParticleRenderPtr();                                       
 
-        return particles->getFXAA()->isOn() ? particles->getFXAA()->render(texRendered) : texRendered;
+        return particles->getFXAA()->isOn() ? particles->getFXAA()->render(texRendered, useFB) : texRendered;
     }
 #endif
 
@@ -220,10 +220,15 @@ public:
             texRendered = renderFXAA(texRendered);
         } else {
             GLuint tex1 = shaderBillboardClass::render(0, getEmitter());
-            shaderBillboardClass::getGlowRender()->render(tex1, shaderBillboardClass::getGlowRender()->getFBO().getFB(1));  
             GLuint tex2 = shaderPointClass::render(1, getEmitter());
             emitter->bufferRendered();
-            shaderPointClass::getGlowRender()->render(tex2, shaderPointClass::getGlowRender()->getFBO().getFB(1));  
+            
+            if(shaderBillboardClass::getFXAA()->isOn()) tex1 = shaderBillboardClass::getFXAA()->render(tex1, true);
+            shaderBillboardClass::getGlowRender()->render(tex1, shaderBillboardClass::getGlowRender()->getFBO().getFB(1));  
+
+            if(shaderPointClass::getFXAA()->isOn())  tex2 = shaderPointClass::getFXAA()->render(tex2, true);
+            shaderPointClass::getGlowRender()->render(tex2, shaderPointClass::getGlowRender()->getFBO().getFB(1));
+
             texRendered = getMergedRendering()->render(shaderBillboardClass::getGlowRender()->getFBO().getTex(1), shaderPointClass::getGlowRender()->getFBO().getTex(1));  // only if Motionblur
         }
 #else

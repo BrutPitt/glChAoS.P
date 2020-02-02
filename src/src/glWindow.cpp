@@ -232,9 +232,6 @@ GLuint glWindow::renderAttractor()
             particlesSystem->setFlagUpdate();
             texRendered = particlesSystem->renderParticles();
             texRendered = particlesSystem->renderGlowEffect(texRendered);
-#if !defined(GLCHAOSP_NO_FXAA)
-            texRendered = particlesSystem->renderFXAA(texRendered);
-#endif                                                           
         };
 
         //Render standard View in FullScreen (CockPitView is in PiP)
@@ -250,7 +247,6 @@ GLuint glWindow::renderAttractor()
         int idx = cPit.getTailPosition()*buffSize+.5; 
 
         const vec3 vecB(vec3(attractorsList.get()->getAt(idx<1 ? 1 : (idx>buffSize ? buffSize : idx))));
-
 
         vec3 cpPOV((cPit.invertView() ? vecA : vecB));
         vec3 cpTGT((cPit.invertView() ? vecB : vecA));
@@ -323,8 +319,12 @@ GLuint glWindow::renderAttractor()
             cPit.setViewport(w,h);
             texRendered = particlesSystem->renderParticles(false, particlesSystem->shaderPointClass::getPtr()->getGlowRender()->getFBO().getFB(1)); 
             texRendered = particlesSystem->renderGlowEffect(texRendered);
-            //renderProcedure();
         }
+
+        glViewport(0,0, w, h);
+#if !defined(GLCHAOSP_NO_FXAA)
+            texRendered = particlesSystem->renderFXAA(texRendered);
+#endif                                                           
 
         ps->setSize(ptSizeP);
 #if !defined(GLCHAOSP_LIGHTVER)
