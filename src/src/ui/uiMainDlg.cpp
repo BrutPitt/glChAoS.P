@@ -2041,8 +2041,6 @@ void cockpitDlgClass::view()
                 const float w6 = w*.6666;
                 const float spaceX = ImGui::GetStyle().ItemSpacing.x;
 
-
-
                 ImGui::TextDisabled(" Emit #");  ImGui::SameLine(w3+spaceX);
                 ImGui::TextDisabled(" emitVel"); ImGui::SameLine(w6+spaceX);
                 ImGui::TextDisabled(" airFriction");
