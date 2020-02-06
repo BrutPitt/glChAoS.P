@@ -961,6 +961,17 @@ void Dadras::Step(vec4 &v, vec4 &vp)
     vp.y = v.y + dtStepInc*(kVal[2]*v.y - v.x*v.z + v.z); 
     vp.z = v.z + dtStepInc*(kVal[3]*v.x*v.y - kVal[4]*v.z);
 }
+////////////////////////////////////////////////////////////////////////////
+void GloboToroid::Step(vec4 &v, vec4 &vp) 
+{ // kVal[] -> p, q, r, s, e
+    const float A = kVal[0];
+    const float B = kVal[1];
+    const float omega = 2.f * T_PI * kVal[2];
+    const float x1 = v.x+1.f;
+    vp.x = v.x + dtStepInc*(-omega*v.y - A*v.z*x1);
+    vp.y = v.y + dtStepInc*omega*v.x;
+    vp.z = v.z + dtStepInc*(A*x1*x1 - B);
+}
 
 // stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set
 // http://bugman123.com/Hypercomplex/index.html

@@ -2053,6 +2053,22 @@ protected:
     void Step(vec4 &v, vec4 &vp);
     void startData();
 };
+//  GloboToroid
+////////////////////////////////////////////////////////////////////////////
+class GloboToroid : public attractorDtType
+{
+public:
+
+    GloboToroid() {
+        stepFn = (stepPtrFn) &GloboToroid::Step;
+
+        m_POV = vec3( 0.f, 0, 50.f);
+    }
+
+protected:
+    void Step(vec4 &v, vec4 &vp);
+    void startData();
+};
  
 
 
@@ -2435,6 +2451,7 @@ public:
         PB(FourWing2          , u8"\uf185" " FourWing 2"         )
         PB(FourWing3          , u8"\uf185" " FourWing 3"         )
         PB(GenesioTesi        , u8"\uf185" " Genesio-Tesi"       )
+        PB(GloboToroid        , u8"\uf185" " GloboToroid"        )
         PB(Hadley             , u8"\uf185" " Hadley"             )
         PB(Halvorsen          , u8"\uf185" " Halvorsen"          )
         PB(LiuChen            , u8"\uf185" " Liu-Chen"           )

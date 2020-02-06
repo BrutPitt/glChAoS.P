@@ -857,6 +857,17 @@ void Dadras::startData()
     Insert(vVal[0]);
 }
 
+void GloboToroid::startData()
+{
+    vVal.push_back(vec4(.1f, -.17f, .704f, 0.f));
+
+    kVal.push_back(.144f);
+    kVal.push_back(.145f);
+    kVal.push_back(1.0f);
+
+    Insert(vVal[0]);
+}
+
 
 void Lorenz::startData()
 {
