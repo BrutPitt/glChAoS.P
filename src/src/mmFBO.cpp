@@ -34,7 +34,7 @@ void mmFBO::deleteFBO()
 
     glDeleteFramebuffers(m_NumFB,m_fb);
     if(haveColors) glDeleteTextures(m_NumFB, m_tex);
-    if(numMultiDraw) glDeleteTextures(numMultiDraw, multiDrawFB);
+    if(numMultiDraw) glDeleteTextures(numMultiDraw*m_NumFB, multiDrawFB);
     if(haveRB) glDeleteRenderbuffers(m_NumFB, m_rb);
     if(!isBuiltIn) glDeleteTextures(m_NumFB, m_depth);
 
