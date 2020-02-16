@@ -102,10 +102,10 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     const bool isSolid = ( getDepthState() ||  getLightState());
     const bool isShadow = ( useShadow() && isSolid);
 
-    uData.renderType = (blendActive && !isSolid)            ? pixColIDX::pixBlendig :
-                        blendActive || !isAO_RD_SHDW        ? pixColIDX::pixDirect  :
-                        isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
-                                                              pixColIDX::pixDR;
+    getUData().renderType = (blendActive && !isSolid)            ? pixColIDX::pixBlendig :
+                             blendActive || !isAO_RD_SHDW        ? pixColIDX::pixDirect  :
+                             isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
+                                                                   pixColIDX::pixDR;
     
     
     getUPlanes().buildInvMV_forPlanes(this);    // checkPlanes and eventually build invMat
@@ -176,9 +176,9 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     if(depthBuffActive) {
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE);
-        const GLfloat f=1.0f;
-        glClearBufferfv(GL_DEPTH , 0, &f);
     }
+    const GLfloat f=1.0f;
+    glClearBufferfv(GL_DEPTH , 0, &f);
 
     // clear Color buffer
     if(!showAxes() && eraseBkg) glClearBufferfv(GL_COLOR,  0, value_ptr(backgroundColor()));
@@ -196,8 +196,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     tMat.updateBufferData();
     updateBufferData();
 
-    selectSubroutine();
-       
+     
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, colorMap->getModfTex());
     glBindTextureUnit(1, dotTex.getTexID());
@@ -213,6 +212,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     setUniform1i(locDotsTex, dotTex.getTexID());
     updatePalTex();
 #endif
+    selectSubroutine();
+
 
     // render particles
     emitter->renderEvents();
@@ -963,17 +964,10 @@ void postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx)
     bindPipeline();
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
-#ifdef GLCHAOSP_LIGHTVER
-    const vec4 bkg(theWnd->getParticlesSystem()->shaderPointClass::backgroundColor());
-#else
-    const vec4 bkg(renderEngine->getWhitchRenderMode()==RENDER_USE_POINTS ? 
-                    theWnd->getParticlesSystem()->shaderPointClass::backgroundColor() :
-                    theWnd->getParticlesSystem()->shaderBillboardClass::backgroundColor());
-#endif
 
+    const vec4 bkg(particle->backgroundColor());
     glClearBufferfv(GL_COLOR,  0, value_ptr(bkg));
-
-    
+   
 
 #ifdef GLAPP_REQUIRE_OGL45
         glBindTextureUnit(6, renderEngine->getAO()->getFBO().getTex(0));
@@ -1010,10 +1004,17 @@ void postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx)
         setUniform1i(locZTex,         renderFBO.getDepth(fbIdx));
 
 #endif
+/*
+#if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
+#endif
+*/
+
+#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
 #if !defined(GLCHAOSP_NO_USES_GLSL_SUBS) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
 #endif
-
+#endif
 
 }
 
@@ -1144,14 +1145,8 @@ void ambientOcclusionClass::bindRender(particlesBaseClass *particle, GLuint fbId
     bindPipeline();
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
-#ifdef GLCHAOSP_LIGHTVER
-    const vec4 bkg(theWnd->getParticlesSystem()->shaderPointClass::backgroundColor());
-#else
-    const vec4 bkg(renderEngine->getWhitchRenderMode()==RENDER_USE_POINTS ? 
-                    theWnd->getParticlesSystem()->shaderPointClass::backgroundColor() :
-                    theWnd->getParticlesSystem()->shaderBillboardClass::backgroundColor());
-#endif
 
+    const vec4 bkg(particle->backgroundColor());
     glClearBufferfv(GL_COLOR,  0, value_ptr(bkg));
 
 #ifdef GLAPP_REQUIRE_OGL45

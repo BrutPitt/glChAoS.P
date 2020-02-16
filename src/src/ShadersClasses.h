@@ -961,10 +961,11 @@ public:
     void selectSubroutine() {
         GLuint subIDX[2];        
 #ifdef GLCHAOSP_LIGHTVER
-        GLuint subVtxIdx = particlesViewColor::paletteIndex;
+        const GLuint subVtxIdx = particlesViewColor::paletteIndex;
 #else
-        GLuint subVtxIdx = idxViewOBJ && plyObjGetColor ? particlesViewColor::packedRGB : particlesViewColor::paletteIndex;
+        const GLuint subVtxIdx = idxViewOBJ && plyObjGetColor ? particlesViewColor::packedRGB : particlesViewColor::paletteIndex;
 #endif
+        uData.colorizingMethod = subVtxIdx;
 #ifdef GLAPP_REQUIRE_OGL45 
         glUniformSubroutinesuiv(GL_VERTEX_SHADER, GLsizei(1), &subVtxIdx);
 
@@ -972,8 +973,6 @@ public:
         subIDX[subsLoc::lightModel] = uData.lightModel + lightMDL::modelOffset;
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(2), subIDX);
 #else
-        uData.renderType = idxPixelColor;
-        uData.colorizingMethod = subVtxIdx;
     #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
         subIDX[locSubPixelColor] = idxSubPixelColor[uData.renderType-pixColIDX::pixOffset];
         subIDX[locSubLightModel] = idxSubLightModel[uData.lightModel];
