@@ -1004,16 +1004,9 @@ void postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx)
         setUniform1i(locZTex,         renderFBO.getDepth(fbIdx));
 
 #endif
-/*
-#if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
-        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
-#endif
-*/
 
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-#if !defined(GLCHAOSP_NO_USES_GLSL_SUBS) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+#if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS) 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
-#endif
 #endif
 
 }
