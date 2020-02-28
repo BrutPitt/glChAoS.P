@@ -175,7 +175,7 @@ public:
 #endif
     }
 
-    GLuint renderParticles(bool eraseBkg = true, GLint fbOut = -1) {
+    GLuint renderParticles(bool eraseBkg = true, bool cockpitView = false) {
 #if !defined(GLCHAOSP_LIGHTVER)
         if(showAxes()) {
             getAxes()->getTransforms()->applyTransforms();
@@ -184,7 +184,7 @@ public:
             getAxes()->setZoomFactor(vec3(vec2(zoomK/10.f), zoomK/7.f) * getTMat()->getPerspAngle()/30.f);
         }            
 #endif
-        return getParticleRenderPtr()->render(0, getEmitter(), eraseBkg, fbOut);
+        return getParticleRenderPtr()->render(0, getEmitter(), eraseBkg, cockpitView);
     }
 
     GLuint renderGlowEffect(GLuint texRendered) {

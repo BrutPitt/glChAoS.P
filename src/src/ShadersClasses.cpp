@@ -91,7 +91,7 @@ void shaderPointClass::initShader()
 //  particlesBase 
 //
 ////////////////////////////////////////////////////////////////////////////////
-GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool eraseBkg, int fbIn) 
+GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool eraseBkg, bool cpitView) 
 {
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
     const float lightReduction = theApp->useDetailedShadows() ? .3333 : .25f;
@@ -107,14 +107,40 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
                              isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
                                                                    pixColIDX::pixDR;
     
+    transformsClass *currentTMat = cpitView ? getCockPitTMat() : getTMat();
     
     getUPlanes().buildInvMV_forPlanes(this);    // checkPlanes and eventually build invMat
     
-    updateCommons();                            // update uData struct (UniformBuffer)
+    //updateCommons();                            // update uData struct (UniformBuffer)
+
+    if(checkFlagUpdate()) {
+        getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
+        getUData().invScrnRes = 1.f/getUData().scrnRes;
+        getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getRenderFBO().getSizeY()/1024.0);
+        getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
+        getUData().velocity = getCMSettings()->getVelIntensity();
+        getUData().lightDir = vec3(currentTMat->tM.vMatrix * vec4(getLightDir(), 1.0));
+        getUData().shadowDetail = float(theApp->useDetailedShadows() ? 2.0f : 1.f);
+        getUData().rotCenter = currentTMat->getTrackball().getRotationCenter();
+    }
+
+    getUData().slowMotion = attractorsList.get()->dtType() && attractorsList.slowMotion();
+
+    cockpitClass &cPit = attractorsList.getCockpit();
+    getUData().elapsedTime   = cPit.getUdata().elapsedTime;
+    getUData().lifeTime      = cPit.getLifeTime();
+    getUData().lifeTimeAtten = cPit.getLifeTimeAtten();
+    getUData().smoothDistance= cPit.getSmoothDistance();
+
+
+    getUData().zNear = currentTMat->getPerspNear();
+    getUData().zFar  = currentTMat->getPerspFar();
 
     // pass, used w/o subroutines
     getUData().pass = (isShadow ? 4:0) | (postRenderingActive() ? 2:0) | (useAO() ? 1:0);
 
+    const float partSZ = getSize();
+    if(cpitView) getUData().pointSize = cPit.getPointSize();
 
 // Shadow pass
 /////////////////////////////////////////////
@@ -124,20 +150,20 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         if(autoLightDist()) {
             vec3 vL(normalize(getLightDir()));
             
-            getTMat()->setPOV(getTMat()->getPOV()-vec3(0.f, 0.f, getTMat()->getTrackball().getDollyPosition().z));
-            getTMat()->getTrackball().setDollyPosition(0.f);
+            currentTMat->setPOV(currentTMat->getPOV()-vec3(0.f, 0.f, currentTMat->getTrackball().getDollyPosition().z));
+            currentTMat->getTrackball().setDollyPosition(0.f);
             
-            float dist = getTMat()->getPOV().z;
+            float dist = currentTMat->getPOV().z;
             if(dist<FLT_EPSILON) dist = FLT_EPSILON;
             setLightDir(vL * (dist*(theApp->useDetailedShadows() ? 5.5f : 4.f) + dist*.1f));
         }
 
         getShadow()->bindRender();
 
-        tMat.setLightView(getLightDir()*lightReduction);
-        tMat.tM.mvLightM = tMat.tM.mvLightM * tMat.tM.mMatrix;;
+        currentTMat->setLightView(getLightDir()*lightReduction);
+        currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * currentTMat->tM.mMatrix;;
 
-        tMat.updateBufferData();
+        currentTMat->updateBufferData();
         getPlanesUBlock().updateBufferData();
         updateBufferData();
 
@@ -149,22 +175,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     }
 #endif
 
-    if(fbIn >= 0) {
-#ifdef GLAPP_REQUIRE_OGL45
-        glBlitNamedFramebuffer(fbIn,
-                                getRenderFBO().getFB(fbIdx),
-                                0,0,getWidth(), getHeight(),
-                                0,0,theApp->GetWidth(), theApp->GetHeight(),
-                                GL_COLOR_BUFFER_BIT, GL_NEAREST );
-#else
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbIn);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, getRenderFBO().getFB(fbIdx));
-
-        glBlitFramebuffer(0,0,getWidth(), getHeight(),
-                            0,0,theApp->GetWidth(), theApp->GetHeight(),
-                            GL_COLOR_BUFFER_BIT, GL_NEAREST );
-#endif
-    }
 
 // Select and clear main FBO to draw 
 /////////////////////////////////////////////
@@ -181,7 +191,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     glClearBufferfv(GL_DEPTH , 0, &f);
 
     // clear Color buffer
-    if(!showAxes() && eraseBkg) glClearBufferfv(GL_COLOR,  0, value_ptr(backgroundColor()));
+    if(!showAxes()) glClearBufferfv(GL_COLOR,  0, value_ptr(backgroundColor()));
 
     if(blendActive || showAxes()) {
         glEnable(GL_BLEND);
@@ -193,7 +203,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     bindPipeline();
 
     getPlanesUBlock().updateBufferData();
-    tMat.updateBufferData();
+    currentTMat->updateBufferData();
     updateBufferData();
 
      
@@ -223,18 +233,18 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
     if(!blendActive && isAO_RD_SHDW)  {
-        tMat.setLightView(getLightDir()*lightReduction);
+        currentTMat->setLightView(getLightDir()*lightReduction);
         mat4 m(1.f);
-        m = translate(m,getTMat()->getPOV()/*+getTMat()->getTrackball().getPosition()*/);
-        //m = translate(m,getTMat()->getPOV());
-        tMat.tM.mvLightM = getTMat()->tM.mvLightM * m;
-        tMat.tM.mvpLightM = tMat.tM.pMatrix * tMat.tM.mvLightM; 
+        m = translate(m,currentTMat->getPOV());
+        currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * m;
+        currentTMat->tM.mvpLightM = currentTMat->tM.pMatrix * currentTMat->tM.mvLightM; 
 
-        getUData().halfTanFOV = tanf(getTMat()->getPerspAngleRad()*.5);
+        getUData().halfTanFOV = tanf(currentTMat->getPerspAngleRad()*.5);
 
 // AO frag
 /////////////////////////////////////////////
         if(useAO()) {
+            currentTMat->updateBufferData();
             getAO()->bindRender(this, fbIdx);
             getAO()->render();
             getAO()->releaseRender();
@@ -243,9 +253,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 
 // PostRendering frag
 /////////////////////////////////////////////
-          //const float oldAngle = getTMat()->getPerspAngle();
-          //getTMat()->setPerspective(radians(45.f), getTMat()->getPerspNear(), getTMat()->getPerspFar());
 
+        currentTMat->updateBufferData();
         getPostRendering()->bindRender(this, fbIdx);
         getPostRendering()->render();
         getPostRendering()->releaseRender();
@@ -259,6 +268,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
     //glDisable(GL_MULTISAMPLE);
+
+    getUData().pointSize = partSZ;
 
     return returnedTex;
 }
@@ -957,7 +968,6 @@ void postRenderingClass::create() {
 
 void postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx)
 {
-    renderEngine->getTMat()->updateBufferData();
     particle->updateBufferData();
     mmFBO &renderFBO = particle->getRenderFBO();
 
@@ -1131,7 +1141,6 @@ void ambientOcclusionClass::create() {
 
 void ambientOcclusionClass::bindRender(particlesBaseClass *particle, GLuint fbIdx)
 {
-    renderEngine->getTMat()->updateBufferData();
     particle->updateBufferData();
     mmFBO &renderFBO = particle->getRenderFBO();
 

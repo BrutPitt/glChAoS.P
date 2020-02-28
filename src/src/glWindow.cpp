@@ -228,18 +228,6 @@ GLuint glWindow::renderAttractor()
 
         particlesSystem->getEmitter()->preRenderEvents();
 
-        auto renderProcedure = [&]() {
-            particlesSystem->setFlagUpdate();
-            texRendered = particlesSystem->renderParticles();
-            texRendered = particlesSystem->renderGlowEffect(texRendered);
-        };
-
-        //Render standard View in FullScreen (CockPitView is in PiP)
-        if(cPit.invertPIP() && cPit.getPIPposition() != cPit.pip::noPIP) {
-            glViewport(0,0, w, h);
-            renderProcedure();
-        }
-
         const vec3 head(attractorsList.get()->getCurrent());
         const vec3 vecA(vec3(attractorsList.get()->getCurrent() ));
 
@@ -257,79 +245,43 @@ GLuint glWindow::renderAttractor()
         cpPOV+=vecDirT;
         cpTGT+=vecDirH;
 
-        // Saving transform status
-        transformsClass *objT = getParticlesSystem()->getTMat();
-
-        const float perspAngle = objT->getPerspAngle();
-        vec3 vPOV(objT->getPOV()), vTGT(objT->getTGT());
-        vec3 vPos(objT->getTrackball().getPosition()), vCoR(objT->getTrackball().getRotationCenter());
-        quat qRot = objT->getTrackball().getRotation();
-        float pNear = objT->getPerspNear();
+        transformsClass *cpTM = getParticlesSystem()->getCockPitTMat();
 
         mat4 m = translate(mat4(1.f), cpTGT);
         m = m * mat4_cast(cPit.getRotation());
         cpPOV = mat4(m) * vec4(cpPOV-cpTGT, 1.0);
 
-        particlesSystem->getTMat()->setPerspective(attractorsList.getCockpit().getPerspAngle(), float(w)/float(h), attractorsList.getCockpit().getPerspNear(), objT->getPerspFar());
-        particlesSystem->getTMat()->setView(cpPOV, cpTGT);
+        cpTM->setPerspective(attractorsList.getCockpit().getPerspAngle(), float(w)/float(h), 
+                             attractorsList.getCockpit().getPerspNear(), 
+                             getParticlesSystem()->getTMat()->getPerspFar());
+        cpTM->setView(cpPOV, cpTGT);
 
         // New settings for cockpit
-        particlesSystem->getTMat()->getTrackball().setRotation(quat(1.0f,0.0f, 0.0f, 0.0f));
-        particlesSystem->getTMat()->getTrackball().setRotationCenter(vec3(0.f));
+        cpTM->getTrackball().setRotation(quat(1.0f,0.0f, 0.0f, 0.0f));
+        cpTM->getTrackball().setRotationCenter(vec3(0.f));
 
-        particlesSystem->getTMat()->getTrackball().setPosition(vec3(0.f));
-        particlesSystem->getTMat()->applyTransforms();
+        cpTM->getTrackball().setPosition(vec3(0.f));
+        cpTM->applyTransforms();
 
-        shaderPointClass *ps = getParticlesSystem()->shaderPointClass::getPtr();
-        const float ptSizeP = ps->getSize();
-        //ps->setSize(cPit.invertPIP() && cPit.getPIPposition()!=cockpitClass::pip::noPIP ? cPit.getPointSize()*.5*cPit.getPIPzoom() : cPit.getPointSize());
-        ps->setSize(cPit.getPointSize());
+        //Render full screen view
+        glViewport(0,0, w, h);
+        texRendered = particlesSystem->renderParticles(true, !cPit.invertPIP());
+        texRendered = particlesSystem->renderGlowEffect(texRendered);
 
-#if !defined(GLCHAOSP_LIGHTVER)
-        shaderBillboardClass *bb = getParticlesSystem()->shaderBillboardClass::getPtr();
-        const float ptSizeB = bb->getSize();
-        bb->setSize(ps->getSize());
-#endif
-
-        //Render CockPit view 
-        if(cPit.invertPIP()) { 
+        //Render PiP view 
+        particlesSystem->setFlagUpdate();
+        if(cPit.getPIPposition() != cPit.pip::noPIP) {
             cPit.setViewport(w,h); 
-            texRendered = particlesSystem->renderParticles(false, particlesSystem->shaderPointClass::getPtr()->getGlowRender()->getFBO().getFB(1)); 
-            texRendered = particlesSystem->renderGlowEffect(texRendered);
-        }  
-        else  { glViewport(0,0, w, h);  renderProcedure(); }
 
-        
-
-        // Restore transform status
-        particlesSystem->getTMat()->setPerspective(perspAngle, float(w)/float(h), pNear, objT->getPerspFar());
-        particlesSystem->getTMat()->setView(vPOV, vTGT);
-
-        particlesSystem->getTMat()->getTrackball().setRotation(qRot);
-        particlesSystem->getTMat()->getTrackball().setPosition(vPos);
-        particlesSystem->getTMat()->getTrackball().setRotationCenter(vCoR);
-        particlesSystem->getTMat()->applyTransforms();
-
-        //If StandardView in PiP
-        if(!cPit.invertPIP() && cPit.getPIPposition() != cPit.pip::noPIP) {
-            ps->setSize(ptSizeP); //*.5*cPit.getPIPzoom()
-#if !defined(GLCHAOSP_LIGHTVER)
-            bb->setSize(ptSizeB); //
-#endif                                                           
-            cPit.setViewport(w,h);
-            texRendered = particlesSystem->renderParticles(false, particlesSystem->shaderPointClass::getPtr()->getGlowRender()->getFBO().getFB(1)); 
+            texRendered = particlesSystem->renderParticles(false, cPit.invertPIP());
             texRendered = particlesSystem->renderGlowEffect(texRendered);
         }
 
         glViewport(0,0, w, h);
 #if !defined(GLCHAOSP_NO_FXAA)
-            texRendered = particlesSystem->renderFXAA(texRendered);
+        texRendered = particlesSystem->renderFXAA(texRendered);
 #endif                                                           
 
-        ps->setSize(ptSizeP);
-#if !defined(GLCHAOSP_LIGHTVER)
-        bb->setSize(ptSizeB);
-#endif
         particlesSystem->getEmitter()->postRenderEvents();
     } else {
         glViewport(0,0, w, h);

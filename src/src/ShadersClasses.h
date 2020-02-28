@@ -425,6 +425,7 @@ public:
     void clearFlagUpdate() { flagUpdate = false; }
 
     transformsClass *getTMat() { return &tMat; }
+    transformsClass *getCockPitTMat() { return &cpTMat; }
 
     void showAxes(int b) { axesShow = b; }
     int showAxes() { return axesShow; }
@@ -485,7 +486,7 @@ protected:
     mmFBO drawFBO;
 //        , msaaFBO;
 
-    transformsClass tMat;
+    transformsClass tMat, cpTMat;
 
     VertexShader commonVShader;
     GLuint separableVertex;
@@ -984,27 +985,6 @@ public:
     }
 
     void updateCommons() {
-        if(checkFlagUpdate()) {
-            getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
-            getUData().invScrnRes = 1.f/getUData().scrnRes;
-            getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getRenderFBO().getSizeY()/1024.0);
-            getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
-            getUData().velocity = getCMSettings()->getVelIntensity();
-            getUData().lightDir = vec3(getTMat()->tM.vMatrix * vec4(getLightDir(), 1.0));
-            getUData().shadowDetail = float(theApp->useDetailedShadows() ? 2.0f : 1.f);
-            getUData().rotCenter = getTMat()->getTrackball().getRotationCenter();
-        }
-
-        getUData().zNear = getTMat()->getPerspNear();
-        getUData().zFar  = getTMat()->getPerspFar();
-
-        getUData().slowMotion = attractorsList.get()->dtType() && attractorsList.slowMotion();
-
-        cockpitClass &cPit = attractorsList.getCockpit();
-        getUData().elapsedTime   = cPit.getUdata().elapsedTime;
-        getUData().lifeTime      = cPit.getLifeTime();
-        getUData().lifeTimeAtten = cPit.getLifeTimeAtten();
-        getUData().smoothDistance= cPit.getSmoothDistance();
 
     }
 
@@ -1014,7 +994,7 @@ public:
 
     uParticlesData &getUData() { return uData; }
 
-    virtual GLuint render(GLuint fbOut, emitterBaseClass *em, bool eraseBkg = true, int fbIn = -1);
+    virtual GLuint render(GLuint fbOut, emitterBaseClass *em, bool eraseBkg = true, bool cpitView = false);
 
     GLuint getDstBlend() { return dstBlendAttrib; }
     GLuint getSrcBlend() { return srcBlendAttrib; }

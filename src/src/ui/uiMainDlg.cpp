@@ -2195,10 +2195,10 @@ void cockpitDlgClass::view()
                     const float gizmoDim = ImGui::GetFrameHeightWithSpacing()*4;
                     const float w = ImGui::GetContentRegionAvail().x;
                     const float w2 = w*.5;
-                    const float w3 = w*.3333;
-                    const float w6 = w*.6666;
                     const float spaceX = ImGui::GetStyle().ItemSpacing.x;
                     const float posY = ImGui::GetCursorPosY();
+                    const float w6 = (w-gizmoDim-spaceX*2);
+                    const float w3 = w6*.5;
 
 
                     ImGui::TextDisabled(" fov angle");  ImGui::SameLine(w3+spaceX);
