@@ -174,8 +174,9 @@ void mmFBO::attachMultiFB(int num)
 
     multiDrawFB = new GLuint[totalMultiAttached];
     numMultiDraw = num;
+    num++;
     
-    GLuint *drawBuffers = new GLuint[num+1];
+    GLuint *drawBuffers = new GLuint[num];
 
 #ifdef GLAPP_REQUIRE_OGL45
     glCreateTextures(GL_TEXTURE_2D ,totalMultiAttached, multiDrawFB);
@@ -185,7 +186,7 @@ void mmFBO::attachMultiFB(int num)
     for (int i = 0; i < totalMultiAttached; i++) defineTexture(multiDrawFB[i], glPrecision);
 
     for(int countFB = 0; countFB<m_NumFB; countFB++) {
-        for (int i = 0; i <= num; i++) {
+        for (int i = 0; i < num; i++) {
             drawBuffers[i] = GL_COLOR_ATTACHMENT0+i;
 
 #ifdef GLAPP_REQUIRE_OGL45
