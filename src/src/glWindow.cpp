@@ -273,7 +273,7 @@ GLuint glWindow::renderAttractor()
         if(cPit.getPIPposition() != cPit.pip::noPIP) {
             cPit.setViewport(w,h); 
 
-            texRendered = particlesSystem->renderParticles(false, cPit.invertPIP());
+            texRendered = particlesSystem->renderParticles(true, cPit.invertPIP());
             texRendered = particlesSystem->renderGlowEffect(texRendered);
         }
 

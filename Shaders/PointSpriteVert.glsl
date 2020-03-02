@@ -26,10 +26,10 @@ void main()
 {
 
 #ifdef SHADOW_PASS
-    vec4 vtxPos =  m.mvLightM  * vec4(a_ActualPoint.xyz,1.f);
-    solidVtx = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
+    vec4 vtxPos =  m.mvLightM  * vec4(a_ActualPoint.xyz,1.0);
+    solidVtx = m.mvMatrix * vec4(a_ActualPoint.xyz,1.0);
 #else
-    vec4 vtxPos = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
+    vec4 vtxPos = m.mvMatrix * vec4(a_ActualPoint.xyz,1.0);
 #endif
 
 #if defined(GL_ES)
@@ -45,7 +45,7 @@ void main()
 
     pointDistance = gl_Position.w; //length(vtxPos.w);
 
-    float ptAtten = exp(-0.01*sign(pointDistance)*pow(abs(pointDistance)+1.f, u.pointDistAtten*.1));
+    float ptAtten = exp(-0.01*sign(pointDistance)*pow(abs(pointDistance)+1.0, u.pointDistAtten*.1));
     float size = u.pointSize * ptAtten * u.ySizeRatio;
 
     particleSize = size*u.invScrnRes.y;

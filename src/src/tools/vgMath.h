@@ -256,34 +256,34 @@ public:
 TEMPLATE_TYPENAME_T class Mat3 {
 public:
     union {
-        struct { VEC3_T v0 , v1 , v2 ; };
+        VEC3_T v[3];
         struct {      T m00, m01, m02,
                         m10, m11, m12,
                         m20, m21, m22; };
     };
 
     Mat3() {}
-    Mat3(T s) : v0(s, 0, 0), v1(0, s, 0), v2(0, 0, s) {}
-    Mat3(const VEC3_T& v0, const VEC3_T& v1, const VEC3_T& v2) : v0(v0), v1(v1), v2(v2) {}
+    Mat3(T s) : v { VEC3_T(s, 0, 0), VEC3_T(0, s, 0), VEC3_T(0, 0, s) } {}
+    Mat3(const VEC3_T& v0, const VEC3_T& v1, const VEC3_T& v2) : v {v0, v1, v2 } {}
     Mat3(const MAT4_T& m);
     Mat3(T v0x, T v0y, T v0z,
          T v1x, T v1y, T v1z,
-         T v2x, T v2y, T v2z) : v0(v0x, v0y, v0z), v1(v1x, v1y, v1z), v2(v2x, v2y, v2z) {}
+         T v2x, T v2y, T v2z) : v { VEC3_T(v0x, v0y, v0z), VEC3_T(v1x, v1y, v1z), VEC3_T(v2x, v2y, v2z) } {}
 
-    const VEC3_T& operator[](int i) const { return *(&v0 + i); }
-          VEC3_T& operator[](int i)       { return *(&v0 + i); }
+    const VEC3_T& operator[](int i) const { return v[i]; }
+          VEC3_T& operator[](int i)       { return v[i]; }
 
-    const Mat3 operator-() const { return Mat3(-v0, -v1, -v2); }
+    const Mat3 operator-() const { return Mat3(-v[0], -v[1], -v[2]); }
     
-    Mat3& operator+=(const Mat3& m) { v0 += m.v0; v1 += m.v1; v2 += m.v2; return *this; }
-    Mat3& operator-=(const Mat3& m) { v0 -= m.v0; v1 -= m.v1; v2 -= m.v2; return *this; }
+    Mat3& operator+=(const Mat3& m) { v[0] += m.v[0]; v[1] += m.v[1]; v[2] += m.v[2]; return *this; }
+    Mat3& operator-=(const Mat3& m) { v[0] -= m.v[0]; v[1] -= m.v[1]; v[2] -= m.v[2]; return *this; }
+    Mat3& operator/=(const Mat3& m) { v[0] /= m.v[0]; v[1] /= m.v[1]; v[2] /= m.v[2]; return *this; }
+    Mat3& operator*=(T s)           { v[0] *= s;      v[1] *= s;      v[2] *= s;      return *this; }
+    Mat3& operator/=(T s)           { v[0] /= s;      v[1] /= s;      v[2] /= s;      return *this; }
     Mat3& operator*=(const Mat3& m) { return *this = *this * m;  }
-    Mat3& operator/=(const Mat3& m) { v0 /= m.v0; v1 /= m.v1; v2 /= m.v2; return *this; }
-    Mat3& operator*=(T s)           { v0 *= s;    v1 *= s;    v2 *= s;    return *this; }
-    Mat3& operator/=(T s)           { v0 /= s;    v1 /= s;    v2 /= s;    return *this; }
 
-    const Mat3 operator+(const Mat3& m) const { return Mat3(v0 + m.v0, v1 + m.v1, v2 + m.v2); }
-    const Mat3 operator-(const Mat3& m) const { return Mat3(v0 - m.v0, v1 - m.v1, v2 - m.v2); }
+    const Mat3 operator+(const Mat3& m) const { return Mat3(v[0] + m.v[0], v[1] + m.v[1], v[2] + m.v[2]); }
+    const Mat3 operator-(const Mat3& m) const { return Mat3(v[0] - m.v[0], v[1] - m.v[1], v[2] - m.v[2]); }
 #define M(X,Y) (m##X * m.m##Y)
     const Mat3 operator*(const Mat3& m) const { return Mat3( M(00,00) + M(10,01) + M(20,02),
                                                              M(01,00) + M(11,01) + M(21,02),
@@ -295,8 +295,8 @@ public:
                                                              M(01,20) + M(11,21) + M(21,22),
                                                              M(02,20) + M(12,21) + M(22,22)); }
 #undef M
-    const Mat3 operator*(T s) const { return Mat3(v0 * s   , v1 * s   , v2 * s   ); }
-    const Mat3 operator/(T s) const { return Mat3(v0 / s   , v1 / s   , v2 / s   ); }
+    const Mat3 operator*(T s) const { return Mat3(v[0] * s, v[1] * s, v[2] * s); }
+    const Mat3 operator/(T s) const { return Mat3(v[0] / s, v[1] / s, v[2] / s); }
 
     const VEC3_T operator*(const VEC3_T& v) const { return VEC3_T(m00 * v.x + m10 * v.y + m20 * v.z,
                                                                   m01 * v.x + m11 * v.y + m21 * v.z,
@@ -309,7 +309,7 @@ public:
 TEMPLATE_TYPENAME_T class Mat4 {
 public:
     union {
-        struct { VEC4_T v0 , v1 , v2 , v3 ; };
+        VEC4_T v[4];
         struct {      T m00, m01, m02, m03,
                         m10, m11, m12, m13,
                         m20, m21, m22, m23,
@@ -317,30 +317,30 @@ public:
     };
 
     Mat4() {} 
-    Mat4(T s) : v0(s, 0, 0, 0), v1(0, s, 0, 0), v2(0, 0, s, 0), v3(0, 0, 0, s) {}
-    Mat4(const VEC4_T& v0, const VEC4_T& v1, const VEC4_T& v2, const VEC4_T& v3) : v0(v0), v1(v1), v2(v2), v3(v3) {}
-    Mat4(const MAT3_T& m) : v0(VEC4_T(m.v0,0)), v1(VEC4_T(m.v1,0)), v2(VEC4_T(m.v2,0)), v3(0, 0, 0, 1) {}
+    Mat4(T s) : v { VEC4_T(s, 0, 0, 0), VEC4_T(0, s, 0, 0), VEC4_T(0, 0, s, 0), VEC4_T(0, 0, 0, s)} {}
+    Mat4(const VEC4_T& v0, const VEC4_T& v1, const VEC4_T& v2, const VEC4_T& v3) : v {v0, v1, v2, v3} {}
+    Mat4(const MAT3_T& m) : v {VEC4_T(m.v[0],0), VEC4_T(m.v[1],0), VEC4_T(m.v[2],0), VEC4_T(0, 0, 0, 1)}  {}
     Mat4(T v0x, T v0y, T v0z, T v0w,
          T v1x, T v1y, T v1z, T v1w,
          T v2x, T v2y, T v2z, T v2w,
-         T v3x, T v3y, T v3z, T v3w) : v0(v0x, v0y, v0z, v0w), v1(v1x, v1y, v1z, v1w), v2(v2x, v2y, v2z, v2w), v3(v3x, v3y, v3z, v3w) {}
+         T v3x, T v3y, T v3z, T v3w) : v {VEC4_T(v0x, v0y, v0z, v0w), VEC4_T(v1x, v1y, v1z, v1w), VEC4_T(v2x, v2y, v2z, v2w), VEC4_T(v3x, v3y, v3z, v3w) } {}
 
-    const VEC4_T& operator[](int i) const { return *(&v0 + i); }
-          VEC4_T& operator[](int i)       { return *(&v0 + i); }
+    const VEC4_T& operator[](int i) const { return v[i]; }
+          VEC4_T& operator[](int i)       { return v[i]; }
 
-    const Mat4 operator-() const { return Mat4(-v0, -v1, -v2, -v3); }
+    const Mat4 operator-() const { return Mat4(-v[0], -v[1], -v[2], -v[3]); }
 
-    Mat4& operator+=(const Mat4& m) { v0 += m.v0; v1 += m.v1; v2 += m.v2; v3 += m.v3; return *this; }
-    Mat4& operator-=(const Mat4& m) { v0 -= m.v0; v1 -= m.v1; v2 -= m.v2; v3 -= m.v3; return *this; }
+    Mat4& operator+=(const Mat4& m) { v[0] += m.v[0]; v[1] += m.v[1]; v[2] += m.v[2]; v[3] += m.v[3]; return *this; }
+    Mat4& operator-=(const Mat4& m) { v[0] -= m.v[0]; v[1] -= m.v[1]; v[2] -= m.v[2]; v[3] -= m.v[3]; return *this; }
+    Mat4& operator/=(const Mat4& m) { v[0] /= m.v[0]; v[1] /= m.v[1]; v[2] /= m.v[2]; v[3] /= m.v[3]; return *this; }
+    Mat4& operator*=(T s)           { v[0] *= s;      v[1] *= s;      v[2] *= s;      v[3] *= s;      return *this; }
+    Mat4& operator/=(T s)           { v[0] /= s;      v[1] /= s;      v[2] /= s;      v[3] /= s;      return *this; }
     Mat4& operator*=(const Mat4& m) { return *this = *this * m; }
-    Mat4& operator/=(const Mat4& m) { v0 /= m.v0; v1 /= m.v1; v2 /= m.v2; v3 /= m.v3; return *this; }
-    Mat4& operator*=(T s)           { v0 *= s;    v1 *= s;    v2 *= s;    v3 *= s;    return *this; }
-    Mat4& operator/=(T s)           { v0 /= s;    v1 /= s;    v2 /= s;    v3 /= s;    return *this; }
 
-    const Mat4 operator+(const Mat4& m) const { return Mat4(v0 + m.v0, v1 + m.v1, v2 + m.v2, v3 + m.v3); }
-    const Mat4 operator-(const Mat4& m) const { return Mat4(v0 - m.v0, v1 - m.v1, v2 - m.v2, v3 - m.v3); }
-    const Mat4 operator*(T s)           const { return Mat4(v0 * s   , v1 * s   , v2 * s   , v3 * s   ); }
-    const Mat4 operator/(T s)           const { return Mat4(v0 / s   , v1 / s   , v2 / s   , v3 / s   ); }
+    const Mat4 operator+(const Mat4& m) const { return Mat4(v[0] + m.v[0], v[1] + m.v[1], v[2] + m.v[2], v[3] + m.v[3]); }
+    const Mat4 operator-(const Mat4& m) const { return Mat4(v[0] - m.v[0], v[1] - m.v[1], v[2] - m.v[2], v[3] - m.v[3]); }
+    const Mat4 operator*(T s)           const { return Mat4(v[0] * s     , v[1] * s     , v[2] * s     , v[3] * s     ); }
+    const Mat4 operator/(T s)           const { return Mat4(v[0] / s     , v[1] / s     , v[2] / s     , v[3] / s     ); }
 #define M(X,Y) (m##X * m.m##Y)
     const Mat4 operator*(const Mat4& m) const { return Mat4( M(00,00) + M(10,01) + M(20,02) + M(30,03),
                                                              M(01,00) + M(11,01) + M(21,02) + M(31,03),
@@ -369,7 +369,7 @@ public:
 // cast / conversion
 //////////////////////////
 TEMPLATE_TYPENAME_T inline VEC3_T::Vec3(const VEC4_T& v) : x(v.x), y(v.y), z(v.z) {}
-TEMPLATE_TYPENAME_T inline MAT3_T::Mat3(const MAT4_T& m) : v0(m.v0), v1(m.v1), v2(m.v2) {}
+TEMPLATE_TYPENAME_T inline MAT3_T::Mat3(const MAT4_T& m) : v {m.v[0], m.v[1], m.v[2]} {}
 TEMPLATE_TYPENAME_T inline MAT3_T mat3_cast(QUAT_T const& q) {
     T xx(q.x * q.x); T yy(q.y * q.y); T zz(q.z * q.z);
     T xz(q.x * q.z); T xy(q.x * q.y); T yz(q.y * q.z);
@@ -476,7 +476,7 @@ TEMPLATE_TYPENAME_T inline const MAT4_T inverse(MAT4_T const &m) {
                (v0 * f1 - v1 * f3 + v3 * f5) *  signV,
                (v0 * f2 - v1 * f4 + v2 * f5) * -signV);
             
-    VEC4_T v0r0(m.v0 * VEC4_T(inv.m00, inv.m10, inv.m20, inv.m30));
+    VEC4_T v0r0(m.v[0] * VEC4_T(inv.m00, inv.m10, inv.m20, inv.m30));
     return inv * (T(1) / (v0r0.x + v0r0.y + v0r0.z + v0r0.w)); }// 1/determinant ==> "operator *" is faster
 // external operators
 //////////////////////////

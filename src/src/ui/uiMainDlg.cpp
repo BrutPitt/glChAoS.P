@@ -2170,7 +2170,7 @@ void cockpitDlgClass::view()
                         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
                         {
                             float f = cPit.getPIPzoom();
-                            if(ImGui::SliderFloat("##zoomPIP", &f, .25, 1.0,"size PiP %.3f")) cPit.setPIPzoom(f);
+                            if(ImGui::SliderFloat("##zoomPIP", &f, .25, 2.0,"size PiP %.3f")) cPit.setPIPzoom(f);
                         }
                         ImGui::PopItemWidth();
 
@@ -2199,7 +2199,6 @@ void cockpitDlgClass::view()
                     const float posY = ImGui::GetCursorPosY();
                     const float w6 = (w-gizmoDim-spaceX*2);
                     const float w3 = w6*.5;
-
 
                     ImGui::TextDisabled(" fov angle");  ImGui::SameLine(w3+spaceX);
                     ImGui::TextDisabled(" tail POV"); 

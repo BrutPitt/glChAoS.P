@@ -87,7 +87,7 @@ vec4 pixelColorDirect(vec4 color, vec4 N)
 
     if(alphaAttenuation<.25) { discard; return vec4(0.0); } // timeout particle slowMotion 
     //Light @ vertex position
-    vec3 light =  normalize(u.lightDir);  // +vtx
+    vec3 light = u.lightDir;
     
     float lambertian = max(0.0, dot(light, N.xyz)); 
 
@@ -110,7 +110,9 @@ LAYOUT_INDEX(idxSOLID_AO) SUBROUTINE(_pixelColor)
 vec4 pixelColorAO(vec4 color, vec4 N)
 {
     if(alphaAttenuation<.25) { discard; return vec4(0.0); } // timeout particle slowMotion 
-    vec3 light =  normalize(u.lightDir);  // +vtx
+
+    //Light @ vertex position
+    vec3 light = u.lightDir;
     
     float lambertian = max(0.0, dot(light, N.xyz)); 
 
@@ -123,8 +125,7 @@ vec4 pixelColorAO(vec4 color, vec4 N)
 
     vec3 lColor =  color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
                     u.lightColor * specular * u.lightSpecInt;
-    
-    //return vec4(packing2Colors16bit(lColor, color.rgb), getFragDepth(newVertex.z));
+
     return vec4(lColor, color.a);
 }
 
@@ -191,7 +192,6 @@ vec4 mainFunc(vec2 ptCoord)
             case uint(idxSOLID_AO) : return pixelColorAO(color, N);
             case uint(idxSOLID_DR) : return pixelColorDR(color, N);             
         }
-        //return (u.pass >= uint(2)) ? vec4(color.xyz, getDepth(newVertex.z)) : (u.pass==uint(0) ? retColor : vec4(retColor.xyz, getDepth(newVertex.z))); 
     #endif
 #else   
         return pixelColor(color, N); 

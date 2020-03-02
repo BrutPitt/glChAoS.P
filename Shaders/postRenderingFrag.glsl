@@ -149,7 +149,7 @@ float getStrongAO(float AO)
     return u.aoStrong<.001 ? 1.0 : pow(AO,u.aoStrong);
 }
 
-vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO, float shadow)
+vec4 pixelColorLight(vec3 vtx, vec4 color, vec3 N, float AO, float shadow)
 {
 //    if (color.a < u.alphaSkip) discard;   // kill pixels outside circle: r=1.0
     //else {
@@ -161,15 +161,15 @@ vec4 pixelColorLight(vec3 vtx, vec4 color, vec4 N, float AO, float shadow)
         //N.xyz = normalize(N.xyz); 
 
         //Light @ vertex position
-        vec3 light =  normalize(u.lightDir);  // 
+        vec3 light =  u.lightDir;  // 
     
         float lambertian = max(0.0, dot(light, N.xyz)); 
 
         vec3 V = normalize(vtx);
 #if defined(GL_ES) || defined(GLCHAOSP_NO_USES_GLSL_SUBS)
-        float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N.xyz) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N.xyz) : specularGGX(V, light, N.xyz));
+        float specular = u.lightModel == uint(idxPHONG) ? specularPhong(V, light, N) : (u.lightModel == uint(idxBLINPHONG) ? specularBlinnPhong(V, light, N) : specularGGX(V, light, N));
 #else
-        float specular = lightModel(V, light, N.xyz);
+        float specular = lightModel(V, light, N);
 #endif
 
         float aoD = getStrongAO(AO);
@@ -318,7 +318,7 @@ float buildSmoothShadow(vec4 frag)
     
     for (int x = -radius; x <= radius ; x++) 
         for (int y = -radius; y <= radius; y++) {
-            float closestDepth = restoreZ(texture(shadowTex, projCoords.xy+vec2(x,y)*stepTex).r);
+            float closestDepth = restoreZ(texture(shadowTex, (projCoords.xy+vec2(x,y)*stepTex)).r);
 
             shadow += (currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv) ;    // 1.0/9.0
 /* Real more accuracy ???
@@ -385,12 +385,7 @@ vec3 sampleCoord[9];
 void main()
 {
 
-    //if(N.w > 1.0) discard;
-    //if(u.lightActive==1) {
     vec2 uv = gl_FragCoord.xy*u.invScrnRes;
-    //float test = getZ(texelFetch(prevData,ivec2(uv), 0).x);
-    //if(test>.5) {
-//        if(zEye>=1.0) discard;
 
     float depth = texture(zTex,uv).x;
     if(depth>.9999) { discard; outColor = vec4(0.0); return; }
@@ -398,50 +393,32 @@ void main()
     float z = restoreZ(depth);
     vec4 vtx = getVertexFromDepth(viewRay, z);
 
-    //float AO = bicubic(uv, 3); //texelFetch(aoTex,ivec2(uv), 0).w;
     float AO = bool(u.pass&RENDER_AO) ? getBlurredAO(uv) : 1.0;
     float shadow = bool(u.pass &  RENDER_SHADOW) ?  buildSmoothShadow(vtx) : 1.0;
 
-
     if(bool(u.pass &  RENDER_DEF)) {
 
-        //float zD = form_01_to_m1p1(depth);
+        vec3 N = getSelectedNormal(vtx, zTex);
 
-        //vec3 N = blurredNormals(uv).xyz;
-        //vec3 N = 2.0 * texelFetch(aoTex,ivec2(uv), 0).xyz - 1.0;
+        vec4 color = texture(texBaseColor,uv);
 
-        //vec4 N = vec4(getSelectedNormal(z, prevData), 1.0);      
-
-        vec4 N = vec4(getSelectedNormal(vtx, zTex), 1.0);
-        //vec4 N = vec4(getSimpleNormal(vtx, prevData), 1.0);
-
-        vec4 color = vec4(texture(prevData,uv).rgb, texture(texBaseColor,uv).a);
-
-        vtx = vec4(viewRay, z, 1.0);
+        vtx = vec4(viewRay, z, 1.0); 
         vtx = m.invP * vtx;
         vtx /= vtx.w;
-        
+
         outColor = pixelColorLight(vtx.xyz, color, N, AO, shadow);
 
-        //outColor = vec4(AO);
-
     } else {
-        //vec3 lightColor = texture(prevData,uv).rgb;
 
-        //vec3 packedColor = texelFetch(prevData,ivec2(gl_FragCoord.xy),0).rgb;
-        //vec2 c = unPackColor16(packedColor.y);
-        //vec3 lightColor = vec3(unPackColor16(packedColor.x), c.x);
-        //vec3 baseColor  = vec3(c.y, unPackColor16(packedColor.z));
-
-        vec3 lightColor = texelFetch(prevData,ivec2(gl_FragCoord.xy),0).rgb;
-        vec4 baseColor =  texelFetch(texBaseColor,ivec2(gl_FragCoord.xy), 0);
+        vec3 lightColor = texture(prevData,uv).rgb;
+        vec4 baseColor =  texture(texBaseColor,uv);
 
         float aoD = getStrongAO(AO);
         lightColor = smoothstep(u.sstepColorMin, u.sstepColorMax, 
                                  aoD *lightColor * shadow + 
                                 AO * (baseColor.rgb*u.lightAmbInt + vec3(u.lightAmbInt)) * .5);
+
         outColor = vec4(lightColor, baseColor.a) ;
-        //outColor = vec4( 1.0) ;
 
     }
 

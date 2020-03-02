@@ -277,11 +277,12 @@ add_executable(${PROJECT_NAME}
 
 if(OPENGL_FOUND)
     if(APPLE)
-        set(TARGET_LIBS "-lglfw3 -lpthread -ldl")
+        set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lglfw3 -lpthread")
     else()
         if(WIN32)
+        set(TARGET_LIBS ${CMAKE_DL_LIBS} "glfw3.lib")
         else()    
-        set(TARGET_LIBS "-lglfw3 -lpthread -ldl -lX11")
+        set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lglfw3 -lpthread -lX11")
         endif(WIN32)
     endif(APPLE)
 

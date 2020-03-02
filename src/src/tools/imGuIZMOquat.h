@@ -163,8 +163,12 @@ struct imguiGizmo
     // vec3 -> quat -> trackbalTransforms -> quat -> vec3
     ////////////////////////////////////////////////////////////////////////////
     bool getTransforms(quat& q, const char* label, vec3& dir, float size) {
-        const float len = length(dir);
-        q = angleAxis(acosf(dir.x/len), normalize(vec3(0.0f, -dir.z, dir.y)));
+        float len = length(dir);
+
+        if(len<1.0 && len>= FLT_EPSILON) { normalize(dir); len = 1.0; }
+        else if(len< FLT_EPSILON) { dir = vec3(1.f, 0.f, 0.f); len = 1.0; }
+
+        q = angleAxis(acosf(dir.x/len), normalize(vec3(FLT_EPSILON, -dir.z, dir.y)));
 
         bool ret = drawFunc(label, size);
         if (ret) dir = (q * vec3(1.0f, 0.0f, 0.0f)) * len ; //return vector with original lenght

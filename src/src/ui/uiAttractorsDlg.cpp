@@ -211,13 +211,13 @@ void slowMotionTool()
         ImGui::NewLine();
     }
 }
-
+/*
 void PopCorn4DType::additionalDataCtrls()
 {
     slowMotionTool();
 
 }
-
+*/
 void attractorDtType::additionalDataCtrls()
 {
         

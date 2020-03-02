@@ -1095,7 +1095,7 @@ public:
     int getPtSize() { return attPt4D; }
 protected:
     virtual void startData();
-    virtual void additionalDataCtrls();
+    //virtual void additionalDataCtrls();
 };
 
 class PopCorn4Dset : public PopCorn4DType

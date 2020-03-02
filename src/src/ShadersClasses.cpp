@@ -96,11 +96,12 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
     const float lightReduction = theApp->useDetailedShadows() ? .3333 : .25f;
 
+    const bool computeShadow = useShadow() && !cpitView;
     const bool blendActive = getBlendState() || showAxes();
-    const bool isAO_SHDW = ( useAO() || useShadow());
+    const bool isAO_SHDW = ( useAO() || computeShadow);
     const bool isAO_RD_SHDW = (isAO_SHDW || postRenderingActive());
     const bool isSolid = ( getDepthState() ||  getLightState());
-    const bool isShadow = ( useShadow() && isSolid);
+    const bool isShadow = ( computeShadow && isSolid);
 
     getUData().renderType = (blendActive && !isSolid)            ? pixColIDX::pixBlendig :
                              blendActive || !isAO_RD_SHDW        ? pixColIDX::pixDirect  :
@@ -112,14 +113,17 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     getUPlanes().buildInvMV_forPlanes(this);    // checkPlanes and eventually build invMat
     
     //updateCommons();                            // update uData struct (UniformBuffer)
+    //struct viewport { GLint x,y,w,h; } vp;
+    //glGetIntegerv(GL_VIEWPORT, (GLint *) &vp);
 
     if(checkFlagUpdate()) {
         getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
+        //getUData().scrnRes = vec2(vp.w, vp.h);
         getUData().invScrnRes = 1.f/getUData().scrnRes;
-        getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getRenderFBO().getSizeY()/1024.0);
+        getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getUData().scrnRes.y/1024.0);
         getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
         getUData().velocity = getCMSettings()->getVelIntensity();
-        getUData().lightDir = vec3(currentTMat->tM.vMatrix * vec4(getLightDir(), 1.0));
+        getUData().lightDir = normalize(vec3(currentTMat->tM.vMatrix * vec4(getLightDir(), 1.0))); //BUGLIGHT
         getUData().shadowDetail = float(theApp->useDetailedShadows() ? 2.0f : 1.f);
         getUData().rotCenter = currentTMat->getTrackball().getRotationCenter();
     }
@@ -146,7 +150,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
     if(isShadow && !blendActive) {
-        if(shadowDetail>1) glViewport(0,0, getWidth()*shadowDetail, getHeight()*shadowDetail);
         if(autoLightDist()) {
             vec3 vL(normalize(getLightDir()));
             
@@ -159,6 +162,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         }
 
         getShadow()->bindRender();
+        if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.x*shadowDetail);
 
         currentTMat->setLightView(getLightDir()*lightReduction);
         currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * currentTMat->tM.mMatrix;;
@@ -171,7 +175,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         emitter->renderEvents();
 
         getShadow()->releaseRender();
-        if(shadowDetail>1) glViewport(0,0, getWidth(), getHeight());
+        if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
     }
 #endif
 
@@ -233,13 +237,15 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
     if(!blendActive && isAO_RD_SHDW)  {
-        currentTMat->setLightView(getLightDir()*lightReduction);
-        mat4 m(1.f);
-        m = translate(m,currentTMat->getPOV());
-        currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * m;
-        currentTMat->tM.mvpLightM = currentTMat->tM.pMatrix * currentTMat->tM.mvLightM; 
-
         getUData().halfTanFOV = tanf(currentTMat->getPerspAngleRad()*.5);
+
+        if(!cpitView) {
+            currentTMat->setLightView(getLightDir()*lightReduction);
+            mat4 m(1.f);
+            m = translate(m,currentTMat->getPOV());
+            currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * m;
+            currentTMat->tM.mvpLightM = currentTMat->tM.pMatrix * currentTMat->tM.mvLightM; 
+        }
 
 // AO frag
 /////////////////////////////////////////////
