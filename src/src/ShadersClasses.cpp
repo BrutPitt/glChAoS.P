@@ -122,10 +122,10 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getUData().invScrnRes = 1.f/getUData().scrnRes;
         getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getUData().scrnRes.y/1024.0);
         getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
-        getUData().velocity = getCMSettings()->getVelIntensity();
-        getUData().lightDir = normalize(vec3(currentTMat->tM.vMatrix * vec4(getLightDir(), 1.0))); //BUGLIGHT
+        getUData().velocity = getCMSettings()->getVelIntensity();        
         getUData().shadowDetail = float(theApp->useDetailedShadows() ? 2.0f : 1.f);
         getUData().rotCenter = currentTMat->getTrackball().getRotationCenter();
+        getUData().lightDir = normalize(vec3(currentTMat->tM.vMatrix * vec4(getLightDir(), 1.0)));
     }
 
     getUData().slowMotion = attractorsList.get()->dtType() && attractorsList.slowMotion();
@@ -155,14 +155,14 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
             
             currentTMat->setPOV(currentTMat->getPOV()-vec3(0.f, 0.f, currentTMat->getTrackball().getDollyPosition().z));
             currentTMat->getTrackball().setDollyPosition(0.f);
-            
-            float dist = currentTMat->getPOV().z;
-            if(dist<FLT_EPSILON) dist = FLT_EPSILON;
+            currentTMat->applyTransforms();
+
+            const float dist = currentTMat->getPOV().z<FLT_EPSILON ?  FLT_EPSILON : currentTMat->getPOV().z;            
             setLightDir(vL * (dist*(theApp->useDetailedShadows() ? 5.5f : 4.f) + dist*.1f));
         }
+        if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
 
         getShadow()->bindRender();
-        if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.x*shadowDetail);
 
         currentTMat->setLightView(getLightDir()*lightReduction);
         currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * currentTMat->tM.mMatrix;;
@@ -237,7 +237,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
     if(!blendActive && isAO_RD_SHDW)  {
-        getUData().halfTanFOV = tanf(currentTMat->getPerspAngleRad()*.5);
 
         if(!cpitView) {
             currentTMat->setLightView(getLightDir()*lightReduction);
@@ -245,6 +244,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
             m = translate(m,currentTMat->getPOV());
             currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * m;
             currentTMat->tM.mvpLightM = currentTMat->tM.pMatrix * currentTMat->tM.mvLightM; 
+            getUData().halfTanFOV = tanf(currentTMat->getPerspAngleRad()*.5);
         }
 
 // AO frag
