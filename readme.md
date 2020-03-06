@@ -46,21 +46,21 @@ Full descriptions, math formulas and code in the relative webpage: [ **PopCorn, 
 With **Billboard** and **PointSprite** techniques
 
 ### 3D DLA (Diffusion Limited Aggregation)  - [DLA3D Video Example](https://youtu.be/_R7akPh64XU)
-[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/dla3D.jpg)](https://youtu.be/_R7akPh64XU)
+[![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/dla3D.jpg)](https://youtu.be/_R7akPh64XU)
 Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman), with possibility to export/import to/from PLY format and to continue a previous rendering.
 
 ### Rendering models with Aizawa attractor - **[Video Example](https://youtu.be/mkX4fdv-kZU)**
 
 | Alpha Blending | Solid Dots |
 | :-----: | :----: |
-|![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_5533.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55251.jpg)|
+|![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/sShot_2019818_5533.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/sShot_2019818_55251.jpg)|
 
 ### Further rendering engine improvement (from ver. >= 1.3.x) - **[Rendering Video Example](https://youtu.be/mkX4fdv-kZU)**
 | DualPass rendering: Z-buffer surface reconstruction | DualPass + Ambient Occlusion |
 | :---: | :---: |
-| ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55315.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55328.jpg)|
+| ![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/sShot_2019818_55315.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/sShot_2019818_55328.jpg)|
 | **DualPass + AO + Shadows** | **DualPass + AO + Shadows + mixed AlphaBlending** |
-| ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55342.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/sShot_2019818_55450.jpg)|
+| ![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/sShot_2019818_55342.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/sShot_2019818_55450.jpg)|
 
 **features also available in WebGL advanced version*
 
@@ -69,19 +69,19 @@ Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, a
 ## wglChAoS.P - the WebGL2 online version (ver. 1.4.2)
 
 <p align="center"><a href="https://michelemorrone.eu/glchaosp/webGL.html"> 
-<img src="https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssWGLtitle1024.jpg"></a>
+<img src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/ssWGLtitle1024.jpg"></a>
 </p>
 
 This is a **WebGL2** / **WebAssembly** lightened **LIVE / ONLINE** version of **glChAoSP** and Supports touch screen for mobile devices, smartphones and tablets
 
 <p align="center"><b align="center">Go to <a href="https://michelemorrone.eu/glchaosp/webGL.html">wglChAoS.P - LIVE / ONLINE</a> starting page</b></p>
 
-<p>&nbsp;<br>&nbsp;<br></p>
+<p>&nbsp;<br></p>
+
 
 ## wglChAoS.P Advanced Mode - WebGL2 with new rendering engine
-This is a **WebGL2** / **WebAssembly** lightened **LIVE** / **ONLINE** version with **new rendering engine**: dual pass accurate rendering, shadows and ambient occlusion
+Starting from ver 1.3.2, also WebGL have **new rendering engine**: dual pass accurate rendering, shadows and ambient occlusion
 
-<p align="center"><b align="center">Go to <a href="https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md">wglChAoS.P Advanced Mode</a> page</b></p>
 
 
 | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot1.jpg) | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot2.jpg) |
@@ -89,13 +89,14 @@ This is a **WebGL2** / **WebAssembly** lightened **LIVE** / **ONLINE** version w
 | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot3.jpg) | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot4.jpg)|
 
 **Advanced Mode not availabe/tested still for mobile devices*
+
 <p>&nbsp;<br>&nbsp;<br></p>
 
 
 ## [Hypercomplex fractals](https://michelemorrone.eu/glchaosp/Hypercomplex.html) like attractors - via IIM (Inverse Iterations Method)
 | hypercomplex fractals | hypercomplex fractals |
 | :-----: | :----: |
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
+|[![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/ssHyp.jpg)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html) | [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/biComplex1.gif)](https://www.michelemorrone.eu/glchaosp/Hypercomplex.html)|
 
 
 <p>&nbsp;<br>&nbsp;<br></p>
@@ -132,9 +133,9 @@ For more usage info: [**glChAoS.P info**](https://michelemorrone.eu/glchaosp/inf
 
 | Windows | Windows Viewports |
 | :-----: | :----: |
-|[![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/osSS01.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/ss001.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
+|[![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/osSS01.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/ss001.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
 | Linux | Mac OS X |
-| [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/osSS09.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/glChAoS.P/master/screenShots/osSS04.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
+| [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/osSS09.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots) | [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/osSS04.jpg)](https://michelemorrone.eu/glchaosp/screenshots.html#osSShots)|
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
@@ -381,42 +382,45 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
 
 **Libs and Tools**
 
-- libs/glm → OpenGL Mathematics
-[https://glm.g-truc.net](https://glm.g-truc.net/)
-*(need version \>= 0.9.9)*
-  - Not striclty (more) necessary, now my integraded tools [**vitualGizmo3D**](https://github.com/BrutPitt/virtualGizmo3D) and [**imGuIZMO.quat**](https://github.com/BrutPitt/imGuIZMO.quat) have (inside them) a sub-set of **glm** types and funtions (**vGizmoMath**), with a studied **interface** that permits to switch between **glm** and **vGizmoMath** only via compiler defines.
+- Personal tools
+    - tools/[**vgMath**](https://github.com/BrutPitt/vgMath) → 3D Mathematics https://github.com/BrutPitt/vgMath (single file header, **glm** compatible)
 
-- libs/imGui → Dear ImGui
-[https://github.com/ocornut/imgui](https://github.com/ocornut/imgui)
-*(need version \>= 1.72)*
+    - tools/[**vitualGizmo3D**](https://github.com/BrutPitt/virtualGizmo3D) → 3D objects manipulator https://github.com/BrutPitt/virtualGizmo3D (single file header)
 
-- libs/configuru → Configuru, an experimental JSON config library for C++
-[https://github.com/emilk/Configuru](https://github.com/emilk/Configuru)
+    - tools/[**imGuIZMO.quat**](https://github.com/BrutPitt/imGuIZMO.quat) → ImGui widget: visual 3D objects manipulator https://github.com/BrutPitt/imGuIZMO.quat
 
-- libs/tinyPLY → C++11 ply 3d mesh format importer & exporter 
-[https://github.com/ddiakopoulos/tinyply](https://github.com/ddiakopoulos/tinyply)
+- Third party tools 
+    - libs/imGui → Dear ImGui
+    [https://github.com/ocornut/imgui](https://github.com/ocornut/imgui)
+    *(need version \>= 1.72)*
 
-- libs/lodePNG → LodePNG a PNG saver
-[https://github.com/lvandeve/lodepng](https://github.com/lvandeve/lodepng)
+    - libs/configuru → Configuru, an experimental JSON config library for C++
+    [https://github.com/emilk/Configuru](https://github.com/emilk/Configuru)
 
-- libs/tinyFileDialog → file dialogs ( cross-platform C C++ )
-[https://github.com/native-toolkit/tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
+    - libs/tinyPLY → C++11 ply 3d mesh format importer & exporter 
+    [https://github.com/ddiakopoulos/tinyply](https://github.com/ddiakopoulos/tinyply)
 
-- libs/IconFontAwesome → IconFontCppHeaders / Font Icon Toolkit
-[https://github.com/juliettef/IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders)
-[https://github.com/FortAwesome/Font-Awesome](https://github.com/FortAwesome/Font-Awesome)
+    - libs/lodePNG → LodePNG a PNG saver
+    [https://github.com/lvandeve/lodepng](https://github.com/lvandeve/lodepng)
 
-- libs/glad → GL/GLES/EGL/GLX/WGL Loader-Generator
-[https://github.com/Dav1dde/glad](https://github.com/Dav1dde/glad)
+    - libs/tinyFileDialog → file dialogs ( cross-platform C C++ )
+    [https://github.com/native-toolkit/tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
 
-- libs/dirent → "dirent" Unix/Linux filesystem interface port for Windows
-[https://github.com/tronkko/dirent](https://github.com/tronkko/dirent)
+    - libs/IconFontAwesome → IconFontCppHeaders / Font Icon Toolkit
+    [https://github.com/juliettef/IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders)
+    [https://github.com/FortAwesome/Font-Awesome](https://github.com/FortAwesome/Font-Awesome)
 
-- libs/glfw → A multi-platform library for OpenGL, OpenGL ES, Vulkan, window and input
-[https://github.com/glfw/glfw](https://github.com/glfw/glfw)
-*(need version \>= 3.3, recommended enclosed pre-built)*
+    - libs/glad → GL/GLES/EGL/GLX/WGL Loader-Generator
+    [https://github.com/Dav1dde/glad](https://github.com/Dav1dde/glad)
 
-- libs/nanoflann -> header-only library for KD-Trees of datasets point clouds [https://github.com/jlblancoc/nanoflann](https://github.com/jlblancoc/nanoflann) (need only for DLA3D, in alternative you can use **Boost Library** compiling with `GLAPP_USE_BOOST_LIBRARY` define)
+    - libs/dirent → "dirent" Unix/Linux filesystem interface port for Windows
+    [https://github.com/tronkko/dirent](https://github.com/tronkko/dirent)
+
+    - libs/glfw → A multi-platform library for OpenGL, OpenGL ES, Vulkan, window and input
+    [https://github.com/glfw/glfw](https://github.com/glfw/glfw)
+    *(need version \>= 3.3, recommended enclosed pre-built)*
+
+    - libs/nanoflann -> header-only library for KD-Trees of datasets point clouds [https://github.com/jlblancoc/nanoflann](https://github.com/jlblancoc/nanoflann) (need only for DLA3D, in alternative you can use **Boost Library** compiling with `GLAPP_USE_BOOST_LIBRARY` define)
 
 
 ### Alternatives and optional, not strictly necessary
@@ -432,6 +436,10 @@ Conversion from gpf format to json 256 variations.
 (these are optional separate files to load and to have more color maps)
 
 **Alternative Library**
+
+- [https://glm.g-truc.net](https://glm.g-truc.net/)
+*(need version \>= 0.9.9)*
+  - Not more necessary, now use my [**vgMath**](https://github.com/BrutPitt/vgMath) lib used in tools [**vitualGizmo3D**](https://github.com/BrutPitt/virtualGizmo3D) and [**imGuIZMO.quat**](https://github.com/BrutPitt/imGuIZMO.quat) have (inside them) a sub-set of **glm** types and funtions (**vGizmoMath**), with a studied **interface** that permits to switch between **glm** and **vGizmoMath** only via compiler defines.
 
 - **Boost Library** in particular: *function_output_iterator* and *geometry* are necessary **as alternative** (to nanoflann) to build DLA3D (Diffusion Limited Aggregation) object exlploration in glChAoS.P (can be disabled). It's not included in the repository, but can be downloaded from [https://www.boost.org/](https://www.boost.org/)
 It is not necessary to build the library, only headers files is enough. (more information in: how to build)
