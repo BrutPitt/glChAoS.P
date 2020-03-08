@@ -18,7 +18,7 @@ in vec2 vTexCoord;
 
 out vec4 outColor;
 
-LAYOUT_BINDING(5) uniform sampler2D prevData;
+//LAYOUT_BINDING(5) uniform sampler2D prevData;
 LAYOUT_BINDING(6) uniform sampler2D noise;
 LAYOUT_BINDING(7) uniform sampler2D ssaoSample;
 LAYOUT_BINDING(10) uniform sampler2D zTex;

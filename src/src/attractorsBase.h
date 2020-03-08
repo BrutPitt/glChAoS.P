@@ -2345,6 +2345,8 @@ public:
     int getSlowMotionDpS() { return slowMotionDpS; }
     void  setSlowMotionDpS(int v) { slowMotionDpS = v; }
 
+    ivec4 &getViewportSize() { return viewportSize; }
+
 //Feedback Funcs
     int  getMaxTransformedEmission() { return maxTransformedEmission; }
     void setTransformedEmission(int i)  {  transformedEmission =  i; }    //getEmittedParticles
@@ -2373,6 +2375,7 @@ private:
     vec3 panDollyPos = vec3(0.f);
     quat qRot = quat(1.0f,0.0f, 0.0f, 0.0f);
     int slowMotionDpS = 100;
+    ivec4 viewportSize = ivec4(0, 0, 100, 100);
 
 
 //Feedback Data

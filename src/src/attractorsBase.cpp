@@ -1259,22 +1259,23 @@ void cockpitClass::setViewport(int w, int h) {
     w++; h++;
     switch(getPIPposition()) {
         case pip::lTop:
-            glViewport(0, h-szY, szX, szY);
+            viewportSize = ivec4(0, h-szY, szX, szY);
             break;
         case pip::lBottom:
-            glViewport(0,  0, szX, szY);
+            viewportSize = ivec4(0,  0, szX, szY);
             break;
         case pip::rTop:
-            glViewport(w-szX,h-szY, szX, szY);
+            viewportSize = ivec4(w-szX,h-szY, szX, szY);
             break;
         case pip::rBottom:
-            glViewport(w-szX,0 , szX, szY);
+            viewportSize = ivec4(w-szX,0 , szX, szY);
             break;
         default:
         case pip::noPIP:
-            glViewport(0,0, w, h);
+            viewportSize = ivec4(0,0, w, h);
             break;
     }
+    glViewport(viewportSize.x, viewportSize.y, viewportSize.z, viewportSize.w);
 }
 
 

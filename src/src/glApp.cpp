@@ -231,6 +231,13 @@ void toggleFullscreenOnOff(GLFWwindow* window)
             const GLFWvidmode* mode = glfwGetVideoMode(monitor);
             glfwGetWindowPos(window,  &windowed_xpos,  &windowed_ypos);
             glfwGetWindowSize(window, &windowed_width, &windowed_height);
+/* 
+            glfwWindowHint(GLFW_RED_BITS,     10);
+            glfwWindowHint(GLFW_GREEN_BITS,   10);
+            glfwWindowHint(GLFW_BLUE_BITS,    10);
+            glfwWindowHint(GLFW_ALPHA_BITS,   2);
+            glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+*/
             glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
         }
 #ifdef GLAPP_IMGUI_VIEWPORT
@@ -392,6 +399,10 @@ void mainGLApp::glfwInit()
 #endif
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //GLFW_OPENGL_ANY_PROFILE
+    #ifdef NDEBUG
+        glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_CONTEXT_NO_ERROR);
+    #endif
+
     glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
     glfwWindowHint(GLFW_DEPTH_BITS,0);
 
@@ -407,6 +418,19 @@ void mainGLApp::glfwInit()
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
+/* list modes video
+    GLFWmonitor* monitor = getCurrentMonitor(getGLFWWnd());
+    if (monitor)
+    {
+        int numModes;
+        const GLFWvidmode* modes = glfwGetVideoModes(monitor, &numModes);
+
+        for(int i=0; i<numModes; i++) {
+            cout << modes[i].width   << ' ' << modes[i].height << ' ';
+            cout << modes[i].redBits << ' ' << modes[i].greenBits << ' ' << modes[i].blueBits << ' ' <<  modes[i].refreshRate << '\n';
+        }
+    }
+*/
 
     if(getPosX()>=0 && getPosY()>=0) glfwSetWindowPos(getGLFWWnd(), getPosX(), getPosY());
 

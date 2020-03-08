@@ -44,19 +44,19 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
 
     set(SOURCE_FILES
         ${SRC}/libs/IconsFontAwesome/IconsFontAwesome.h
-        ${SRC}/libs/ImGui/imconfig.h
-        ${SRC}/libs/ImGui/imgui.cpp
-        ${SRC}/libs/ImGui/imgui_widgets.cpp
-        ${SRC}/libs/ImGui/imgui.h
-        ${SRC}/libs/ImGui/imgui_draw.cpp
-        ${SRC}/libs/ImGui/imgui_impl_glfw.cpp
-        ${SRC}/libs/ImGui/imgui_impl_glfw.h
-        ${SRC}/libs/ImGui/imgui_impl_opengl3.cpp
-        ${SRC}/libs/ImGui/imgui_impl_opengl3.h
-        ${SRC}/libs/ImGui/imgui_internal.h
-        ${SRC}/libs/ImGui/imstb_rectpack.h
-        ${SRC}/libs/ImGui/imstb_textedit.h
-        ${SRC}/libs/ImGui/imstb_truetype.h
+        ${SRC}/libs/imgui/imconfig.h
+        ${SRC}/libs/imgui/imgui.cpp
+        ${SRC}/libs/imgui/imgui_widgets.cpp
+        ${SRC}/libs/imgui/imgui.h
+        ${SRC}/libs/imgui/imgui_draw.cpp
+        ${SRC}/libs/imgui/imgui_impl_glfw.cpp
+        ${SRC}/libs/imgui/imgui_impl_glfw.h
+        ${SRC}/libs/imgui/imgui_impl_opengl3.cpp
+        ${SRC}/libs/imgui/imgui_impl_opengl3.h
+        ${SRC}/libs/imgui/imgui_internal.h
+        ${SRC}/libs/imgui/imstb_rectpack.h
+        ${SRC}/libs/imgui/imstb_textedit.h
+        ${SRC}/libs/imgui/imstb_truetype.h
         ${SRC}/libs/configuru/configuru.hpp
         ${SRC}/tools/fastRandom.cpp
         ${SRC}/tools/fastRandom.h

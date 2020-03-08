@@ -11,9 +11,9 @@
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #pragma once   
-#include "../libs/ImGui/imgui.h"
+#include "../libs/imgui/imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "../libs/ImGui/imgui_internal.h"
+#include "../libs/imgui/imgui_internal.h"
 
 //  
 //  hslTuning

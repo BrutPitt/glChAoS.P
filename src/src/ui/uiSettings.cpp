@@ -13,7 +13,7 @@
 #include "../glApp.h"
 #include <IconsFontAwesome/IconsFontAwesome.h>
 
-#include <ImGui/imgui.h>
+#include <imgui/imgui.h>
 
 
 void lightCyanYellow()

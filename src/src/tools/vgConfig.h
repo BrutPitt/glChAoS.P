@@ -98,5 +98,40 @@
 //------------------------------------------------------------------------------
 //#define VGM_USES_HLSL_TYPES 
 
+//------------------------------------------------------------------------------
+// imGuiZmo.quat - v3.0 and later - (used only inside it)
+//
+//      Used to remove Pan & Dolly feature to imGuIZMO.quat widget and to use
+//          only rotation feature (like v2.2 and above)
+//
+//          Pan/Dolly use virtualGizmo3DClass just a little bit complex of
+//          virtualGizmoClass that uses only "quat" rotations
+//          uncomment for very low resources ==> Pan & Dolly will be disabled
+//
+// Default ==> Pan & Dolly enabled 
+//------------------------------------------------------------------------------
+//#define IMGUIZMO_USE_ONLY_ROT
+
+//------------------------------------------------------------------------------
+// imGuiZmo.quat - v3.0 and later - (used only inside it)
+//
+//      used to specify where ImGui include files should be searched
+//          #define IMGUIZMO_IMGUI_FOLDER  
+//              is equivalent to use:
+//                  #include <imgui.h>
+//                  #include <imgui_internal.h>
+//          #define IMGUIZMO_IMGUI_FOLDER myLibs/ImGui/
+//              (final slash is REQUIRED) is equivalent to use: 
+//                  #include <myLib/ImGui/imgui.h>
+//                  #include <myLib/ImGui/imgui_internal.h>
+//          Default: IMGUIZMO_IMGUI_FOLDER commented/undefined
+//              is equivalent to use:
+//                  #include <imgui/imgui.h>
+//                  #include <imgui/imgui_internal.h>
+//
+// N.B. Final slash to end of path is REQUIRED!
+//------------------------------------------------------------------------------
+// #define IMGUIZMO_IMGUI_FOLDER ImGui/
+
 //  v g M a t h   C O N F I G   end
 ////////////////////////////////////////////////////////////////////////////////

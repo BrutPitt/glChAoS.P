@@ -14,13 +14,20 @@
 #include <algorithm>
 
 
-#include <ImGui/imgui.h>
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include <ImGui/imgui_internal.h>
-
 #include <vGizmo.h>
 
-////////////////////////////////////////////////////////////////////////////
+#if !defined(IMGUIZMO_IMGUI_FOLDER)
+    #define IMGUIZMO_IMGUI_FOLDER imgui/
+#endif
+
+#define GET_PATH(P) P
+#define INC_PATH(X) <GET_PATH(IMGUIZMO_IMGUI_FOLDER)X>
+
+#define IMGUI_DEFINE_MATH_OPERATORS
+
+#include INC_PATH(imgui.h)
+#include INC_PATH(imgui_internal.h)
+
 ////////////////////////////////////////////////////////////////////////////
 //
 //    NEED TO BUILD :
@@ -38,12 +45,10 @@
 //    
 //    comment/uncomment below or add as directive to compiler
 ////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
 
 #define imguiGizmo_INTERPOLATE_NORMALS
 #define STARTING_ALPHA_PLANE .75f
 
-////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 //
 //  imguiGizmo 3D
@@ -58,7 +63,6 @@
 //          Ctrl:   rotation only around Y
 //          Alt:    rotation only around Z
 ////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
 
 // The data structure that holds the orientation among other things
 struct imguiGizmo
@@ -66,20 +70,25 @@ struct imguiGizmo
 
     quat qtV  = quat(1.0f, vec3(0.0f)); // Quaternion value
     quat qtV2 = quat(1.0f, vec3(0.0f)); // Quaternion value
+#ifndef IMGUIZMO_USE_ONLY_ROT
+    vec3 posPanDolly = vec3(0.f);
+    vgButtons buttonPanDolly = vg::evLeftButton;
+#endif
 
-    enum      {                            //0b0000'0000, //C++14 notation
-                mode3Axes          = 0x01, //0b0000'0001, 
-                modeDirection      = 0x02, //0b0000'0010,
-                modeDirPlane       = 0x04, //0b0000'0010,
-                modeDual           = 0x08, //0b0000'1000,
-                modeMask           = 0x0f, //0b0000'1111,
+    enum      {                              //0b0000'0000, //C++14 notation
+                mode3Axes          = 0x0001, //0b0000'0001, 
+                modeDirection      = 0x0002, //0b0000'0010,
+                modeDirPlane       = 0x0004, //0b0000'0100,
+                modeDual           = 0x0008, //0b0000'1000,
+                modePanDolly       = 0x0010, //0b0001'0000,
+                modeMask           = 0x00ff, 
                 
 
-                cubeAtOrigin       = 0x10, //0b0000'0000, 
-                sphereAtOrigin     = 0x20, //0b0001'0000,
-                noSolidAtOrigin    = 0x40, //0b0010'0000,
-                modeFullAxes       = 0x80,
-                axesModeMask       = 0xf0  //0b1111'0000
+                cubeAtOrigin       = 0x0100, //0b0000'0000, 
+                sphereAtOrigin     = 0x0200, //0b0001'0000,
+                noSolidAtOrigin    = 0x0400, //0b0010'0000,
+                modeFullAxes       = 0x0800,
+                axesModeMask       = 0xff00  
     };
 
     enum { sphereTess16, sphereTess8, sphereTess4, sphereTess2 };
@@ -142,9 +151,31 @@ struct imguiGizmo
         sphereColors[0] = savedSphereColors[0]; sphereColors[1] = savedSphereColors[1]; }
 
 
-    //
+    //  gizmo mouse/key settings
+    ////////////////////////////////////////////////////////////////////////////
+    // Call it once, to set all widgets... or if you need it 
+    static void setGizmoFeelingRot(float f) { gizmoFeelingRot = f; } // default 1.0, >1 more mouse sensitivity, <1 less mouse sensitivity
+    static float getGizmoFeelingRot() { return gizmoFeelingRot; }
+
+#ifndef IMGUIZMO_USE_ONLY_ROT
+// available vgModifiers values:
+//      evShiftModifier   -> Shift
+//      evControlModifier -> Ctrl
+//      evAltModifier     -> Alt
+//      evSuperModifier   -> Super
+    static void setPanModifier(vgModifiers v) { panMod = v; }    // Change default assignment for Pan
+    static void setDollyModifier(vgModifiers v) { panMod = v; }  // Change default assignment for Dolly
+
+    //  Set the mouse response for the dolly operation...  also wheel
+    static void setDollyScale(float  scale) { dollyScale = scale;  } // default 1.0, >1 more, <1 less 
+    static float getDollyScale() { return dollyScale;  }
+    //  Set the mouse response for pan    
+    static void setPanScale(float scale) { panScale = scale; } // default 1.0, >1 more, <1 less 
+    static float getPanScale() { return panScale; }
+#endif
+
+
     //  internals
-    //
     ////////////////////////////////////////////////////////////////////////////
     static bool solidAreBuilded;
     static bool dragActivate;
@@ -185,7 +216,7 @@ struct imguiGizmo
 
         return ret; 
     }
- 
+
     //
     //  Settings
     //
@@ -266,11 +297,17 @@ struct imguiGizmo
     static ImVec4 planeColor;
     static ImVec4 savedPlaneColor;
 
+    // Gizmo mouse settings
+    ///////////////////////////////////////
+    static float gizmoFeelingRot; // >1 more mouse sensibility, <1 less mouse sensibility
+#ifndef IMGUIZMO_USE_ONLY_ROT
+    static float panScale, dollyScale;
+    static vgModifiers panMod, dollyMod;
+#endif
+
     static const int imguiGizmoDefaultSize;
+
 };
-
-
-
 
 #define IMGUIZMO_DEF_SIZE (ImGui::GetFrameHeightWithSpacing()*4 - (ImGui::GetStyle().ItemSpacing.y*2))
 
@@ -285,6 +322,18 @@ IMGUI_API bool gizmo3D(const char*, quat&, quat&, float=IMGUIZMO_DEF_SIZE, const
 IMGUI_API bool gizmo3D(const char*, quat&, vec4&, float=IMGUIZMO_DEF_SIZE, const int=imguiGizmo::modeDual|imguiGizmo::cubeAtOrigin);
 IMGUI_API bool gizmo3D(const char*, quat&, vec3&, float=IMGUIZMO_DEF_SIZE, const int=imguiGizmo::modeDual|imguiGizmo::cubeAtOrigin);
 
+#ifndef IMGUIZMO_USE_ONLY_ROT
+
+//with Pan & Dolly feature
+IMGUI_API bool gizmo3D(const char*, vec3&, quat&, float=IMGUIZMO_DEF_SIZE, const int=imguiGizmo::mode3Axes|imguiGizmo::cubeAtOrigin);
+IMGUI_API bool gizmo3D(const char*, vec3&, vec4&, float=IMGUIZMO_DEF_SIZE, const int=imguiGizmo::mode3Axes|imguiGizmo::cubeAtOrigin);
+IMGUI_API bool gizmo3D(const char*, vec3&, vec3&, float=IMGUIZMO_DEF_SIZE, const int=imguiGizmo::modeDirection);
+
+IMGUI_API bool gizmo3D(const char*, vec3&, quat&, quat&, float=IMGUIZMO_DEF_SIZE, const int=imguiGizmo::modeDual|imguiGizmo::cubeAtOrigin);
+IMGUI_API bool gizmo3D(const char*, vec3&, quat&, vec4&, float=IMGUIZMO_DEF_SIZE, const int=imguiGizmo::modeDual|imguiGizmo::cubeAtOrigin);
+IMGUI_API bool gizmo3D(const char*, vec3&, quat&, vec3&, float=IMGUIZMO_DEF_SIZE, const int=imguiGizmo::modeDual|imguiGizmo::cubeAtOrigin);
+
+#endif
 };
 
 //#undef imguiGizmo_DEF_SIZE

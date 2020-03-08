@@ -91,23 +91,26 @@ void shaderPointClass::initShader()
 //  particlesBase 
 //
 ////////////////////////////////////////////////////////////////////////////////
-GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool eraseBkg, bool cpitView) 
+GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool isFullScreenPiP, bool cpitView) 
 {
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
     const float lightReduction = theApp->useDetailedShadows() ? .3333 : .25f;
 
-    const bool computeShadow = useShadow() && !cpitView;
+    const bool computeShadow = useShadow() && !cpitView; // no shadow on cockpit
     const bool blendActive = getBlendState() || showAxes();
     const bool isAO_SHDW = ( useAO() || computeShadow);
-    const bool isAO_RD_SHDW = (isAO_SHDW || postRenderingActive());
+    const bool isAO_RD_SHDW = isAO_SHDW || postRenderingActive();
     const bool isSolid = ( getDepthState() ||  getLightState());
     const bool isShadow = ( computeShadow && isSolid);
 
     getUData().renderType = (blendActive && !isSolid)            ? pixColIDX::pixBlendig :
                              blendActive || !isAO_RD_SHDW        ? pixColIDX::pixDirect  :
                              isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
-                                                                   pixColIDX::pixDR;
+                             isFullScreenPiP                     ? pixColIDX::pixDR : pixColIDX::pixDirect; //!isFullScreenPiP: no dual pass on PiP 
     
+    //isFullScreenPiP: no dual pass on PiP
+    getUData().pass = (isShadow ? 4:0) | (postRenderingActive() && isFullScreenPiP ? 2:0) | (useAO() ? 1:0);
+
     transformsClass *currentTMat = cpitView ? getCockPitTMat() : getTMat();
     
     getUPlanes().buildInvMV_forPlanes(this);    // checkPlanes and eventually build invMat
@@ -115,6 +118,15 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     //updateCommons();                            // update uData struct (UniformBuffer)
     //struct viewport { GLint x,y,w,h; } vp;
     //glGetIntegerv(GL_VIEWPORT, (GLint *) &vp);
+
+    auto getLigthPOV = [&]() {
+        if(cpitView) {
+            currentTMat->setLightView(getLightDir());
+            vec4 v(getTMat()->tM.vMatrix * currentTMat->tM.vMatrix * vec4(getLightDir(), 1.f));
+            return v;        
+        }
+        else return getTMat()->tM.vMatrix * vec4(getLightDir(), 1.f);
+    };
 
     if(checkFlagUpdate()) {
         getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
@@ -125,7 +137,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getUData().velocity = getCMSettings()->getVelIntensity();        
         getUData().shadowDetail = float(theApp->useDetailedShadows() ? 2.0f : 1.f);
         getUData().rotCenter = currentTMat->getTrackball().getRotationCenter();
-        getUData().lightDir = normalize(vec3(currentTMat->tM.vMatrix * vec4(getLightDir(), 1.0)));
+        getUData().lightDir = normalize(vec3(getLigthPOV()));
     }
 
     getUData().slowMotion = attractorsList.get()->dtType() && attractorsList.slowMotion();
@@ -135,13 +147,11 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     getUData().lifeTime      = cPit.getLifeTime();
     getUData().lifeTimeAtten = cPit.getLifeTimeAtten();
     getUData().smoothDistance= cPit.getSmoothDistance();
-
+    getUData().vpReSize      = isFullScreenPiP ? 1.0 : cPit.getPIPzoom()*.5;
 
     getUData().zNear = currentTMat->getPerspNear();
     getUData().zFar  = currentTMat->getPerspFar();
 
-    // pass, used w/o subroutines
-    getUData().pass = (isShadow ? 4:0) | (postRenderingActive() ? 2:0) | (useAO() ? 1:0);
 
     const float partSZ = getSize();
     if(cpitView) getUData().pointSize = cPit.getPointSize();
@@ -149,8 +159,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 // Shadow pass
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-    if(isShadow && !blendActive) {
-        if(autoLightDist()) {
+    if(computeShadow && !blendActive ) {
+        if(autoLightDist() ) {
             vec3 vL(normalize(getLightDir()));
             
             currentTMat->setPOV(currentTMat->getPOV()-vec3(0.f, 0.f, currentTMat->getTrackball().getDollyPosition().z));
@@ -160,7 +170,11 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
             const float dist = currentTMat->getPOV().z<FLT_EPSILON ?  FLT_EPSILON : currentTMat->getPOV().z;            
             setLightDir(vL * (dist*(theApp->useDetailedShadows() ? 5.5f : 4.f) + dist*.1f));
         }
-        if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
+        //if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
+        ivec4 vp;
+        glGetIntegerv(GL_VIEWPORT, (GLint *) value_ptr(vp));
+        //if(!isFullScreenPiP || shadowDetail>1) 
+            glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
 
         getShadow()->bindRender();
 
@@ -175,7 +189,14 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         emitter->renderEvents();
 
         getShadow()->releaseRender();
-        if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
+        glViewport(vp.x,vp.y, vp.z, vp.w);
+
+        //if(!isFullScreenPiP) {
+        //    ivec4 vp = cPit.getViewportSize();
+        //    glViewport(vp.x, vp.y, vp.z, vp.w);
+        //} else if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
+
+        //if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
     }
 #endif
 

@@ -91,6 +91,15 @@ ImU32 imguiGizmo::sphereColors[2] = { 0xff401010, 0xffc0a0a0 }; // Tessellation 
 ImU32 imguiGizmo::savedSphereColors[2]  = { 0xff401010, 0xffc0a0a0 }; 
 //ImU32 spherecolorA=0xff005cc0, spherecolorB=0xffc05c00;
 
+// Gizmo mouse settings
+///////////////////////////////////////
+float imguiGizmo::gizmoFeelingRot = 1.f; // >1 more mouse sensibility, <1 less mouse sensibility
+
+#ifndef IMGUIZMO_USE_ONLY_ROT
+float imguiGizmo::dollyScale = 1.f, imguiGizmo::panScale = 1.f;
+vgModifiers imguiGizmo::panMod = vg::evControlModifier, imguiGizmo::dollyMod = vg::evShiftModifier;
+#endif
+
 //
 //  for all gizmo3D
 //
@@ -109,32 +118,27 @@ ImU32 imguiGizmo::savedSphereColors[2]  = { 0xff401010, 0xffc0a0a0 };
 //          solidResizeFactor - axesResizeFactor 
 //              can resize axes or solid, respectively (helper func)
 ////////////////////////////////////////////////////////////////////////////
-
 namespace ImGui
 {
-//
 //  Quaternion control 
-//
-//      input/output: quat (quaternion) for full control
+//      in/out:  
+//          - quat (quaternion) rotation
 ////////////////////////////////////////////////////////////////////////////
-bool gizmo3D(const char* label, quat& quat, float size, const int mode)
+bool gizmo3D(const char* label, quat& q, float size, const int mode)
 {
     imguiGizmo g;
     g.modeSettings(mode & ~g.modeDual);
 
-    g.qtV = quat;
+    g.qtV = q;
 
     bool ret = g.drawFunc(label, size);
-    if(ret) quat = g.qtV;
+    if(ret) q = g.qtV;
 
     return ret;
 }
-
-//
 //  Angle/Axes control 
-//
-//      input/output: 
-//          Vec4 - X Y Z vector/axes components - W angle of rotation
+//      in/out: 
+//          - vec4 - X Y Z vector/axes components - W angle of rotation
 ////////////////////////////////////////////////////////////////////////////
 bool gizmo3D(const char* label, vec4& axis_angle, float size, const int mode)
 {
@@ -143,32 +147,25 @@ bool gizmo3D(const char* label, vec4& axis_angle, float size, const int mode)
 
     return g.getTransforms(g.qtV, label, axis_angle, size);
 }
-
-//
-//  Direction control : 
-//      only in directional mode! ... for obvious reasons ;-) 
-//      
-//      input/output: Vec3 - X Y Z vector/axes components
+//  Direction control  
+//      in/out: 
+//          - vec3 - X Y Z vector/axes components
 ////////////////////////////////////////////////////////////////////////////
-
 bool gizmo3D(const char* label, vec3& dir, float size, const int mode)
 {
     imguiGizmo g;
     g.modeSettings(mode & (imguiGizmo::modeDirection | imguiGizmo::modeDirPlane) ? mode : imguiGizmo::modeDirection); 
 
     return g.getTransforms(g.qtV, label, dir, size);
-
 }
-
-//
 //  2 Manipulators -> 2 Quaternions 
+//      in/out: 
+//          - axes (quaternion) for full control - LeftClick 
+//          - spot (quaternion) for full control - RightClick
 //
-//      input/output: axes (quaternion) for full control - LeftClick 
-//                    spot (quaternion) for full control - RightClick
-//
-//                    both pressed buttons... rotate together
-//                    ctrl-Shift-Alt mods, for X-Y-Z rotations (respectivally)
-//                    are abilitated on both ... also together!
+//                both pressed buttons... rotate together
+//                ctrl-Shift-Alt mods, for X-Y-Z rotations (respectivally)
+//                are abilitated on both ... also together!
 ////////////////////////////////////////////////////////////////////////////
 bool gizmo3D(const char* label, quat& axes, quat& spot, float size, const int mode)
 {
@@ -182,14 +179,10 @@ bool gizmo3D(const char* label, quat& axes, quat& spot, float size, const int mo
 
     return ret;
 }
-
-//
-//  2 Manipulators -> Quaternions and Vec3
-//
-//      input/output: axes (quaternion) for full control - LeftClick 
-//                    spot (vec3)       for full control - RightClick
-//
-//                    read above...
+//  2 Manipulators -> Quaternion and vec3
+//      in/out: 
+//          - axes (quaternion) for full control - LeftClick 
+//          - spot (vec3)       for full control - RightClick
 ////////////////////////////////////////////////////////////////////////////
 bool gizmo3D(const char* label, quat& axes, vec3& spotDir, float size, const int mode)
 {
@@ -202,14 +195,10 @@ bool gizmo3D(const char* label, quat& axes, vec3& spotDir, float size, const int
     if(ret) axes = g.qtV;
     return ret;
 }
-
-//
-//  2 Manipulators -> Quaternions and Vec4
-//
-//      input/output: axes (quaternion) for full control - LeftClick 
-//                    spot (vec4 -> xyz axes, q angle)   - RightClick
-//
-//                    read above...
+//  2 Manipulators -> Quaternion and vec4
+//      in/out: 
+//          - axes (quaternion) for full control - LeftClick 
+//          - spot (vec4)       for full control - RightClick
 ////////////////////////////////////////////////////////////////////////////
 bool gizmo3D(const char* label, quat& axes, vec4& axesAngle, float size, const int mode)
 {
@@ -223,6 +212,122 @@ bool gizmo3D(const char* label, quat& axes, vec4& axesAngle, float size, const i
     return ret;
 
 }
+#ifndef IMGUIZMO_USE_ONLY_ROT
+//  Quaternion control + Pan & Dolly
+//      in/out: 
+//          - vec3 Pan(x,y) Dolly(z)
+//          - quat (quaternion) rotation
+////////////////////////////////////////////////////////////////////////////
+bool gizmo3D(const char* label, vec3& vPanDolly, quat& q, float size, const int mode)
+{
+    imguiGizmo g;
+    g.modeSettings((mode | g.modePanDolly) & ~g.modeDual );
+
+    g.qtV = q;
+    g.posPanDolly = vPanDolly;
+
+    bool ret = g.drawFunc(label, size);
+    if(ret) {
+        q = g.qtV;
+        vPanDolly = g.posPanDolly;
+    }
+
+    return ret;
+}
+//  Angle/Axes control + Pan & Dolly 
+//      in/out: 
+//          - vec3 Pan(x,y) Dolly(z)
+//          - vec4 - X Y Z vector/axes components - W angle of rotation
+////////////////////////////////////////////////////////////////////////////
+bool gizmo3D(const char* label, vec3& vPanDolly, vec4& axis_angle, float size, const int mode)
+{
+    imguiGizmo g;
+    g.modeSettings(mode & ~g.modeDual | g.modePanDolly);
+    g.posPanDolly = vPanDolly;
+
+    bool ret = g.getTransforms(g.qtV, label, axis_angle, size);
+
+    if(ret) vPanDolly = g.posPanDolly;
+    return ret;
+}
+//  Direction control + Pan & Dolly 
+//      in/out: 
+//          - vec3 Pan(x,y) Dolly(z)
+//          - vec3 - X Y Z vector/axes components
+////////////////////////////////////////////////////////////////////////////
+bool gizmo3D(const char* label, vec3& vPanDolly, vec3& dir, float size, const int mode)
+{
+    imguiGizmo g;
+    g.modeSettings(mode & ((imguiGizmo::modeDirection | imguiGizmo::modeDirPlane) ? mode : imguiGizmo::modeDirection)  | g.modePanDolly); 
+    g.posPanDolly = vPanDolly;
+
+    bool ret = g.getTransforms(g.qtV, label, dir, size);
+
+    if(ret) vPanDolly = g.posPanDolly;
+    return ret;
+
+}
+//  2 Manipulators -> 2 Quaternions  + Pan & Dolly
+//      in/out: 
+//          - vec3 Pan(x,y) Dolly(z) - default: Ctrl /Shift
+//          - axes (quaternion) for full control - LeftClick 
+//          - spot (quaternion) for full control - RightClick
+//
+//                both pressed buttons... rotate together
+//                ctrl-Shift-Alt mods, for X-Y-Z rotations (respectivally)
+//                are abilitated on both ... also together!
+////////////////////////////////////////////////////////////////////////////
+bool gizmo3D(const char* label, vec3& vPanDolly, quat& axes, quat& spot, float size, const int mode)
+{
+    imguiGizmo g;
+    g.setDualMode(mode);
+    g.posPanDolly = vPanDolly;
+    
+    g.qtV = axes; g.qtV2 = spot;
+    
+    bool ret = g.drawFunc(label, size);
+    if(ret) { vPanDolly = g.posPanDolly; axes = g.qtV; spot = g.qtV2; }
+
+    return ret;
+}
+//  2 Manipulators -> Quaternion and vec3  + Pan & Dolly
+//      in/out: 
+//          - vec3 Pan(x,y) Dolly(z) - default: Ctrl /Shift
+//          - axes (quaternion) for full control - LeftClick 
+//          - spot (vec3)       for full control - RightClick
+////////////////////////////////////////////////////////////////////////////
+bool gizmo3D(const char* label, vec3& vPanDolly, quat& axes, vec3& spotDir, float size, const int mode)
+{
+    imguiGizmo g;
+    g.setDualMode(mode);
+    g.posPanDolly = vPanDolly;
+
+    g.qtV = axes;
+
+    bool ret = g.getTransforms(g.qtV2, label, spotDir, size);
+    if(ret) { vPanDolly = g.posPanDolly; axes = g.qtV; }
+    return ret;
+}
+//  2 Manipulators -> Quaternion and vec4  + Pan & Dolly
+//      in/out: 
+//          - vec3 Pan(x,y) Dolly(z) - default: Ctrl /Shift
+//          - axes (quaternion) for full control - LeftClick 
+//          - spot (vec4)       for full control - RightClick
+////////////////////////////////////////////////////////////////////////////
+bool gizmo3D(const char* label, vec3& vPanDolly, quat& axes, vec4& axesAngle, float size, const int mode)
+{
+    imguiGizmo g;
+    g.setDualMode(mode);
+    g.posPanDolly = vPanDolly;
+
+    g.qtV = axes;
+
+    bool ret = g.getTransforms(g.qtV2, label, axesAngle, size);
+    if(ret) { vPanDolly = g.posPanDolly; axes = g.qtV; }
+    return ret;
+
+}
+#endif
 
 } // namespace ImGui
 
@@ -339,9 +444,7 @@ bool imguiGizmo::drawFunc(const char* label, float size)
 
     bool value_changed = false;
 
-    if(label[0]!='#' && label[1]!='#') ImGui::Text("%s", label);
-
-    ImVec2 controlPos = ImGui::GetCursorScreenPos();
+    ImVec2 controlPos(ImGui::GetCursorScreenPos());
 
     const float squareSize = size; //std::min(ImGui::CalcItemWidth(), size);
     const float halfSquareSize = squareSize*.5;
@@ -350,55 +453,72 @@ bool imguiGizmo::drawFunc(const char* label, float size)
     bool highlighted = false;
     ImGui::InvisibleButton("imguiGizmo", innerSize);
 
-    ////////////////////////////////////////////////////////////////////////////
-    //  trackball control (virtualGizmo.h)
-    //      Only this 2 lambdas
-    //      can be replaced easly with a personal 3d manipulator which 
-    //      returns rotations in a quaternion
-    ////////////////////////////////////////////////////////////////////////////
-    auto setTrackball = [&] (vg::vImGuIZMO &track, quat &q) {
-        track.viewportSize(innerSize.x, innerSize.y);
-        track.setRotation(q);
-        track.setGizmoScale(squareSize/std::max(io.DisplaySize.x,io.DisplaySize.y));
-    };
+    bool vgModsActive = false;
+    vgModifiers vgMods = vg::evNoModifier;
 
+    if(io.KeyCtrl)  { vgMods |= vg::evControlModifier; vgModsActive = true; }
+    if(io.KeyAlt)   { vgMods |= vg::evAltModifier;     vgModsActive = true; }
+    if(io.KeyShift) { vgMods |= vg::evShiftModifier;   vgModsActive = true; }
+    if(io.KeySuper) { vgMods |= vg::evSuperModifier;   vgModsActive = true; }
+
+    vg::vImGuIZMO track;
     //  getTrackball
     //      in : q -> quaternion to which applay rotations
     //      out: q -> quaternion with rotations
     ////////////////////////////////////////////////////////////////////////////
     auto getTrackball = [&] (quat &q) {
-            vg::vImGuIZMO track;
-            setTrackball(track, q);    
-            
-            ImVec2 mouse = ImGui::GetMousePos() - controlPos;
-            vgModifiers mod  = (io.KeyCtrl) ?  vg::evControlModifier : vg::evNoModifier;
-                        if(io.KeyAlt)   mod |= vg::evAltModifier;
-                        if(io.KeyShift) mod |= vg::evShiftModifier;
-                        if(io.KeySuper) mod |= vg::evSuperModifier;
+        ImVec2 mouse = ImGui::GetMousePos() - controlPos;
 
-            track.motionImmediateMode(mouse.x, mouse.y, io.MouseDelta.x, io.MouseDelta.y, mod);
+        track.viewportSize(innerSize.x, innerSize.y);
+        track.setRotation(q);
+        track.setGizmoFeeling(gizmoFeelingRot);
+#ifndef IMGUIZMO_USE_ONLY_ROT
+        if(drawMode&modePanDolly || io.MouseWheel!=0) {
+            float screenFactor = 1.f/(io.DisplaySize.x<io.DisplaySize.y ? io.DisplaySize.x : io.DisplaySize.y);
+            track.setPosition(posPanDolly);
+            track.setDollyControl(buttonPanDolly, dollyMod);
+            track.setPanControl(buttonPanDolly, panMod);
+            track.setPanScale(screenFactor*panScale);
+            track.setDollyScale(screenFactor*dollyScale);
+            track.wheel(0.f, io.MouseWheel);
+            track.motionImmediateMode(mouse.x, mouse.y, io.MouseDelta.x, io.MouseDelta.y, vgMods);
+            // get new rotation only if !Pan && ! Dolly
+            if((!track.isDollyActive() && !track.isPanActive() && io.MouseWheel==0)) q = track.getRotation();
+            else                                       posPanDolly = track.getPosition();
+        } else {
+            track.imGuIZMO_BASE_CLASS::motionImmediateMode(mouse.x, mouse.y, io.MouseDelta.x, io.MouseDelta.y, vgMods);
             q = track.getRotation();
-            value_changed = true;
+        }
+#else
+        track.motionImmediateMode(mouse.x, mouse.y, io.MouseDelta.x, io.MouseDelta.y, vgMods);
+        q = track.getRotation();
+#endif
+        value_changed = true; // if getTrackball() called, value is changed
     };
 
     // LeftClick
     if (ImGui::IsItemActive()) {
         highlighted = true;
-        if(ImGui::IsMouseDragging(0))                       getTrackball(qtV);        
-        if(drawMode==modeDual && ImGui::IsMouseDragging(1)) getTrackball(qtV2); // if dual mode... move together
-        if(drawMode==modeDual && ImGui::IsMouseDragging(2)) { getTrackball(qtV);  getTrackball(qtV2); } // middle if dual mode... move together
+        if(ImGui::IsMouseDragging(0))                               getTrackball(qtV);        
+        if((drawMode&modeDual) && ImGui::IsMouseDragging(1))   getTrackball(qtV2); // if dual mode... move together
+        //if((drawMode&modeDual) && ImGui::IsMouseDragging(2)) { getTrackball(qtV);  getTrackball(qtV2); } // middle if dual mode... move together
 
         ImColor col(style.Colors[ImGuiCol_FrameBgActive]);
         col.Value.w*=ImGui::GetStyle().Alpha;
         draw_list->AddRectFilled(controlPos, controlPos + innerSize, col, style.FrameRounding);
     } else {  // eventual right click... only dualmode
         highlighted = ImGui::IsItemHovered();
-        if(highlighted && (drawMode==modeDual) && ImGui::IsMouseDragging(1)) getTrackball(qtV2);
+        if(highlighted && (drawMode&modeDual) && ImGui::IsMouseDragging(1)) getTrackball(qtV2);
+        else if(highlighted && (drawMode&modeDual) && ImGui::IsMouseDragging(2)) { getTrackball(qtV);  getTrackball(qtV2); }
+#ifndef IMGUIZMO_USE_ONLY_ROT
+        else if(highlighted && io.MouseWheel!=0) getTrackball(qtV);
+#endif
 
         ImColor col(highlighted ? style.Colors[ImGuiCol_FrameBgHovered]: style.Colors[ImGuiCol_FrameBg]);
         col.Value.w*=ImGui::GetStyle().Alpha;
         draw_list->AddRectFilled(controlPos, controlPos + innerSize, col, style.FrameRounding);
     }
+
 
     draw_list->PushClipRect(controlPos, controlPos + innerSize, true);
 
@@ -407,13 +527,13 @@ bool imguiGizmo::drawFunc(const char* label, float size)
 
     quat _q(normalize(qtV)); 
 
-    ////////////////////////////////////////////////////////////////////////////
     //  Just a "few" lambdas... 
-
     //////////////////////////////////////////////////////////////////
     auto normalizeToControlSize = [&] (float x, float y) {
         return controlPos + ImVec2(x,-y) * halfSquareSize + ImVec2(halfSquareSize,halfSquareSize); //drawing from 0,0 .. no borders
     };
+
+    auto returnSizeFromRatio = [&] (float ratio) { return squareSize * ratio; };
 
     //////////////////////////////////////////////////////////////////
     auto addTriangle = [&] ()
@@ -559,10 +679,10 @@ bool imguiGizmo::drawFunc(const char* label, float size)
     {
         vec3 arrowCoord(_q * vec3(1.0f, 0.0f, 0.0f));
 
-        ptrFunc func = (mode == modeDirPlane) ? adjustPlane : adjustDir;
+        ptrFunc func = (mode & modeDirPlane) ? adjustPlane : adjustDir;
 
-        if(arrowCoord.z <= 0) { for(int i = 0; i <  4; i++) drawComponent(i, q, func); if(mode == modeDirPlane) drawPlane(); }
-        else                  { if(mode == modeDirPlane) drawPlane(); for(int i = 3; i >= 0; i--) drawComponent(i, q, func); }
+        if(arrowCoord.z <= 0) { for(int i = 0; i <  4; i++) drawComponent(i, q, func); if(mode & modeDirPlane) drawPlane(); }
+        else                  { if(mode & modeDirPlane) drawPlane(); for(int i = 3; i >= 0; i--) drawComponent(i, q, func); }
             
     };
     
@@ -588,16 +708,115 @@ bool imguiGizmo::drawFunc(const char* label, float size)
         drawAxes(frontSide);  
     };
 
+#define CENTER_HELPER_X -.85f
+#define CENTER_HELPER_Y -.85f
+    //////////////////////////////////////////////////////////////////
+    auto drawRotationHelper = [&] () {
+        const ImVec2 center(normalizeToControlSize(CENTER_HELPER_X, CENTER_HELPER_Y));
+        const float radius = returnSizeFromRatio(.05);
+        const int nSegments = 12;
+        const ImU32 color = (vgMods & vg::evShiftModifier)   ? 0xff0000ff : 
+                            (vgMods & vg::evControlModifier) ? 0xff00ff00 : 0xffff0000;
+
+        if(squareSize<100) { // if too small filled circle
+            draw_list->AddCircleFilled(center, radius, color, nSegments);
+        } else { // draw arc
+            const float thickness = squareSize/100.f;  
+            const float a_max = (IM_PI * 1.5f) * ((float)nSegments) / (float)nSegments;
+            draw_list->PathClear();
+            draw_list->PathArcTo(center, radius - 0.5f, 0.0f, a_max, nSegments);
+            draw_list->PathStroke(color, false, thickness);
+            if(squareSize>150) { // if big enough draw also arrowhead
+                const float lenLine = radius*.33f;
+                const float thickRadius = radius - thickness*.5;
+                draw_list->AddTriangleFilled(ImVec2(center.x-lenLine, center.y-(thickRadius+lenLine)),
+                                                ImVec2(center.x+lenLine, center.y- thickRadius),
+                                                ImVec2(center.x-lenLine, center.y-(thickRadius-lenLine)),
+                                        color);
+
+                draw_list->AddTriangleFilled(ImVec2(center.x+(thickRadius-lenLine), center.y+lenLine),
+                                                ImVec2(center.x+ thickRadius         , center.y-lenLine),
+                                                ImVec2(center.x+(thickRadius+lenLine), center.y+lenLine),
+                                        color);
+            }
+
+        }
+    };
+
+    //////////////////////////////////////////////////////////////////
+    auto drawPanHelper = [&] () {
+        const ImVec2 center(normalizeToControlSize(CENTER_HELPER_X, CENTER_HELPER_Y));
+        const float lenLine = returnSizeFromRatio(.05f);
+        const float halfLen = lenLine * .5f;
+        const float hhLen = halfLen * .5f;
+        const ImU32 color = 0xffffff00;
+                    draw_list->AddTriangleFilled(ImVec2(center.x        , center.y+lenLine+halfLen),
+                                                 ImVec2(center.x-halfLen, center.y+lenLine-hhLen  ),
+                                                 ImVec2(center.x+halfLen, center.y+lenLine-hhLen  ),
+                                            color);
+                    draw_list->AddTriangleFilled(ImVec2(center.x        , center.y-lenLine-halfLen),
+                                                 ImVec2(center.x-halfLen, center.y-lenLine+hhLen  ),
+                                                 ImVec2(center.x+halfLen, center.y-lenLine+hhLen  ),
+                                            color);
+                    draw_list->AddTriangleFilled(ImVec2(center.x+lenLine+halfLen, center.y        ),
+                                                 ImVec2(center.x+lenLine-hhLen  , center.y-halfLen),
+                                                 ImVec2(center.x+lenLine-hhLen  , center.y+halfLen),
+                                            color);
+                    draw_list->AddTriangleFilled(ImVec2(center.x-lenLine-halfLen, center.y        ),
+                                                 ImVec2(center.x-lenLine+hhLen  , center.y-halfLen),
+                                                 ImVec2(center.x-lenLine+hhLen  , center.y+halfLen),
+                                            color);
+
+
+    };
+
+    //////////////////////////////////////////////////////////////////
+    auto drawDollyHelper = [&] () {
+        const ImVec2 center(normalizeToControlSize(CENTER_HELPER_X, CENTER_HELPER_Y));
+        const float lenLine = returnSizeFromRatio(.05f);
+        const float halfLen = lenLine * .5f;
+        const ImU32 color = 0xff00ffff;
+                    draw_list->AddTriangleFilled(ImVec2(center.x        , center.y+lenLine+halfLen),
+                                                 ImVec2(center.x-lenLine, center.y+halfLen        ),
+                                                 ImVec2(center.x+lenLine, center.y+halfLen        ),
+                                            color);
+                    draw_list->AddTriangleFilled(ImVec2(center.x        , center.y-lenLine        ),
+                                                 ImVec2(center.x-halfLen, center.y-halfLen        ),
+                                                 ImVec2(center.x+halfLen, center.y-halfLen        ),
+                                            color);
+
+    };
+
     //  ... and now..  draw the widget!!!
     ///////////////////////////////////////
+    //if((drawMode & modePanDolly) && (ImGui::IsItemHovered() || ImGui::IsMouseDragging(0))) {
+
     if(drawMode & (modeDirection | modeDirPlane)) dirArrow(_q, drawMode);
     else { // draw arrows & solid
-        if(drawMode == modeDual) {
+        if(drawMode & modeDual) {
             vec3 spot(qtV2 * vec3(-1.0f, 0.0f, .0f)); // versus opposite
             if(spot.z>0) { draw3DSystem(); spotArrow(normalize(qtV2),spot.z); }
             else         { spotArrow(normalize(qtV2),spot.z); draw3DSystem(); }
         } else draw3DSystem();
     }
+
+    // Helper on vgModifier active
+    if(vgModsActive && (ImGui::IsItemHovered() && (!ImGui::IsMouseDown(0) && !ImGui::IsMouseDown(1)) )) {
+#ifndef IMGUIZMO_USE_ONLY_ROT
+        if(drawMode & modePanDolly) {
+            if(panMod & vgMods)        drawPanHelper();
+            else if(dollyMod & vgMods) drawDollyHelper();
+        } else {
+            drawRotationHelper();
+        }
+#else
+        drawRotationHelper();
+#endif
+    }
+
+    // Draw text from top left corner
+    ImGui::SetCursorScreenPos(controlPos);
+    if(label[0]!='#' && label[1]!='#') ImGui::Text("%s", label);
 
     draw_list->PopClipRect();
 

@@ -11,9 +11,9 @@
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #pragma once
-#include <ImGui/imgui.h>
-#include <ImGui/imgui_impl_glfw.h>
-#include <ImGui/imgui_impl_opengl3.h>
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
 #include <IconsFontAwesome/IconsFontAwesome.h>
 
 void fillAttractorData();

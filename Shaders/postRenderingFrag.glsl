@@ -294,9 +294,7 @@ float buildSmoothScattereShadow(vec4 frag)
 
 float buildSmoothShadow(vec4 frag)
 {
-    //vec4 pt = vec4(viewRay*-frag.z, frag.z, 1.0);
     vec4 pt = getVertexFromDepth(-viewRay, frag.z);
-    //float dist = distance(pt.xyz, 
 
     vec4 fragPosLightSpace = m.mvpLightM * pt;
 
@@ -304,8 +302,6 @@ float buildSmoothShadow(vec4 frag)
 
     if(projCoords.z>1.0) return 0.0;
 
-
-    //float bias = 0.005 *  tan(acos(clamp(dot(normalize(u.lightDir),frag.xyz), 0., .9999)));
     float currentDepth = restoreZ(projCoords.z);
     currentDepth += -currentDepth*.0025 + u.shadowBias;
 
@@ -318,20 +314,20 @@ float buildSmoothShadow(vec4 frag)
     
     for (int x = -radius; x <= radius ; x++) 
         for (int y = -radius; y <= radius; y++) {
-            float closestDepth = restoreZ(texture(shadowTex, (projCoords.xy+vec2(x,y)*stepTex)).r);
+            float closestDepth = restoreZ(texture(shadowTex, ((projCoords.xy+vec2(x,y)*stepTex))).r);
 
             shadow += (currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv) ;    // 1.0/9.0
-/* Real more accuracy ???
-            vec4 pt = vec4((viewRay+vec2(x,y)*stepTex)*-frag.z-(vec2(x,y)*stepTex), frag.z, 1.0);
-           
-            vec4 fragPosLightSpace = tMat * pt;
-            vec3 projCoords = .5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
-
-            closestDepth = restoreZ(texture(shadowTex, projCoords.xy).r);
-            float currentDepth = restoreZ(projCoords.z) + u.shadowBias;
-
-            shadow += (currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv) * .1 ;    // 1.0/9.0
-*/
+// Real more accuracy ???
+//          vec4 pt = vec4((viewRay+vec2(x,y)*stepTex)*-frag.z-(vec2(x,y)*stepTex), frag.z, 1.0);
+//         
+//          vec4 fragPosLightSpace = tMat * pt;
+//          vec3 projCoords = .5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
+//
+//          closestDepth = restoreZ(texture(shadowTex, projCoords.xy).r);
+//          float currentDepth = restoreZ(projCoords.z) + u.shadowBias;
+//
+//          shadow += (currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv) * .1 ;    // 1.0/9.0
+//
         }
 
     return shadow;
@@ -403,8 +399,8 @@ void main()
         vec4 color = texture(texBaseColor,uv);
 
         vtx = vec4(viewRay, z, 1.0); 
-        vtx = m.invP * vtx;
-        vtx /= vtx.w;
+        /*vtx = m.invP * vtx;
+        vtx /= vtx.w;*/
 
         outColor = pixelColorLight(vtx.xyz, color, N, AO, shadow);
 

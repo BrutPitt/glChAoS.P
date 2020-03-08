@@ -887,6 +887,7 @@ struct uParticlesData {
     GLfloat lifeTime = 10.0;
     GLfloat lifeTimeAtten = .1;
     GLfloat smoothDistance = 0.0;
+    GLfloat vpReSize = 1.0;
     GLuint  slowMotion = 0;
 // __APPLE__ & GL_ES
     GLuint lightModel = modelBlinnPhong - modelOffset;
