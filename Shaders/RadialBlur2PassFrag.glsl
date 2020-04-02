@@ -149,7 +149,7 @@ vec4 bilateralSmartSmooth(CONST float reductFactor)
     for (d.x=-radius; d.x <= radius; d.x++)	{
         float pt = sqrt(radQ-d.x*d.x);
         for (d.y=-pt; d.y <= pt; d.y++) {
-            float blurFactor = exp( -dot(d , d) * invSigmaQx2 ) * invSigmaQx2;
+            float blurFactor = exp( -dot(d , d) * invSigmaQx2 ) * invSigmaQx2PI;
             
             vec4 walkPx =  texelFetch(origTexture, ivec2(gl_FragCoord.xy+d),0 );
             vec4 dC = walkPx-centrPx;
