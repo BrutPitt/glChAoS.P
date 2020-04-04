@@ -1,14 +1,14 @@
 <h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.4.2</a> </h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**wglChAoS.P**](https://michelemorrone.eu/glchaosp): open**gl** / **w**eb**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
-A real time 3D strange attractors scout... and hypercompex fractals
+A real time 3D strange attractors scout... and hypercomplex fractals
 
 To view all Attractors / Fractals currently inserted in this version, follow the link: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
 
 **now any single attractor is also explorable interactively via WebGL/WebAssembly directly from site.*
 
 
-## All availabe 1.4.2 releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
+## All available 1.4.2 releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X** 
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebGL** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
   - You can select **Advanced Mode** check box (*default*) or deselect it for **Standard Mode**, for low resources devices (mobiles/tablet/smartphones), also from **[wglChAoS.P Advanced Mode](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** page description
@@ -84,11 +84,11 @@ Starting from ver 1.3.2, also WebGL have **new rendering engine**: dual pass acc
 
 
 
-| ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot1.jpg) | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot2.jpg) |
+| ![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/wglChAoSP/ssShot1.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/wglChAoSP/ssShot2.jpg) |
 | :---: | :---: |
-| ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot3.jpg) | ![](https://brutpitt.github.io/glChAoS.P/wglChAoSP/ssShot4.jpg)|
+| ![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/wglChAoSP/ssShot3.jpg) | ![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/wglChAoSP/ssShot4.jpg)|
 
-**Advanced Mode not availabe/tested still for mobile devices*
+**Advanced Mode not available/tested still for mobile devices*
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
@@ -224,7 +224,7 @@ Read Build/CMake sections for further information.
 - **OS X**\
 `glChAoSP_OSX`: native executable (64 bit) is provided for OpenGL 4.1
 \
-From *“Finder”* click on applescript: `glChAoSP_OSX.app`, or form command line type directly the command: `./glChAoSP_OSX`
+From *Finder* click on applescript: `glChAoSP_OSX.app`, or form command line type directly the command: `./glChAoSP_OSX`
 \
 It was tested on OS X ver 10.14 (Mojave) only, although with subsequent updates and different library versions you may need to rebuild it.
 Read Build/CMake sections for further information.
@@ -239,7 +239,7 @@ Read Build/CMake sections for further information.
 
 - Compilers with full C++14 standard required
 - CMake 3.10 or higher
-- ~~Boost Library to build DLA3D (Diffusion Limited Aggregation) object exlploration, (or uncomment DISABLE_DLA3D in CMake file to disable it)~~
+- ~~Boost Library to build DLA3D (Diffusion Limited Aggregation) object exploration, (or uncomment DISABLE_DLA3D in CMake file to disable it)~~
 
 
 **Tested Compilers**
@@ -252,7 +252,7 @@ For Windows and Linux glChAoSP uses OpenGL 4.5 with AZDO (Approaching Zero Drive
 
 On Mac OS X, for a limitation of the OS (from Mojave Apple have deprecated OpenGL) there is a downgraded version, that use OpenGL 4.1 (higher possible) with a separate thread emitter/generator that use the conventional CPU memory.
 
-Furthers “build” option are provided:
+Furthers build option are provided:
 - Use OpenGL 4.1 also on Windows and Linux.
 - Single thread version.
 
@@ -260,7 +260,7 @@ Furthers “build” option are provided:
 
 In the folder `./src` there is the `CmakeLists.txt`, use this folder as base directory.
 
-Read below more obout your OS.
+Read below more about your OS.
 
 **GLFW Library**
 
@@ -272,14 +272,14 @@ When build glChAoSP, compiler looks for GLFW installed library, before, in the f
 - src/src/libs/glfw/buildWin (Windows)
 
 So, you need to delete it, or modify the CMake file, to use personal ones version.
-In this case you need to have installed GLFW Library, ver 3.3 or higher, or re-build the enclosed version in `“./src/src/libs/glfw”` folder.
+In this case you need to have installed GLFW Library, ver 3.3 or higher, or re-build the enclosed version in `./src/src/libs/glfw` folder.
 
 **Boost Library**
 
 **Currently boost library for DLA is no longer necessary**: has been replaced with **nanoflann** header-only library for KD-Trees of datasets point clouds (included in repository).
-In alternative, boost library is anyway enableable via internal define
+In alternative, boost library is anyway toggleable via internal define
 
-~~Boost Library in particular: *function_output_iterator* and *geometry* are necessary to build DLA3D (Diffusion Limited Aggregation) object exlploration in glChAoS.P. It's not included in the repository, but can be downloaded from [https://www.boost.org/](https://www.boost.org/)~~
+~~Boost Library in particular: *function_output_iterator* and *geometry* are necessary to build DLA3D (Diffusion Limited Aggregation) object exploration in glChAoS.P. It's not included in the repository, but can be downloaded from [https://www.boost.org/](https://www.boost.org/)~~
 
 ~~It is not necessary to build the library, only headers files is enough (they must be in the compiler research path).
 Add the location in to `INCLUDE` environment variable or unpack/copy the `boost` include directory under `src/src/libs`: this folder is already added in CMakeFile~~
@@ -288,7 +288,7 @@ Add the location in to `INCLUDE` environment variable or unpack/copy the `boost`
 
 **Windows**
 
-Windows user needs of Visual Studio 2019 (it works also wit VS 2017/2015, but is need to change appropriate *Platform Toolse* and/or *Windows SDK version* that you have installed). In alternative, CMake 3.10 (or higher) for other compilers toolschain (non tested, but it should work).
+Windows user needs of Visual Studio 2019 (it works also wit VS 2017/2015, but is need to change appropriate *Platform Toolset* and/or *Windows SDK version* that you have installed). In alternative, CMake 3.10 (or higher) for other compilers toolchain (non tested, but it should work).
 
 - **Microsoft Visual Studio**
 In the folder `./src/msBuilds` there is the solution project for use with Visual Studio 2017.
@@ -299,13 +299,13 @@ Even without a RAMDISK variable, executable and binary files are outputted in ba
 \
 You can use CMake to generate a VS2015 solution: previous versions do not support C++14 standard.
 \
-If you want use *LLVM clang* to build glChAoSP, inside Visual Studio, you can use the LLVM plugin (after to have installed clang, in windows) and simply change the toolschain in *“Properties → General → Platform Toolset”*
+If you want use *LLVM clang* to build glChAoSP, inside Visual Studio, you can use the LLVM plugin (after to have installed clang, in windows) and simply change the toolchain in *Properties -> General -> Platform Toolset*
 
 - **NOTE:** To build *viewports* version add `GLAPP_IMGUI_VIEWPORT` compiler define or uncomment it in `appDefines.h`
 
 **Linux**
 
-Lunux users need to install the GCC C/C++ v.5 or higher (or clang v.5 or higher) compilers and associated tools such as *make* and *CMake* (need v3.10 or higher).
+Linux users need to install the GCC C/C++ v.5 or higher (or clang v.5 or higher) compilers and associated tools such as *make* and *CMake* (need v3.10 or higher).
 To install gcc C/C++:
 * Debian, Ubuntu: `sudo apt-get install build-essential cmake cmake-qt-gui`
 * Fedora, RedHat: `sudo dnf install make gcc-c++ cmake cmake-gui`
@@ -316,9 +316,9 @@ You need also to have installed OpenGL library and relative development package:
 
 The `build_glChAoSP.sh` script build glChAoSP, with the pre-built GLFW library (included).
 
-The `buildLinux.sh` script is provided as helper, it call `buildGLFW.sh` (to build/erbuild GLFW) and `build_glChAoSP.sh` sequentially.
+The `buildLinux.sh` script is provided as helper, it call `buildGLFW.sh` (to build/re-build GLFW) and `build_glChAoSP.sh` sequentially.
 
-To build/rebuild GLFW from enclosed sources you must have installed also “development” packages: `libx11-dev libxext-dev` (Ubuntu) or `libX11-devel libXext-devel` (Fedora).
+To build/rebuild GLFW from enclosed sources you must have installed also development packages: `libx11-dev libxext-dev` (Ubuntu) or `libX11-devel libXext-devel` (Fedora).
 
 Use `buildGLFW.sh` from `./src` directory, or build GLFW directly from `./src/src/libs/glfw`
 
@@ -332,7 +332,7 @@ CMake uses the enclosed built version of GLFW (actual development branch v.3.3)
 
 To build glChAoSP on OS X, from `./src` folder, call `sh build_glChAoSP.sh OSX` (recommended use).
 
-If you need to build GLFW too, the `buildOSX.sh` script is provided as helper: it calls `buildGLFW.sh OSX` (to build/erbuild GLFW) and  `build_glChAoSP.sh OSX` sequentially.
+If you need to build GLFW too, the `buildOSX.sh` script is provided as helper: it calls `buildGLFW.sh OSX` (to build/re-build GLFW) and  `build_glChAoSP.sh OSX` sequentially.
 
 Or use `sh buildGLFW.sh OSX` from ./src directory, or build GLFW directly from `./src/src/libs/glfw`
 
@@ -343,10 +343,10 @@ Several warnings are visualized, it is normal. I tested it only on OS X 10.14 Mo
 **WebGL via WebAssembly - EMSCRIPTEN**
 
 The CMake file is able to build also an [**EMSCRIPTEN**](https://kripken.github.io/emscripten-site/index.html) version, obviously you need to have installed EMSCRIPTEN SDK on your computer (~~1.38.20~~ ~~1.38.28~~ 1.38.40 or higher).
-Use `emsCMakeGen.cmd` or `emsCMakeGen.sh` from ./src directory, or look inside it, to pass appropriate defines/patameters to CMake command line.
+Use `emsCMakeGen.cmd` or `emsCMakeGen.sh` from ./src directory, or look inside it, to pass appropriate defines/parameters to CMake command line.
 `emsCMakeGen` need to know the location of EMSDK, and the "build-type" object to create.
 
-For exemple, run:
+For example, run:
 
 `emsCMakeGen.sh /opt/emsdk/emscripten/1.38.20 Debug|Release|RelWithDebInfo|MinSizeRel`
 
@@ -360,10 +360,10 @@ To build the EMSCRIPTEN version, in Windows, with CMake, need to have **mingw32-
 To install CMake 3.10 or higher where is not provided (Ubuntu 16.04 LTS distribution have v3.5):
 
 You have first to remove the installed version by typing executing:
-`sudo apt purge cmake` Then go to [https://cmake.org/download/](https://cmake.org/download/) 
+`sudo apt purge cmake` Then go to�[https://cmake.org/download/](https://cmake.org/download/) 
 and download the latest version you need.
 If you download a .tar.gz file you have to unpack it using a command like:
-`tar -xvf cmake-3.XX.XX-Linux-x86_64.tar.gz`
+`tar -xvf�cmake-3.XX.XX-Linux-x86_64.tar.gz`
 Then go to the folder of cmake ( `cd cmake-3.XX.XX-Linux-x86_64`) and from there execute the following commands:
 ```
  sudo cp -r bin /usr/
@@ -375,7 +375,7 @@ Then go to the folder of cmake ( `cd cmake-3.XX.XX-Linux-x86_64`) and from there
 
 ## 3rd party tools and color maps
 
-[**glChAoS.P**](https://michelemorrone.eu/glchaosp) uses 3rd party software tools components, they are located in the `“./src/src/libs”` folder and built with the program.
+[**glChAoS.P**](https://michelemorrone.eu/glchaosp) uses 3rd party software tools components, they are located in the `./src/src/libs` folder and built with the program.
 A copy of each is included in the repository, to avoid incompatibility with future changes.
 
 Structure and description of 3rd parts libraries/tools/palettes, and related copyrights and licenses:
