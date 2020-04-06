@@ -232,19 +232,6 @@ else ()
     message (FATAL_ERROR "OPENGL not found... REQUIRED!!!!")
 endif(OPENGL_FOUND)
 
-# set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/builds")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/..")
-
-set(COMMON_DEFINES "-DVGM_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL")
-if(APPLE)
-    set(COMMON_DEFINES "${COMMON_DEFINES} -DGLCHAOSP_NO_USES_GLSL_SUBS -DGLAPP_NO_GLSL_PIPELINE -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses -framework Cocoa -framework IOKit -framework CoreVideo")
-else()
-    set(COMMON_DEFINES "${COMMON_DEFINES}")
-endif(APPLE)
-
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security ${OGL_EMITTER_TYPE} ${COMMON_DEFINES} ${GLAPP_DISABLE_DLA} -std=c++14 -fpermissive")
-
 include_directories(${SRC})
 include_directories(${SRC}/tools)
 include_directories(${SRC}/libs)
@@ -256,15 +243,20 @@ if(APPLE)
     link_directories(src/libs/glfw/buildOSX/lib)
 else()
     if(WIN32)
-        include_directories(src/libs/glfw/buildWin/include)
-        link_directories(src/libs/glfw/buildWin/lib)
+        include_directories(${SRC}/libs/glfw/buildWin/include)
+        link_directories(${SRC}/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE})
+        message(${SRC}/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE})
+        if(EXISTS $ENV{RAMDISK})
+            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$ENV{RAMDISK}/glChAoSP_release")
+        endif()
+        
     else()
         include_directories(src/libs/glfw/buildLinux/include)
         link_directories(src/libs/glfw/buildLinux/lib)
     endif(WIN32)
 endif(APPLE)
 
-add_executable(${PROJECT_NAME} 
+add_executable(${PROJECT_NAME}
         ${SRC}/libs/glad/glad.cpp
         ${SRC}/libs/glad/glad.h
         ${SRC}/libs/lodePNG/lodepng.cpp
@@ -275,14 +267,46 @@ add_executable(${PROJECT_NAME}
         ${SRC}/tools/oglAxes.h
         ${SOURCE_FILES})
 
+
+# set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/builds")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/..")
+
+set(COMMON_DEFINES "-DVGM_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL")
+if(APPLE)
+    set(COMMON_DEFINES "${COMMON_DEFINES} -DGLCHAOSP_NO_USES_GLSL_SUBS -DGLAPP_NO_GLSL_PIPELINE -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses -framework Cocoa -framework IOKit -framework CoreVideo")
+else()
+    set(COMMON_DEFINES "${COMMON_DEFINES}")
+endif(APPLE)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -Wno-deprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -std=c++14 -fpermissive")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qpar /W1 /Gm- /O2 /Ob2 /Zc:inline /fp:precise /WX- /Zc:forScope /Gd /FC /Fa /Ot /MP")
+    set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    # Force to always compile with W1
+    if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+        string(REGEX REPLACE "/W[0-4]" "/W1" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1")
+    endif()
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib " )
+endif()
+
+
+#add_compile_options("${OGL_EMITTER_TYPE} ${COMMON_DEFINES} ${GLAPP_DISABLE_DLA}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  ${OGL_EMITTER_TYPE} ${COMMON_DEFINES} ${GLAPP_DISABLE_DLA}")
+
+
 if(OPENGL_FOUND)
     if(APPLE)
         set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lglfw3 -lpthread")
     else()
         if(WIN32)
-        set(TARGET_LIBS ${CMAKE_DL_LIBS} "glfw3.lib")
+            set(TARGET_LIBS ${CMAKE_DL_LIBS} "${SRC}/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE}/glfw3.lib")
         else()    
-        set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lglfw3 -lpthread -lX11")
+            set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lglfw3 -lpthread -lX11")
         endif(WIN32)
     endif(APPLE)
 

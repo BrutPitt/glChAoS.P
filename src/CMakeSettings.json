@@ -1,0 +1,103 @@
+﻿{
+    "configurations": [
+        {
+            "name": "x64-Clang-Debug",
+            "generator": "Ninja",
+            "configurationType": "Debug",
+            "inheritEnvironments": [ "clang_cl_x64" ],
+            "buildRoot": "${env.RAMDISK}\\out\\build\\${name}",
+            "installRoot": "${env.RAMDISK}\\glChAoSP_release",
+            "cmakeCommandArgs": "",
+            "buildCommandArgs": "-v",
+            "ctestCommandArgs": "",
+            "cmakeExecutable": "D:/Lang/CMake/bin/cmake.exe",
+            "cmakeToolchain": "",
+            "variables": [
+                {
+                    "name": "BUILD_wglChAoSP",
+                    "value": "False",
+                    "type": "BOOL"
+                },
+                {
+                    "name": "CMAKE_C_COMPILER",
+                    "value": "D:/Lang/LLVM/bin/clang-cl.exe",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "CMAKE_CXX_COMPILER",
+                    "value": "D:/Lang/LLVM/bin/clang-cl.exe",
+                    "type": "FILEPATH"
+                }
+            ]
+        },
+        {
+            "name": "x64-Clang-Release",
+            "generator": "Ninja",
+            "configurationType": "Release",
+            "buildRoot": "${env.RAMDISK}\\out\\build\\${name}",
+            "installRoot": "",
+            "cmakeCommandArgs": "",
+            "buildCommandArgs": "-v",
+            "ctestCommandArgs": "",
+            "cmakeExecutable": "D:/Lang/CMake/bin/cmake.exe",
+            "inheritEnvironments": [ "clang_cl_x64" ],
+            "variables": [
+                {
+                    "name": "BUILD_wglChAoSP",
+                    "value": "False",
+                    "type": "BOOL"
+                },
+                {
+                    "name": "CMAKE_C_COMPILER",
+                    "value": "D:/Lang/LLVM/bin/clang-cl.exe",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "CMAKE_CXX_COMPILER",
+                    "value": "D:/Lang/LLVM/bin/clang-cl.exe",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "CMAKE_RUNTIME_OUTPUT_DIRECTORY",
+                    "value": "$ENV{RAMDISK}/glChAoSP_release",
+                    "type": "FILEPATH"
+                }
+            ]
+        },
+        {
+            "name": "Ems-Release",
+            "generator": "Unix Makefiles",
+            "configurationType": "Release",
+            "buildRoot": "${env.RAMDISK}\\out\\build\\${name}",
+            "installRoot": "${env.RAMDISK}\\glChAoSP_release",
+            "cmakeCommandArgs": "",
+            "buildCommandArgs": "-j",
+            "ctestCommandArgs": "",
+            "cmakeExecutable": "D:/Lang/CMake/bin/cmake.exe",
+            "variables": [
+                {
+                    "name": "BUILD_wglChAoSP",
+                    "value": "True",
+                    "type": "BOOL"
+                },
+                {
+                    "name": "CMAKE_C_COMPILER",
+                    "value": "D:/Lang/emsdk/upstream/emscripten/emcc.bat",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "CMAKE_CXX_COMPILER",
+                    "value": "D:/Lang/emsdk/upstream/emscripten/em++.bat",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "CMAKE_MAKE_PROGRAM",
+                    "value": "D:/Lang/DeV/Bin64/mingw32-make.exe",
+                    "type": "FILEPATH"
+                }
+            ],
+            "cmakeToolchain": "D:/Lang/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+            "inheritEnvironments": []
+        }
+    ]
+}

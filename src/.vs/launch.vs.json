@@ -1,0 +1,14 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+        "type": "default",
+        "project": "R:\\glChAoSP_release\\glChAoSP.exe",
+        "projectTarget": "glChAoSP.exe",
+        "name": "glChAoSP launch",
+        "currentDir": "..",
+        "noDebug" :  true
+    }
+  ]
+}
