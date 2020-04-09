@@ -85,7 +85,6 @@ private:
 
     uint32_t z=362436069, w=521288629, jsr=123456789, jcong=380116160;
     uint32_t a=224466889, b=7584631;
-    uint32_t x=0,y=0; 
 
 #ifdef FSTRND_USES_BUILT_TABLE
     uint32_t t[256];

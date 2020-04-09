@@ -851,7 +851,6 @@ void imguiGizmo::buildPolygon(const vec3 &size, ImVector<vec3> &vtx, ImVector<ve
 ////////////////////////////////////////////////////////////////////////////
 void imguiGizmo::buildSphere(const float radius, const int tessFactor)
 {
-    const int tess      =  tessFactor;
     const int div       =  tessFactor; //tessellation colors: meridians/div x paralles/div
     const int meridians = 32; //64/2;
     const int parallels = meridians/2;
@@ -935,11 +934,8 @@ void imguiGizmo::buildSphere(const float radius, const int tessFactor)
 void imguiGizmo::buildCone(const float x0, const float x1, const float radius, const int slices)
 {
     const float height = x1-x0 ;
-    const float zStep = height;
-    const float rStep = radius/(float)slices;
 
     // Scaling factors for vertex normals 
-
     const float sq = sqrtf( height * height + radius * radius );
     const float cosn =  height / sq;
     const float sinn =  radius / sq;

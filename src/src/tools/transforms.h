@@ -200,10 +200,8 @@ private:
     GLuint blockIndex;
     GLuint uBlockSize;    
     GLuint uBuffer;
-    GLbyte* ptrBuff;
     enum bind { bindIdx=4 };
     enum loc { pMat = 3, mvMat = 4, mvpMat = 5 };
-    GLint minSize;
 #undef SZ
 #undef PTR
 };

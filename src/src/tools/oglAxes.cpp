@@ -220,10 +220,9 @@ void buildCyl(std::vector<vec3> &cylVtx, const float z0, const float z1, const f
 void buildCap(std::vector<vec3> &vtx, const float z0, const float z1, const float radius, const int slices)
 {
 
-    float x1 = 1.0f, xr1 = radius;
-    float y1 = 0.0f, yr1 = 0.0f; // * radius
+    float xr1 = radius;
+    float yr1 = 0.0f; // * radius
 
-    
     const float incAngle = 2.0f*T_PI/(float)( slices );
     float angle = incAngle;
 
@@ -232,8 +231,8 @@ void buildCap(std::vector<vec3> &vtx, const float z0, const float z1, const floa
 #   define N(x,y,z) V(x,y,z)
 
     for (int j=0; j<slices; j++, angle+=incAngle) {
-        const float x0  = x1;   x1  = cosf(angle);
-        const float y0  = y1;   y1  = sinf(angle);
+        const float x1  = cosf(angle);
+        const float y1  = sinf(angle);
         const float xr0 = xr1;  xr1 = x1 * radius;
         const float yr0 = yr1;  yr1 = y1 * radius;
 

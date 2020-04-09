@@ -265,7 +265,7 @@ public:
     Mat3() {}
     Mat3(T s) : v { VEC3_T(s, 0, 0), VEC3_T(0, s, 0), VEC3_T(0, 0, s) } {}
     Mat3(const VEC3_T& v0, const VEC3_T& v1, const VEC3_T& v2) : v {v0, v1, v2 } {}
-    Mat3(const MAT4_T& m);
+    Mat3(const MAT4_T& m) : v { m.v[0], m.v[1], m.v[2] } {}
     Mat3(T v0x, T v0y, T v0z,
          T v1x, T v1y, T v1z,
          T v2x, T v2y, T v2z) : v { VEC3_T(v0x, v0y, v0z), VEC3_T(v1x, v1y, v1z), VEC3_T(v2x, v2y, v2z) } {}
@@ -316,7 +316,7 @@ public:
                         m30, m31, m32, m33; };
     };
 
-    Mat4() {} 
+    Mat4() {}
     Mat4(T s) : v { VEC4_T(s, 0, 0, 0), VEC4_T(0, s, 0, 0), VEC4_T(0, 0, s, 0), VEC4_T(0, 0, 0, s)} {}
     Mat4(const VEC4_T& v0, const VEC4_T& v1, const VEC4_T& v2, const VEC4_T& v3) : v {v0, v1, v2, v3} {}
     Mat4(const MAT3_T& m) : v {VEC4_T(m.v[0],0), VEC4_T(m.v[1],0), VEC4_T(m.v[2],0), VEC4_T(0, 0, 0, 1)}  {}
@@ -369,7 +369,6 @@ public:
 // cast / conversion
 //////////////////////////
 TEMPLATE_TYPENAME_T inline VEC3_T::Vec3(const VEC4_T& v) : x(v.x), y(v.y), z(v.z) {}
-TEMPLATE_TYPENAME_T inline MAT3_T::Mat3(const MAT4_T& m) : v {m.v[0], m.v[1], m.v[2]} {}
 TEMPLATE_TYPENAME_T inline MAT3_T mat3_cast(QUAT_T const& q) {
     T xx(q.x * q.x); T yy(q.y * q.y); T zz(q.z * q.z);
     T xz(q.x * q.z); T xy(q.x * q.y); T yz(q.y * q.z);

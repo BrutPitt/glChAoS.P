@@ -26,7 +26,6 @@ bool hslTuning(const char* label, float *selVal, int barType, float stepSize, co
 
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
-    ImGuiIO& io = g.IO; 
     //if padding ImVec2(-1, -1) --> padding = FramePadding
     ImVec2 padding = (padd.x == -1 && padd.y == -1) ? style.FramePadding : padd;
 
@@ -113,7 +112,6 @@ bool paletteButton(const char* label, int numCol, float *buff, const ImVec2 &siz
     //PushID(label);
     const ImGuiID id = window->GetID(label);
     const float lineH = window->DC.CurrLineSize.y<=0 ? (window->DC.PrevLineSize.y <=0 ? size.y : window->DC.PrevLineSize.y) : window->DC.CurrLineSize.y;
-    const ImVec2 padding = ImVec2(0,0);//(frame_padding >= 0) ? ImVec2((float)frame_padding, (float)frame_padding) : style.FramePadding;
     const ImRect bb(ImVec2(window->DC.CursorPos.x+ style.FramePadding.x,window->DC.CursorPos.y), ImVec2(window->DC.CursorPos.x + size.x - style.FramePadding.x*2,window->DC.CursorPos.y+lineH) );
     ItemSize(bb);
     if (!ItemAdd(bb, id)) return false;
