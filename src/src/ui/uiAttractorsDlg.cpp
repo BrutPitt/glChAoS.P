@@ -399,7 +399,6 @@ void attractorDlgClass::view()
         ImGui::BeginGroup();
             ImGui::BeginChild("Parameters", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()*3-border)); // Leave room for 1 line below us            
                 
-                const float wCl = ImGui::GetContentRegionAvail().x;
                 ImGui::Columns(2);               
                 
                 
@@ -506,9 +505,6 @@ const float border = 5;
     const ImVec4 rowD(fBG.x*.8f,fBG.y*.8f,fBG.z*.8f,fBG.w*.25f);
     const ImVec4 rowP(fBG.x    ,fBG.y    ,fBG.z    ,fBG.w*1.f);
 
-    static bool sIdx=0; 
-                
-
     char s[32];
     static int selIdx=-1;
     int valIdx = selIdx;   
@@ -577,7 +573,7 @@ const float border = 5;
                     ImGui::PushStyleColor(ImGuiCol_FrameBg,style.Colors[ImGuiCol_PlotHistogram]); 
                 }
                 
-                const bool test4D = !typeVal && att->getPtSize()==AttractorBase::attPt4D && i==3;
+                //const bool test4D = !typeVal && att->getPtSize()==AttractorBase::attPt4D && i==3;
                 float f =  att->getValue(i,typeVal);
                 if(ImGui::DragFloatEx(s, (float *) &f, .0001, minVal, maxVal, "%.7f",1.0f,ImVec2(.93,0.5))) {
                     att->setValue(i, typeVal, f); 

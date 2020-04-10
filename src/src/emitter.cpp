@@ -2,8 +2,8 @@
 #include "glWindow.h"
 
 void singleEmitterClass::render() {
-    particlesSystemClass *pSys = theWnd->getParticlesSystem();
 /*
+    particlesSystemClass *pSys = theWnd->getParticlesSystem();
     if(attractorsList.get()->dtType() && pSys->slowMotion()) {
         stopFull(true);
         const float increment = float(pSys->getSlowMotionDpS()) * theApp->getTimer().fps();

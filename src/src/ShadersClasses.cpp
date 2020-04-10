@@ -559,7 +559,7 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
     }
 
     int bytePerVertx = InsertVbo->getBytesPerVertex();
-    int bufferSize = vtxCount * bytePerVertx;
+    //int bufferSize = vtxCount * bytePerVertx;
     InsertVbo->uploadData(vtxCount);
     tfbs[activeBuffer]->Begin(query, getSizeCircularBuffer()*bytePerVertx);
     if(vtxCount) InsertVbo->drawRange(GL_ARRAY_BUFFER, 0,vtxCount);

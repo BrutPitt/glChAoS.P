@@ -212,11 +212,6 @@ GLint glWindow::onRender()
 GLuint glWindow::renderAttractor()
 {
 
-    auto saveTSettings = [&]() {
-
-
-    };
-
     const int w =particlesSystem->getWidth(), h =particlesSystem->getHeight();
 
     GLuint texRendered;

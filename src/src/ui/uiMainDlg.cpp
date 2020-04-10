@@ -205,8 +205,6 @@ bool colCheckButton(bool b, const char *s, const float sz=0)
 //////////////////////////////////////////////////////////////////
 void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id) 
 {
-    int srcSelect, dstSelect;
-
     const float wPaddingY = ImGui::GetStyle().WindowPadding.y;
 
     const float border = DLG_BORDER_SIZE;
@@ -235,21 +233,20 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
     const float posB5 = posA  + wButt5 + border;
     const float posC5 = posB5 + wButt5 + border;
     const float posD5 = posC5 + wButt5 + border;
-    const float posE5 = posD5 + wButt5 + border;
     ImGuiIO& io = ImGui::GetIO();                
     const float fontSize = io.Fonts->Fonts[0]->FontSize;
 
 
-    auto modCheckBox = [&] (bool b, float sz, const char *str=nullptr) {
-        ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(ImGuiCol_ChildBg));
-        char txt[32];
-        if(str) sprintf(txt, b ? "%s " ICON_FA_CHECK_SQUARE_O "%s" : "%s " ICON_FA_SQUARE_O "%s", str, buildID(base, idA++, id));
-        else        sprintf(txt, b ? ICON_FA_CHECK_SQUARE_O "%s" : ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
-
-        const bool ret = sz ? ImGui::Button(txt,ImVec2(sz,0)) : ImGui::Button(txt); 
-        ImGui::PopStyleColor();
-        return ret;
-    };
+//    auto modCheckBox = [&] (bool b, float sz, const char *str=nullptr) {
+//        ImGui::PushStyleColor(ImGuiCol_Button,ImGui::GetColorU32(ImGuiCol_ChildBg));
+//        char txt[32];
+//        if(str) sprintf(txt, b ? "%s " ICON_FA_CHECK_SQUARE_O "%s" : "%s " ICON_FA_SQUARE_O "%s", str, buildID(base, idA++, id));
+//        else        sprintf(txt, b ? ICON_FA_CHECK_SQUARE_O "%s" : ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
+//
+//        const bool ret = sz ? ImGui::Button(txt,ImVec2(sz,0)) : ImGui::Button(txt); 
+//        ImGui::PopStyleColor();
+//        return ret;
+//    };
 
     // Rendering settings
     ////////////////////////////////////
@@ -680,7 +677,6 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                 //if(particles->useShadow()) {
                     ImGui::SameLine();
-                    float aoW = w - (ImGui::GetCursorPosX()-posA);
 
                     ImGui::AlignTextToFramePadding();
                     ImGui::TextDisabled("Ratio");
@@ -1227,7 +1223,6 @@ void particlesDlgClass::view()
 
             ImGui::BeginChild("Commons"); 
                 const float w = ImGui::GetContentRegionAvail().x;
-                const float wHalf = w*.5;
                 const float wButt = (w - border*3) *.33;
                 const float pos2 = border*2+wButt;
                 const float pos3 = border*3+wButt*2;
@@ -1431,7 +1426,8 @@ void comboWindowRes(const float width)
             
     static int i;
     if (ImGui::Combo("##wSize", &i, items, 8)) {  
-        sscanf(items[i], "%dx%d", &w, &h);
+        std::istringstream iss(items[i]); 
+        iss >> w >> h;
         theApp->setWindowSize(w,h);
         //theWnd->onReshape(w,h);
         i=0;
@@ -1452,7 +1448,6 @@ void progSettingDlgClass::view()
         const float w = ImGui::GetContentRegionAvail().x;
         const float border = DLG_BORDER_SIZE;
         const float wButt = ImGui::GetContentRegionAvail().x;
-        ImGuiStyle& style = ImGui::GetStyle();
 
         ImGui::Text(" Size and position");
 
@@ -1508,8 +1503,6 @@ void progSettingDlgClass::view()
         ImGui::AlignTextToFramePadding();
         ImGui::TextDisabled("Theme:");
         ImGui::SameLine();
-        const int idxTheme = ShowStyleSelector(wButt-ImGui::GetCursorPosX());
-
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextDisabled("FontSize:");
@@ -1533,8 +1526,6 @@ void progSettingDlgClass::view()
             }
         }
         ImGui::PopItemWidth();
-
-
 
 
 /*
@@ -1910,7 +1901,6 @@ void particleEditDlgClass::view()
 
     if(ImGui::Begin(getTitle(), &isVisible)) {
         const float w = ImGui::GetContentRegionAvail().x;
-        const float border = DLG_BORDER_SIZE;
         const float wButt = w;
         const float wButt3 = w*.3333;
 
@@ -1976,12 +1966,12 @@ void cockpitDlgClass::view()
     //bool wndVisible;
     if(ImGui::Begin(getTitle(), &isVisible, ImGuiWindowFlags_NoScrollbar)) { 
         particlesSystemClass *pSys = theWnd->getParticlesSystem();
-        emitterBaseClass *e = pSys->getEmitter();
         cockpitClass &cPit = attractorsList.getCockpit();
 
         const ImU32 titleCol = ImGui::GetColorU32(ImGuiCol_PlotLines); 
 /*
         {
+            emitterBaseClass *e = pSys->getEmitter();
             ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
             const bool isOpen = ImGui::TreeNodeEx("##PartSM",ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SHIELD  " SlowMotion Particles  " ICON_FA_COMMENT_O);
             ImGui::PopStyleColor();
@@ -2194,7 +2184,6 @@ void cockpitDlgClass::view()
                     ImGui::BeginChild("##viewSMChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*5+ImGui::GetStyle().ItemSpacing.y*2), true);
                     const float gizmoDim = ImGui::GetFrameHeightWithSpacing()*4;
                     const float w = ImGui::GetContentRegionAvail().x;
-                    const float w2 = w*.5;
                     const float spaceX = ImGui::GetStyle().ItemSpacing.x;
                     const float posY = ImGui::GetCursorPosY();
                     const float w6 = (w-gizmoDim-spaceX*2);
@@ -2388,7 +2377,6 @@ void viewSettingDlgClass::view()
         ImGui::SameLine();
         ShowHelpMarker(GLAPP_HELP_AXES_COR);
 
-        int axes = pSys->showAxes();
         //if() {pSys->getMotionBlur()->Active(b^1); }       
         //ImGui::Button("Show CoR",ImVec2(wButt2,0))
 
@@ -2587,10 +2575,6 @@ void aboutDlgClass::view()
 
     if(ImGui::Begin(getTitle(), &isVisible)) {
     
-        const float w = ImGui::GetContentRegionAvail().x;
-        const float border = DLG_BORDER_SIZE;
-        const float wButt = ImGui::GetContentRegionAvail().x-border*2;
-
         //ImGui::SetCursorPosX(4*theDlg.getFontSize()*theDlg.getFontZoom()*.5);
         ImGui::TextUnformatted(GLAPP_HELP_ABOUT);
         //showHelpMarkdown(GLAPP_HELP_ABOUT);
@@ -2749,7 +2733,6 @@ void infoDlgClass::view()
 void clippingDlgClass::view()
 {
     if(!isVisible) return;
-    const int hSz = 15;
 
     ImGui::SetNextWindowPos(ImVec2(270, 0), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(IMGUIZMO_DEF_SIZE*1.8, IMGUIZMO_DEF_SIZE*(1.8*3)+8.5*ImGui::GetFrameHeightWithSpacing()), ImGuiCond_FirstUseEver);
@@ -2840,7 +2823,6 @@ void clippingDlgClass::view()
 
 void mainImGuiDlgClass::view()
 {
-    ImGuiStyle& style = ImGui::GetStyle();
 
     const float wndSizeX = fontSize * fontZoom * 12.f; // 26 char * .5 (fontsize/2);
     const int posH = 0;
@@ -2858,10 +2840,7 @@ void mainImGuiDlgClass::view()
     if(ImGui::Begin(getTitle(),  NULL ,ImGuiWindowFlags_NoResize)) {
 
         const float w = ImGui::GetContentRegionAvail().x;
-        const float border = DLG_BORDER_SIZE;
         const float wButt = w;
-
-        //ImGui::SetCursorPosX(border);
 
         {
             const bool b = aboutDlg.visible();

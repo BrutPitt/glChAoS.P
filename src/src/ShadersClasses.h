@@ -995,7 +995,7 @@ public:
 
     uParticlesData &getUData() { return uData; }
 
-    virtual GLuint render(GLuint fbOut, emitterBaseClass *em, bool eraseBkg = true, bool cpitView = false);
+    GLuint render(GLuint fbOut, emitterBaseClass *em, bool eraseBkg = true, bool cpitView = false);
 
     GLuint getDstBlend() { return dstBlendAttrib; }
     GLuint getSrcBlend() { return srcBlendAttrib; }

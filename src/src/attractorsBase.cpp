@@ -258,7 +258,6 @@ void AttractorBase::searchLyapunov()
         counted++;
 
         float lyapunov = 0.0;
-        float fSpace;
         int nL = 1;
 
         for(int i=1; i<2000; i++) {
@@ -385,7 +384,6 @@ void Hopalong::Step(vec4 &v, vec4 &vp) {
     float oldX = _x, oldY = _y;
                     _x = oldY - sqrt(abs(b*_r * _x - c*_r)) * (_x > 0.f ? 1. : (_x < 0.f ? -1.: 0));
                     _y = a*_r - oldX;
-    float z = step;
 
     vp.x = step*sin(2.f*T_PI*_x)*cos(2.f*pi<float>()*_y);
     vp.y = step*sin(2.f*T_PI*_x)*sin(2.f*pi<float>()*_y);
@@ -1086,13 +1084,13 @@ void glynnJB_IIM::Step(vec4 &v, vec4 &vp)
     const int pw = rnd&0x80;
     //const bool isCone = bool(zQ > xQ + yQ);
     const int isCone = rnd&1;
-
+/*
     auto powN = [&] (vec3 &p, float n) -> vec3 {
         const float theta = n * atan2f(p.x, p.y);
         const float phi = n * asinf(p.z/r);
         return pow(vec3(r), r*vec3(cosf(theta) * cosf(phi), sinf(theta) * cosf(phi), sinf(phi)));
     };
-
+*/
     auto numRadici = [&] () -> int {
         return (isCone) ? rndR%3 : (px ? rndR%2 : 0);
     };

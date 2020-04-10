@@ -113,9 +113,11 @@ public:
     }
 
     bool loadColorMaps(const char *filename)  {
-        FILE* fp = fopen(filename, "rb");
-        if(fp==nullptr) return false;
-        else fclose(fp);
+
+        ifstream input(filename,std::ifstream::binary);
+        if (!input.is_open()) return false;
+        else input.close();
+
         Config cfg = configuru::parse_file(filename, JSON);
         //int vSize  = rgb.size();
         if(cfg.is_array()) {

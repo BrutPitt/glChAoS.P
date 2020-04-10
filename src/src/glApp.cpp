@@ -342,7 +342,8 @@ void mainGLApp::getScreenShot(GLuint tex, bool is32bit)
     }
     theApp->saveScreenShot(flipped, w, h, is32bit);
 
-    delete[] buffer, flipped;
+    delete[] buffer;
+    delete[] flipped;
 }
 
 

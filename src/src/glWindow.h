@@ -295,8 +295,6 @@ public:
 private:
     vaoClass *vao;
     
-    bool isInitialized;
-
     friend class particlesSystemClass;
     particlesSystemClass *particlesSystem = nullptr;
 };
