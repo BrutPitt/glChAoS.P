@@ -1,12 +1,18 @@
 ﻿{
+    "environments": [
+        {
+            "BuildDir": "${env.RAMDISK}/out/glChAoSP/build",
+            "InstallDir": "${env.RAMDISK}/glChAoSP_release"
+        }
+    ],
     "configurations": [
         {
             "name": "x64-Clang-Debug",
             "generator": "Ninja",
             "configurationType": "Debug",
             "inheritEnvironments": [ "clang_cl_x64" ],
-            "buildRoot": "${env.RAMDISK}\\out\\build\\${name}",
-            "installRoot": "${env.RAMDISK}\\glChAoSP_release",
+            "buildRoot": "${env.BuildDir}/${name}",
+            "installRoot": "${env.InstallDir}",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "-v",
             "ctestCommandArgs": "",
@@ -20,12 +26,12 @@
                 },
                 {
                     "name": "CMAKE_C_COMPILER",
-                    "value": "D:/Lang/LLVM/bin/clang-cl.exe",
+                    "value": "clang-cl.exe",
                     "type": "FILEPATH"
                 },
                 {
                     "name": "CMAKE_CXX_COMPILER",
-                    "value": "D:/Lang/LLVM/bin/clang-cl.exe",
+                    "value": "clang-cl.exe",
                     "type": "FILEPATH"
                 }
             ]
@@ -34,10 +40,10 @@
             "name": "x64-Clang-Release",
             "generator": "Ninja",
             "configurationType": "Release",
-            "buildRoot": "${env.RAMDISK}\\out\\build\\${name}",
-            "installRoot": "",
+            "buildRoot": "${env.BuildDir}/${name}",
+            "installRoot": "${env.InstallDir}",
             "cmakeCommandArgs": "",
-            "buildCommandArgs": "-v",
+            "buildCommandArgs": "",
             "ctestCommandArgs": "",
             "cmakeExecutable": "D:/Lang/CMake/bin/cmake.exe",
             "inheritEnvironments": [ "clang_cl_x64" ],
@@ -49,12 +55,12 @@
                 },
                 {
                     "name": "CMAKE_C_COMPILER",
-                    "value": "D:/Lang/LLVM/bin/clang-cl.exe",
+                    "value": "clang-cl.exe",
                     "type": "FILEPATH"
                 },
                 {
                     "name": "CMAKE_CXX_COMPILER",
-                    "value": "D:/Lang/LLVM/bin/clang-cl.exe",
+                    "value": "clang-cl.exe",
                     "type": "FILEPATH"
                 },
                 {
@@ -68,8 +74,8 @@
             "name": "Ems-Release",
             "generator": "Unix Makefiles",
             "configurationType": "Release",
-            "buildRoot": "${env.RAMDISK}\\out\\build\\${name}",
-            "installRoot": "${env.RAMDISK}\\glChAoSP_release",
+            "buildRoot": "${env.BuildDir}/${name}",
+            "installRoot": "${env.InstallDir}",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "-j",
             "ctestCommandArgs": "",

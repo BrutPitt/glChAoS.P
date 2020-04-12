@@ -8,7 +8,7 @@
         "projectTarget": "glChAoSP.exe",
         "name": "glChAoSP launch",
         "currentDir": "..",
-        "noDebug" :  true
+        "noDebug": true
     }
   ]
 }

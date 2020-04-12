@@ -1389,9 +1389,11 @@ protected:
         return result;
     }
 #else
+/*
+// Multipoints
     std::vector<vec3> tmp;
     void Add(const vec3 &p) {
-        //my_kd_tree_t index(3 /*dim*/, m_Points, KDTreeSingleIndexAdaptorParams(10 /* max leaf */) );
+        //my_kd_tree_t index(3 , m_Points, KDTreeSingleIndexAdaptorParams(10 max leaf ) );
         //static uint32_t count = 0;
         //const int nPT = 16;
 
@@ -1415,6 +1417,15 @@ protected:
         } 
         //m_Index->addPoints(id,id);
         
+        boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
+    }
+*/
+    void Add(const vec3 &p) {
+        size_t id = m_Points.pts.size();
+        m_Points.pts.push_back(p);        
+        m_JoinAttempts.push_back(0);
+
+        m_Index->addPoints(id, id);
         boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
     }
 

@@ -1195,7 +1195,7 @@ void Magnetic::Step(vec4 &v, vec4 &vp)
 
     int i = 0;
     for(auto itPt = vVal.begin(), itK = kVal.begin(); !newItemsEnd && itPt!=vVal.end();) {
-        const vec3 vo = *itPt++ - v; //vo.z=0.0;                
+        const vec3 vo(*itPt++ - v); //vo.z=0.0;                
         const float dotProd = dot(vo,vo);
         if(dotProd > FLT_EPSILON) vt+=(this->*increment)(vec3(vec3(*itK++) * (vo / dotProd)),i++);
     }

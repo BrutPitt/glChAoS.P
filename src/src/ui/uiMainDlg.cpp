@@ -2749,7 +2749,7 @@ void clippingDlgClass::view()
         mat3 m(mat3_cast(pSys->getTMat()->getTrackball().getRotation()));
 
         for(int i=0; i<3; i++) {
-            vec3 plane = normalize(pSys->getClippingPlane(i));
+            vec3 plane(normalize(pSys->getClippingPlane(i)));
 
             plane = m * plane;
 

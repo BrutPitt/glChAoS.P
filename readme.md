@@ -360,10 +360,10 @@ To build the EMSCRIPTEN version, in Windows, with CMake, need to have **mingw32-
 To install CMake 3.10 or higher where is not provided (Ubuntu 16.04 LTS distribution have v3.5):
 
 You have first to remove the installed version by typing executing:
-`sudo apt purge cmake` Then go to�[https://cmake.org/download/](https://cmake.org/download/) 
+`sudo apt purge cmake` Then go to [https://cmake.org/download/](https://cmake.org/download/) 
 and download the latest version you need.
 If you download a .tar.gz file you have to unpack it using a command like:
-`tar -xvf�cmake-3.XX.XX-Linux-x86_64.tar.gz`
+`tar -xvf cmake-3.XX.XX-Linux-x86_64.tar.gz`
 Then go to the folder of cmake ( `cd cmake-3.XX.XX-Linux-x86_64`) and from there execute the following commands:
 ```
  sudo cp -r bin /usr/

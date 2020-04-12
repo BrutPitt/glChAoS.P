@@ -237,6 +237,7 @@ include_directories(${SRC}/tools)
 include_directories(${SRC}/libs)
 include_directories($ENV{INCLUDE})
 
+
 #uncomment for GLFW installed dir
 if(APPLE)
     include_directories(src/libs/glfw/buildOSX/include)
@@ -271,7 +272,8 @@ add_executable(${PROJECT_NAME}
 # set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/builds")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/..")
 
-set(COMMON_DEFINES "-DVGM_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL")
+set(COMMON_DEFINES "-DVGM_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL -D_CRT_SECURE_NO_WARNINGS")
+
 if(APPLE)
     set(COMMON_DEFINES "${COMMON_DEFINES} -DGLCHAOSP_NO_USES_GLSL_SUBS -DGLAPP_NO_GLSL_PIPELINE -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses -framework Cocoa -framework IOKit -framework CoreVideo")
 else()
@@ -279,7 +281,8 @@ else()
 endif(APPLE)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -Wno-deprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -Wdeprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses")
+    set($ENV{CL},"")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -std=c++14 -fpermissive")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -291,7 +294,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1")
     endif()
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib " )
+     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib " )
 endif()
 
 
