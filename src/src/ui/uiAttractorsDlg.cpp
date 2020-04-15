@@ -541,15 +541,22 @@ const float border = 5;
 
             ImGui::PushItemWidth(szItem);
 
+            auto pushColorSelectedCell = [&] () {
+                ImGui::PushStyleColor(ImGuiCol_FrameBg,style.Colors[ImGuiCol_PlotHistogram]); 
+                ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,style.Colors[ImGuiCol_PlotHistogramHovered]); 
+                ImGui::PushStyleColor(ImGuiCol_FrameBgActive,style.Colors[ImGuiCol_CheckMark]); 
+            };
+            auto popColorSelectedCell = [&] () {
+                ImGui::PopStyleColor();
+                ImGui::PopStyleColor();
+                ImGui::PopStyleColor();
+            };
+
             auto innerLoop3 = [&] () {                        
                 for(int j = 0; j < 3; j++, idx++)
                 {
                     s[3] = (typeVal ? '1' : '5') + j; //name different for single column
-                    if(idx==selIdx) {
-                        ImGui::PushStyleColor(ImGuiCol_FrameBg,style.Colors[ImGuiCol_PlotHistogram]); 
-                        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,style.Colors[ImGuiCol_PlotHistogramHovered]); 
-                        ImGui::PushStyleColor(ImGuiCol_FrameBgActive,style.Colors[ImGuiCol_CheckMark]); 
-                    }
+                    if(idx==selIdx) pushColorSelectedCell();
                         
                     float f = att->getValue(i,j,typeVal);
                     if(ImGui::DragFloatEx(s, (float *) &f, .0001, minVal, maxVal, "%.7f",1.0f,ImVec2(.93,0.5))) {
@@ -559,19 +566,13 @@ const float border = 5;
                     }
                     ImGui::SameLine(0, style.ItemInnerSpacing.x);
 
-                    if(idx==selIdx) { 
-                        ImGui::PopStyleColor();
-                        ImGui::PopStyleColor();
-                        ImGui::PopStyleColor();
-                    }
+                    if(idx==selIdx) popColorSelectedCell();
                 }
                 ImGui::NewLine();
             };
             auto innerLoop = [&] () {                        
-                  s[3] = typeVal ? '1' : '5'; //name different for single column
-                if(idx==selIdx) {
-                    ImGui::PushStyleColor(ImGuiCol_FrameBg,style.Colors[ImGuiCol_PlotHistogram]); 
-                }
+                 s[3] = typeVal ? '1' : '5'; //name different for single column
+                if(idx==selIdx) pushColorSelectedCell();
                 
                 //const bool test4D = !typeVal && att->getPtSize()==AttractorBase::attPt4D && i==3;
                 float f =  att->getValue(i,typeVal);
@@ -581,7 +582,7 @@ const float border = 5;
                     if(!theWnd->getParticlesSystem()->getEmitter()->isEmitterOn()) 
                         theWnd->getParticlesSystem()->getEmitter()->setEmitterOn(); 
                 }
-                if(idx==selIdx) ImGui::PopStyleColor();
+                if(idx==selIdx) popColorSelectedCell();
                 idx++;
             };
 

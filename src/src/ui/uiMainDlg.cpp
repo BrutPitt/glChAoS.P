@@ -1503,6 +1503,7 @@ void progSettingDlgClass::view()
         ImGui::AlignTextToFramePadding();
         ImGui::TextDisabled("Theme:");
         ImGui::SameLine();
+        const int idxTheme = ShowStyleSelector(wButt-ImGui::GetCursorPosX());
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextDisabled("FontSize:");
