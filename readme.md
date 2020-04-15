@@ -1,4 +1,4 @@
-<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.4.2</a> </h1>
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.4.2</a> => v.1.5 WiP</h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**wglChAoS.P**](https://michelemorrone.eu/glchaosp): open**gl** / **w**eb**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercomplex fractals
@@ -8,16 +8,18 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 **now any single attractor is also explorable interactively via WebGL/WebAssembly directly from site.*
 
 
-## All available 1.4.2 releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
+## All available releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
+### Desktop - v.1.4.2 (stable release)
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X** 
-- **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebGL** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
-  - You can select **Advanced Mode** check box (*default*) or deselect it for **Standard Mode**, for low resources devices (mobiles/tablet/smartphones), also from **[wglChAoS.P Advanced Mode](https://github.com/BrutPitt/glChAoS.P/blob/master/wglChAoSP/readme.md)** page description
-- You can to explore any single attractor, interactively, via WebGL/WebAssembly directly from site: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
+### WebGL - v.1.5.0 WiP (Work in Progress - Preview)
+- **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebG 2** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
+  - You can select **Advanced Mode** check box (*default*) or deselect it (**Standard Mode**) for low resources devices (mobiles/tablet/smartphones)
+  - You can also to explore any single attractor, interactively, staring directly from web-page, using **Explore** button near/below any attractor formula: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
 
 <p>&nbsp;<br></p>
 
-### New ver.1.4.2  feature: 11 unedited attractor types: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
-An absolutely personal and original transposition in 3D/4D of famous 2D attractors, some new attractors examples:
+### New ver.1.4.2  feature: 11 unpublished attractor types: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
+An absolutely personal and original "transformations" in 3D/4D of famous 2D attractors:
 
 | PopCorn 4D (ssss) | Martin 4D |
 | :---: | :---: |
@@ -66,7 +68,7 @@ Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, a
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
-## wglChAoS.P - the WebGL2 online version (ver. 1.4.2)
+## wglChAoS.P - WebGL2 online version - v.1.5 WiP (Work in Progress - Preview)
 
 <p align="center"><a href="https://michelemorrone.eu/glchaosp/webGL.html"> 
 <img src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/ssWGLtitle1024.jpg"></a>
@@ -180,8 +182,8 @@ If you have slow performance try, in this order:
 **Tested Operating System Versions:**
 
 - Microsoft Windows 7/8.x/10
-- Linux distributions: Ubuntu 16.04/18.04, Fedora 27/28/29
-- Mac OS X 10.14 (Mojave)
+- Linux distributions: Ubuntu 16.04 -> 20.04, Fedora 27 -> 31
+- Mac OS 10.14 (Mojave), 10.15 (Catalina)
 - Android 5/6/7/8/9 with Firefox and Chrome
 
 
@@ -249,7 +251,8 @@ Furthers build option are provided:
 
 - Compilers with full C++14 standard required
 - CMake 3.10 or higher
-- ~~Boost Library to build DLA3D (Diffusion Limited Aggregation) object exploration, (or uncomment DISABLE_DLA3D in CMake file to disable it)~~ has been replaced with **nanoflann** header-only (enclosed)
+- ~~Boost Library to build DLA3D (Diffusion Limited Aggregation) object exploration, (or uncomment DISABLE_DLA3D in CMake file to disable it)~~ \
+it has been replaced with **nanoflann** header-only (enclosed)
 
 
 **Tested Compilers**
@@ -275,7 +278,7 @@ When build glChAoSP, compiler looks for GLFW library in the follows path:
 - src/src/libs/glfw/buildOSX (OSX)
 - src/src/libs/glfw/buildWin (Windows)
 
-So, you need to delete it, or modify the CMake file, to use personal ones version.
+You need to delete it, and/or modify the CMake file, to use personal ones version.
 In this case you need to have installed GLFW Library, ver 3.3 or higher, or re-build the enclosed version in `./src/src/libs/glfw` folder.
 
 ### Build glChAoS.P in Windows 
@@ -316,15 +319,17 @@ Linux users need to install the GCC C/C++ v.5 or higher (or clang v.5 or higher)
 To install gcc C/C++:
   - Debian, Ubuntu: `sudo apt-get install build-essential cmake cmake-qt-gui`
   - Fedora, RedHat: `sudo dnf install make gcc-c++ cmake cmake-gui`
-\
+
  You need also to have installed OpenGL library and relative development package:
-`libgl1-mesa libgl1-mesa-dev` (Ubuntu) or `mesa-libGL mesa-libGL-devel` (Fedora), and also of GLFW library 3.3 or higher.
+`libgl1-mesa libgl1-mesa-dev` (Ubuntu) or `mesa-libGL mesa-libGL-devel` (Fedora).
 
 **Build**
 \
-Form a *Terminal* window, just launch `sh build_glChAoSP.sh` script (from `./src` folder) to build **glChAoSP**, it first runs `cmake` with appropriate parameters and then starts `make` to build `glChAoSP_Linux`, that will stored in parent folder (`../`).
+Form a *Terminal* window, just launch `sh build_glChAoSP.sh` script (from `./src` folder) to build **glChAoSP**, it first runs `cmake` with appropriate parameters and then starts `make` to build `glChAoSP_Linux` executable: it will stored in parent folder (`../`).
 
-The `buildLinux.sh` script is provided as helper to re-build GLFW: it calls `buildGLFW.sh` (to build/re-build GLFW) and `build_glChAoSP.sh` sequentially.
+- the script uses the enclosed built version of GLFW
+
+Another script, `buildLinux.sh`, is provided (as helper) to re-build GLFW: it calls `buildGLFW.sh` (to build/re-build GLFW) and `build_glChAoSP.sh` sequentially.
  - To build/rebuild GLFW from enclosed sources you must have installed also development packages: `libx11-dev libxext-dev` (Ubuntu) or `libX11-devel libXext-devel` (Fedora).
 \
 **(documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))*
@@ -338,11 +343,11 @@ Mac users must have installed **Xcode** and the **Command Line Tools**, also **C
 
 **Build**
 \
-Form a *Terminal* window, just launch `sh build_glChAoSP.sh` script (from `./src` folder) to build **glChAoSP**, it first runs `cmake` with appropriate parameters and then starts `make` to build `glChAoSP_OSX`, that will stored in parent folder (`../`)
+Form a *Terminal* window, just launch `sh build_glChAoSP.sh` script (from `./src` folder) to build **glChAoSP**, it first runs `cmake` with appropriate parameters and then starts `make` to build `glChAoSP_OSX` executable: it will stored in parent folder (`../`)
 \
 - the script uses the enclosed built version of GLFW
 
-The `buildOSX.sh` script is provided as helper to re-build GLFW: it calls `buildGLFW.sh OSX` (to build/re-build GLFW) and `build_glChAoSP.sh` sequentially.
+Another script, `buildOSX.sh`, is provided (as helper) to re-build GLFW: it calls `buildGLFW.sh OSX` (to build/re-build GLFW) and `build_glChAoSP.sh` sequentially.
 \
 **(documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))*
 
@@ -415,7 +420,7 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
     - libs/nanoflann -> header-only library for KD-Trees of datasets point clouds [https://github.com/jlblancoc/nanoflann](https://github.com/jlblancoc/nanoflann) (need only for DLA3D, in alternative you can use **Boost Library** compiling with `GLAPP_USE_BOOST_LIBRARY` define)
 
 
-### Alternatives and optional, not strictly necessary
+### Alternatives and optional, not closely necessary
 
 Below there are some used components, which differ from **MIT** / **BSD 2-Clause** / **Zlib** license. 
 
@@ -429,13 +434,13 @@ Conversion from gpf format to json 256 variations.
 
 **Alternative Library**
 
-- [https://glm.g-truc.net](https://glm.g-truc.net/)
-*(need version \>= 0.9.9)*
-  - Not more necessary, now use my [**vgMath**](https://github.com/BrutPitt/vgMath) lib used in tools [**vitualGizmo3D**](https://github.com/BrutPitt/virtualGizmo3D) and [**imGuIZMO.quat**](https://github.com/BrutPitt/imGuIZMO.quat) have (inside them) a sub-set of **glm** types and funtions (**vGizmoMath**), with a studied **interface** that permits to switch between **glm** and **vGizmoMath** only via compiler defines.
+- **glm Math Library** - [https://glm.g-truc.net/](https://glm.g-truc.net/) 
+  - Not more necessary.\
+   Now is used my [**vgMath**](https://github.com/BrutPitt/vgMath) single file header, used also in [**vitualGizmo3D**](https://github.com/BrutPitt/virtualGizmo3D) and [**imGuIZMO.quat**](https://github.com/BrutPitt/imGuIZMO.quat) tools: it's a sub-set of **glm**, more compact, with or w/o template classes (selectable via define: `vgConfig.h`), and a studied **interface** that permits to switch between **glm** and **vgMath** only via compiler defines (`vgConfig.h`).
 
-- **Boost Library** in particular: *function_output_iterator* and *geometry* are necessary **as alternative** (to nanoflann) to build DLA3D (Diffusion Limited Aggregation) object exlploration in glChAoS.P (can be disabled). It's not included in the repository, but can be downloaded from [https://www.boost.org/](https://www.boost.org/)
+- **Boost Library** in particular: *function_output_iterator* and *geometry* are necessary **as alternative** (to nanoflann) to build DLA3D (Diffusion Limited Aggregation) object exploration in glChAoS.P (can be disabled). It's not included in the repository, but can be downloaded from [https://www.boost.org/](https://www.boost.org/)
 It is not necessary to build the library, only headers files is enough. (more information in: how to build)
-  - Compile with `GLAPP_USE_BOOST_LIBRARY` define, to use instead of **nanoflann** lib
+  - Compile with `-DGLAPP_USE_BOOST_LIBRARY` flag, to use instead of **nanoflann** lib
 
 <p>&nbsp;<br></p>
 
