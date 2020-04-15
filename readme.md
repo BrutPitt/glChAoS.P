@@ -215,13 +215,12 @@ Take care to have installed OpenGL library, whereas `libX11 libXext` should alre
 It was tested on Fedora 27/28 and Ubuntu 16.04/18.04 LTS, although with subsequent updates and different library versions you may need to rebuild it.
 Read Build/CMake sections for further information.
 \
-*Tested on Fedora 27/28 and Ubuntu 16.04/18.04*
+*Tested on Fedora 27 -> 31 and Ubuntu 16.04 -> 20.04*
 
     - **wine**    
     The Windows executable, 32/64 bit, works fine also in wine 3.xx with no evident loss of performance
 
-*NOTE*: Ending support for Ubuntu 16.04 LTS (ended to April 2019): the distributed executable is no longer compatible, but compile compatibility remains: you can compile source code to build your executable.
-- **OS X**\
+- **Mac OS**\
 `glChAoSP_OSX`: native executable (64 bit) is provided for OpenGL 4.1
 \
 From *Finder* click on applescript: `glChAoSP_OSX.app`, or form command line type directly the command: `./glChAoSP_OSX`
@@ -229,7 +228,18 @@ From *Finder* click on applescript: `glChAoSP_OSX.app`, or form command line typ
 It was tested on OS X ver 10.14 (Mojave) only, although with subsequent updates and different library versions you may need to rebuild it.
 Read Build/CMake sections for further information.
 \
-*Tested on 10.14 Mojave*
+*Tested on 10.14 Mojave and 10.15 Catalina*
+
+**NOTE**:
+\
+For **Windows** and **Linux** glChAoS.P uses OpenGL 4.5 with AZDO (Approaching Zero Driver Overhead) and a separate thread (multithread) emitter/generator of particles with memory mapped directly on GPU vRAM.
+
+On **Mac OS**, for a limitation of the OS (from Mojave Apple have deprecated OpenGL) there is a downgraded version, that use OpenGL 4.1 (higher possible) with a separate thread emitter/generator that use the conventional CPU memory.
+
+Furthers build option are provided:
+- Use OpenGL 4.1 also on Windows and Linux.
+- Single thread version.
+
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
@@ -239,22 +249,16 @@ Read Build/CMake sections for further information.
 
 - Compilers with full C++14 standard required
 - CMake 3.10 or higher
-- ~~Boost Library to build DLA3D (Diffusion Limited Aggregation) object exploration, (or uncomment DISABLE_DLA3D in CMake file to disable it)~~
+- ~~Boost Library to build DLA3D (Diffusion Limited Aggregation) object exploration, (or uncomment DISABLE_DLA3D in CMake file to disable it)~~ has been replaced with **nanoflann** header-only (enclosed)
 
 
 **Tested Compilers**
 
 - Microsoft Visual Studio 2019/2017/2015 (Platform Toolset v.142/141/140: it does not work with previous versions)
-- CLang 5/6/7
-- GNU C++ 5/6/7/8
+- MinGW (64bit) v.9
+- CLang v.5/6/7/8/9
+- GNU C++ v.5/6/7/8/9
 
-For Windows and Linux glChAoSP uses OpenGL 4.5 with AZDO (Approaching Zero Driver Overhead) and a separate thread (multithread) emitter/generator of particles with memory mapped directly on GPU vRAM.
-
-On Mac OS X, for a limitation of the OS (from Mojave Apple have deprecated OpenGL) there is a downgraded version, that use OpenGL 4.1 (higher possible) with a separate thread emitter/generator that use the conventional CPU memory.
-
-Furthers build option are provided:
-- Use OpenGL 4.1 also on Windows and Linux.
-- Single thread version.
 
 **CMake**
 
@@ -266,7 +270,7 @@ Read below more about your OS.
 
 Enclosed 32/64bit built library for Windows, and 64bit for Linux and OS X 
 \
-When build glChAoSP, compiler looks for GLFW installed library, before, in the follows path:
+When build glChAoSP, compiler looks for GLFW library in the follows path:
 - src/src/libs/glfw/buildLinux (Linux)
 - src/src/libs/glfw/buildOSX (OSX)
 - src/src/libs/glfw/buildWin (Windows)
@@ -274,73 +278,76 @@ When build glChAoSP, compiler looks for GLFW installed library, before, in the f
 So, you need to delete it, or modify the CMake file, to use personal ones version.
 In this case you need to have installed GLFW Library, ver 3.3 or higher, or re-build the enclosed version in `./src/src/libs/glfw` folder.
 
-**Boost Library**
-
-**Currently boost library for DLA is no longer necessary**: has been replaced with **nanoflann** header-only library for KD-Trees of datasets point clouds (included in repository).
-In alternative, boost library is anyway toggleable via internal define
-
-~~Boost Library in particular: *function_output_iterator* and *geometry* are necessary to build DLA3D (Diffusion Limited Aggregation) object exploration in glChAoS.P. It's not included in the repository, but can be downloaded from [https://www.boost.org/](https://www.boost.org/)~~
-
-~~It is not necessary to build the library, only headers files is enough (they must be in the compiler research path).
-Add the location in to `INCLUDE` environment variable or unpack/copy the `boost` include directory under `src/src/libs`: this folder is already added in CMakeFile~~
-
-~~You can also disable the building of DLA function: pass `-DGLAPP_DISABLE_DLA` to compiler, or uncomment `GLAPP_DISABLE_DLA` flag in `src/CMakeFile.txt`, or uncomment it directly in the file `src/src/appDefines.h`~~
-
-**Windows**
+### Build glChAoS.P in Windows 
 
 Windows user needs of Visual Studio 2019 (it works also wit VS 2017/2015, but is need to change appropriate *Platform Toolset* and/or *Windows SDK version* that you have installed). In alternative, CMake 3.10 (or higher) for other compilers toolchain (non tested, but it should work).
 
 - **Microsoft Visual Studio**
-In the folder `./src/msBuilds` there is the solution project for use with Visual Studio 2017.
+  - **VS solution**
 \
-The current VisualStudio solution refers to my environment variable RAMDISK (`R:`), and subsequent VS intrinsic variables to generate binary output:
+In the folder `./src/msBuilds` there is the solution project for use with Visual Studio 2017/2019.
+\
+*(check appropriate **Platform Toolset** and/or **Windows SDK version** that you have installed)*
+\
+You can use also **LLVM CLang** to build **glChAoS.P** from Visual Studio: you can use the LLVM plugin (after to have installed clang, in windows) and simply change the *toolchain* in *Properties -> General -> Platform Toolset*
+     - The current VisualStudio solution refers to my environment variable RAMDISK (`R:`), and subsequent VS intrinsic variables to generate binary output:
 `$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\` 
+\
 Even without a RAMDISK variable, executable and binary files are outputted in base to the values of these VS variables, starting from root of current drive.
+
+   - **VS with CMakeFile.txt and CMakeSettings.json** (testing fase - VS2019 only)
+   \
+   Open `./src` folder in **vs2019** you can build both **Emscripten** / **CLang** inside Visual Studio
+
+
+
+- **CMake**
+    - You can use CMake to compile with CLang / MinGW, using mingw_make or ninja tool.
+
+
+***NOTE:** To build *viewports* version you need to add `-DGLAPP_IMGUI_VIEWPORT` to compiler flags, or uncomment it in `appDefines.h`*
+
+### Build glChAoS.P in Linux
+
+**Tools required**
 \
-You can use CMake to generate a VS2015 solution: previous versions do not support C++14 standard.
-\
-If you want use *LLVM clang* to build glChAoSP, inside Visual Studio, you can use the LLVM plugin (after to have installed clang, in windows) and simply change the toolchain in *Properties -> General -> Platform Toolset*
-
-- **NOTE:** To build *viewports* version add `GLAPP_IMGUI_VIEWPORT` compiler define or uncomment it in `appDefines.h`
-
-**Linux**
-
 Linux users need to install the GCC C/C++ v.5 or higher (or clang v.5 or higher) compilers and associated tools such as *make* and *CMake* (need v3.10 or higher).
+\
 To install gcc C/C++:
-* Debian, Ubuntu: `sudo apt-get install build-essential cmake cmake-qt-gui`
-* Fedora, RedHat: `sudo dnf install make gcc-c++ cmake cmake-gui`
-
-
-You need also to have installed OpenGL library and relative development package:
+  - Debian, Ubuntu: `sudo apt-get install build-essential cmake cmake-qt-gui`
+  - Fedora, RedHat: `sudo dnf install make gcc-c++ cmake cmake-gui`
+\
+ You need also to have installed OpenGL library and relative development package:
 `libgl1-mesa libgl1-mesa-dev` (Ubuntu) or `mesa-libGL mesa-libGL-devel` (Fedora), and also of GLFW library 3.3 or higher.
 
-The `build_glChAoSP.sh` script build glChAoSP, with the pre-built GLFW library (included).
+**Build**
+\
+Form a *Terminal* window, just launch `sh build_glChAoSP.sh` script (from `./src` folder) to build **glChAoSP**, it first runs `cmake` with appropriate parameters and then starts `make` to build `glChAoSP_Linux`, that will stored in parent folder (`../`).
 
-The `buildLinux.sh` script is provided as helper, it call `buildGLFW.sh` (to build/re-build GLFW) and `build_glChAoSP.sh` sequentially.
+The `buildLinux.sh` script is provided as helper to re-build GLFW: it calls `buildGLFW.sh` (to build/re-build GLFW) and `build_glChAoSP.sh` sequentially.
+ - To build/rebuild GLFW from enclosed sources you must have installed also development packages: `libx11-dev libxext-dev` (Ubuntu) or `libX11-devel libXext-devel` (Fedora).
+\
+**(documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))*
 
-To build/rebuild GLFW from enclosed sources you must have installed also development packages: `libx11-dev libxext-dev` (Ubuntu) or `libX11-devel libXext-devel` (Fedora).
+### Build glChAoS.P in Mac OS
 
-Use `buildGLFW.sh` from `./src` directory, or build GLFW directly from `./src/src/libs/glfw`
+**Tools required**
+\
+Mac users must have installed **Xcode** and the **Command Line Tools**, also **CMake 3.10** or higher is necessary.
 
-(documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))
 
-**OS X**
+**Build**
+\
+Form a *Terminal* window, just launch `sh build_glChAoSP.sh` script (from `./src` folder) to build **glChAoSP**, it first runs `cmake` with appropriate parameters and then starts `make` to build `glChAoSP_OSX`, that will stored in parent folder (`../`)
+\
+- the script uses the enclosed built version of GLFW
 
-Mac users must have installed Xcode and the Command Line Tools, CMake 3.10 or higher.
+The `buildOSX.sh` script is provided as helper to re-build GLFW: it calls `buildGLFW.sh OSX` (to build/re-build GLFW) and `build_glChAoSP.sh` sequentially.
+\
+**(documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))*
 
-CMake uses the enclosed built version of GLFW (actual development branch v.3.3)
 
-To build glChAoSP on OS X, from `./src` folder, call `sh build_glChAoSP.sh OSX` (recommended use).
-
-If you need to build GLFW too, the `buildOSX.sh` script is provided as helper: it calls `buildGLFW.sh OSX` (to build/re-build GLFW) and  `build_glChAoSP.sh OSX` sequentially.
-
-Or use `sh buildGLFW.sh OSX` from ./src directory, or build GLFW directly from `./src/src/libs/glfw`
-
-(documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))
-
-Several warnings are visualized, it is normal. I tested it only on OS X 10.14 Mojave (build and binary).
-
-**WebGL via WebAssembly - EMSCRIPTEN**
+### Build wglChAoS.P with EMSCRIPTEN - WebGL via WebAssembly 
 
 The CMake file is able to build also an [**EMSCRIPTEN**](https://kripken.github.io/emscripten-site/index.html) version, obviously you need to have installed EMSCRIPTEN SDK on your computer (~~1.38.20~~ ~~1.38.28~~ 1.38.40 or higher).
 Use `emsCMakeGen.cmd` or `emsCMakeGen.sh` from ./src directory, or look inside it, to pass appropriate defines/parameters to CMake command line.
@@ -355,22 +362,7 @@ For example, run:
 
 To build the EMSCRIPTEN version, in Windows, with CMake, need to have **mingw32-make.exe** in your computer and in the search PATH (only the make utility is enough): it is a condition of EMSDK tool to build with CMake in Windows.
 
-**CMake**
 
-To install CMake 3.10 or higher where is not provided (Ubuntu 16.04 LTS distribution have v3.5):
-
-You have first to remove the installed version by typing executing:
-`sudo apt purge cmake` Then go to [https://cmake.org/download/](https://cmake.org/download/) 
-and download the latest version you need.
-If you download a .tar.gz file you have to unpack it using a command like:
-`tar -xvf cmake-3.XX.XX-Linux-x86_64.tar.gz`
-Then go to the folder of cmake ( `cd cmake-3.XX.XX-Linux-x86_64`) and from there execute the following commands:
-```
- sudo cp -r bin /usr/
- sudo cp -r share /usr/
- sudo cp -r doc /usr/share/
- sudo cp -r man /usr/share/ 
- ```
 <p>&nbsp;<br>&nbsp;<br></p>
 
 ## 3rd party tools and color maps
