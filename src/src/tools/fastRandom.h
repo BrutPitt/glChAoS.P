@@ -35,13 +35,25 @@ namespace fstRnd {
 class fastRandom32Class 
 {
 public:
-    fastRandom32Class()
-    {
- // obtain a seed from the system clock:
-        rnd32.seed(uint32_t(std::chrono::system_clock::now().time_since_epoch().count()));
+    // obtain a seed from the system clock
+    fastRandom32Class()  { reset(); seed(uint32_t(std::chrono::system_clock::now().time_since_epoch().count()));  }
+
+    // user initialization: same seed, same sequence of numbers
+    fastRandom32Class(const uint32_t seedVal)  { reset(); seed(seedVal); }
+
+    // re-seed the current state/values with a new random values
+    void seed(const uint32_t seed) {
+        rnd32.seed(seed);
 
         initialize(rnd32(), rnd32(), rnd32(),
                    rnd32(), rnd32(), rnd32());
+    }
+
+    // reset to initial state
+    void reset() {
+        z   = 362436069; w     = 521288629;
+        jsr = 123456789; jcong = 380116160;
+        a   = 224466889; b     = 7584631;
     }
 
     inline uint32_t znew() { return z=36969*(z&65535)+(z>>16); }
@@ -83,8 +95,8 @@ private:
 
     std::mt19937 rnd32;
 
-    uint32_t z=362436069, w=521288629, jsr=123456789, jcong=380116160;
-    uint32_t a=224466889, b=7584631;
+    uint32_t z, w, jsr, jcong;
+    uint32_t a, b;
 
 #ifdef FSTRND_USES_BUILT_TABLE
     uint32_t t[256];
@@ -103,13 +115,24 @@ class fastRandom64Class
 {
 
 public:
-    fastRandom64Class()
-    {
- // obtain a seed from the system clock:
-        rnd64.seed(uint64_t(std::chrono::system_clock::now().time_since_epoch().count()));
+    // obtain a seed from the system clock:
+    fastRandom64Class() { reset(); seed(uint64_t(std::chrono::system_clock::now().time_since_epoch().count()));  }
 
-        initialize(rnd64(), rnd64(), rnd64(), 
+    // user initialization: same seed, same sequence of numbers
+    fastRandom64Class(const uint64_t seedVal) { reset(); seed(seedVal);  }
+
+    // re-seed the current state/values with a new random values
+    void seed(const uint64_t seed) {
+        rnd64.seed(seed);
+
+        initialize(rnd64(), rnd64(), rnd64(),
                    rnd64(), rnd64(), rnd64());
+    }
+    // reset to initial state
+    void reset() {
+        x=uint64_t(1234567890987654321ULL); c=uint64_t(123456123456123456ULL);
+        y=uint64_t(362436362436362436ULL ); z=uint64_t(1066149217761810ULL  );
+        a=uint64_t(224466889);              b=uint64_t(7584631);
     }
 
     inline uint64_t MWC() { uint64_t t; return t=(x<<58)+c, c=(x>>6), x+=t, c+=(x<t), x; }
@@ -139,23 +162,28 @@ private:
 
     std::mt19937_64 rnd64;
 
-    uint64_t x=uint64_t(1234567890987654321ULL),c=uint64_t(123456123456123456ULL),
-             y=uint64_t(362436362436362436ULL ),z=uint64_t(1066149217761810ULL  );
-    uint64_t a=224466889,b=7584631;
+    uint64_t x, c, y, z;
+    uint64_t a, b;
 };
 
 using fastRand32 = fastRandom32Class;
 using fastRand64 = fastRandom64Class;
 
 
+#define FFASTRANDOM_CONST_INIT inv_2uiT_max(inv_uiT_max * fT(2.0)),\
+                               inv_uiT_max (std::is_same<fastRand32, classT>::value ?\
+                                          fT(2.3283064365386962890625e-10) :\
+                                          fT(5.4210108624275221700372640043497e-20))
+
 template <typename fT, typename classT> class floatfastRandomClass
 {
 public:
-    floatfastRandomClass() : inv_2uiT_max(inv_uiT_max * fT(2.0)),
-                             inv_uiT_max (std::is_same<fastRand32, classT>::value ? 
-                                          fT(2.3283064365386962890625e-10) : 
-                                          fT(5.4210108624275221700372640043497e-20))
-    {}
+    floatfastRandomClass() : FFASTRANDOM_CONST_INIT {}
+
+    floatfastRandomClass(const uint64_t seedVal) : FFASTRANDOM_CONST_INIT
+    { floatfastRandomClass(); fastRandom.reset(); seed(seedVal); }
+
+    void seed(const uint64_t seedVal) { fastRandom.seed(seedVal); }
     
     // period 2^123 / 2^250 (32/64 bit)
     inline fT UNI() { return fT(          fastRandom.KISS())  * inv_uiT_max;  } // return [ 0.0, 1.0]
@@ -178,6 +206,8 @@ private:
     const fT inv_2uiT_max;
     classT fastRandom;
 };
+
+#undef FFASTRANDOM_CONST_INIT
 
 // single precision interface for 32 bit generator
 using fFastRand32 = floatfastRandomClass<float,  fastRand32>;
