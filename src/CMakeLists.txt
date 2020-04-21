@@ -10,7 +10,7 @@
 #  
 #  This software is distributed under the terms of the BSD 2-Clause license
 #------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 SET(BUILD_wglChAoSP TRUE CACHE BOOL TRUE)
 SET(BUILD_wglChAoSP_lowres FALSE CACHE BOOL FALSE)
 ###########################################################
@@ -138,8 +138,9 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
     set(EMSOUT ${EMSOUT}/${CMAKE_BUILD_TYPE})
 
 # emcc compiler options
-    set(M_EMCC_FLAGS "-DGLAPP_NO_OGL_DSA -DGLFW_INCLUDE_ES3")
-    set(M_GLOBAL_FLAGS "${LIGHTVER_EXPERIMENTAL} -DGLAPP_NO_GLSL_PIPELINE -DVGM_USES_TEMPLATE -DIMGUI_IMPL_OPENGL_ES3 -DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DGLM_ENABLE_EXPERIMENTAL -fpermissive")
+    add_definitions(${LIGHTVER_EXPERIMENTAL} -DGLAPP_NO_GLSL_PIPELINE -DVGM_USES_TEMPLATE -DIMGUI_IMPL_OPENGL_ES3 -DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DGLM_ENABLE_EXPERIMENTAL)
+    add_definitions(-DGLAPP_NO_OGL_DSA -DGLFW_INCLUDE_ES3)
+    add_compile_options(-Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value -Wdelete-non-virtual-dtor -fpermissive)
 
 # BUILD TYPE: [Debug|RelWithDebInfo|Release|MinSizeRel]    
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -182,12 +183,10 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
     # set(M_EMCC_EMBED_FILES "--preload-file \"${CMAKE_SOURCE_DIR}/Shaders@/Shaders\"")
     # -s FULL_ES3=1 -s OFFSCREENCANVAS_SUPPORT=1
     set(M_EMCC_OGL_OPTIONS "-s USE_WEBGL2=1 -s USE_GLFW=3 -s LEGACY_GL_EMULATION=0 -s OFFSCREENCANVAS_SUPPORT=1 ")
-
-# merge all EMCC_OPTIONS -s BINARYEN_TRAP_MODE=clamp -s PRECISE_F32=1 -s PRECISE_F32=1 
     set(M_EMCC_OPTIONS "-s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ALLOW_MEMORY_GROWTH=1 ${M_EMCC_SHELL_FILE} ${M_EMCC_OGL_OPTIONS} ${M_EMCC_BINARYEN} ${M_EMCC_EMBED_FILES}")
 
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${EMSOUT}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${M_GLOBAL_FLAGS} ${OGL_EMITTER_TYPE} ${M_EMCC_FLAGS} ${M_EMCC_OPTIONS} ${GLAPP_DISABLE_DLA} -Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value -Wdelete-non-virtual-dtor")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OGL_EMITTER_TYPE} ${M_EMCC_OPTIONS} ${GLAPP_DISABLE_DLA}")
 
     add_executable(${PROJECT_NAME} 
                     ${SRC}/emsTouch.cpp
@@ -200,14 +199,6 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 ###########################################################
 else()
 #   Default best emitter type and OpenGL
-    if(NOT OGL_EMITTER_TYPE)
-        if(APPLE)
-            set(OGL_EMITTER_TYPE ${OGL41})
-        else()
-            set(OGL_EMITTER_TYPE ${OGL45})
-        endif()
-    endif()    
-
 
     if(APPLE)
         project(glChAoSP_OSX)
@@ -238,24 +229,24 @@ include_directories(${SRC}/libs)
 include_directories($ENV{INCLUDE})
 
 
-#uncomment for GLFW installed dir
 if(APPLE)
     include_directories(src/libs/glfw/buildOSX/include)
     link_directories(src/libs/glfw/buildOSX/lib)
 else()
     if(WIN32)
-        include_directories(${SRC}/libs/glfw/buildWin/include)
-        link_directories(${SRC}/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE})
-        message(${SRC}/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE})
-        if(EXISTS $ENV{RAMDISK})
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$ENV{RAMDISK}/glChAoSP_release")
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU") # MinGW
+            # need to have in the LIB env var
+        else()
+            include_directories(src/libs/glfw/buildWin/include)
+            link_directories(src/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE})
         endif()
-        
     else()
+    # both MinGW and Linux
         include_directories(src/libs/glfw/buildLinux/include)
         link_directories(src/libs/glfw/buildLinux/lib)
     endif(WIN32)
 endif(APPLE)
+
 
 add_executable(${PROJECT_NAME}
         ${SRC}/libs/glad/glad.cpp
@@ -269,49 +260,72 @@ add_executable(${PROJECT_NAME}
         ${SOURCE_FILES})
 
 
-# set(CMAKE_BINARY_DIR "${CMAKE_SOURCE_DIR}/builds")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/..")
 
-set(COMMON_DEFINES "-DVGM_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL -D_CRT_SECURE_NO_WARNINGS")
-
-if(APPLE)
-    set(COMMON_DEFINES "${COMMON_DEFINES} -DGLCHAOSP_NO_USES_GLSL_SUBS -DGLAPP_NO_GLSL_PIPELINE -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses -framework Cocoa -framework IOKit -framework CoreVideo")
-else()
-    set(COMMON_DEFINES "${COMMON_DEFINES}")
-endif(APPLE)
+add_definitions(-DVGM_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -Wdeprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses")
-    set($ENV{CL},"")
+    if(WIN32)
+        set($ENV{CL},"")
+        add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+        # if you use clang-cl as compiler: need this
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /Qpar /Gm- /O2 /Ob2 /Zc:inline /fp:precise /WX- /Zc:forScope /EHsc /Gd /FC /Fa /Ot")
+    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -Wno-format-nonliteral -Wdeprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -fexceptions -Wno-unused-command-line-argument -Wno-parentheses")
+    message("Clang...")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -std=c++14 -fpermissive")
+    #add_compile_options(--verbose -Wno-format-security -std=c++14 -fpermissive)
+    message("GNU...")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qpar /W1 /Gm- /O2 /Ob2 /Zc:inline /fp:precise /WX- /Zc:forScope /Gd /FC /Fa /Ot /MP")
+    # add_compile_options("/W1 /Qpar /Gm- /O2 /Ob2 /Zc:inline /fp:precise /WX- /Zc:forScope /Gd /FC /Fa /Ot /MP")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /Qpar /Gm- /O2 /Ob2 /Zc:inline /fp:precise /WX- /Zc:forScope /EHsc /Gd /FC /Fa /Ot")
+    # Force to always compile with W1 (before CMake 3.15)
+    # if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+    #     string(REGEX REPLACE "/W[0-4]" "/W1" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    # else()
+    #     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1")
+    # endif()
+
+    # MSVC_RUNTIME_LIBRARY (from CMake 3.15)
     set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    # Force to always compile with W1
-    if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-        string(REGEX REPLACE "/W[0-4]" "/W1" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1")
-    endif()
-     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib " )
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib " )
+    message("MSVC...")
 endif()
 
-
 #add_compile_options("${OGL_EMITTER_TYPE} ${COMMON_DEFINES} ${GLAPP_DISABLE_DLA}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  ${OGL_EMITTER_TYPE} ${COMMON_DEFINES} ${GLAPP_DISABLE_DLA}")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  ${OGL_EMITTER_TYPE} ${COMMON_DEFINES} ${GLAPP_DISABLE_DLA}")
+
+if(EXISTS $ENV{RAMDISK})
+    set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY $ENV{RAMDISK}/glChAoSP_release)
+else()
+    set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/..)
+endif()
 
 
 if(OPENGL_FOUND)
     if(APPLE)
+        add_definitions(${OGL41} -DGLCHAOSP_NO_USES_GLSL_SUBS -DGLAPP_NO_GLSL_PIPELINE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses -framework Cocoa -framework IOKit -framework CoreVideo")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -Wno-format-nonliteral -Wdeprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -fexceptions -Wno-unused-command-line-argument -Wno-parentheses")
         set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lglfw3 -lpthread")
+        message("AppleClang...")
     else()
+        if(NOT OGL_EMITTER_TYPE)
+            set(OGL_EMITTER_TYPE ${OGL45})
+        endif()
+        add_definitions(${OGL_EMITTER_TYPE})
+
         if(WIN32)
-            set(TARGET_LIBS ${CMAKE_DL_LIBS} "${SRC}/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE}/glfw3.lib")
+            if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+                set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lglfw3")
+            else()
+                set(TARGET_LIBS ${CMAKE_DL_LIBS} "${SRC}/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE}/glfw3.lib")
+            endif()
         else()    
             set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lglfw3 -lpthread -lX11")
         endif(WIN32)
     endif(APPLE)
+
 
     target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARY} ${TARGET_LIBS})
 endif(OPENGL_FOUND)
