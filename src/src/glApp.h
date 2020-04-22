@@ -33,7 +33,7 @@ enum ScreeShotReq {
 
 enum normalType { ptCoR, ptPt1, ptPt1CoR };
 
-enum enumEmitterType { emitter_singleThread_externalBuffer,    // webGL
+enum enumEmitterType { emitter_singleThread_externalBuffer,    // webGL and APPLE
                        emitter_separateThread_externalBuffer,  // max performance for OGL 4.1
                        emitter_separateThread_mappedBuffer};    // max performance for OGL 4.5
 
@@ -383,10 +383,10 @@ private:
     int screenShotRequest;
     int vSync = 0;
     bool isFullScreen = false;
-#if !defined(__EMSCRIPTEN__)
-    int emitterType = emitter_separateThread_externalBuffer;
-#else
+#if defined(__EMSCRIPTEN__) || defined(GLCHAOSP_DISABLE_MACOS_MT)
     int emitterType = emitter_singleThread_externalBuffer;
+#else
+    int emitterType = emitter_separateThread_externalBuffer;
 #endif
 
 #if !defined(GLCHAOSP_USE_LOWPRECISION)

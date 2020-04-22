@@ -1571,17 +1571,24 @@ void progSettingDlgClass::view()
         ShowHelpMarker(GLAPP_HELP_EMIT_TYPE);
 
         ImGui::PushItemWidth(wButt*.5-border);
+#ifdef GLCHAOSP_DISABLE_MACOS_MT
+        static int idxEmitt = emitter_singleThread_externalBuffer;
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextDisabled("Single thread");
+#else
         static int idxEmitt = theApp->getEmitterType();
-#ifdef GLAPP_REQUIRE_OGL45
+    #ifdef GLAPP_REQUIRE_OGL45
         if(ImGui::Combo("##EmitterType", &idxEmitt, "Single thread & Aux buffer\0"\
                                                  "Aux thread & Aux buffer\0"\
                                                  "Aux thread & Mapped buffer\0")) { 
-#else
+    #else
         if(ImGui::Combo("##EmitterType", &idxEmitt, "Single thread & Aux buffer\0"\
                                                     "Aux thread & Aux buffer\0")) {
-#endif        
+    #endif
             emitterChanges|=true;
         }
+#endif        
+
         static int emitStep = theApp->getEmissionStepBuffer()>>10;
         if(idxEmitt!=emitter_separateThread_mappedBuffer) {
             ImGui::SameLine(wButt*.5 + border*2);            

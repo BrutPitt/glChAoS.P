@@ -927,8 +927,12 @@ bool mainGLApp::loadProgConfig()
 
     theApp->useLowPrecision(cfg.get_or("useLowPrecision", false));
     theApp->useDetailedShadows(cfg.get_or("useDetailedShadows", false));
-
+    
+#ifdef GLCHAOSP_DISABLE_MACOS_MT //stuttering multithread OGL
+    theApp->selectEmitterType(emitter_singleThread_externalBuffer);
+#else
     theApp->selectEmitterType(cfg.get_or("emitterType",int(emitter_separateThread_externalBuffer)));
+#endif
     theApp->setEmissionStepBuffer(cfg.get_or("auxStepBuffer", theApp->getEmissionStepBuffer()));
 
     theApp->setStartWithAttractorName(cfg.get_or("startWithAttractorName", "random"));  // -1 Random start

@@ -15,7 +15,11 @@
 #define GLCHAOSP_VERSION "1.5.0"
 
 #define APP_USE_FBO
+
 //#define __APPLE__
+#ifdef __APPLE__
+    #define GLCHAOSP_DISABLE_MACOS_MT
+#endif
 
 
 //#define GLCHAOSP_NO_USES_GLSL_SUBS

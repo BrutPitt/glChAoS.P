@@ -14,7 +14,7 @@
 #include <algorithm>
 
 
-#include <vGizmo.h>
+#include "vGizmo.h"
 
 #if !defined(IMGUIZMO_IMGUI_FOLDER)
     #define IMGUIZMO_IMGUI_FOLDER imgui/
@@ -99,7 +99,7 @@ struct imguiGizmo
 
     enum solidSides{ backSide, frontSide  }; // or viceversa... 
     static ImVector<vec3> sphereVtx;
-    static ImVector<int>       sphereTess;
+    static ImVector<int>  sphereTess;
     static ImVector<vec3> cubeVtx;
     static ImVector<vec3> cubeNorm;
     static ImVector<vec3> planeVtx;

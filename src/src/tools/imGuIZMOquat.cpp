@@ -578,7 +578,7 @@ bool imguiGizmo::drawFunc(const char* label, float size)
         for(vec3* itNorm = cubeNorm.begin(), *itVtx  = cubeVtx.begin() ; itNorm != cubeNorm.end();) {
             vec3 coord;
             vec3 norm = _q * *itNorm;
-            for (int i = 0; i<4; ) {
+            for(int i = 0; i<4; ) {
                 coord = _q  * (*itVtx++ * solidResizeFactor);                        
                 uv[i++] = normalizeToControlSize(coord.x,coord.y);
             }                    
@@ -593,7 +593,7 @@ bool imguiGizmo::drawFunc(const char* label, float size)
         for(auto itNorm = planeNorm.begin(), itVtx  = planeVtx.begin() ; itNorm != planeNorm.end();) {
             vec3 coord;
             vec3 norm = _q * *itNorm;
-            for (int i = 0; i<4; ) {
+            for(int i = 0; i<4; ) {
                 coord = _q  * (*itVtx++ * solidResizeFactor);                        
                 uv[i++] = normalizeToControlSize(coord.x,coord.y);
             }                    
@@ -614,7 +614,7 @@ bool imguiGizmo::drawFunc(const char* label, float size)
 
                 bool skipCone =true;
 
-                if ((side == backSide  && arrowCoordZ > 0) || (side == frontSide && arrowCoordZ <= 0)) {
+                if((side == backSide  && arrowCoordZ > 0) || (side == frontSide && arrowCoordZ <= 0)) {
                     if (!showFullAxes && (i == CYL_CAP)) continue; // skip if cylCap is hidden
                     if (i <= CONE_CAP) continue;  // do not draw cone
                     else skipCone = false;
@@ -623,7 +623,7 @@ bool imguiGizmo::drawFunc(const char* label, float size)
                 auto *ptrVtx = arrowVtx+i;
                 draw_list->PrimReserve(ptrVtx->size(), ptrVtx->size()); // // reserve vtx
 
-                for (auto itVtx = ptrVtx->begin(), itNorm = (arrowNorm+i)->begin(); itVtx != ptrVtx->end(); ) { //for all Vtx
+                for(auto itVtx = ptrVtx->begin(), itNorm = (arrowNorm+i)->begin(); itVtx != ptrVtx->end(); ) { //for all Vtx
 #if !defined(imguiGizmo_INTERPOLATE_NORMALS)
                     vec3 norm( _q * fastRotate(arrowAxis, *itNorm++));
 #endif                    
@@ -631,8 +631,8 @@ bool imguiGizmo::drawFunc(const char* label, float size)
                         vec3 coord(*itVtx++ * resizeAxes); //  reduction
 
                     // reposition starting point...
-                        if (!skipCone && coord.x >  0)                         coord.x = -arrowStartingPoint; 
-                        if ((skipCone && coord.x <= 0) || 
+                        if(!skipCone && coord.x >  0)                         coord.x = -arrowStartingPoint; 
+                        if((skipCone && coord.x <= 0) || 
                            (!showFullAxes && (coord.x < arrowStartingPoint)) ) coord.x =  arrowStartingPoint;
                         //transform
                         coord = _q * fastRotate(arrowAxis, coord); 
@@ -654,7 +654,7 @@ bool imguiGizmo::drawFunc(const char* label, float size)
     {
         auto *ptrVtx = arrowVtx+idx;
         draw_list->PrimReserve(ptrVtx->size(), ptrVtx->size()); // reserve vtx
-        for (auto itVtx = ptrVtx->begin(), itNorm = (arrowNorm+idx)->begin(); itVtx != ptrVtx->end(); ) { 
+        for(auto itVtx = ptrVtx->begin(), itNorm = (arrowNorm+idx)->begin(); itVtx != ptrVtx->end(); ) { 
 #if !defined(imguiGizmo_INTERPOLATE_NORMALS)
             vec3 norm = (_q * *itNorm++);
 #endif
@@ -871,8 +871,7 @@ void imguiGizmo::buildSphere(const float radius, const int tessFactor)
     float y1 =  0.0f;
 
     // The first pole==>parallel is covered with triangles
-    for (int j=0; j<meridians; j++, angle+=incAngle)
-    {
+    for(int j=0; j<meridians; j++, angle+=incAngle) {
         const float x0 = x1; x1 = cosf(T_PI-angle);
         const float y0 = y1; y1 = sinf(T_PI-angle);
 
@@ -893,20 +892,20 @@ void imguiGizmo::buildSphere(const float radius, const int tessFactor)
         r0 = r1; r1 = sinf(angle)*radius;
         float angleJ = incAngle;
 
-            for(int j=0; j<meridians; j++, angleJ+=incAngle)  {
+        for(int j=0; j<meridians; j++, angleJ+=incAngle)  {
                 
-                const float x0 = x1; x1 = cosf(angleJ);
-                const float y0 = y1; y1 = sinf(angleJ);
+            const float x0 = x1; x1 = cosf(angleJ);
+            const float y0 = y1; y1 = sinf(angleJ);
 
-                const int tType = ((i>>div)&1) ? ((j>>div)&1) : !((j>>div)&1); 
+            const int tType = ((i>>div)&1) ? ((j>>div)&1) : !((j>>div)&1); 
 
-                V(x0*r1, -y0*r1, z1); T(tType);
-                V(x0*r0, -y0*r0, z0); T(tType);
-                V(x1*r0, -y1*r0, z0); T(tType);
-                V(x0*r1, -y0*r1, z1); T(tType);
-                V(x1*r0, -y1*r0, z0); T(tType);
-                V(x1*r1, -y1*r1, z1); T(tType);
-            }
+            V(x0*r1, -y0*r1, z1); T(tType);
+            V(x0*r0, -y0*r0, z0); T(tType);
+            V(x1*r0, -y1*r0, z0); T(tType);
+            V(x0*r1, -y0*r1, z1); T(tType);
+            V(x1*r0, -y1*r0, z0); T(tType);
+            V(x1*r1, -y1*r1, z1); T(tType);
+        }
     }
 
     // The last parallel==>pole is covered with triangls
@@ -915,8 +914,7 @@ void imguiGizmo::buildSphere(const float radius, const int tessFactor)
     x1 = -1.0f; y1 = 0.f;
 
     angle = incAngle;
-    for (int j=0; j<meridians; j++,angle+=incAngle)
-    {
+    for(int j=0; j<meridians; j++,angle+=incAngle) {
         const float x0 = x1; x1 = cosf(angle+T_PI);
         const float y0 = y1; y1 = sinf(angle+T_PI);
 
@@ -955,8 +953,7 @@ void imguiGizmo::buildCone(const float x0, const float x1, const float radius, c
 #   define V(i,x,y,z) arrowVtx [i].push_back(vec3(x, y, z))
 #   define N(i,x,y,z) arrowNorm[i].push_back(vec3(x, y, z)) 
 
-    for (int j=0; j<slices; j++, angle+=incAngle)
-    {   
+    for(int j=0; j<slices; j++, angle+=incAngle)  {   
         const float yt0 = yt1;  yt1 = cosf(angle);
         const float y0  = y1;   y1  = yt1*radius;   yt1*=sinn;
         const float zt0 = zt1;  zt1 = sinf(angle);
@@ -1004,7 +1001,7 @@ void imguiGizmo::buildCylinder(const float x0, const float x1, const float radiu
 #   define V(i,x,y,z) arrowVtx [i].push_back(vec3(x, y, z))
 #   define N(i,x,y,z) arrowNorm[i].push_back(vec3(x, y, z)) 
 
-    for (int j=0; j<slices; j++, angle+=incAngle) {
+    for(int j=0; j<slices; j++, angle+=incAngle) {
         const float y0  = y1;   y1  = cosf(angle);
         const float z0  = z1;   z1  = sinf(angle);
         const float yr0 = yr1;  yr1 = y1 * radius;
