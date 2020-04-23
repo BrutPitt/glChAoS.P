@@ -9,6 +9,7 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 
 
 ## All available releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
+
 ### Desktop - v.1.4.2 (stable release)
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X** 
 ### WebGL - v.1.5.0 WiP (Work in Progress - Preview)
@@ -16,7 +17,12 @@ To view all Attractors / Fractals currently inserted in this version, follow the
   - You can select **Advanced Mode** check box (*default*) or deselect it (**Standard Mode**) for low resources devices (mobiles/tablet/smartphones)
   - You can also to explore any single attractor, interactively, staring directly from web-page, using **Explore** button near/below any attractor formula: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
 
+<a href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank"><img align="right" width="100" height="100" src="https://michelemorrone.eu/glchaosp/img/jetbrains.svg"/></a>
 <p>&nbsp;<br></p>
+<p align="right">This project is supported by <b><a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">JetBrains</a></b><br> <i>thanks to <a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">open-source license</a> for all its products</i></p>
+
+
+
 
 ### New ver.1.4.2  feature: 11 unpublished attractor types: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
 An absolutely personal and original "transformations" in 3D/4D of famous 2D attractors:
