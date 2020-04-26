@@ -247,7 +247,6 @@ else()
     endif(WIN32)
 endif(APPLE)
 
-
 add_executable(${PROJECT_NAME}
         ${SRC}/libs/glad/glad.cpp
         ${SRC}/libs/glad/glad.h
@@ -259,16 +258,12 @@ add_executable(${PROJECT_NAME}
         ${SRC}/tools/oglAxes.h
         ${SOURCE_FILES})
 
-
-
 add_definitions(-DVGM_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if(WIN32)
         set($ENV{CL},"")
         add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-        # if you use clang-cl as compiler: need this
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /Qpar /Gm- /O2 /Ob2 /Zc:inline /fp:precise /WX- /Zc:forScope /EHsc /Gd /FC /Fa /Ot")
     endif()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -Wno-format-nonliteral -Wdeprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -fexceptions -Wno-unused-command-line-argument -Wno-parentheses")
     message("Clang...")
@@ -285,7 +280,6 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # else()
     #     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1")
     # endif()
-
     # MSVC_RUNTIME_LIBRARY (from CMake 3.15)
     set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT.lib " )
@@ -295,12 +289,11 @@ endif()
 #add_compile_options("${OGL_EMITTER_TYPE} ${COMMON_DEFINES} ${GLAPP_DISABLE_DLA}")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  ${OGL_EMITTER_TYPE} ${COMMON_DEFINES} ${GLAPP_DISABLE_DLA}")
 
-if(EXISTS $ENV{RAMDISK})
+if(EXISTS $ENV{RAMDISK}) #my RAMDISK env 
     set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY $ENV{RAMDISK}/glChAoSP_release)
 else()
     set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/..)
 endif()
-
 
 if(OPENGL_FOUND)
     if(APPLE)
@@ -325,7 +318,6 @@ if(OPENGL_FOUND)
             set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lglfw3 -lpthread -lX11")
         endif(WIN32)
     endif(APPLE)
-
 
     target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARY} ${TARGET_LIBS})
 endif(OPENGL_FOUND)
