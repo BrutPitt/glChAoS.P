@@ -286,6 +286,10 @@ public:
     void setFontSize(float f) { fontSize = f; }
     void setFontZoom(float f) { fontZoom = f; }
 
+    bool selectableScrolled() { return isSelectableScrolled; }
+    void selectableScrolled(bool b) { isSelectableScrolled = b; }
+    void needToScrooll() { selectableScrolled(false); }
+
     fastViewDlgClass & getfastViewDlg() { return fastViewDlg; }
 
     dataDlgClass& getDataDlg() { return dataDlg; }
@@ -306,6 +310,8 @@ private:
     float RasterizerMultiply = 1.0;
        
     float fontSize = 13.f, fontZoom = 1.f;
+
+    bool isSelectableScrolled = false;
 
 
 

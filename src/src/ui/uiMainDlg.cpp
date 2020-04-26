@@ -1406,7 +1406,6 @@ void particlesDlgClass::view()
 }
 
 
-
 #if !defined(GLCHAOSP_LIGHTVER)
 
 void comboWindowRes(const float width)
@@ -1417,7 +1416,7 @@ void comboWindowRes(const float width)
     ImGui::SameLine();
     ImGui::PushItemWidth(width-ImGui::GetCursorPosX()-DLG_BORDER_SIZE);
 
-    const char *items[20] = { "", "1024x1024", "1280x720", "1280x1024", "1920x1080", "1920x1200", "2048x2048", "2560x1440", "3440x1440" };
+    const char *items[16] = { "", "1024x1024", "1280x720", "1280x1024", "1920x1080", "1920x1200", "2048x2048", "2560x1440", "3440x1440" };
     int w, h;
     // glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
     char s[30];
@@ -1426,14 +1425,14 @@ void comboWindowRes(const float width)
             
     static int i;
     if (ImGui::Combo("##wSize", &i, items, 8)) {  
-        std::istringstream iss(items[i]); 
-        iss >> w >> h;
+        sscanf(items[i], "%dx%d", &w, &h);        
+        //std::istringstream iss(items[i]); 
+        //char x; iss >> w >> x >> h;
+
         theApp->setWindowSize(w,h);
-        //theWnd->onReshape(w,h);
         i=0;
     }
 }
-        
 
 
 void progSettingDlgClass::view()

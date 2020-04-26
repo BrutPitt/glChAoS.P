@@ -349,16 +349,31 @@ void attractorDlgClass::view()
     const int sizeLeft = ImGui::GetFrameHeightWithSpacing()+border;
 #endif
             ImGui::BeginChild("List", ImVec2(wGrp,-sizeLeft));            
+            
+                ImGuiStyle& style = ImGui::GetStyle();
+                ImGui::PushStyleColor(ImGuiCol_Header       ,style.Colors[ImGuiCol_PlotHistogram       ]); 
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered,style.Colors[ImGuiCol_PlotHistogramHovered]); 
+                ImGui::PushStyleColor(ImGuiCol_HeaderActive ,style.Colors[ImGuiCol_CheckMark           ]); 
 
+                
+                const int idx = attractorsList.getSelection();                
+                if(!theDlg.selectableScrolled()) { ImGui::SetScrollY(idx * (ImGui::GetFontSize()+style.FramePadding.y)); theDlg.selectableScrolled(true); }
+                
+                char s[16];
                 for (int i = 0; i < attractorsList.getList().size(); i++)   {
-                    //ImGui::SetCursorPosX(border);
-                    const bool selected = attractorsList.getSelection() == i;
-                    if (ImGui::Selectable(attractorsList.getDisplayName(i).c_str(), selected)) {
-                        attractorsList.setSelection(i);
-                        //onRestart();
-                    }
-                    //if(selected) ImGui::SetItemDefaultFocus();
+                    sprintf(s,"##%d",i);
+                    bool selected = idx == i;
+
+                    if (ImGui::Selectable(s, selected))  attractorsList.setSelection(i);
+                    
+                    ImGui::SameLine(); ImGui::TextColored((const ImVec4 &)attractorsList.getColorGraphChar(i), attractorsList.getGraphChar(i).c_str());
+                    ImGui::SameLine(); ImGui::SetCursorPosX(ImGui::GetCursorPosX()+3); ImGui::Text(attractorsList.getDisplayName(i).c_str());
                 }
+                
+
+                ImGui::PopStyleColor();
+                ImGui::PopStyleColor();
+                ImGui::PopStyleColor();
 
             ImGui::EndChild();
 
@@ -542,9 +557,9 @@ const float border = 5;
             ImGui::PushItemWidth(szItem);
 
             auto pushColorSelectedCell = [&] () {
-                ImGui::PushStyleColor(ImGuiCol_FrameBg,style.Colors[ImGuiCol_PlotHistogram]); 
+                ImGui::PushStyleColor(ImGuiCol_FrameBg       ,style.Colors[ImGuiCol_PlotHistogram       ]); 
                 ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,style.Colors[ImGuiCol_PlotHistogramHovered]); 
-                ImGui::PushStyleColor(ImGuiCol_FrameBgActive,style.Colors[ImGuiCol_CheckMark]); 
+                ImGui::PushStyleColor(ImGuiCol_FrameBgActive ,style.Colors[ImGuiCol_CheckMark           ]); 
             };
             auto popColorSelectedCell = [&] () {
                 ImGui::PopStyleColor();
@@ -657,6 +672,7 @@ void fastViewDlgClass::view()
                 for (int i = 0; i < theApp->getListQuickView().size(); i++)   {
                     if (ImGui::Selectable(theApp->getListQuickView().at(i).c_str(), idx == i)) {
                         theApp->loadQuikViewSelection(i);
+                        theDlg.needToScrooll();
                     }
                 }
 
