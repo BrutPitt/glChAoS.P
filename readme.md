@@ -1,4 +1,4 @@
-<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P / wglChAoS.P - Ver 1.4.2</a> => v.1.5 WiP</h1>
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.4.2</a> => v.1.5 WiP</h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**wglChAoS.P**](https://michelemorrone.eu/glchaosp): open**gl** / **w**eb**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercomplex fractals
@@ -19,9 +19,9 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 
 <a href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank"><img align="right" width="100" height="100" src="https://michelemorrone.eu/glchaosp/img/jetbrains.svg"/></a>
 <p>&nbsp;<br></p>
-<p align="right">This project is supported by <b><a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">JetBrains</a></b><br> <i>thanks to <a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">open-source license</a> for all its products</i></p>
+<p align="right"><b><a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">JetBrains</a></b> supports <b>glChAoS.P</b> &#x22C5; <b>wglChAoS.P</b><br><i>many thanks to <b>JetBrains</b> for donating <a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">o.s.license</a> for all their excellent products</i></p>
 
-
+<p>&nbsp;<br></p>
 
 
 ### New ver.1.4.2  feature: 11 unpublished attractor types: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
