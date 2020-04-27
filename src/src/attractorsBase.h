@@ -164,6 +164,8 @@ public:
     float getVMin() { return vMin; }
 
     string& getDisplayName() { return displayName; }
+    string& getGraphChar() { return graphChar; }
+    vec4& getColorGraphChar() { return colorGraphChar; }
     void setDisplayName(string &name) { displayName = name; }
 
     string& getNameID() { return nameID; }
@@ -211,7 +213,8 @@ protected:
 
     vec3 m_POV, m_TGT = vec3(0.f);
 
-    string displayName, fileName, nameID;
+    string displayName, fileName, nameID, graphChar;
+    vec4 colorGraphChar;
 
     friend class attractorDlgClass;
     friend class AttractorsClass;
@@ -1299,7 +1302,7 @@ TEMPLATE_TYPENAME_T struct pointCloud
 
 using tPointCloud =  pointCloud<tPrec>;
 
-using tKDTreeDistanceFunc = nanoflann::L2_Adaptor<tPrec, tPointCloud>;
+using tKDTreeDistanceFunc = nanoflann::L2_Simple_Adaptor<tPrec, tPointCloud>;
 using tKDTree = nanoflann::KDTreeSingleIndexDynamicAdaptor<tKDTreeDistanceFunc, tPointCloud, 3>;
 #endif
 
@@ -1434,7 +1437,7 @@ protected:
         tPrec out_dist_sqr = kVal[1]*.5;
         nanoflann::KNNResultSet<tPrec> resultSet(1);
         resultSet.init(&ret_index, &out_dist_sqr );
-        m_Index->findNeighbors(resultSet, (const tPrec *) &point, nanoflann::SearchParams(1, kVal[1]));
+        m_Index->findNeighbors(resultSet, (const tPrec *) &point, nanoflann::SearchParams(1, boundingRadius /*kVal[1]*/));
         return ret_index;
     }
 
@@ -1448,7 +1451,7 @@ protected:
 
     // RandomStartingPosition returns a random point to start a new particle
     vec3 RandomStartingPosition() const {
-        return normalize(RandomInUnitSphere()) * boundingRadius;
+        return normalizedRandomVector() * boundingRadius;
     }
 
     // ShouldReset returns true if the particle has gone too far away and
@@ -1463,7 +1466,7 @@ protected:
     bool ShouldJoin(const vec3 &p, const uint32_t parent) {
         return (m_JoinAttempts[parent]++ < m_Stubbornness) ? false : DLA_RANDOM_01 <= m_Stickiness;
     }
-
+/*
     // MotionVector returns a vector specifying the direction that the
     // particle should move for one iteration. The distance that it will move
     // is determined by the algorithm.
@@ -1476,12 +1479,14 @@ protected:
         do {
             p = vec3(DLA_RANDOM_NORM, DLA_RANDOM_NORM, DLA_RANDOM_NORM);
         } while(length(p) >= 1.f);
-
         return p;
     } 
+*/
+    vec3 normalizedRandomVector() const { return normalize(vec3(DLA_RANDOM_NORM, DLA_RANDOM_NORM, DLA_RANDOM_NORM)); }
+
 
     // AddParticle diffuses one new particle and adds it to the model
-    vec3 &AddParticle() {
+    vec3 &AddParticle_() {
         // compute particle starting location
         vec3 p = RandomStartingPosition();
 
@@ -1505,11 +1510,32 @@ protected:
             }
 
             // move randomly
-            p += normalize(MotionVector(p)) * std::max(kVal[2], d - kVal[1]);
+            p += normalizedRandomVector() * DLA_RANDOM_01 * std::max(kVal[2], d - kVal[1]);
 
             // check if particle is too far away, reset if so
             if (ShouldReset(p)) p = RandomStartingPosition();
         }
+    }
+
+    vec3 &AddParticle() {
+        vec3 p = RandomStartingPosition();
+
+        uint32_t parent;;
+        tPrec d;
+        const tPrec val1 = kVal[1], val2 = kVal[2];
+        do {
+            parent = Nearest(p);
+            d = distance(p, parentPOINT(parent)); // get distance to nearest other particle
+
+            if (ShouldReset(p)) p = RandomStartingPosition(); // check if particle is too far away, reset if so
+            else                p += normalizedRandomVector() * DLA_RANDOM_01 * std::max(val2, d - val1); // move randomly
+
+        } while (d > val1); // repeat until is close enough to join
+
+        while(!ShouldJoin(p, parent)) { p = lerp(parentPOINT(parent), p, val1+val2); } // push particle away a bit
+
+        Add(PlaceParticle(p, parent)); // adjust particle pos in relation to its parent and add the point
+        return thisPOINT.back();
     }
 
     void Step(vec4 &v, vec4 &vp);
@@ -2404,101 +2430,113 @@ private:
 #define ATT_PATH "startData/"
 #define ATT_EXT ".sca"
 
-#define PB(ATT,DISPLAY_NAME) ptr.push_back(new ATT());\
-                             ptr.back()->fileName = (ATT_PATH #ATT ATT_EXT);\
-                             ptr.back()->nameID = (#ATT);\
-                             ptr.back()->displayName = (DISPLAY_NAME);
+#define PB(ATT, GRAPH_CHAR, COLOR_GRAPH_CHAR, DISPLAY_NAME)\
+    ptr.push_back(new ATT());\
+    ptr.back()->fileName = (ATT_PATH #ATT ATT_EXT);\
+    ptr.back()->nameID = (#ATT);\
+    ptr.back()->graphChar = (GRAPH_CHAR);\
+    ptr.back()->colorGraphChar = (COLOR_GRAPH_CHAR);\
+    ptr.back()->displayName = (DISPLAY_NAME);
+
+#define MAGNETIC_COLOR vec4(0.00f, 1.00f, 0.00f, 1.00f)
+#define POLINOM_COLOR  vec4(0.00f, 0.00f, 1.00f, 1.00f)
+#define POWER3D_COLOR  vec4(0.00f, 0.50f, 1.00f, 1.00f)
+#define RAMPE_COLOR    vec4(1.00f, 0.00f, 1.00f, 1.00f)
+#define PICKOVER_COLOR vec4(0.00f, 1.00f, 1.00f, 1.00f)
+#define PORTED3D_COLOR vec4(1.00f, 0.00f, 0.00f, 1.00f)
+#define DLA3D_COLOR    vec4(0.00f, 0.70f, 0.00f, 1.00f)
+#define DT_COLOR       vec4(1.00f, 1.00f, 0.00f, 1.00f)
+#define FRACTAL_COLOR  vec4(1.00f, 0.50f, 0.00f, 1.00f)
 
 class AttractorsClass 
 {
 public:
     AttractorsClass() {
-        PB(MagneticRight      , u8"\uf076" " MagneticRight"      )
-        PB(MagneticLeft       , u8"\uf076" " MagneticLeft"       )
-        PB(MagneticFull       , u8"\uf076" " MagneticFull"       )
-        PB(MagneticStraight   , u8"\uf076" " MagneticStraight"   )
-        PB(PolynomialA        , u8"\uf12b" " Polynom A"          )
-        PB(PolynomialB        , u8"\uf12b" " Polynom B"          )
-        PB(PolynomialC        , u8"\uf12b" " Polynom C"          )
-        PB(PolynomialABS      , u8"\uf12b" " Polynom Abs"        )
-        PB(PolynomialPow      , u8"\uf12b" " Polynom Pow"        )
-        PB(PolynomialSin      , u8"\uf12b" " Polynom Sin"        )
-        PB(PowerN3D           , u8"\uf12b" " Polynom N-order"    )
-        PB(Rampe01            , u8"\uf1db" " Rampe01"            )
-        PB(Rampe02            , u8"\uf1db" " Rampe02"            )
-        PB(Rampe03            , u8"\uf1db" " Rampe03"            )
-        PB(Rampe03A           , u8"\uf1db" " Rampe03 mod."       )
-        PB(Rampe04            , u8"\uf1db" " Rampe04"            )
-        PB(Rampe05            , u8"\uf1db" " Rampe05"            )
-        PB(Rampe06            , u8"\uf1db" " Rampe06"            )
-        PB(Rampe07            , u8"\uf1db" " Rampe07"            )
-        PB(Rampe08            , u8"\uf1db" " Rampe08"            )
-        PB(Rampe09            , u8"\uf1db" " Rampe09"            )
-        PB(Rampe10            , u8"\uf1db" " Rampe10"            )
-        PB(KingsDream         , u8"\uf096" " King's Dream"       )
-        PB(Pickover           , u8"\uf096" " Pickover"           )
-        PB(SinCos             , u8"\uf096" " Sin Cos"            )
-        PB(Hopalong4D         , u8"\uf006" " Hopalong4D"         )
-        PB(Martin4D           , u8"\uf006" " Martin4D ss"        )
-        PB(Martin4Dsc         , u8"\uf006" " Martin4D sc"        )
-        PB(Martin4Dcc         , u8"\uf006" " Martin4D cc"        )
-        PB(Mira3D             , u8"\uf006" " Mira3D"             )
-        PB(Mira4D             , u8"\uf006" " Mira4D"             )
-        PB(PopCorn3D          , u8"\uf006" " PopCorn3D"          )
-        PB(PopCorn4D          , u8"\uf006" " PopCorn4D ssss"     )
-        PB(PopCorn4Dscss      , u8"\uf006" " PopCorn4D scss"     )
-        PB(PopCorn4Dscsc      , u8"\uf006" " PopCorn4D scsc"     )
-        PB(PopCorn4Dsscc      , u8"\uf006" " PopCorn4D sscc"     )
+        PB(MagneticRight      , u8"\uf0da", MAGNETIC_COLOR, "MagneticRight"      )
+        PB(MagneticLeft       , u8"\uf0da", MAGNETIC_COLOR, "MagneticLeft"       )
+        PB(MagneticFull       , u8"\uf0da", MAGNETIC_COLOR, "MagneticFull"       )
+        PB(MagneticStraight   , u8"\uf0da", MAGNETIC_COLOR, "MagneticStraight"   )
+        PB(PolynomialA        , u8"\uf0da", POLINOM_COLOR , "Polynom A"          )
+        PB(PolynomialB        , u8"\uf0da", POLINOM_COLOR , "Polynom B"          )
+        PB(PolynomialC        , u8"\uf0da", POLINOM_COLOR , "Polynom C"          )
+        PB(PolynomialABS      , u8"\uf0da", POLINOM_COLOR , "Polynom Abs"        )
+        PB(PolynomialPow      , u8"\uf0da", POLINOM_COLOR , "Polynom Pow"        )
+        PB(PolynomialSin      , u8"\uf0da", POLINOM_COLOR , "Polynom Sin"        )
+        PB(PowerN3D           , u8"\uf0da", POWER3D_COLOR , "Polynom N-order"    )
+        PB(Rampe01            , u8"\uf0da", RAMPE_COLOR   , "Rampe01"            )
+        PB(Rampe02            , u8"\uf0da", RAMPE_COLOR   , "Rampe02"            )
+        PB(Rampe03            , u8"\uf0da", RAMPE_COLOR   , "Rampe03"            )
+        PB(Rampe03A           , u8"\uf0da", RAMPE_COLOR   , "Rampe03 mod."       )
+        PB(Rampe04            , u8"\uf0da", RAMPE_COLOR   , "Rampe04"            )
+        PB(Rampe05            , u8"\uf0da", RAMPE_COLOR   , "Rampe05"            )
+        PB(Rampe06            , u8"\uf0da", RAMPE_COLOR   , "Rampe06"            )
+        PB(Rampe07            , u8"\uf0da", RAMPE_COLOR   , "Rampe07"            )
+        PB(Rampe08            , u8"\uf0da", RAMPE_COLOR   , "Rampe08"            )
+        PB(Rampe09            , u8"\uf0da", RAMPE_COLOR   , "Rampe09"            )
+        PB(Rampe10            , u8"\uf0da", RAMPE_COLOR   , "Rampe10"            )
+        PB(KingsDream         , u8"\uf0da", PICKOVER_COLOR, "King's Dream"       )
+        PB(Pickover           , u8"\uf0da", PICKOVER_COLOR, "Pickover"           )
+        PB(SinCos             , u8"\uf0da", PICKOVER_COLOR, "Sin Cos"            )
+        PB(Hopalong4D         , u8"\uf0da", PORTED3D_COLOR, "Hopalong4D"         )
+        PB(Martin4D           , u8"\uf0da", PORTED3D_COLOR, "Martin4D ss"        )
+        PB(Martin4Dsc         , u8"\uf0da", PORTED3D_COLOR, "Martin4D sc"        )
+        PB(Martin4Dcc         , u8"\uf0da", PORTED3D_COLOR, "Martin4D cc"        )
+        PB(Mira3D             , u8"\uf0da", PORTED3D_COLOR, "Mira3D"             )
+        PB(Mira4D             , u8"\uf0da", PORTED3D_COLOR, "Mira4D"             )
+        PB(PopCorn3D          , u8"\uf0da", PORTED3D_COLOR, "PopCorn3D"          )
+        PB(PopCorn4D          , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D ssss"     )
+        PB(PopCorn4Dscss      , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D scss"     )
+        PB(PopCorn4Dscsc      , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D scsc"     )
+        PB(PopCorn4Dsscc      , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D sscc"     )
 //        PB(PopCorn4Drnd       , u8"\uf006" " PopCorn4D rnd"     )
 //        PB(SymmetricIcons4D   , u8"\uf006" " SymmetricIcons4D"   )
 #if !defined(GLAPP_DISABLE_DLA)
-        PB(dla3D              , u8"\uf2dc" " DLA 3D"             )
+        PB(dla3D              , u8"\uf0da", DLA3D_COLOR   , "DLA 3D"             )
 #endif
-        PB(Aizawa             , u8"\uf185" " Aizawa"             )
-        PB(Arneodo            , u8"\uf185" " Arneodo"            )
-        PB(Bouali             , u8"\uf185" " Bouali"             )
-        PB(ChenLee            , u8"\uf185" " Chen-Lee"           )
-        PB(Coullet            , u8"\uf185" " Coullet"            )
-        PB(Dadras             , u8"\uf185" " Dadras"             )
-        PB(DequanLi           , u8"\uf185" " Dequan-Li"          )
-        PB(FourWing           , u8"\uf185" " FourWing"           )
-        PB(FourWing2          , u8"\uf185" " FourWing 2"         )
-        PB(FourWing3          , u8"\uf185" " FourWing 3"         )
-        PB(GenesioTesi        , u8"\uf185" " Genesio-Tesi"       )
-        PB(GloboToroid        , u8"\uf185" " GloboToroid"        )
-        PB(Hadley             , u8"\uf185" " Hadley"             )
-        PB(Halvorsen          , u8"\uf185" " Halvorsen"          )
-        PB(LiuChen            , u8"\uf185" " Liu-Chen"           )
-        PB(Lorenz             , u8"\uf185" " Lorenz"             )
-        PB(MultiChuaII        , u8"\uf185" " Multi-Chua II"      )
-        PB(NewtonLeipnik      , u8"\uf185" " Newton-Leipnik"     )
-        PB(NoseHoover         , u8"\uf185" " Nose-Hoover"        )
-        PB(RayleighBenard     , u8"\uf185" " Rayleigh-Benard"    )
-        PB(Rossler            , u8"\uf185" " Rossler"            )
-        PB(Rucklidge          , u8"\uf185" " Rucklidge"          )
-        PB(Sakarya            , u8"\uf185" " Sakarya"            )
-        PB(SprottLinzB        , u8"\uf185" " Sprott-Linz B"      )
-        PB(SprottLinzF        , u8"\uf185" " Sprott-Linz F"      )
-        PB(Thomas             , u8"\uf185" " Thomas"             )
-        PB(TSUCS              , u8"\uf185" " TSUCS 1&2"          )
-        PB(YuWang             , u8"\uf185" " Yu-Wang"            )
-        PB(ZhouChen           , u8"\uf185" " Zhou-Chen"          )
-//        PB(Robinson           , u8"\uf192" " Robinson"           )
-        PB(juliaBulb_IIM      , u8"\uf069" " JuliaBulb"          )
-        PB(juliaBulb4th_IIM   , u8"\uf069" " JuliaBulb Nth"      )
-        PB(BicomplexJ_IIM     , u8"\uf069" " biComplex Julia"    )
-        PB(BicomplexJMod0_IIM , u8"\uf069" " biCplxJ m.0"        )
-        PB(BicomplexJMod1_IIM , u8"\uf069" " biCplxJ m.1"        )
-        PB(BicomplexJMod2_IIM , u8"\uf069" " biCplxJ m.2"        )
-        PB(BicomplexJMod3_IIM , u8"\uf069" " biCplxJ m.3"        )
-        PB(BicomplexJMod4_IIM , u8"\uf069" " biCplxJ m.4"        )
-        PB(BicomplexJMod5_IIM , u8"\uf069" " biCplxJ m.5"        )
-        PB(BicomplexJMod6_IIM , u8"\uf069" " biCplxJ m.6"        )
-        PB(BicomplexJMod7_IIM , u8"\uf069" " biCplxJ m.7"        )
-        PB(quatJulia_IIM      , u8"\uf069" " quatJulia"          )
-        PB(BicomplexJExplorer , u8"\uf069" " biComplexJExplorer" )
-            
-        PB(glynnJB_IIM        , u8"\uf2dc" " Glynn JuliaBulb"    )
+        PB(Aizawa             , u8"\uf0da", DT_COLOR      , "Aizawa"             )
+        PB(Arneodo            , u8"\uf0da", DT_COLOR      , "Arneodo"            )
+        PB(Bouali             , u8"\uf0da", DT_COLOR      , "Bouali"             )
+        PB(ChenLee            , u8"\uf0da", DT_COLOR      , "Chen-Lee"           )
+        PB(Coullet            , u8"\uf0da", DT_COLOR      , "Coullet"            )
+        PB(Dadras             , u8"\uf0da", DT_COLOR      , "Dadras"             )
+        PB(DequanLi           , u8"\uf0da", DT_COLOR      , "Dequan-Li"          )
+        PB(FourWing           , u8"\uf0da", DT_COLOR      , "FourWing"           )
+        PB(FourWing2          , u8"\uf0da", DT_COLOR      , "FourWing 2"         )
+        PB(FourWing3          , u8"\uf0da", DT_COLOR      , "FourWing 3"         )
+        PB(GenesioTesi        , u8"\uf0da", DT_COLOR      , "Genesio-Tesi"       )
+        PB(GloboToroid        , u8"\uf0da", DT_COLOR      , "GloboToroid"        )
+        PB(Hadley             , u8"\uf0da", DT_COLOR      , "Hadley"             )
+        PB(Halvorsen          , u8"\uf0da", DT_COLOR      , "Halvorsen"          )
+        PB(LiuChen            , u8"\uf0da", DT_COLOR      , "Liu-Chen"           )
+        PB(Lorenz             , u8"\uf0da", DT_COLOR      , "Lorenz"             )
+        PB(MultiChuaII        , u8"\uf0da", DT_COLOR      , "Multi-Chua II"      )
+        PB(NewtonLeipnik      , u8"\uf0da", DT_COLOR      , "Newton-Leipnik"     )
+        PB(NoseHoover         , u8"\uf0da", DT_COLOR      , "Nose-Hoover"        )
+        PB(RayleighBenard     , u8"\uf0da", DT_COLOR      , "Rayleigh-Benard"    )
+        PB(Rossler            , u8"\uf0da", DT_COLOR      , "Rossler"            )
+        PB(Rucklidge          , u8"\uf0da", DT_COLOR      , "Rucklidge"          )
+        PB(Sakarya            , u8"\uf0da", DT_COLOR      , "Sakarya"            )
+        PB(SprottLinzB        , u8"\uf0da", DT_COLOR      , "Sprott-Linz B"      )
+        PB(SprottLinzF        , u8"\uf0da", DT_COLOR      , "Sprott-Linz F"      )
+        PB(Thomas             , u8"\uf0da", DT_COLOR      , "Thomas"             )
+        PB(TSUCS              , u8"\uf0da", DT_COLOR      , "TSUCS 1&2"          )
+        PB(YuWang             , u8"\uf0da", DT_COLOR      , "Yu-Wang"            )
+        PB(ZhouChen           , u8"\uf0da", DT_COLOR      , "Zhou-Chen"          )
+//        PB(Robinson           , u8"\uf192" " Robinson"          )
+        PB(juliaBulb_IIM      , u8"\uf0da", FRACTAL_COLOR , "JuliaBulb"          )
+        PB(juliaBulb4th_IIM   , u8"\uf0da", FRACTAL_COLOR , "JuliaBulb Nth"      )
+        PB(BicomplexJ_IIM     , u8"\uf0da", FRACTAL_COLOR , "biComplex Julia"    )
+        PB(BicomplexJMod0_IIM , u8"\uf0da", FRACTAL_COLOR , "biCplxJ m.0"        )
+        PB(BicomplexJMod1_IIM , u8"\uf0da", FRACTAL_COLOR , "biCplxJ m.1"        )
+        PB(BicomplexJMod2_IIM , u8"\uf0da", FRACTAL_COLOR , "biCplxJ m.2"        )
+        PB(BicomplexJMod3_IIM , u8"\uf0da", FRACTAL_COLOR , "biCplxJ m.3"        )
+        PB(BicomplexJMod4_IIM , u8"\uf0da", FRACTAL_COLOR , "biCplxJ m.4"        )
+        PB(BicomplexJMod5_IIM , u8"\uf0da", FRACTAL_COLOR , "biCplxJ m.5"        )
+        PB(BicomplexJMod6_IIM , u8"\uf0da", FRACTAL_COLOR , "biCplxJ m.6"        )
+        PB(BicomplexJMod7_IIM , u8"\uf0da", FRACTAL_COLOR , "biCplxJ m.7"        )
+        PB(quatJulia_IIM      , u8"\uf0da", FRACTAL_COLOR , "quatJulia"          )
+        PB(BicomplexJExplorer , u8"\uf0da", FRACTAL_COLOR , "biComplexJExplorer" )
+        PB(glynnJB_IIM        , u8"\uf0da", FRACTAL_COLOR , "Glynn JuliaBulb"    )
 //        PB(Hopalong        , "Hopalong"         )
 
         selected = 0;
@@ -2511,6 +2549,15 @@ public:
 #undef PB
 #undef ATT_PATH
 #undef ATT_EXT 
+#undef MAGNETIC_COLOR
+#undef POLINOM_COLOR 
+#undef POWER3D_COLOR 
+#undef RAMPE_COLOR   
+#undef PICKOVER_COLOR
+#undef PORTED3D_COLOR
+#undef DLA3D_COLOR   
+#undef DT_COLOR      
+#undef FRACTAL_COLOR 
 
     void loadStartData() { for(auto i : ptr) i->startData(); }
 
@@ -2518,6 +2565,8 @@ public:
     AttractorBase *get(int i) { return ptr.at(i); }
     vector<AttractorBase *>& getList()  { return ptr; }
 
+    vec4& getColorGraphChar(int i)   { return ptr.at(i)->getColorGraphChar(); }
+    string& getGraphChar(int i)      { return ptr.at(i)->getGraphChar(); }    
     string& getDisplayName(int i)    { return ptr.at(i)->getDisplayName(); }
     string& getDisplayName() { return ptr.at(selected)->getDisplayName(); }
 

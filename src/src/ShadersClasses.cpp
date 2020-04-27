@@ -547,9 +547,12 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
             InsertVbo->getBuffer()[count++] = dist;
             //(*InsertVbo)[3] =
 
-            InsertVbo->getBuffer()[count++] = /*randomFloats(generator)*/ fastRandom.VNI() * cPit.getInitialSpeed();
-            InsertVbo->getBuffer()[count++] = /*randomFloats(generator)*/ fastRandom.VNI() * cPit.getInitialSpeed();
-            InsertVbo->getBuffer()[count++] = /*randomFloats(generator)*/ fastRandom.VNI() * cPit.getInitialSpeed();
+            vec3 speed(fastRandom.VNI(), fastRandom.VNI(), fastRandom.VNI());
+            speed = normalize(speed) * cPit.getInitialSpeed();
+
+            InsertVbo->getBuffer()[count++] = speed.x;
+            InsertVbo->getBuffer()[count++] = speed.y;
+            InsertVbo->getBuffer()[count++] = speed.z;
             InsertVbo->getBuffer()[count++] = -bornTime; //bron time: negative for first pass
 
             vInc += vStep;
