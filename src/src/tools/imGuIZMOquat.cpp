@@ -405,7 +405,7 @@ inline vec3 &adjustSpotCone(vec3 &coord)
 inline vec3 fastRotate (int axis, vec3 &v)
 {
     return ((axis == imguiGizmo::axisIsY) ? vec3(-v.y, v.x, v.z) : // rotation Z 90'
-           ((axis == imguiGizmo::axisIsZ) ? vec3(-v.z, v.y, v.x) : // rotation Y 90'                            
+           ((axis == imguiGizmo::axisIsZ) ? vec3(-v.z, v.y, v.x) : // rotation Y 90'
                                           v));
 }
 ////////////////////////////////////////////////////////////////////////////
@@ -499,7 +499,7 @@ bool imguiGizmo::drawFunc(const char* label, float size)
     // LeftClick
     if (ImGui::IsItemActive()) {
         highlighted = true;
-        if(ImGui::IsMouseDragging(0))                               getTrackball(qtV);        
+        if(ImGui::IsMouseDragging(0))                          getTrackball(qtV);        
         if((drawMode&modeDual) && ImGui::IsMouseDragging(1))   getTrackball(qtV2); // if dual mode... move together
         //if((drawMode&modeDual) && ImGui::IsMouseDragging(2)) { getTrackball(qtV);  getTrackball(qtV2); } // middle if dual mode... move together
 
@@ -579,7 +579,7 @@ bool imguiGizmo::drawFunc(const char* label, float size)
             vec3 coord;
             vec3 norm = _q * *itNorm;
             for(int i = 0; i<4; ) {
-                coord = _q  * (*itVtx++ * solidResizeFactor);                        
+                coord = _q  * (*itVtx++ * solidResizeFactor);
                 uv[i++] = normalizeToControlSize(coord.x,coord.y);
             }                    
             addQuad(addLightEffect(vec4(abs(*itNorm++),1.0f), norm.z, coord.z));
@@ -594,7 +594,7 @@ bool imguiGizmo::drawFunc(const char* label, float size)
             vec3 coord;
             vec3 norm = _q * *itNorm;
             for(int i = 0; i<4; ) {
-                coord = _q  * (*itVtx++ * solidResizeFactor);                        
+                coord = _q  * (*itVtx++ * solidResizeFactor);
                 uv[i++] = normalizeToControlSize(coord.x,coord.y);
             }                    
             itNorm++;
@@ -626,20 +626,19 @@ bool imguiGizmo::drawFunc(const char* label, float size)
                 for(auto itVtx = ptrVtx->begin(), itNorm = (arrowNorm+i)->begin(); itVtx != ptrVtx->end(); ) { //for all Vtx
 #if !defined(imguiGizmo_INTERPOLATE_NORMALS)
                     vec3 norm( _q * fastRotate(arrowAxis, *itNorm++));
-#endif                    
+#endif
                     for(int h=0; h<3; h++) {
                         vec3 coord(*itVtx++ * resizeAxes); //  reduction
-
                     // reposition starting point...
-                        if(!skipCone && coord.x >  0)                         coord.x = -arrowStartingPoint; 
+                        if(!skipCone && coord.x >  0)                          coord.x = -arrowStartingPoint; 
                         if((skipCone && coord.x <= 0) || 
                            (!showFullAxes && (coord.x < arrowStartingPoint)) ) coord.x =  arrowStartingPoint;
-                        //transform
+                    //transform
                         coord = _q * fastRotate(arrowAxis, coord); 
                         uv[h] = normalizeToControlSize(coord.x,coord.y);
 #ifdef imguiGizmo_INTERPOLATE_NORMALS
                         vec3 norm( _q * fastRotate(arrowAxis, *itNorm++));
-#endif                  
+#endif
                         //col[h] = addLightEffect(ImU32(0xFF) << arrowAxis*8, float(0xa0)*norm.z+.5f);
                         col[h] = addLightEffect(vec4(float(arrowAxis==axisIsX),float(arrowAxis==axisIsY),float(arrowAxis==axisIsZ), 1.0), norm.z, coord.z);
                     }
@@ -671,7 +670,6 @@ bool imguiGizmo::drawFunc(const char* label, float size)
             }
             addTriangle();
         }
-
     };
 
     //////////////////////////////////////////////////////////////////
@@ -683,7 +681,6 @@ bool imguiGizmo::drawFunc(const char* label, float size)
 
         if(arrowCoord.z <= 0) { for(int i = 0; i <  4; i++) drawComponent(i, q, func); if(mode & modeDirPlane) drawPlane(); }
         else                  { if(mode & modeDirPlane) drawPlane(); for(int i = 3; i >= 0; i--) drawComponent(i, q, func); }
-            
     };
     
     //////////////////////////////////////////////////////////////////
@@ -696,7 +693,6 @@ bool imguiGizmo::drawFunc(const char* label, float size)
             drawComponent(CYL_CAP  , q, adjustSpotCyl ); drawComponent(CYL_SURF , q, adjustSpotCyl );
             drawComponent(CONE_CAP , q, adjustSpotCone); drawComponent(CONE_SURF, q, adjustSpotCone);
         }
-            
     };
 
     //////////////////////////////////////////////////////////////////
@@ -766,8 +762,6 @@ bool imguiGizmo::drawFunc(const char* label, float size)
                                                  ImVec2(center.x-lenLine+hhLen  , center.y-halfLen),
                                                  ImVec2(center.x-lenLine+hhLen  , center.y+halfLen),
                                             color);
-
-
     };
 
     //////////////////////////////////////////////////////////////////
@@ -784,7 +778,6 @@ bool imguiGizmo::drawFunc(const char* label, float size)
                                                  ImVec2(center.x-halfLen, center.y-halfLen        ),
                                                  ImVec2(center.x+halfLen, center.y-halfLen        ),
                                             color);
-
     };
 
     //  ... and now..  draw the widget!!!
@@ -864,7 +857,7 @@ void imguiGizmo::buildSphere(const float radius, const int tessFactor)
     const float incAngle = 2.0f*T_PI/(float)( meridians );
     float angle = incAngle;
 
-    // Adjust z and radius as stacks are drawn. 
+    // Adjust z and radius as stacks are drawn.
     float z0, z1 = cosf(angle)*radius;
     float r0, r1 = sinf(angle)*radius;
     float x1 = -1.0f;
@@ -876,8 +869,8 @@ void imguiGizmo::buildSphere(const float radius, const int tessFactor)
         const float y0 = y1; y1 = sinf(T_PI-angle);
 
         const int tType = ((j>>div)&1);
-        
-        V(0.0f,   0.0f, radius); T(tType);        
+
+        V(0.0f,   0.0f, radius); T(tType);
         V(x0*r1,-y0*r1,     z1); T(tType);
         V(x1*r1,-y1*r1,     z1); T(tType);
     }
@@ -885,15 +878,14 @@ void imguiGizmo::buildSphere(const float radius, const int tessFactor)
     // Cover each stack with a quad divided in 2 triangles, except the top and bottom stacks 
     angle = incAngle+incAngle;
     x1 = 1.f; y1 = 0.f;
-    
-    for(int i=1; i<parallels-1; i++, angle+=incAngle)  {
+   
+    for(int i=1; i<parallels-1; i++, angle+=incAngle) {
         //int div =8;
         z0 = z1; z1 = cosf(angle)*radius;
         r0 = r1; r1 = sinf(angle)*radius;
         float angleJ = incAngle;
 
-        for(int j=0; j<meridians; j++, angleJ+=incAngle)  {
-                
+        for(int j=0; j<meridians; j++, angleJ+=incAngle) {
             const float x0 = x1; x1 = cosf(angleJ);
             const float y0 = y1; y1 = sinf(angleJ);
 
@@ -937,7 +929,6 @@ void imguiGizmo::buildCone(const float x0, const float x1, const float radius, c
     const float sq = sqrtf( height * height + radius * radius );
     const float cosn =  height / sq;
     const float sinn =  radius / sq;
-
 
     const float incAngle = 2.0f*T_PI/(float)( slices );
     float angle = incAngle;
@@ -991,7 +982,6 @@ void imguiGizmo::buildCylinder(const float x0, const float x1, const float radiu
     float y1 = 1.0f, yr1 = radius;
     float z1 = 0.0f, zr1 = 0.0f; // * radius
 
-    
     const float incAngle = 2.0f*T_PI/(float)( slices );
     float angle = incAngle;
 
@@ -1015,7 +1005,7 @@ void imguiGizmo::buildCylinder(const float x0, const float x1, const float radiu
         N(CYL_CAP, -1.f, 0.f, 0.f);
 #                                   ifdef imguiGizmo_INTERPOLATE_NORMALS
         N(CYL_CAP, -1.f, 0.f, 0.f);
-        N(CYL_CAP, -1.f, 0.f, 0.f);        
+        N(CYL_CAP, -1.f, 0.f, 0.f);
 #endif
     // Cover surface
         N(CYL_SURF, 0.f,  y0,  z0);
@@ -1026,14 +1016,12 @@ void imguiGizmo::buildCylinder(const float x0, const float x1, const float radiu
         N(CYL_SURF, 0.f,  y1,  z1);
         N(CYL_SURF, 0.f,  y1,  z1);
 #endif
-      
         V(CYL_SURF,  x1, yr0, zr0);
         V(CYL_SURF,  x0, yr0, zr0);
         V(CYL_SURF,  x0, yr1, zr1);
         V(CYL_SURF,  x1, yr0, zr0);
         V(CYL_SURF,  x0, yr1, zr1);
         V(CYL_SURF,  x1, yr1, zr1);
-
 #ifdef SHOW_FULL_CYLINDER 
     // Cover the top ..in the arrow this cap is covered from cone/pyramid
         V(CYL_CAP ,  x1, 0.f, 0.f);
@@ -1042,7 +1030,7 @@ void imguiGizmo::buildCylinder(const float x0, const float x1, const float radiu
         N(CYL_CAP , 1.f, 0.f, 0.f);
     #                               ifdef imguiGizmo_INTERPOLATE_NORMALS
         N(CYL_CAP , 1.f, 0.f, 0.f);
-        N(CYL_CAP , 1.f, 0.f, 0.f);        
+        N(CYL_CAP , 1.f, 0.f, 0.f);
     #endif
 #endif
     }
