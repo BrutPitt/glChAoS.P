@@ -35,7 +35,7 @@ public:
     void checkRestartCircBuffer() {
         if(needRestartCircBuffer()) {
             resetVBOindexes();
-            attractorsList.get()->resetEmittedParticles();
+            resetEmittedParticles();
             attractorsList.get()->initStep();
             needRestartCircBuffer(false);
         }
@@ -104,6 +104,12 @@ public:
     bool useMappedMem() { return bUseMappedMem; }
     void useMappedMem(bool b) { bUseMappedMem = b; }
 
+    int getEmittedParticles() { return emittedPoints; }
+    uint32_t &getRefEmittedParticles() { return emittedPoints; }
+    void resetEmittedParticles() { emittedPoints = 0; }
+    void incEmittedParticles() { emittedPoints++; }
+
+
     void setEmitterType(int type) {
         if(theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback) {
             bUseThread = false; bUseMappedMem = false; 
@@ -133,6 +139,9 @@ protected:
     GLuint szAllocatedBuffer ;
     GLuint szCircularBuffer;
     GLuint szStepBuffer;
+
+    uint32_t emittedPoints = 0;
+
 
     float startPointSlowMotion = 0.f;
 
@@ -176,7 +185,7 @@ public:
                     storeData();
                     stopLoop(false);
                     bufferRendered();
-                    attractorsList.get()->resetEmittedParticles();
+                    resetEmittedParticles();
                     attractorsList.getThreadStep()->notify();
                 } else 
                     storeData();

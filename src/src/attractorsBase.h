@@ -174,10 +174,6 @@ public:
 
     void setBufferRendered() {  bufferRendered = true; }
 
-    int getEmittedParticles() { return emittedPoints; }
-    uint &getRefEmittedParticles() { return emittedPoints; }
-    void resetEmittedParticles() { emittedPoints = 0; }
-    void incEmittedParticles() { emittedPoints++; }
 
     bool dlgAdditionalDataVisible() { return bDlgAdditionalDataVisible; }
     void dlgAdditionalDataVisible(bool b) { bDlgAdditionalDataVisible=b; }
@@ -219,7 +215,6 @@ protected:
     friend class attractorDlgClass;
     friend class AttractorsClass;
     bool bufferRendered = false;
-    uint emittedPoints = 0;
 
     bool flagFileData = false;
     bool isDTtype = false;
@@ -2303,7 +2298,7 @@ private:
 //  cockpitClass
 //
 ////////////////////////////////////////////////////////////////////////////////
-class cockpitClass : public uniformBlocksClass
+class cockpitClass
 {
 protected:
 struct uTFData {
@@ -2315,6 +2310,7 @@ struct uTFData {
 } uData;
 
 public:
+
     enum pip { noPIP, lTop, rTop, lBottom, rBottom };
 
     uTFData& getUdata() { return uData; }
@@ -2323,9 +2319,6 @@ public:
 
     bool cockPit() { return isCockPit; }
     void cockPit(bool b) {  isCockPit = b; }
-
-    bool pipTransparentBckgrnd() { return pipTransparentBackground; }
-    void pipTransparentBckgrnd(bool b) {  pipTransparentBackground = b; }
 
     int  getPIPposition() { return pipPosition; }
     void setPIPposition(int f)   { pipPosition = f; }
@@ -2384,6 +2377,9 @@ public:
 
     ivec4 &getViewportSize() { return viewportSize; }
 
+    int getSlowMotionFSDpS() { return slowMotionFSDpS; }
+    void  setSlowMotionFSDpS(int v) { slowMotionFSDpS = v; }
+
 //Feedback Funcs
     int  getMaxTransformedEmission() { return maxTransformedEmission; }
     void setTransformedEmission(int i)  {  transformedEmission =  i; }    //getEmittedParticles
@@ -2396,14 +2392,13 @@ private:
     float colorVel = .3f;
     float dtStepInc = 0.001f;
     float smoothDistance = .250;
-    float lifeTime = 120.0;
-    float lifeTimeAtten = .1;
+    float lifeTime = 75.0;
+    float lifeTimeAtten = .3;
     float movePositionHead = 0, movePositionTail = 0;
     bool isInvertView = false;
     float tailPosition = .25;
-    float pointSize = 0;
+    float pointSize = 7.f;
     bool isCockPit = false;
-    bool pipTransparentBackground = true;
     int pipPosition = noPIP;
     float pipZoom = .5; // 1.0 -> 1/4 Window
     float perspAngle = 65.f;
@@ -2411,8 +2406,9 @@ private:
     bool invertPip = false;
     vec3 panDollyPos = vec3(0.f);
     quat qRot = quat(1.0f,0.0f, 0.0f, 0.0f);
-    int slowMotionDpS = 100;
     ivec4 viewportSize = ivec4(0, 0, 100, 100);
+    int slowMotionDpS = 100; //cockpit DotPerSec
+    int slowMotionFSDpS = 5000; //FullScreen DotPerSec
 
 
 //Feedback Data
@@ -2640,8 +2636,8 @@ public:
 
 
 // SlowMotion
-    int getSlowMotionDpS() { return slowMotionDpS; }
-    void  setSlowMotionDpS(int v) { slowMotionDpS = v; }
+    int getSlowMotionDpS() { return cockpit.getSlowMotionFSDpS(); }
+    void  setSlowMotionDpS(int v) { cockpit.setSlowMotionFSDpS(v); }
 
     bool slowMotion() { return isSlowMotion; }
     void slowMotion(bool b) {  isSlowMotion = b; }
@@ -2668,7 +2664,6 @@ private:
     int selected;
 
 // SlowMotion & cockPit
-    int slowMotionDpS = 1000;
     bool isSlowMotion = false;
     cockpitClass cockpit;
 

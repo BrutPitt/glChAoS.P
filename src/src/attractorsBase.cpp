@@ -63,8 +63,8 @@ void AttractorsClass::endlessStep(emitterBaseClass *emitter)
             for(; countVtx<szBuffer && emitter->isEmitterOn() ; countVtx++, inc++) 
                 get()->Step(newPtr, v, vp);
         } else {
-            for(uint &countVtx = get()->getRefEmittedParticles(); countVtx<emitter->getSizeStepBuffer() && emitter->isEmitterOn() && (!emitter->stopLoop()); countVtx++) 
-                get()->Step(ptr, v, vp);
+            for(uint &countVtx = emitter->getRefEmittedParticles(); countVtx<emitter->getSizeStepBuffer() && emitter->isEmitterOn() && (!emitter->stopLoop()); countVtx++) 
+                get()->Step(ptr, v, vp); 
         }
         get()->Insert(vp);
         //mtxStep.unlock();
@@ -1331,7 +1331,7 @@ void threadStepClass::notify() {
 
 void threadStepClass::restartEmitter() { 
     emitter->resetVBOindexes(); 
-    attractorsList.get()->resetEmittedParticles();
+    getEmitter()->resetEmittedParticles();
 }
    
 //  Attractor Class container

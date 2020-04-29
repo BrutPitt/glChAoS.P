@@ -108,48 +108,56 @@ public:
     }
 
 
-    virtual bool uploadSubBuffer(GLuint nVtx, GLuint szCircularBuff) 
+    virtual bool uploadSubBuffer(GLuint nVtx, GLuint szCircularBuff, bool stopFull = false) 
     {
         const GLuint64 offset = uploadedVtx % szCircularBuff;
         const GLuint64 offByte = offset * bytesPerVertex;
 
         bool retVal = (offset+nVtx >= szCircularBuff) ? true : false;
 
-        if(offset+nVtx > szCircularBuff) {            
-            const GLuint64 szPart1 = (szCircularBuff - offset) * bytesPerVertex;
+        GLuint addVtx = nVtx;
+
+        if(offset+nVtx >= szCircularBuff) {
+            const GLuint64 remainVtx = szCircularBuff - offset;
+            const GLuint64 szPart1 = remainVtx * bytesPerVertex;
             const GLuint64 szPart2 = ((offset+nVtx) - szCircularBuff) * bytesPerVertex;
            
             //cout << szPart1 << " - " << szPart2 << endl;
 #ifdef GLAPP_REQUIRE_OGL45
             glNamedBufferSubData(vbo, offByte, szPart1, vtxBuffer);
-            glNamedBufferSubData(vbo, 0      , szPart2, (GLubyte *) vtxBuffer + szPart1); 
+            if(!stopFull) glNamedBufferSubData(vbo, 0      , szPart2, (GLubyte *) vtxBuffer + szPart1); 
+            else          addVtx = remainVtx;
+                
         } else {
-            //cout << offByte << " - " << nVtx << endl;
-            //glBindBuffer(GL_ARRAY_BUFFER,vbo);
-            //glBufferSubData(GL_ARRAY_BUFFER, offByte, nVtx * bytesPerVertex, vtxBuffer); 
-
             glNamedBufferSubData(vbo, offByte, nVtx * bytesPerVertex, vtxBuffer); 
         }
 #else
             glBindBuffer(GL_ARRAY_BUFFER,vbo);
             glBufferSubData(GL_ARRAY_BUFFER, offByte, szPart1, vtxBuffer);
-            glBufferSubData(GL_ARRAY_BUFFER, 0      , szPart2, (GLubyte *) vtxBuffer + szPart1); 
+            if(!stopFull) glBufferSubData(GL_ARRAY_BUFFER, 0      , szPart2, (GLubyte *) vtxBuffer + szPart1); 
+            else          addVtx = remainVtx;
         } else {
             glBindBuffer(GL_ARRAY_BUFFER,vbo);
             glBufferSubData(GL_ARRAY_BUFFER, offByte, nVtx * bytesPerVertex, vtxBuffer); 
         }
         glBindBuffer(GL_ARRAY_BUFFER,0);
 #endif
-        uploadedVtx+=nVtx;
-
+        
+        uploadedVtx+=addVtx;
         return retVal;
     }
 
     void draw(GLsizei maxSize) {
         glBindVertexArray(vao);
-        glDrawArrays(primitive,0,uploadedVtx<GLuint64(maxSize) ? uploadedVtx : maxSize);
+        //glDrawArrays(primitive,0,uploadedVtx<GLuint64(maxSize) ? uploadedVtx : maxSize);
+        if(uploadedVtx<GLuint64(maxSize))
+            glDrawArrays(primitive,0, uploadedVtx);
+        else 
+            glDrawArrays(primitive,0, maxSize);
+
         CHECK_GL_ERROR();
     }
+
     void draw(uint32_t start, GLsizei maxElements, GLsizei maxSize) {
         const GLsizei limit = uploadedVtx<GLuint64(maxSize) ? uploadedVtx : maxSize;
         glBindVertexArray(vao);
