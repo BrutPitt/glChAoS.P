@@ -142,6 +142,7 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["BlendState"      ] = ptr->getBlendState();
     c["LightState"      ] = ptr->getLightState();
     c["pointSize"       ] = ptr->getSize();
+    c["pointSizeTF"     ] = ptr->getSizeTF();
     c["pointSizeFactor" ] = ptr->getPointSizeFactor(); 
     c["clippingDist"    ] = ptr->getClippingDist();
     c["alphaKFactor"    ] = ptr->getAlphaKFactor();
@@ -283,6 +284,28 @@ void saveSettings(Config &cfg, particlesSystemClass *pSys)
             c["camRot"       ] = Config::array(q);
         }
 
+        //Clipping planes save only if al least one is active
+        if(pSys->getUPlanes().atLeastOneActive) {
+            vector<float> p(4); 
+            char s[32];
+            for(int i=0;i<3;i++) {
+                sprintf(s,"clPlCoord%d", i);
+                *((vec4 *)p.data()) = pSys->getUPlanes().clipPlane[i];
+                c[s] = Config::array(p);
+                sprintf(s,"clPlBouCol%d", i);
+                *((vec4 *)p.data()) = pSys->getUPlanes().boundaryColor[i];
+                c[s] = Config::array(p);
+            }
+            vector<uint32_t> pa(4); 
+            *((uvec4 *)pa.data()) = *((uvec4 *)pSys->getUPlanes().planeActive);
+            c["clPlActive"] = Config::array(pa);
+            *((uvec4 *)pa.data()) = *((uvec4 *)pSys->getUPlanes().colorActive);
+            c["clPlColActive"] = Config::array(pa);
+            c["clPlThick"] = pSys->getUPlanes().thickness;
+            c["clPlSpace"] = pSys->getUPlanes().additiveSpace;
+        }
+
+
         if(attractorsList.get()->dtType()) {
             cockpitClass &cPit = attractorsList.getCockpit();
             c["slowMotionOn"     ] = attractorsList.slowMotion();
@@ -299,7 +322,7 @@ void saveSettings(Config &cfg, particlesSystemClass *pSys)
                 *((vec4 *)v.data())= cPit.getUdata().gravity;
                 c["emitGravity"    ] = Config::array(v);
             }
-            c["cpitOn"          ] = cPit.cockPit();
+            c["cpitOn"          ] = cPit.cockPit(); 
             c["cpitDotsSec"     ] = cPit.getSlowMotionDpS();
             c["cpitPointSize"   ] = cPit.getPointSize();
             c["cpitSmoothDist"  ] = cPit.getSmoothDistance();
@@ -449,6 +472,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         ptr->setBlendState(     c.get_or("BlendState"      , ptr->getBlendState()     ));
         ptr->setLightState(     c.get_or("LightState"      , ptr->getLightState()     ));
         ptr->setSize(           c.get_or("pointSize"       , ptr->getSize()           ));
+        ptr->setSizeTF(         c.get_or("pointSizeTF"     , ptr->getSize()           ));
         ptr->setPointSizeFactor(c.get_or("pointSizeFactor" , ptr->getPointSizeFactor())); 
         ptr->setClippingDist(   c.get_or("clippingDist"    , ptr->getClippingDist()   ));
         ptr->setAlphaKFactor(   c.get_or("alphaKFactor"    , ptr->getAlphaKFactor()   ));
@@ -631,32 +655,55 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
             }
         }
 
+        //Clipping planes
+        {
+            vec4 v4;
+            pSys->getUPlanes().clipPlane[0]     = getVec_asArray(c, "clPlCoord0" , v4) ? v4 : vec4(1.f, 0.f, 0.f, 0.0f);
+            pSys->getUPlanes().clipPlane[1]     = getVec_asArray(c, "clPlCoord1" , v4) ? v4 : vec4(0.f, 1.f, 0.f, 0.0f);
+            pSys->getUPlanes().clipPlane[2]     = getVec_asArray(c, "clPlCoord2" , v4) ? v4 : vec4(0.f, 0.f, 1.f, 0.0f);
+
+            pSys->getUPlanes().boundaryColor[0] = getVec_asArray(c, "clPlBouCol0", v4) ? v4 : vec4(1.f, 0.f, 0.f, 0.5f);
+            pSys->getUPlanes().boundaryColor[1] = getVec_asArray(c, "clPlBouCol1", v4) ? v4 : vec4(0.f, 1.f, 0.f, 0.5f);
+            pSys->getUPlanes().boundaryColor[2] = getVec_asArray(c, "clPlBouCol2", v4) ? v4 : vec4(0.f, 0.f, 1.f, 0.5f);
+
+            uvec4 uv4;
+            *((uvec4 *)pSys->getUPlanes().planeActive) = getVec_asArray(c, "clPlActive"   , uv4) ? uv4 : uvec4( 0 );
+            *((uvec4 *)pSys->getUPlanes().colorActive) = getVec_asArray(c, "clPlColActive", uv4) ? uv4 : uvec4( 1 );
+
+            pSys->getUPlanes().thickness      = c.get_or("clPlThick", .005f);
+            pSys->getUPlanes().additiveSpace  = c.get_or("clPlSpace",    1 );
+
+        }
+
+        //Transform Feedback
         if(attractorsList.get()->dtType() && theDlg.getDataDlg().getSlowMotion() || checkSelectGroup) {
             vec4 v4; quat q;
             cockpitClass &cPit = attractorsList.getCockpit();
+            cockpitClass cPitDef;
             attractorsList.slowMotion(      c.get_or("slowMotionOn"     , false   ));
-            attractorsList.setSlowMotionDpS(c.get_or("emitDotsSec"      , attractorsList.getSlowMotionDpS()            ));
-            cPit.setTransformedEmission(    c.get_or("emitGenPoints"    , cPit.getTransformedEmission() ));
-            cPit.setInitialSpeed(           c.get_or("emitInitVel"      , cPit.getInitialSpeed()        ));
-            cPit.setAirFriction(            c.get_or("emitAirFriction"  , cPit.getAirFriction()         ));
-            cPit.setLifeTime(               c.get_or("emitLifeTime"     , cPit.getLifeTime()                           ));
-            cPit.setLifeTimeAtten(          c.get_or("emitLifeTimeAtten", cPit.getLifeTimeAtten()                      ));
-            if(getVec_asArray(c, "emitWind"        , v4)) cPit.getUdata().wind = v4;
-            if(getVec_asArray(c, "emitGravity"     , v4)) cPit.getUdata().gravity = v4;
+            attractorsList.setSlowMotionDpS(c.get_or("emitDotsSec"      , cPitDef.getSlowMotionFSDpS()));
+            cPit.setTransformedEmission(    c.get_or("emitGenPoints"    , cPitDef.getTransformedEmission() ));
+            cPit.setInitialSpeed(           c.get_or("emitInitVel"      , cPitDef.getInitialSpeed()        ));
+            cPit.setAirFriction(            c.get_or("emitAirFriction"  , cPitDef.getAirFriction()         ));
+            cPit.setLifeTime(               c.get_or("emitLifeTime"     , cPitDef.getLifeTime()            ));
+            cPit.setLifeTimeAtten(          c.get_or("emitLifeTimeAtten", cPitDef.getLifeTimeAtten()       ));
+            cPit.getUdata().wind    = getVec_asArray(c, "emitWind"        , v4) ? v4 : cPitDef.getUdata().wind;
+            cPit.getUdata().gravity = getVec_asArray(c, "emitGravity"     , v4) ? v4 : cPitDef.getUdata().gravity;
             cPit.cockPit(            c.get_or("cpitOn"        , false)); 
-            cPit.setSlowMotionDpS(   c.get_or("cpitDotsSec"   , cPit.getSlowMotionDpS()   ));
-            cPit.setPointSize(       c.get_or("cpitPointSize" , cPit.getPointSize()       )); 
-            cPit.setSmoothDistance(  c.get_or("cpitSmoothDist", cPit.getSmoothDistance()  )); 
-            cPit.setPerspAngle(      c.get_or("cpitFOVangle"  , cPit.getPerspAngle()      )); 
-            cPit.setTailPosition(    c.get_or("cpitTailPos"   , cPit.getTailPosition()    )); 
-            cPit.setMovePositionHead(c.get_or("cpitMovPosHead", cPit.getMovePositionHead())); 
-            cPit.setMovePositionTail(c.get_or("cpitMovPosTail", cPit.getMovePositionTail())); 
-            cPit.invertView(         c.get_or("cpitInvertView", cPit.invertView()         )); 
-            cPit.setPIPzoom(         c.get_or("cpitPiPsize"   , cPit.getPIPzoom()         ));
-            cPit.setPIPposition(     c.get_or("cpitPiPpos"    , cPit.getPIPposition()     ));
-            cPit.invertPIP(          c.get_or("cpitPiPinvert" , cPit.invertPIP()          ));
-            if(getVec_asArray(c, "cpitRotation"     , q)) cPit.setRotation(q);
-        }
+            cPit.cockPit(false); // OVERRIDE start anyway OFF // FIXME:
+            cPit.setSlowMotionDpS(   c.get_or("cpitDotsSec"   , cPitDef.getSlowMotionDpS()   ));
+            cPit.setPointSize(       c.get_or("cpitPointSize" , cPitDef.getPointSize()       )); 
+            cPit.setSmoothDistance(  c.get_or("cpitSmoothDist", cPitDef.getSmoothDistance()  )); 
+            cPit.setPerspAngle(      c.get_or("cpitFOVangle"  , cPitDef.getPerspAngle()      )); 
+            cPit.setTailPosition(    c.get_or("cpitTailPos"   , cPitDef.getTailPosition()    )); 
+            cPit.setMovePositionHead(c.get_or("cpitMovPosHead", cPitDef.getMovePositionHead())); 
+            cPit.setMovePositionTail(c.get_or("cpitMovPosTail", cPitDef.getMovePositionTail())); 
+            cPit.invertView(         c.get_or("cpitInvertView", cPitDef.invertView()         )); 
+            cPit.setPIPzoom(         c.get_or("cpitPiPsize"   , cPitDef.getPIPzoom()         ));
+            cPit.setPIPposition(     c.get_or("cpitPiPpos"    , cPitDef.getPIPposition()     ));
+            cPit.invertPIP(          c.get_or("cpitPiPinvert" , cPitDef.invertPIP()          ));
+            cPit.setRotation(getVec_asArray(c,"cpitRotation"  , q) ? q :cPitDef.getRotation() );
+        } 
     }
 
     {
