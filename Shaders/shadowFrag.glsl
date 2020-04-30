@@ -28,7 +28,9 @@ void main()
     vec2 ptCoord = vec2(gl_PointCoord.x,1.0-gl_PointCoord.y);
     vec4 N = getParticleNormal(ptCoord);
 
-    if(N.w > 1.0 || N.z < u.alphaSkip || -mvVtxPos.z<u.clippingDist || clippedPoint(solidVtx) || alphaAttenuation<.25) { discard; } //return black color and max depth
+    vec4 newVertex = solidVtx + vec4(0., 0., N.z * particleSize, 0.);
+
+    if(N.w > 1.0 || N.z < u.alphaSkip || -mvVtxPos.z<u.clippingDist || clippedPoint(newVertex) || alphaAttenuation<.25) { discard; } //return black color and max depth
     
     gl_FragDepth = getFragDepth((mvVtxPos.z + N.z * particleSize*u.shadowDetail));
 
