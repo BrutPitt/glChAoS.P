@@ -381,8 +381,8 @@ class renderBaseClass
 protected:
 
 struct uClippingPlanes {
-    vec4    clipPlane[3]     = { vec4(1.f, 0.f, 0.f, 0.0f), vec4(0.f, 1.f, 0.f, 0.0f), vec4(0.f, 0.f, 1.f, 0.0f) };
-    vec4    boundaryColor[3] = { vec4(1.f, 0.f, 0.f, 0.5f), vec4(0.f, 1.f, 0.f, 0.5f), vec4(0.f, 0.f, 1.f, 0.5f) };
+    vec4    clipPlane[3]     = { {1.f, 0.f, 0.f, 0.0f}, {0.f, 1.f, 0.f, 0.0f}, {0.f, 0.f, 1.f, 0.0f} };
+    vec4    boundaryColor[3] = { {1.f, 0.f, 0.f, 0.5f}, {0.f, 1.f, 0.f, 0.5f}, {0.f, 0.f, 1.f, 0.5f} };
     uint32_t    planeActive[4]   = { false, false, false, 0 }; // 4: block rounded
     uint32_t    colorActive[4]   = { true , true , true , 0 };
     GLfloat     thickness = .005;
@@ -392,8 +392,6 @@ struct uClippingPlanes {
     void buildInvMV_forPlanes(particlesBaseClass *particles);
 
 } uPlanes;
-
-
 public:
     enum bind { planesIDX = 9 };
 
@@ -1003,10 +1001,10 @@ public:
     void setDstBlend(GLuint v) {  dstBlendAttrib = v; }
     void setSrcBlend(GLuint v) {  srcBlendAttrib = v; }
 
-    void setSize(float sz, float step) { getUData().pointSize=sz; stepInc=step; setFlagUpdate(); }
-    void setSize(float sz) { getUData().pointSize=sz; setFlagUpdate(); }
-    float getSize() { return getUData().pointSize; }
-    float getInc() { return stepInc; }
+    void setSize(float sz) { ptSize=sz;}
+    float getSize() { return ptSize; }
+    void setSizeTF(float sz) { ptSizeTF=sz;}
+    float getSizeTF() { return ptSizeTF; }
 
     void setAlphaAtten(float v) { getUData().alphaDistAtten=v; setFlagUpdate(); }
     float getAlphaAtten() { return getUData().alphaDistAtten; }
@@ -1149,8 +1147,6 @@ protected:
 #endif
 
     
-    GLfloat stepInc;  
-
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locSubLightModel, locSubPixelColor;
     GLuint locDotsTex, locPaletteTex;
@@ -1167,6 +1163,8 @@ protected:
     bool usingAO = false;
     bool usingShadow = false;
     bool autoLight = true;
+
+    float ptSize, ptSizeTF;
 
 
 private:

@@ -49,7 +49,7 @@ dataBlurClass::dataBlurClass()
 ////////////////////////////////////////////////////////////////////////////////
 shaderPointClass::shaderPointClass() 
 { 
-    setSize(6.f, 0.001);
+    setSize(6.f);
 
     srcBlendAttrib = GL_SRC_ALPHA;
     dstBlendAttrib = GL_ONE;
@@ -96,7 +96,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
     const float lightReduction = theApp->useDetailedShadows() ? .3333 : .25f;
 
-    const bool computeShadow = useShadow() && !cpitView; // no shadow on cockpit
+    const bool isTFRender = attractorsList.slowMotion(); // transformFeedback Render
+    const bool computeShadow = useShadow() && !cpitView; // FIXME: cockPit Shadow: no shadow on cockpit
     const bool blendActive = getBlendState() || showAxes();
     const bool isAO_SHDW = ( useAO() || computeShadow);
     const bool isAO_RD_SHDW = isAO_SHDW || postRenderingActive();
@@ -106,7 +107,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     getUData().renderType = (blendActive && !isSolid)            ? pixColIDX::pixBlendig :
                              blendActive || !isAO_RD_SHDW        ? pixColIDX::pixDirect  :
                              isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
-                             isFullScreenPiP                     ? pixColIDX::pixDR : pixColIDX::pixDirect; //!isFullScreenPiP: no dual pass on PiP 
+                             isFullScreenPiP                     ? pixColIDX::pixDR : pixColIDX::pixDirect; //!isFullScreenPiP: no dual pass on cockpit 
     
     //isFullScreenPiP: no dual pass on PiP
     getUData().pass = (isShadow ? 4:0) | (postRenderingActive() && isFullScreenPiP ? 2:0) | (useAO() ? 1:0);
@@ -115,17 +116,16 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     
     getUPlanes().buildInvMV_forPlanes(this);    // checkPlanes and eventually build invMat
     
-    //updateCommons();                            // update uData struct (UniformBuffer)
-    //struct viewport { GLint x,y,w,h; } vp;
-    //glGetIntegerv(GL_VIEWPORT, (GLint *) &vp);
 
     auto getLigthPOV = [&]() {
-        if(cpitView) {
-            currentTMat->setLightView(getLightDir());
-            vec4 v(getTMat()->tM.vMatrix * currentTMat->tM.vMatrix * vec4(getLightDir(), 1.f));
-            return v;        
-        }
-        else return getTMat()->tM.vMatrix * vec4(getLightDir(), 1.f);
+        // FIXME: cockPit Shadow 
+        //if(cpitView) {
+        //    currentTMat->setLightView(getLightDir());
+        //    vec4 v(getTMat()->tM.vMatrix * currentTMat->tM.vMatrix * vec4(getLightDir(), 1.f));
+        //    return v;        
+        //}
+        //else 
+            return getTMat()->tM.vMatrix * vec4(getLightDir(), 1.f);
     };
 
     if(checkFlagUpdate()) {
@@ -151,10 +151,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 
     getUData().zNear = currentTMat->getPerspNear();
     getUData().zFar  = currentTMat->getPerspFar();
-
-
-    const float partSZ = getSize();
-    if(cpitView) getUData().pointSize = cPit.getPointSize();
+   
+    getUData().pointSize = cpitView ? cPit.getPointSize() : ( isTFRender ? getSizeTF() : getSize());
 
 // Shadow pass
 /////////////////////////////////////////////
@@ -172,9 +170,10 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         }
         //if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
         ivec4 vp;
-        glGetIntegerv(GL_VIEWPORT, (GLint *) value_ptr(vp));
-        //if(!isFullScreenPiP || shadowDetail>1) 
-            glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
+        if(isTFRender) glGetIntegerv(GL_VIEWPORT, (GLint *) value_ptr(vp));
+        else vp = {0, 0, int(getUData().scrnRes.x), int(getUData().scrnRes.y) };
+
+        glViewport(0,0, vp.z*shadowDetail, vp.w*shadowDetail);
 
         getShadow()->bindRender();
 
@@ -191,12 +190,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getShadow()->releaseRender();
         glViewport(vp.x,vp.y, vp.z, vp.w);
 
-        //if(!isFullScreenPiP) {
-        //    ivec4 vp = cPit.getViewportSize();
-        //    glViewport(vp.x, vp.y, vp.z, vp.w);
-        //} else if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
-
-        //if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
     }
 #endif
 
@@ -296,8 +289,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     glDepthMask(GL_FALSE);
     //glDisable(GL_MULTISAMPLE);
 
-    getUData().pointSize = partSZ;
-
     return returnedTex;
 }
 
@@ -309,7 +300,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 ////////////////////////////////////////////////////////////////////////////////
 shaderBillboardClass::shaderBillboardClass() 
 { 
-    setSize(4., 0.0001);
+    setSize(4.);
 
     srcBlendAttrib = GL_SRC_ALPHA;
     dstBlendAttrib = GL_ONE_MINUS_SRC_ALPHA;
