@@ -117,7 +117,7 @@ public:
 
         GLuint addVtx = nVtx;
 
-        if(offset+nVtx >= szCircularBuff) {
+        if(offset+nVtx > szCircularBuff) {
             const GLuint64 remainVtx = szCircularBuff - offset;
             const GLuint64 szPart1 = remainVtx * bytesPerVertex;
             const GLuint64 szPart2 = ((offset+nVtx) - szCircularBuff) * bytesPerVertex;

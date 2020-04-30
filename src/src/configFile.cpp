@@ -658,9 +658,9 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
         //Clipping planes
         {
             vec4 v4;
-            pSys->getUPlanes().clipPlane[0]     = getVec_asArray(c, "clPlCoord0" , v4) ? v4 : vec4(1.f, 0.f, 0.f, 0.0f);
-            pSys->getUPlanes().clipPlane[1]     = getVec_asArray(c, "clPlCoord1" , v4) ? v4 : vec4(0.f, 1.f, 0.f, 0.0f);
-            pSys->getUPlanes().clipPlane[2]     = getVec_asArray(c, "clPlCoord2" , v4) ? v4 : vec4(0.f, 0.f, 1.f, 0.0f);
+            pSys->setClippingPlane(getVec_asArray(c, "clPlCoord0" , v4) ? v4 : vec4(1.f, 0.f, 0.f, 0.0f), 0);
+            pSys->setClippingPlane(getVec_asArray(c, "clPlCoord1" , v4) ? v4 : vec4(0.f, 1.f, 0.f, 0.0f), 1);
+            pSys->setClippingPlane(getVec_asArray(c, "clPlCoord2" , v4) ? v4 : vec4(0.f, 0.f, 1.f, 0.0f), 2);
 
             pSys->getUPlanes().boundaryColor[0] = getVec_asArray(c, "clPlBouCol0", v4) ? v4 : vec4(1.f, 0.f, 0.f, 0.5f);
             pSys->getUPlanes().boundaryColor[1] = getVec_asArray(c, "clPlBouCol1", v4) ? v4 : vec4(0.f, 1.f, 0.f, 0.5f);

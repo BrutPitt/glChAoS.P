@@ -170,10 +170,10 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         }
         //if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
         ivec4 vp;
-        if(isTFRender) glGetIntegerv(GL_VIEWPORT, (GLint *) value_ptr(vp));
+        if(isTFRender) glGetIntegerv(GL_VIEWPORT, (GLint *) value_ptr(vp));      // partial reverted: https://github.com/BrutPitt/glChAoS.P/commit/4bcfc6dd577255ac9460fcc656bcf6796e917c46#
         else vp = {0, 0, int(getUData().scrnRes.x), int(getUData().scrnRes.y) };
 
-        glViewport(0,0, vp.z*shadowDetail, vp.w*shadowDetail);
+        glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
 
         getShadow()->bindRender();
 
