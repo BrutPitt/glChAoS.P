@@ -213,6 +213,7 @@ GLuint glWindow::renderAttractor()
 {
 
     const int w =particlesSystem->getWidth(), h =particlesSystem->getHeight();
+    glViewport(0,0, w, h);
 
     GLuint texRendered;
 
@@ -258,8 +259,7 @@ GLuint glWindow::renderAttractor()
         cpTM->getTrackball().setPosition(vec3(0.f));
         cpTM->applyTransforms();
 
-        //Render full screen view
-        glViewport(0,0, w, h);
+        //Render TF full screen view 
         texRendered = particlesSystem->renderParticles(true, !cPit.invertPIP());
         texRendered = particlesSystem->renderGlowEffect(texRendered);
 
@@ -270,16 +270,15 @@ GLuint glWindow::renderAttractor()
 
             texRendered = particlesSystem->renderParticles(false, cPit.invertPIP());
             texRendered = particlesSystem->renderGlowEffect(texRendered);
+            glViewport(0,0, w, h);
         }
 
-        glViewport(0,0, w, h);
 #if !defined(GLCHAOSP_NO_FXAA)
         texRendered = particlesSystem->renderFXAA(texRendered);
 #endif                                                           
 
         particlesSystem->getEmitter()->postRenderEvents();
     } else {
-        glViewport(0,0, w, h);
         texRendered = particlesSystem->render();
     }
 
