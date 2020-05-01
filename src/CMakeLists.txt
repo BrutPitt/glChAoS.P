@@ -39,6 +39,7 @@ set(OGL45 "-DGLAPP_REQUIRE_OGL45")
 set(OGL41 "")
 
 #set(GLAPP_DISABLE_DLA "-DGLAPP_DISABLE_DLA")
+set(GLAPP_DISABLE_DLA "")
 
 set(SRC "${CMAKE_SOURCE_DIR}/src")
 
@@ -115,27 +116,23 @@ if (BUILD_wglChAoSP)
     set(CMAKE_CXX_STANDARD 14)
     find_package(OpenGL)
 
-    include_directories(BEFORE SYSTEM ${EMSCRIPTEN_ROOT_PATH}/system/include)
-#    include_directories(BEFORE SYSTEM $ENV{EMSCRIPTEN}/system/include)
+    #add EMSCRIPTEN PATH with preference to command-line define
+    if(EXISTS ${EMSCRIPTEN_ROOT_PATH})
+        include_directories(BEFORE SYSTEM ${EMSCRIPTEN_ROOT_PATH}/system/include)
+    else()
+        if(EXISTS $ENV{EMSCRIPTEN})
+            include_directories(BEFORE SYSTEM $ENV{EMSCRIPTEN}/system/include)
+        endif()
+    endif()
     include_directories(${SRC})
     include_directories(${SRC}/tools)
     include_directories(${SRC}/libs)
     include_directories(${SRC}/libs)
-#    include_directories(AFTER $ENV{INCLUDE})
+    #add also environment include
+    #include_directories(AFTER $ENV{INCLUDE})
 
 # -o ${PROJECT_NAME}.html ->  CMAKE_EXECUTABLE_SUFFIX  .html .bc, .js (default), etc
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
-
-# relative emscripten output files (EMSOUT_PATH for my RAMDISK, if defined)
-    if(EXISTS $ENV{EMSOUT_PATH})
-        set(EMSOUT "$ENV{EMSOUT_PATH}/emsOut")
-    else()
-        set(EMSOUT "${CMAKE_SOURCE_DIR}/emsOut")
-    endif()
-
-    file(MAKE_DIRECTORY ${EMSOUT})
-    file(MAKE_DIRECTORY ${EMSOUT}/${CMAKE_BUILD_TYPE})
-    set(EMSOUT ${EMSOUT}/${CMAKE_BUILD_TYPE})
 
 # emcc compiler options
     add_definitions(${LIGHTVER_EXPERIMENTAL} -DGLAPP_NO_GLSL_PIPELINE -DVGM_USES_TEMPLATE -DIMGUI_IMPL_OPENGL_ES3 -DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DGLM_ENABLE_EXPERIMENTAL)
@@ -185,13 +182,20 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
     set(M_EMCC_OGL_OPTIONS "-s USE_WEBGL2=1 -s USE_GLFW=3 -s LEGACY_GL_EMULATION=0 -s OFFSCREENCANVAS_SUPPORT=1 ")
     set(M_EMCC_OPTIONS "-s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ALLOW_MEMORY_GROWTH=1 ${M_EMCC_SHELL_FILE} ${M_EMCC_OGL_OPTIONS} ${M_EMCC_BINARYEN} ${M_EMCC_EMBED_FILES}")
 
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${EMSOUT}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OGL_EMITTER_TYPE} ${M_EMCC_OPTIONS} ${GLAPP_DISABLE_DLA}")
 
     add_executable(${PROJECT_NAME} 
                     ${SRC}/emsTouch.cpp
                     ${SRC}/emsTouch.h
                     ${SOURCE_FILES})
+
+# relative emscripten output files (EMSOUT_PATH for my RAMDISK, if defined)
+    if(EXISTS $ENV{EMSOUT_PATH})
+        set(EMSOUT "$ENV{EMSOUT_PATH}")
+    else()
+        set(EMSOUT "${CMAKE_SOURCE_DIR}")
+    endif()
+    set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${EMSOUT}/emsOut/${CMAKE_BUILD_TYPE})
 
 
 ###########################################################
@@ -265,7 +269,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         set($ENV{CL},"")
         add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -Wno-format-nonliteral -Wdeprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -fexceptions -Wno-unused-command-line-argument -Wno-parentheses")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -Wno-format-security -Wno-format-nonliteral -Wdeprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -fexceptions -Wno-unused-command-line-argument -Wno-parentheses")
     message("Clang...")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -std=c++14 -fpermissive")

@@ -1,4 +1,4 @@
-rem echo off
+echo off
 echo.
 echo.
 
@@ -56,28 +56,25 @@ if %argC% EQU 2 (
 :cont2
         echo "cont 2"
 
-if NOT EXIST %EMS_DIR% (
-    mkdir %EMS_DIR%
-)
-
-cd %EMS_DIR%
 
 echo.
 echo. Start cmake...
 echo.
-cmake --target wglChAoSP -DCMAKE_TOOLCHAIN_FILE:STRING=%EMSCRIPTEN%\cmake\Modules\Platform\Emscripten.cmake -DCMAKE_BUILD_TYPE:STRING=%BUILD_TYPE% -DBUILD_wglChAoSP:BOOL=TRUE -G "MinGW Makefiles" ..
+cmake -DCMAKE_TOOLCHAIN_FILE:STRING=%EMSCRIPTEN%\cmake\Modules\Platform\Emscripten.cmake -DCMAKE_BUILD_TYPE:STRING=%BUILD_TYPE% -DBUILD_wglChAoSp:BOOL=TRUE -G "Ninja" -Bbuilds/%EMS_DIR%
 echo.
 echo.
+
+cd builds/%EMS_DIR%
 
 echo.
 echo. Start mingw32-make... 
 echo.
-mingw32-make -j8 wglChAoSP
+ninja
 echo.
 echo.
 
 :end
 
-cd ..
+cd ..\..
 
 :fine
