@@ -149,15 +149,11 @@ void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mod
         else 
 #endif
             theWnd->onMouseButton(button, APP_MOUSE_BUTTON_DOWN, x, y); 
-        //getApp()->LeftButtonDown();
-            
     } else if (action == GLFW_RELEASE) {        
 #if !defined (__EMSCRIPTEN__)
         isDoubleClick(button, action, x , y, 300);
 #endif
         theWnd->onMouseButton(button, APP_MOUSE_BUTTON_UP, x, y); 
-        
-        //getApp()->LeftButtonUp();
     }
 }
 
@@ -184,7 +180,6 @@ static void glfwMousePosCallback(GLFWwindow* window, double x, double y)
        (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) )
         theWnd->onMotion(x, y); 
 }
-
 
 void glfwWindowSizeCallback(GLFWwindow* window, int width, int height)
 {
@@ -230,14 +225,7 @@ void toggleFullscreenOnOff(GLFWwindow* window)
         {
             const GLFWvidmode* mode = glfwGetVideoMode(monitor);
             glfwGetWindowPos(window,  &windowed_xpos,  &windowed_ypos);
-            glfwGetWindowSize(window, &windowed_width, &windowed_height);
-/* 
-            glfwWindowHint(GLFW_RED_BITS,     10);
-            glfwWindowHint(GLFW_GREEN_BITS,   10);
-            glfwWindowHint(GLFW_BLUE_BITS,    10);
-            glfwWindowHint(GLFW_ALPHA_BITS,   2);
-            glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-*/
+            glfwGetWindowSize(window, &windowed_width, &windowed_height); 
             glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
         }
 #ifdef GLAPP_IMGUI_VIEWPORT
@@ -385,8 +373,8 @@ void mainGLApp::glfwInit()
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
         glslVersion = "#version 300 es\n";
-/*        if(useLowPrecision()) glslDefines = "precision mediump float;\n" "precision highp int;\n";
-        else                  glslDefines = "precision highp float;\n"   "precision highp int;\n";*/
+//        if(useLowPrecision()) glslDefines = "precision mediump float;\n" "precision highp int;\n";
+//        else                  glslDefines = "precision highp float;\n"   "precision highp int;\n";
         glslDefines = "precision highp float;\n"   "precision highp int;\n";
         glslDefines+= "#define LAYOUT_BINDING(X)\n"
                       "#define LAYOUT_INDEX(X)\n"
@@ -414,32 +402,23 @@ void mainGLApp::glfwInit()
     //glfwWindowHint(GLFW_SAMPLES,4);
 
     setGLFWWnd(glfwCreateWindow(GetWidth(), GetHeight(), getWindowTitle(), NULL, NULL));
-    if (!getGLFWWnd())
-    {
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
-/* list modes video
-    GLFWmonitor* monitor = getCurrentMonitor(getGLFWWnd());
-    if (monitor)
-    {
-        int numModes;
-        const GLFWvidmode* modes = glfwGetVideoModes(monitor, &numModes);
+    if (!getGLFWWnd()) {  glfwTerminate(); exit(EXIT_FAILURE);  }
 
-        for(int i=0; i<numModes; i++) {
-            cout << modes[i].width   << ' ' << modes[i].height << ' ';
-            cout << modes[i].redBits << ' ' << modes[i].greenBits << ' ' << modes[i].blueBits << ' ' <<  modes[i].refreshRate << '\n';
-        }
-    }
-*/
-
+//list  video modes
+//    GLFWmonitor* monitor = getCurrentMonitor(getGLFWWnd());
+//    if (monitor)
+//    {
+//        int numModes;
+//        const GLFWvidmode* modes = glfwGetVideoModes(monitor, &numModes);
+//
+//        for(int i=0; i<numModes; i++) {
+//            cout << modes[i].width   << ' ' << modes[i].height << ' ';
+//            cout << modes[i].redBits << ' ' << modes[i].greenBits << ' ' << modes[i].blueBits << ' ' <<  modes[i].refreshRate << '\n';
+//        }
+//    }
+//
     if(getPosX()>=0 && getPosY()>=0) glfwSetWindowPos(getGLFWWnd(), getPosX(), getPosY());
-
-    //secondary = glfwCreateWindow(512, 512, "My Engine", NULL, getGLFWWnd());
-
     glfwMakeContextCurrent(getGLFWWnd());
-
-    //glfwSetWindowOpacity(getGLFWWnd(),.5);
 
 #if !defined (__EMSCRIPTEN__)
     //Init OpenGL
@@ -456,6 +435,11 @@ void mainGLApp::glfwInit()
     emscripten_set_touchmove_callback("#canvas", &getEmsDevice(), true, emsMDeviceClass::touchMove);
     emscripten_set_touchcancel_callback("#canvas", &getEmsDevice(), true, emsMDeviceClass::touchCancel);
 
+    //EM_ASM(console.log(Module.ctx.getParameter(Module.ctx.UNPACK_PREMULTIPLY_ALPHA_WEBGL) ? "unpak VERO!!" : "unpack FALSO!!"););
+    //EM_ASM(console.log(Module.ctx.getContextAttributes().alpha ? "alpha VERO!!" : "alpha FALSO!!"); );
+    //EM_ASM(console.log(Module.ctx.getContextAttributes().premultipliedAlpha ? "pre VERO!!" :"pre FALSO!!"); );
+    //EM_ASM(Module.ctx.pixelStorei(Module.ctx.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true););
+
     EM_ASM(if(!Module.ctx.getExtension('EXT_color_buffer_float')) alert("wglChAoS.P need EXT_color_buffer_float"););
     EM_ASM(if(!Module.ctx.getExtension('EXT_float_blend'))        alert("wglChAoS.P need EXT_float_blend"););
     //emscripten_set_deviceorientation_callback(getEmsDevice(), true, emsMDeviceClass::devOrientation);
@@ -463,15 +447,12 @@ void mainGLApp::glfwInit()
     //emscripten_set_devicemotion_callback(getEmsDevice(), true, emsMDeviceClass::devMotion);
 #endif
 
-    
-
     glfwSetMouseButtonCallback(getGLFWWnd(), glfwMouseButtonCallback);
     glfwSetKeyCallback(getGLFWWnd(), glfwKeyCallback);
     glfwSetCharCallback(getGLFWWnd(), glfwCharCallback);
     glfwSetCursorPosCallback(getGLFWWnd(), glfwMousePosCallback);
     glfwSetWindowSizeCallback(getGLFWWnd(), glfwWindowSizeCallback);
     glfwSetScrollCallback(getGLFWWnd(), glfwScrollCallback);
-
 
 //#define APP_DEBUG_GUI_INTERFACE
 #ifdef APP_DEBUG_GUI_INTERFACE
@@ -538,8 +519,6 @@ void mainGLApp::onInit(int w, int h)
 
 }
 
-
-
 int mainGLApp::onExit()  
 {
 
@@ -551,8 +530,6 @@ int mainGLApp::onExit()
 
 void newFrame()
 {
-//    static int oldSizeX = theApp->GetWidth();
-//    static int oldSizeY = theApp->GetHeight();
 #ifdef __EMSCRIPTEN__    
     //theApp->setCanvasX(EM_ASM_INT({ return Module.canvas.width; }));
     //theApp->setCanvasY(EM_ASM_INT({ return Module.canvas.height; }));
@@ -560,8 +537,6 @@ void newFrame()
     theApp->setCanvasY(EM_ASM_INT({ return window.innerHeight; }));
 
 
-//    if(oldSizeX != theApp->getCanvasX() || oldSizeY != theApp->getCanvasY()) 
-//        theWnd->getParticlesSystem()->onReshape(theApp->getCanvasX(), theApp->getCanvasY());
     theApp->getTimer().tick();
     glfwPollEvents();
 
@@ -572,8 +547,6 @@ void newFrame()
     theApp->getMainDlg().postRenderImGui();
 
     glfwSwapBuffers(theApp->getGLFWWnd());
-//    oldSizeX = theApp->getCanvasX();
-//    oldSizeY = theApp->getCanvasY();
 #endif
 
 }

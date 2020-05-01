@@ -149,12 +149,10 @@ public:
 
     void draw(GLsizei maxSize) {
         glBindVertexArray(vao);
-        //glDrawArrays(primitive,0,uploadedVtx<GLuint64(maxSize) ? uploadedVtx : maxSize);
-        if(uploadedVtx<GLuint64(maxSize))
-            glDrawArrays(primitive,0, uploadedVtx);
-        else 
-            glDrawArrays(primitive,0, maxSize);
-
+        glDrawArrays(primitive,0,uploadedVtx<GLuint64(maxSize) ? uploadedVtx : maxSize);
+#if defined(__APPLE__) || defined(GLCHAOSP_LIGHTVER)
+        glFinish(); // Worrkadound: stuttering with frequent calls 
+#endif
         CHECK_GL_ERROR();
     }
 
@@ -173,7 +171,6 @@ public:
 #ifdef GLAPP_REQUIRE_OGL45
         glTransformFeedbackBufferRange(0,index,vbo,0,sz);
 #else
-        //glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,index,vbo);
         glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, vbo, 0, sz);
 #endif
 
@@ -187,7 +184,6 @@ public:
         glTransformFeedbackBufferBase(0,index,0);
 #else
         glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,index,0);
-        //glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER,0);
 #endif
     }
 #endif

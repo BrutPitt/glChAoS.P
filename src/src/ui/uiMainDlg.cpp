@@ -3007,7 +3007,6 @@ void mainImGuiDlgClass::renderImGui()
 #ifdef __EMSCRIPTEN__
         if(theApp->isTabletMode()) theApp->getEmsDevice().imGuiUpdateTouch();
 #endif
-
         ImGui::NewFrame();
 
         aboutDlg.view();

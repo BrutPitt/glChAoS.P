@@ -145,6 +145,7 @@ vec4 pixelColorBlending(vec4 color, vec4 N)
     float dist = -newVertex.z;
     if(u.slowMotion!=uint(0) && dist<u.smoothDistance)
         color *= 1.0-(u.smoothDistance-dist)/u.smoothDistance;
+    //color.xyz  *= color.a;
     return color;
 }
 

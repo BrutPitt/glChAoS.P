@@ -18,7 +18,7 @@
 
 //#define __APPLE__
 #ifdef __APPLE__
-    #define GLCHAOSP_DISABLE_MACOS_MT
+    //#define GLCHAOSP_DISABLE_MACOS_MT
 #endif
 
 
