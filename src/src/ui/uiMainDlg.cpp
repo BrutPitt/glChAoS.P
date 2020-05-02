@@ -13,13 +13,10 @@
 #include <sstream>
 #include "../glApp.h"
 #include "../glWindow.h"
-#include "../attractorsBase.h"
-#include "../ShadersClasses.h"
 
 #include <imguiControls.h>
 #include <imGuIZMOquat.h>
 
-#include "uiMainDlg.h"
 #include "uiHelpEng.h"
 
 extern HLSTexture hlsTexture;
@@ -1601,16 +1598,16 @@ void progSettingDlgClass::view()
 #else
         static int idxEmitt = theApp->getEmitterType();
     #ifdef GLAPP_REQUIRE_OGL45
-        if(ImGui::Combo("##EmitterType", &idxEmitt, "Single thread & Aux buffer\0"\
-                                                 "Aux thread & Aux buffer\0"\
-                                                 "Aux thread & Mapped buffer\0")) { 
+        if(ImGui::Combo("##EmitterType", &idxEmitt, "1 thread  & CPU buffer\0"\
+                                                    "2 threads & CPU buffer\0"\
+                                                    "2 threads & GPU mapped buffer\0")) {
     #else
         if(ImGui::Combo("##EmitterType", &idxEmitt, "Single thread & Aux buffer\0"\
                                                     "Aux thread & Aux buffer\0")) {
     #endif
             emitterChanges|=true;
         }
-#endif        
+#endif
 
         static int emitStep = theApp->getEmissionStepBuffer()>>10;
         if(idxEmitt!=emitter_separateThread_mappedBuffer) {
@@ -1631,6 +1628,14 @@ void progSettingDlgClass::view()
         ImGui::SameLine(); 
         //ImGui::PushItemWidth(wButt -ImGui::GetCursorPosX());
         ImGui::Text("%.2fGB", (maxBuff*16000000.f)/(1024*1024*1024));
+#if !defined(__APPLE__) && !defined(GLCHAOSP_LIGHTVER)
+        {
+            bool b = theApp->useSyncOGL();
+            if(ImGui::Checkbox("Synchronous OpenGL mode", &b)) theApp->useSyncOGL(b);
+            ImGui::SameLine();
+            ShowHelpMarker(GLAPP_HELP_SYNCOGL);
+        }
+#endif
 
         if(emitterChanges) { pushColorButton();
             if(ImGui::Button("Apply Emitter Changes", ImVec2(w,0))) {
@@ -1644,6 +1649,8 @@ void progSettingDlgClass::view()
             }
             if(emitterChanges) popColorButton();
         } else { ImGui::AlignTextToFramePadding(); ImGui::NewLine(); }
+
+
 
         ImGui::NewLine();
 
@@ -1847,8 +1854,8 @@ void dataDlgClass::view()
                                                      "radial distance\0"\
                                                      "alpha have dist\0");
             ImGui::SameLine(wH);
-            bool b = attractorsList.continueDLA();
-            if(ImGui::Checkbox("continue DLA", &b)) attractorsList.continueDLA(b);
+            bool bl = attractorsList.continueDLA();
+            if(ImGui::Checkbox("continue DLA", &bl)) attractorsList.continueDLA(bl);
             ImGui::PopItemWidth();
         } 
 

@@ -11,7 +11,6 @@
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #include <chrono>
-#include <array>
 #include <algorithm>
 #include <vector>
 #include <ostream>
@@ -37,16 +36,14 @@ void toggleFullscreenOnOff(GLFWwindow* window);
 
 bool fileExist(const char *filename)
 {
- 	// Load the file
-	ifstream input(filename);
-	// Check to see that the file is open
-	if (!input.is_open()) return false;
-	// Close the input file
-	input.close();
+    // open the file
+    ifstream input(filename);
+    // Check to see that the file is open
+    if (!input.is_open()) return false;
+    // Close the input file
+    input.close();
     return true;
 }
-
-
 
 void writeAPalette(const char *filename, int idx)
 {
@@ -916,6 +913,7 @@ void mainGLApp::saveProgConfig()
     cfg["auxStepBuffer" ] = theApp->getEmissionStepBuffer();
 
     cfg["startWithAttractorName" ] = theApp->getStartWithAttractorName();
+    cfg["syncOpenGL"] = theApp->useSyncOGL();
 
     dump_file(filename, cfg, JSON);
 
@@ -942,8 +940,6 @@ bool mainGLApp::loadProgConfig()
         }
         return false;
     };
-
-
 
     if(getVec4_asArray(cfg, "baseColorTheme")) theDlg.setGuiThemeBaseColor((ImVec4 *)&retVal);
     theDlg.setSelectedGuiTheme(cfg.get_or("selectedColorTheme", theDlg.getSelectedGuiTheme()));
@@ -983,6 +979,13 @@ bool mainGLApp::loadProgConfig()
     theApp->setEmissionStepBuffer(cfg.get_or("auxStepBuffer", theApp->getEmissionStepBuffer()));
 
     theApp->setStartWithAttractorName(cfg.get_or("startWithAttractorName", "random"));  // -1 Random start
+
+
+#if defined(__APPLE__) || defined(GLCHAOSP_LIGHTVER)
+    theApp->useSyncOGL(true);
+#else
+    theApp->useSyncOGL(cfg.get_or("syncOpenGL", theApp->useSyncOGL()));
+#endif
 
     if(theApp->useLowPrecision()) theApp->setLowPrecision();
     else                          theApp->setHighPrecision();

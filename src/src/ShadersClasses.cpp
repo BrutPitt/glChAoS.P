@@ -14,8 +14,8 @@
 
 #include "glWindow.h"
 
-#include "attractorsBase.h"
-#include "ParticlesUtils.h"
+//#include "attractorsBase.h"
+//#include "ParticlesUtils.h"
 
 
 //
@@ -40,7 +40,6 @@ dataBlurClass::dataBlurClass()
     //renderEngine = ptrRE;
     imageTuning = new imgTuningClass(this);
     mixTexture =.0f;        
-
 }
 
 //
@@ -67,15 +66,11 @@ shaderPointClass::shaderPointClass()
 
 void shaderPointClass::initShader()
 {
-    //palette.buildTex(colorMaps.getRGB_pf3(1), 256);
-    //selectColorMap(0);
     useVertex(); useFragment();
 
     getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesVert.glsl", SHADER_PATH "PointSpriteVert.glsl");
     getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 3, SHADER_PATH "lightModelsFrag.glsl", SHADER_PATH "ParticlesFrag.glsl", SHADER_PATH "PointSpriteFragLight.glsl");
-    //getVertex()->Load("", 1, SHADER_PATH "allParticles.vert");
-    //getFragment()->Load("", 1, SHADER_PATH "allParticles.frag");
-    // The vertex and fragment are added to the program object
+
     addVertex();
     addFragment();
 
@@ -178,7 +173,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getShadow()->bindRender();
 
         currentTMat->setLightView(getLightDir()*lightReduction);
-        currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * currentTMat->tM.mMatrix;;
+        currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * currentTMat->tM.mMatrix;
 
         currentTMat->updateBufferData();
         getPlanesUBlock().updateBufferData();
@@ -258,7 +253,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
             m = translate(m,currentTMat->getPOV());
             currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * m;
             currentTMat->tM.mvpLightM = currentTMat->tM.pMatrix * currentTMat->tM.mvLightM; 
-            getUData().halfTanFOV = tanf(currentTMat->getPerspAngleRad()*.5);
+            getUData().halfTanFOV = tanf(currentTMat->getPerspAngleRad()*.5f);
         }
 
 // AO frag
@@ -347,7 +342,7 @@ GLuint mergedRenderingClass::render(GLuint texA, GLuint texB)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
     //glInvalidateBufferData(fbo);
     //glClear(GL_COLOR_BUFFER_BIT);
-    CHECK_GL_ERROR();
+    CHECK_GL_ERROR()
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, texA);
     glBindTextureUnit(1, texB);
@@ -501,10 +496,6 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
     cPit.getUdata().diffTime    = std::chrono::duration<double>(end-start).count();
     cPit.getUdata().elapsedTime = std::chrono::duration<double>(end-startEvent).count();
 
-    static std::uniform_real_distribution<GLfloat> randomFloats(-1.0, 1.0); // generates random floats between 0.0 and 1.0
-    static std::default_random_engine generator;
-
-
     start = end;
     updateBufferData();
 
@@ -558,7 +549,7 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
     tfbs[activeBuffer]->Begin(query, getSizeCircularBuffer()*bytePerVertx);
     if(vtxCount) InsertVbo->drawRange(GL_ARRAY_BUFFER, 0,vtxCount);
 
-    CHECK_GL_ERROR();
+    CHECK_GL_ERROR()
 
     const long szI =  tfbs[activeBuffer^1]->getTransformSize();
     const GLuint szBuff = getSizeCircularBuffer();
@@ -566,7 +557,7 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
     // if GL_TRANSFORM_FEEDBACK_BUFFER get error ONLY on FireFox 71 Mobile: 
     // Error: WebGL warning: drawArrays: Vertex attrib 1's buffer is bound for transform feedback.
     if(szI) tfbs[activeBuffer^1]->getVertexBase()->drawRange(GL_ARRAY_BUFFER, 0, szI<szBuff ? szI : szBuff);
-    CHECK_GL_ERROR();
+    CHECK_GL_ERROR()
 
     const GLuint countV = tfbs[activeBuffer]->End(query, szI+vtxCount);
     tfbs[activeBuffer]->setTransformSize(countV);
@@ -755,7 +746,6 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIndex);
     updateData(subIndex);
-
 #else
     USE_PROGRAM
     glActiveTexture(GL_TEXTURE0+sourceTex);
@@ -772,10 +762,10 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
         #endif
     #endif
     updateData(subIndex);
-
 #endif
 
     theWnd->getVAO()->draw();
+    if(theApp->useSyncOGL()) glFinish(); // stuttering with frequent calls on slow GPU & APPLE
 }
 
 void BlurBaseClass::updateData(GLuint subIndex) 
@@ -1046,7 +1036,7 @@ void postRenderingClass::render()
 {
 
     theWnd->getVAO()->draw();
-    CHECK_GL_ERROR();
+    CHECK_GL_ERROR()
 }
 
 void postRenderingClass::releaseRender()
@@ -1068,7 +1058,7 @@ ambientOcclusionClass::ambientOcclusionClass(renderBaseClass *ptrRE) : renderEng
     // ----------------------
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
     std::default_random_engine generator;
-    for(unsigned int i = 0; i < kernelSize; ++i)  {
+    for(unsigned int i = 0; i < kernelSize; i++)  {
         vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
         sample = normalize(sample);
         sample *= randomFloats(generator);
@@ -1203,7 +1193,7 @@ void ambientOcclusionClass::bindRender(particlesBaseClass *particle, GLuint fbId
 void ambientOcclusionClass::render()
 {
     theWnd->getVAO()->draw();
-    CHECK_GL_ERROR();
+    CHECK_GL_ERROR()
 }
 
 void ambientOcclusionClass::releaseRender()

@@ -12,7 +12,6 @@
 //------------------------------------------------------------------------------
 #pragma once
 #include "appDefines.h"
-//#include "glUtilities.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include <string>
@@ -297,6 +296,9 @@ public:
     bool needRestart() { return appNeedRestart; }
     void needRestart(bool b) {  appNeedRestart = b; }
 
+    bool useSyncOGL() { return syncOGL; }
+    void useSyncOGL(bool b) { syncOGL = b; }
+
 
     void selectFolder(std::string &s);
 
@@ -375,6 +377,11 @@ private:
     bool isIdleRotation = false;
     bool isSlowGPU = false;
     bool appNeedRestart = false;
+#if defined(__APPLE__) || defined(GLCHAOSP_LIGHTVER)
+    bool syncOGL = true;
+#else
+    bool syncOGL = false;
+#endif
 
     int emitterEngineType = emitterEngine_staticParticles;
 

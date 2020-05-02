@@ -192,6 +192,12 @@
     "   Decrease - if your GPU have low memory\n"\
     "Default allocation: 30M of particles\n\n"\
     "*NOTE: to apply changes need to press APPLY EMITTER CHANGES"
+#define GLAPP_HELP_SYNCOGL\
+    "Toggle OpenGL Synchronous mode \n"\
+    "   ON  - Wait until all particles are rendered before continue\n"\
+    "   OFF - Immediately returns control to the CPU\n\n"\
+    "Default: OFF\n"\
+    "   Enable in case of stuttering, or on slow GPU"
 #define GLAPP_HELP_PART_SZ_CONST\
     "Particles size behavior changing window size:\n"\
     "     Checked - Particles have fixed size when resizing window\n"\
