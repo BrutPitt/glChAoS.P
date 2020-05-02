@@ -219,7 +219,7 @@ using fFastRand64 = floatfastRandomClass<float,  fastRand64>;
 // double precision interface for 64 bit generator
 using dFastRand64 = floatfastRandomClass<double, fastRand64>;
 
-}; // end of namespace FstRnd 
+} // end of namespace FstRnd
 
 
 

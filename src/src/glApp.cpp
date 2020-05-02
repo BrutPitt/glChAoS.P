@@ -12,12 +12,9 @@
 //------------------------------------------------------------------------------
 #include <array>
 #include <vector>
-#include <ostream>
-                
+
 #include "glApp.h"
 #include "glWindow.h"
-
-#include "ShadersClasses.h"
 
 #if !defined (__EMSCRIPTEN__)
     GLFWmonitor* getCurrentMonitor(GLFWwindow *window);
@@ -68,17 +65,17 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
             case GLFW_KEY_DOWN :  
             case GLFW_KEY_D    :  {
                 int idx = attractorsList.getSelection();
-                attractorsList.setSelection((idx >= attractorsList.getList().size()-1) ? 0 : ++idx);
+                attractorsList.setSelection((idx >= attractorsList.getList().size()-1) ? 0 : idx+1);
                 } break;
             case GLFW_KEY_UP :  
             case GLFW_KEY_U  :  {
                 int idx = attractorsList.getSelection();
-                attractorsList.setSelection((idx <= 0) ? attractorsList.getList().size()-1 : --idx);
+                attractorsList.setSelection((idx <= 0) ? attractorsList.getList().size()-1 : idx-1);
                 } break;
             case GLFW_KEY_RIGHT :  
             case GLFW_KEY_R     :  {
                 int idx = theApp->selectedListQuickView();
-                theApp->loadQuikViewSelection((idx >= theApp->getListQuickView().size()-1) ? 0 : ++idx);
+                theApp->loadQuikViewSelection((idx >= theApp->getListQuickView().size()-1) ? 0 : idx+1);
                 } break;
             case GLFW_KEY_V    :
             case GLFW_KEY_C    :
@@ -106,7 +103,7 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
             case GLFW_KEY_LEFT :  
             case GLFW_KEY_L    :  {
                 int idx = theApp->selectedListQuickView();
-                theApp->loadQuikViewSelection((idx <= 0) ? theApp->getListQuickView().size()-1 : --idx);
+                theApp->loadQuikViewSelection((idx <= 0) ? theApp->getListQuickView().size()-1 : idx-1);
                 } break;
             case GLFW_KEY_LEFT_SHIFT :
                 leftShift = true;

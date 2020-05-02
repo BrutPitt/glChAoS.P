@@ -14,8 +14,6 @@
 
 #include "glWindow.h"
 
-#include "attractorsBase.h"
-
 AttractorsClass attractorsList; // need to resolve inlines
 
 #define PIQ 9.86960440108935861883f
@@ -43,9 +41,6 @@ inline float mOne_One(float x)
 ///////////////////////////////////////
 void AttractorsClass::endlessStep(emitterBaseClass *emitter)
 {
-    //typedef void (AttractorBase::*threadStepPtrFn)(float *&ptr,vec3 &v, vec3 &vp);
-    //typedef void (AttractorBase::*threadStepPtrFn)(float *&ptr,vec3 &v, vec3 &vp);
-
     auto singleStep = [&] (float *ptr) -> void
     {
         //mtxStep.lock();
@@ -88,7 +83,7 @@ void AttractorsClass::endlessStep(emitterBaseClass *emitter)
             singleStep(emitter->getVertexBase()->getBuffer()); 
             emitter->setThreadRunning(false);
         }
-    };
+    }
     
 }
 
@@ -409,7 +404,7 @@ void PowerN3D::Step(vec4 &v, vec4 &vp)
     auto itCf = cf.begin();
     for(int x=order-1; x>=0; x--)
         for(int y=order-1; y>=0; y--)
-            for(int z=order-1; z>=0; z--) 
+            for(int z=order-1; z>=0; z--)
                 if(x+y+z <= order) *itCf++ = elv[x].x * elv[y].y * elv[z].z;
 
     *itCf++ = elv[order].x;

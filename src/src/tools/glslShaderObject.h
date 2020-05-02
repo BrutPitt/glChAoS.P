@@ -73,7 +73,7 @@ class FragmentShader : public ShaderObject
 {
     public:
         FragmentShader() : ShaderObject() { shaderID = glCreateShader(GL_FRAGMENT_SHADER);  }
-} ;
+};
 
 //  Vertex
 /////////////////////////////////////////////////
@@ -132,7 +132,7 @@ inline void CheckErrorsGL( const char* location = NULL,
 
 
 #if !defined(NDEBUG)
-#define CHECK_SHADER_ERROR(hProg) CheckShaderError(hProg)
+#define CHECK_SHADER_ERROR(hProg) { CheckShaderError(hProg); }
 #else
 #define CHECK_SHADER_ERROR(hProg) 
 #endif

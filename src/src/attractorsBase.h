@@ -45,8 +45,6 @@ extern fFastRand32 fastRandom;
 #define BUFFER_DIM 200
 #define STABILIZE_DIM 1500
 
-//#define RANDOM(MIN, MAX) ((MIN)+((float)rand()/(float)RAND_MAX)*((MAX)-(MIN)))
-
 
 class attractorDlgClass;
 class AttractorsClass;
@@ -67,8 +65,7 @@ public:
 
     AttractorBase() 
     {
-        resetQueue();
-        //srand((unsigned)time(NULL));
+        AttractorBase::resetQueue();
     }
 
     virtual ~AttractorBase() {}
@@ -125,16 +122,6 @@ public:
         for(int i = samples; i>0; i--) Step();
     }
 
-//#define GLCHAOS_USES_SEMPLIFED_QUEUE
-#ifdef GLCHAOS_USES_SEMPLIFED_QUEUE
-    vec4& getCurrent()  { return queueCurrent; }
-    vec4& getPrevious() { return queuePrevious; }
-    void Insert(const vec4 &vect)
-    {
-        queuePrevious = queueCurrent;
-        queueCurrent = vect;
-    }
-#else
     vec4& getCurrent()  { return stepQueue.front(); }
     vec4& getPrevious() { return stepQueue[1]; }
     vec4& getAt(int i)  { return stepQueue[i]; }
@@ -144,9 +131,6 @@ public:
         stepQueue.push_front(vect);
         stepQueue.pop_back();
     }
-#endif
-
-    //vec4& getAt(int i)  { return stepQueue[i]; }
 
     int getMagnetSize() { return vVal.size(); }
 
@@ -169,8 +153,6 @@ public:
     void setDisplayName(string &name) { displayName = name; }
 
     string& getNameID() { return nameID; }
-
-//    void breakLoopOn() { breakLoop = true; }
 
     void setBufferRendered() {  bufferRendered = true; }
 
@@ -247,12 +229,9 @@ public:
             vVal[0] = vec4(RANDOM(vMin,vMax),RANDOM(vMin,vMax),RANDOM(vMin,vMax),RANDOM(vMin,vMax));
     }
 
-
-
     void clear() { kVal.clear(); vVal.clear(); }
 
     float getKParam(int i) { return kVal[i]; }
-
 
     void saveKVals(Config &cfg);
     void loadKVals(Config &cfg);
@@ -378,8 +357,7 @@ protected:
         } 
     }
 
-    //  Personal vals
-    ///////////////////////////////////////
+    //  Specific attractor values
     void saveAdditionalData(Config &cfg);
     void loadAdditionalData(Config &cfg);
 
@@ -399,8 +377,7 @@ private:
 class fractalIIM_Nth : public fractalIIMBase
 {
 public:
-    //  Personal vals
-    ///////////////////////////////////////
+    //  Specific attractor values
     virtual void additionalDataCtrls();
 protected:
 
@@ -437,9 +414,6 @@ public:
         attractorScalarK::initStep();
     }
 
-    //  Personal vals
-    ///////////////////////////////////////
-    //void additionalDataCtrls();
 protected:
 
 };
@@ -666,7 +640,6 @@ public:
 
     void startData();
 
-
     void newRandomValues() {
         resetQueue();
 
@@ -721,7 +694,6 @@ public:
 
         Insert(vVal[0]);
         stabilize(STABILIZE_DIM);
-
     }
 
     //  Personal vals
@@ -730,8 +702,6 @@ public:
     void loadAdditionalData(Config &cfg);
 
     void additionalDataCtrls();
-
-    
 
     //  SetOrder
     ///////////////////////////////////////
@@ -767,12 +737,8 @@ private:
     void resetData() {
         nCoeff = getNumCoeff();
 
-        //elv.clear();
         elv.resize(order+1);
-
-        //cf.clear();
         cf.resize(nCoeff);
-
     }
 
     vector<vec3> elv;
@@ -1515,7 +1481,7 @@ protected:
     vec3 &AddParticle() {
         vec3 p = RandomStartingPosition();
 
-        uint32_t parent;;
+        uint32_t parent;
         tPrec d;
         const tPrec val1 = kVal[1], val2 = kVal[2];
         do {
@@ -2103,8 +2069,6 @@ protected:
 };
  
 
-
-
 //  Magnetic base class
 ////////////////////////////////////////////////////////////////////////////
 class Magnetic : public attractorVectorK
@@ -2192,10 +2156,10 @@ protected:
 
     void newRandomValues() 
     {
-        for(int j =0; j<100; j++) {
+        for(int j =0; j++<100;) {
             initParams();
 
-            for(int i=0; i<100; i++) AttractorBase::Step();
+            for(int i=0; i++<100;) AttractorBase::Step();
 
             vec4 v0 = getCurrent();
             vec4 v1 = getPrevious();
@@ -2216,14 +2180,6 @@ protected:
     int tmpElements, nElements;
 
 
-    friend void fillMagneticData();
-/*
-    void ResizeVectors() {
-        kVal.resize(m_nMagnets);
-        vVal.resize(m_nMagnets);       
-    }
-
-*/
     void initParams() {
 
         const int nMagnets = vVal.size();
@@ -2252,13 +2208,13 @@ class MagneticRight : public Magnetic {
 public:
     MagneticRight() { increment = &Magnetic::rightShift; }
 };
-//  Magnetic Full permutated
+//  Magnetic Full permuted
 ///////////////////////////////////////
 class MagneticFull : public Magnetic {
 public:
     MagneticFull() { increment = &Magnetic::fullPermutated; }
 };
-//  Magnetic Full permutated
+//  Magnetic Full permuted
 ///////////////////////////////////////
 class MagneticStraight : public Magnetic {
 public:
@@ -2284,8 +2240,6 @@ public:
     void restartEmitter();
 
     void notify();
-
-    bool canStart();
 
 private:
     emitterBaseClass *emitter = nullptr;

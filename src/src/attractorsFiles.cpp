@@ -16,8 +16,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "glWindow.h"
 
-#include "attractorsBase.h"
-
 #if !defined(GLCHAOSP_LIGHTVER)
 #define TINYPLY_IMPLEMENTATION
 #include <tinyPLY/tinyply.h>
@@ -66,7 +64,7 @@ bool loadObjFile()
         *ptr++ = pt.y;
         *ptr++ = pt.z;
 
-        const uint iCol = 0xff000000 | (uint(col.b*255.f) << 16) | (uint(col.g*255.f) << 8) | uint(col.r*255.f);
+        const uint iCol = 0xff000000 | (uint(col.b*255.f) << 16u) | (uint(col.g*255.f) << 8u) | uint(col.r*255.f);
         *ptr++ = uintBitsToFloat( iCol );
         //*ptr++ = dot(lum, col);
 
@@ -147,7 +145,7 @@ bool importPLY(bool wantColors, int velType)
         vec4 *ptr = mappedBuffer;
 
         uint iCol;
-        for(int i=0; i<nVtx; i++, ptr++) {
+        for(int i=0; i<nVtx;i++, ptr++) {
 
             ptr->x = *vtx++; // for portability;
             ptr->y = *vtx++;
@@ -158,12 +156,12 @@ bool importPLY(bool wantColors, int velType)
                     const float r = *fClr++;
                     const float g = *fClr++;
                     const float b = *fClr++;
-                    iCol = 0xff000000 | (uint(b*255.f) << 16) | (uint(g*255.f) << 8) | uint(r*255.f);
+                    iCol = 0xff000000 | (uint(b*255.f) << 16u) | (uint(g*255.f) << 8u) | uint(r*255.f);
                 } else {
                     const uint r = *bClr++;
                     const uint g = *bClr++;
                     const uint b = *bClr++;
-                    iCol = 0xff000000 | (b << 16) | (g << 8) | r;
+                    iCol = 0xff000000 | (b << 16u) | (g << 8u) | r;
                 }         
                 ptr->w = uintBitsToFloat( iCol );            
             } else {
@@ -220,24 +218,24 @@ uint8_t *getColorBuffer(vec4 *map, const uint32_t sizeBuff, bool alphaDist)
 //                          0, GL_RGB, GL_UNSIGNED_BYTE, 256, palBuff);
 
     if(pSys->wantPlyObjColor() && pSys->viewingObj()) { // packed color data: is loaded PLY
-        for(unsigned i=sizeBuff; i>0; i--, map++) {
+        for(unsigned i=sizeBuff; i-->0; map++) {
             const uint32_t c = floatBitsToUint(map->w);
             uint8_t *p = (uint8_t *) &c;
             *clr++ =  *p++;
             *clr++ =  *p++;
             *clr++ =  *p;
-            if(alphaDist) *clr++ = *(++p);
+            if(alphaDist) *clr++ = *(p+1);
         }
     } else { // color  = speed + palette
         const float vel = pSys->getCMSettings()->getVelIntensity();
 
-        for(unsigned i=sizeBuff; i>0; i--, map++) {
-            const int32_t offset = int(map->w*vel*255.f+.5);
+        for(unsigned i=sizeBuff; i-->0; map++) {
+            const int32_t offset = round(map->w*vel*255.f);
             uint8_t *p = (uint8_t *)(palBuff + (offset>=255 ? 255 : (offset <= 0 ? 0 : offset)));
             *clr++ =  *p++;
             *clr++ =  *p++;
             *clr++ =  *p;
-            if(alphaDist) *clr++ = map->w*255.f+.5;
+            if(alphaDist) *clr++ = round(map->w*255.f);
         }
     }
 
@@ -252,7 +250,7 @@ vec3 *getVertexBuffer(vec4 *map, const uint32_t sizeBuff, bool bCoR)
     vec3 *vtx = vtxBuff;
 
     const vec3 CoR = theWnd->getParticlesSystem()->getTMat()->getTrackball().getRotationCenter();
-    for(unsigned i=sizeBuff; i>0; i--, map++) *vtx++ = bCoR ? vec3(*map) + CoR : vec3(*map);
+    for(unsigned i=sizeBuff; i-->0; map++) *vtx++ = bCoR ? vec3(*map) + CoR : vec3(*map);
 
     return vtxBuff;
 }
@@ -265,18 +263,18 @@ vec3 *getNormalBuffer(vec4 *map, const uint32_t sizeBuff, const bool isNormalize
     vec3 CoR = theWnd->getParticlesSystem()->getTMat()->getTrackball().getRotationCenter();
 
     if(type == normalType::ptCoR) {
-        for(unsigned i=sizeBuff; i>0; i--) {
+        for(unsigned i=sizeBuff; i-->0;) {
             const vec3 v = CoR+vec3(*map++);
             *nrm++ = isNormalized ? normalize(v) : v;
         }
     } else if(type == normalType::ptPt1) {
-        for(unsigned i=sizeBuff-1; i>0; i--,map++) {
+        for(unsigned i=sizeBuff-1; i-->0; map++) {
             const vec3 v = vec3(*(map+1) + *map);
             *nrm++ = isNormalized ? normalize(v) : v;
         }
         *nrm = isNormalized ? normalize(*map) : *map;
     } else { // normalType::ptPt1CoR
-        for(unsigned i=sizeBuff-1; i>0; i--,map++) {
+        for(unsigned i=sizeBuff-1; i-->0; map++) {
             const vec3 v = CoR+vec3(*(map+1) + *map);
             *nrm++ = isNormalized ? normalize(v) : v;
         }
@@ -309,7 +307,7 @@ void exportPLY(bool wantBinary, bool wantColors, bool alphaDist, bool wantNormal
         const uint32_t sizeBuff = e->getSizeCircularBuffer()>e->getVertexBase()->getVertexUploaded() ? 
                                   e->getVertexBase()->getVertexUploaded() : e->getSizeCircularBuffer();
 
-        vec4 *mappedBuffer = nullptr;
+        vec4 *mappedBuffer;
         if(e->useMappedMem())   // USE_MAPPED_BUFFER
             mappedBuffer = (vec4 *) e->getVertexBase()->getBuffer();
         else {
@@ -343,7 +341,7 @@ void exportPLY(bool wantBinary, bool wantColors, bool alphaDist, bool wantNormal
 
         }
 
-        ply.get_comments().push_back("generated by glChAoS.P");
+        ply.get_comments().emplace_back("generated by glChAoS.P");
 
         ply.write(os, wantBinary);
 
@@ -370,8 +368,8 @@ bool loadAttractorFile(bool fileImport, const char *file)
 
     char const * patterns[] = { "*.chatt", "*.sca" };           
     char const * fileName = (file == nullptr) ? 
-                            theApp->openFile(theApp->getLastFile().size() ? theApp->getLastFile().c_str() : STRATT_PATH, patterns, 2) :
-                            file;
+                             theApp->openFile(theApp->getLastFile().empty() ? STRATT_PATH : theApp->getLastFile().c_str() , patterns, 2) :
+                             file;
 
     if(fileName==nullptr) {
         theWnd->getParticlesSystem()->getEmitter()->setEmitterOn();
@@ -403,7 +401,7 @@ void saveAttractorFile(bool fileExport)
     attractorsList.getThreadStep()->stopThread();
 
     char const * patterns[] = { "*.chatt", "*.sca" };        
-    char const * fileName = theApp->saveFile(theApp->getLastFile().size() ? theApp->getLastFile().c_str() : STRATT_PATH, patterns, 2);
+    char const * fileName = theApp->saveFile(theApp->getLastFile().empty() ? STRATT_PATH : theApp->getLastFile().c_str(), patterns, 2);
 
     if(fileName!=nullptr) {
     
@@ -456,17 +454,17 @@ void AttractorBase::loadVals(Config &cfg)
 
         for (const Config& e : cfg["vData"].as_array()) v.push_back(e.as_float());
 
-        const int vSize = v.size()/3;
+        const size_t vSize = v.size()/3;
         vVal.resize(vSize);
 
-        for(int i=0, j=0; i<vSize; i++, j+=3) {
+        for(int i=0, j=0; i++<vSize; j+=3) {
             vVal[i] = vec4(v[j], v[j+1], v[j+2], 0.f);
         }
 
     } else { //vdata4
         for (const Config& e : cfg["vData4"].as_array()) v.push_back(e.as_float());
 
-        const int vSize = v.size()/4;
+        const size_t  vSize = v.size()/4;
         vVal.resize(vSize);
 
         memcpy(vVal.data(), v.data(), vSize*sizeof(vec4));
@@ -503,7 +501,7 @@ void attractorVectorK::loadKVals(Config &cfg)
     if(cfg.has_key("kData")) {
         for (const Config& e : cfg["kData"].as_array()) k.push_back(e.as_float());
 
-        const int kSize = k.size()/3;
+        const size_t  kSize = k.size()/3;
         kVal.resize(kSize);
 
         for(int i=0, j=0; i<kSize; i++, j+=3) {
@@ -512,7 +510,7 @@ void attractorVectorK::loadKVals(Config &cfg)
     } else {
         for (const Config& e : cfg["kData4"].as_array()) k.push_back(e.as_float());
 
-        const int kSize = k.size()/4;
+        const size_t  kSize = k.size()/4;
         kVal.resize(kSize);
         memcpy(kVal.data(), k.data(), kSize*sizeof(vec4));
     }
@@ -628,8 +626,7 @@ void Magnetic::loadAdditionalData(Config &cfg)
         tmpElements = nElements = cfg.get_or("nMagnets",2);
 }
 
-void loadAdditionalData(Config &cfg) {};
-
+void loadAdditionalData(Config &cfg) {}
 
 //  Attractor Continer Class
 ////////////////////////////////////////////////////////////////////////////

@@ -50,13 +50,9 @@ public:
     void setSizeStepBuffer(GLuint step) {  szStepBuffer =  step; }    //getEmittedParticles
     GLuint getSizeStepBuffer() { return szStepBuffer; }
 
-
-    //void setMaxTransformedEmission(int i)  {  maxTransformedEmission =  i; }    //Max 
-
     virtual GLuint getVBO() = 0;
     virtual vertexBufferBaseClass *getVertexBase() = 0;
     //vertexBufferBaseClass *getVBO() { return InsertVbo; }
-
 
     GLuint64 getParticlesCount() { return getVertexBase()->getVertexUploaded(); }
     //inline void setParticlesCount(GLuint val) { ParticlesCount=val; }               
@@ -77,7 +73,6 @@ public:
 
     bool stopLoop() { return bStopLoop; }
     void stopLoop(bool b) { bStopLoop = b; }
-
 
     bool isEmitterOn() { return bEmitter; }
 
@@ -109,7 +104,6 @@ public:
     void resetEmittedParticles() { emittedPoints = 0; }
     void incEmittedParticles() { emittedPoints++; }
 
-
     void setEmitterType(int type) {
         if(theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback) {
             bUseThread = false; bUseMappedMem = false; 
@@ -130,11 +124,8 @@ public:
 
     float getStartPointSlowMotion() { return startPointSlowMotion; }
 
-
-
 protected:
     friend class particlesSystemClass; 
-
 
     GLuint szAllocatedBuffer ;
     GLuint szCircularBuffer;
@@ -210,7 +201,6 @@ public:
     void storeData();
     void setEmitter(bool emit);
 
-
 private:
     vertexBufferBaseClass *InsertVbo = nullptr;
 };
@@ -225,26 +215,15 @@ public:
         trasformVB->initBufferStorage(stepBuffer, GL_TRANSFORM_FEEDBACK_BUFFER, GL_DYNAMIC_COPY); // stepBuffer is whole buffer
         trasformVB->buildTransformVertexAttrib();
     }
-    ~transformFeedbackInterleaved() {
-        delete trasformVB;
-    }
+    ~transformFeedbackInterleaved() { delete trasformVB; }
 
-
-
-    void Pause() {
-        glPauseTransformFeedback();
-
-    }
-
-    void Resume() {
-        glResumeTransformFeedback();
-    }
+    void Pause()  { glPauseTransformFeedback();  }
+    void Resume() { glResumeTransformFeedback(); }
 
     vertexBufferBaseClass *getVertexBase() { return trasformVB; }
     vertexBufferBaseClass *getTrasformVB() { return trasformVB; }
     uint64_t getTransformSize() { return transformSize; }
     void setTransformSize(uint64_t v = 0L) { transformSize = v; }
-
 
     void Begin(GLuint query, GLsizeiptr sz) {
         if (FeedbackActive) return;
@@ -275,13 +254,13 @@ public:
         glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
         glGetQueryObjectuiv(query,GL_QUERY_RESULT,&iPrimitivesWritten);
 #endif
-/*
-#ifdef __EMSCRIPTEN__
-        iPrimitivesWritten = EM_ASM_INT({ 
-            return Module.ctx.getQueryParameter(GL.queries[$0], Module.ctx.QUERY_RESULT);
-        }, query);
-#endif
-*/
+
+//#ifdef __EMSCRIPTEN__
+//        iPrimitivesWritten = EM_ASM_INT({
+//            return Module.ctx.getQueryParameter(GL.queries[$0], Module.ctx.QUERY_RESULT);
+//        }, query);
+//#endif
+
         if(iPrimitivesWritten == 0) iPrimitivesWritten = sz;
 
         return iPrimitivesWritten;
@@ -317,18 +296,13 @@ public:
 #if !defined(GLCHAOSP_LIGHTVER)
         glGenQueries(1,&query);
 #endif
-
-        //InsertVbo = new vertexBuffer(GL_POINTS, 1, 2);
         InsertVbo = new transformVertexBuffer(GL_POINTS, size, numVtxAttrib);
         InsertVbo->initBufferStorage(size, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, true);
         InsertVbo->buildTransformVertexAttrib();
 
-        //InsertVbo->storeSpace(2);
-
         activeBuffer = 0;
 
         //build shader
-
         const GLchar *namesParticlesLoc[] {"posOut", "velTOut", "TexCoord0Out", "TexCoord1Out", "TexCoord2Out"};
         useVertex();
         useFragment();
@@ -340,7 +314,6 @@ public:
         addFragment();
 
         glTransformFeedbackVaryings(getHandle(), numVtxAttrib, namesParticlesLoc, GL_INTERLEAVED_ATTRIBS);
-
 
         link();
 
@@ -354,15 +327,7 @@ public:
         uniformBlocksClass::create(GLuint(sizeof(cockpitClass::uTFData)), (void *) &attractorsList.getCockpit().getUdata(), getProgram(), "_TFData");
 #endif
 
-        //USE_PROGRAM
-
-        //for(int i=0; i<InsertVbo->getNumComponents(); i++) InsertVbo->getBuffer()[i] = 0.f;
-
-        //InsertVbo->uploadData(1);
-
-        //mainProgramObj::reset();
     }
-
 
     ~transformedEmitterClass() {
         delete tfbs[0];
@@ -373,13 +338,12 @@ public:
         delete InsertVbo;
     }
 
-
     void renderFeedbackData() {
         // if GL_TRANSFORM_FEEDBACK_BUFFER get error ONLY on FireFox 71 Mobile: 
         // Error: WebGL warning: drawArrays: Vertex attrib 1's buffer is bound for transform feedback.
         const uint64_t sz = tfbs[activeBuffer]->getTransformSize();
-        tfbs[activeBuffer]->getTrasformVB()->drawRange(GL_ARRAY_BUFFER, 0, sz<szCircularBuffer ? sz : szCircularBuffer,0);
-        CHECK_GL_ERROR();
+        tfbs[activeBuffer]->getTrasformVB()->drawRange(GL_ARRAY_BUFFER, 0, sz<szCircularBuffer ? sz : szCircularBuffer);
+        CHECK_GL_ERROR()
     }
 
     void preRenderEvents() { renderOfflineFeedback(attractorsList.get()); }
@@ -409,9 +373,7 @@ protected:
     int activeBuffer;
     GLuint query = 0;
 
-
     transformFeedbackInterleaved *tfbs[2];
     vertexBufferBaseClass *InsertVbo = nullptr;
-
 };
 #endif

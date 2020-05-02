@@ -15,7 +15,6 @@
 #include <fastRandom.h>
 
 #include "glWindow.h"
-#include "ParticlesUtils.h"
 
 //Random numbers of particle velocity of fragmentation
 RandomTexture rndTexture;
@@ -224,7 +223,6 @@ GLuint glWindow::renderAttractor()
 
         particlesSystem->getEmitter()->preRenderEvents();
 
-        const vec3 head(attractorsList.get()->getCurrent());
         const vec3 vecA(vec3(attractorsList.get()->getCurrent() ));
 
         const int buffSize = attractorsList.get()->getQueueSize()-1;
