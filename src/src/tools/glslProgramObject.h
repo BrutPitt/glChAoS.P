@@ -260,7 +260,7 @@ public:
 #ifdef GLAPP_REQUIRE_OGL45
         glCreateBuffers(1, &uBuffer);
         glNamedBufferStorage(uBuffer,  uBlockSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferSubData(uBuffer, 0, realDataSize, ptrData);
+        if(ptrData) glNamedBufferSubData(uBuffer, 0, realDataSize, ptrData);
 #else
         glGenBuffers(1,    &uBuffer);
         GLuint blockIndex = bindIndex(prog, nameUBlock, bindingLocation);
@@ -271,19 +271,20 @@ public:
         glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
 // now we alloc min size permitted, but copy realDataSize
         glBufferData(GL_UNIFORM_BUFFER,  uBlockSize < minBlockSize ? minBlockSize : uBlockSize, nullptr, GL_STATIC_DRAW);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, realDataSize, ptrData); 
+        if(ptrData) glBufferSubData(GL_UNIFORM_BUFFER, 0, realDataSize, ptrData);
 #endif
     }
 
-    void updateBufferData() {
+    void updateBufferData(void *data=nullptr) {
 #ifdef GLAPP_REQUIRE_OGL45
-        glNamedBufferSubData(uBuffer, 0, realDataSize, ptrData); 
+        glNamedBufferSubData(uBuffer, 0, realDataSize, data ? data : ptrData);
 #else
         glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, realDataSize, ptrData); 
 #endif
         glBindBufferBase(GL_UNIFORM_BUFFER, bindingLocation, uBuffer);
     }
+
 
     enum bind { bindIdx=2 };  //internal binding indel location
 private:

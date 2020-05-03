@@ -19,8 +19,6 @@
 #include <varargs.h>
 #endif
 
-
-
 // GL ERROR CHECK
 int CheckGLError(const char *file, int line)
 {
@@ -39,7 +37,6 @@ int CheckGLError(const char *file, int line)
     return retCode;
 }
 
-
 void CheckShaderError(GLuint hProg)
 {
     GLint len;
@@ -50,29 +47,21 @@ void CheckShaderError(GLuint hProg)
 
 void getCompilerLog(GLuint handle, GLint blen, bool isShader)
 {
-//if (!useGLSL) return aGLSLStrings[0];
-
     GLint len;
     GLchar* compilerLog;
-
-    //if (ShaderObject==0) return aGLSLStrings[1]; // not a valid program object
 
 
     if (blen > 1) {
         compilerLog = new GLchar[blen];
 
-        if(compilerLog!=NULL) {
-            if(isShader) glGetShaderInfoLog( handle, blen, &len, compilerLog );
-            else         glGetProgramInfoLog( handle, blen, &len, compilerLog );
+        if(isShader) glGetShaderInfoLog( handle, blen, &len, compilerLog );
+        else         glGetProgramInfoLog( handle, blen, &len, compilerLog );
 
-            CHECK_GL_ERROR();
+        CHECK_GL_ERROR()
 
-            cout << compilerLog << "\n" << endl;
+        cout << compilerLog << "\n" << endl;
 
-            delete[] compilerLog;
-        }
-
-        //cout << "compiler_log: \n", compiler_log);
+        delete[] compilerLog;
     }
 }
 
@@ -110,9 +99,6 @@ void checkProgram(GLuint program)
     }
 }
 
-
-
-
 void ShaderObject::Load(const char *name)
 {
     string str;
@@ -142,14 +128,13 @@ void ShaderObject::Load(const char *defines, int numShaders, ...)
     va_end(argList);
 }
 
-
 /////////////////////////////////////////////////
 void ShaderObject::Compile(const GLchar *code)
 {
 
     // Load source code into shaders
     glShaderSource(shaderID, 1, &code, NULL);
-    CHECK_GL_ERROR();
+    CHECK_GL_ERROR()
 
     // Compile the shader 
     glCompileShader(shaderID);
@@ -158,7 +143,6 @@ void ShaderObject::Compile(const GLchar *code)
 }
 
 //#define USE_STDIO_TO_LOAD_SHADERS
-
 #ifndef USE_STDIO_TO_LOAD_SHADERS
 void getFileContents(const char* fileName, string &str)
 {
@@ -201,8 +185,6 @@ void getFileContents(const char* fileName, string &str)
     // Return the shader code
     delete[] buffer;
 }
-
-
 #else // USE STDIO
 #include <stdio.h>
 #include <stdlib.h>

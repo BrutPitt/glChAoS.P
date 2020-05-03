@@ -19,7 +19,7 @@ ProgramObject::ProgramObject()
 
 ProgramObject::~ProgramObject()
 {
-    deleteProgram();	
+    deleteProgram();
 }
 
 /////////////////////////////////////////////////
