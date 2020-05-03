@@ -93,7 +93,7 @@ public:
     //      pressed: if Button is pressed (TRUE) or released (FALSE)
     //      x, y:    mouse coordinates
     ////////////////////////////////////////////////////////////////////////////
-    void mouse( vgButtons button, vgModifiers mod, bool pressed, T x, T y) 
+    virtual void mouse( vgButtons button, vgModifiers mod, bool pressed, T x, T y)
     {
         if ( (button == tbControlButton) && pressed && (tbControlModifiers ? tbControlModifiers & mod : tbControlModifiers == mod) ) {
             tbActive = true;
@@ -116,7 +116,7 @@ public:
 
     //    Call on Mouse motion
     ////////////////////////////////////////////////////////////////////////////
-    void motion( T x, T y) {
+    virtual void motion( T x, T y) {
         delta.x = x - pos.x;   delta.y = pos.y - y;
         pos.x = x;   pos.y = y;
         update();
@@ -130,7 +130,7 @@ public:
 
     //    Call every rendering to implement continue spin rotation 
     ////////////////////////////////////////////////////////////////////////////
-    void idle() { qtV = qtStep*qtV;  }
+    void idle() { qtV = qtIdle*qtV;  }
 
     //    Call after changed settings
     ////////////////////////////////////////////////////////////////////////////
@@ -139,7 +139,7 @@ public:
     {
 
         if(!delta.x && !delta.y) {
-            qtStep = tQuat(T(1), T(0), T(0), T(0)); //no rotation
+            qtIdle = qtStep = tQuat(T(1), T(0), T(0), T(0)); //no rotation
             return;
         }
 
@@ -164,6 +164,7 @@ public:
         T angle = acos( AdotB>T(1) ? T(1) : (AdotB<-T(1) ? -T(1) : AdotB)); // clamp need!!! corss float is approximate to FLT_EPSILON
 
         qtStep = normalize(angleAxis(angle * tbScale * fpsRatio, axis * rotationVector));
+        qtIdle = normalize(angleAxis(angle * tbScale * fpsRatio * qStepRatio, axis * rotationVector* qStepRatio));
         qtV = qtStep*qtV;
 
     }
@@ -211,7 +212,7 @@ public:
 
     //  get the rotation quaternion
     //////////////////////////////////////////////////////////////////
-    tQuat &getRotation() { return qtV; }
+    virtual tQuat &getRotation() { return qtV; }
 
     //  get the rotation increment
     //////////////////////////////////////////////////////////////////
@@ -254,6 +255,9 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     virtual void applyTransform(tMat4 &model) = 0;
 
+    void setRotStepRatio(T f) { qStepRatio = f; }
+    T    getRotStepRatio()    { return qStepRatio; }
+
 protected:
 
     tVec2 pos, delta;
@@ -266,13 +270,15 @@ protected:
 
     tQuat qtV    = tQuat(T(1), T(0), T(0), T(0));
     tQuat qtStep = tQuat(T(1), T(0), T(0), T(0));
+    tQuat qtIdle = tQuat(T(1), T(0), T(0), T(0));
 
     tVec3 rotationCenter = tVec3(T(0));
 
     //  settings for the sensitivity
     //////////////////////////////////////////////////////////////////
-    T tbScale = T(1);   //base scale sensibility
-    T fpsRatio = T(1);  //auto adjust by FPS (call idle with current FPS)
+    T tbScale = T(1);    //base scale sensibility
+    T fpsRatio = T(1);   //auto adjust by FPS (call idle with current FPS)
+    T qStepRatio = T(1); //autoRotation factor to speedup/slowdown
     
     T minVal;
     tVec3 offset;
@@ -348,7 +354,7 @@ public:
 
     //////////////////////////////////////////////////////////////////
     void mouse( vgButtons button, vgModifiers mod, bool pressed, int x, int y) { mouse(button, mod, pressed, T(x), T(y)); }
-    void mouse( vgButtons button, vgModifiers mod, bool pressed, T x, T y) 
+    void mouse( vgButtons button, vgModifiers mod, bool pressed, T x, T y)
     {
         VGIZMO_BASE_CLASS::mouse(button, mod, pressed,  x,  y);
         if ( button == dollyControlButton && pressed && (dollyControlModifiers ? dollyControlModifiers & mod : dollyControlModifiers == mod) ) {
