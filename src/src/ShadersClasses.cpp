@@ -91,8 +91,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
     const float lightReduction = theApp->useDetailedShadows() ? .3333 : .25f;
 
-    const bool isTFRender = attractorsList.slowMotion(); // transformFeedback Render
-    const bool computeShadow = useShadow() && !cpitView; // FIXME: cockPit Shadow: no shadow on cockpit
+    const bool isTFRender = tfSettinsClass::tfMode(); // transformFeedback Render
+    const bool computeShadow = useShadow() && !cpitView; // FIXME: cockPit Shadow: no shadow on tfSettings
     const bool blendActive = getBlendState() || showAxes();
     const bool isAO_SHDW = ( useAO() || computeShadow);
     const bool isAO_RD_SHDW = isAO_SHDW || postRenderingActive();
@@ -102,7 +102,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     getUData().renderType = (blendActive && !isSolid)            ? pixColIDX::pixBlendig :
                              blendActive || !isAO_RD_SHDW        ? pixColIDX::pixDirect  :
                              isAO_SHDW && !postRenderingActive() ? pixColIDX::pixAO      :
-                             isFullScreenPiP                     ? pixColIDX::pixDR : pixColIDX::pixDirect; //!isFullScreenPiP: no dual pass on cockpit 
+                             isFullScreenPiP                     ? pixColIDX::pixDR : pixColIDX::pixDirect; //!isFullScreenPiP: no dual pass on tfSettings
     
     //isFullScreenPiP: no dual pass on PiP
     getUData().pass = (isShadow ? 4:0) | (postRenderingActive() && isFullScreenPiP ? 2:0) | (useAO() ? 1:0);
@@ -135,12 +135,12 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getUData().lightDir = normalize(vec3(getLigthPOV()));
     }
 
-    getUData().slowMotion = attractorsList.get()->dtType() && attractorsList.slowMotion();
+    getUData().slowMotion = attractorsList.get()->dtType() && tfSettinsClass::tfMode();
 
-    cockpitClass &cPit = attractorsList.getCockpit();
+    tfSettinsClass &cPit = getTFSettings();
     getUData().elapsedTime   = cPit.getUdata().elapsedTime;
-    getUData().lifeTime      = cPit.getLifeTime();
-    getUData().lifeTimeAtten = cPit.getLifeTimeAtten();
+    getUData().lifeTime      = cpitView ? cPit.getLifeTimeCP() : cPit.getLifeTime();
+    getUData().lifeTimeAtten = cpitView ? cPit.getLifeTimeAttenCP() : cPit.getLifeTimeAtten();
     getUData().smoothDistance= cPit.getSmoothDistance();
     getUData().vpReSize      = isFullScreenPiP ? 1.0 : cPit.getPIPzoom()*.5;
 
@@ -488,7 +488,17 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
 
     static auto start = std::chrono::high_resolution_clock::now();
     static const auto startEvent = start;
-    cockpitClass &cPit = attractorsList.getCockpit();
+
+    // FIXME: TOO COMPLEX!!!!!
+        particlesSystemClass *pSys = theWnd->getParticlesSystem();
+#if !defined(GLCHAOSP_LIGHTVER)
+        particlesBaseClass *particles =  pSys->getRenderMode()==RENDER_USE_BILLBOARD ? (particlesBaseClass *) pSys->shaderBillboardClass::getPtr() :
+                                                                                       (particlesBaseClass *) pSys->shaderPointClass::getPtr();
+#else
+        particlesBaseClass *particles =  (particlesBaseClass *) pSys->shaderPointClass::getPtr();
+#endif
+
+    tfSettinsClass &cPit = particles->getTFSettings();
 
     auto end = std::chrono::high_resolution_clock::now();
 
@@ -497,11 +507,11 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
     cPit.getUdata().elapsedTime = std::chrono::duration<double>(end-startEvent).count();
 
     start = end;
-    updateBufferData();
+    updateBufferData((void *) &cPit.getUdata());
 
     static float restEmiss = 0.f;
-    float fEmiss = float(cPit.cockPit() ? cPit.getSlowMotionDpS() : attractorsList.getSlowMotionDpS()) * theApp->getTimer().fps()+restEmiss;
-    //if(cPit.getPIPposition()!=cockpitClass::pip::noPIP) fEmiss*=.5; // with PiP there is double emission (dual pass)
+    float fEmiss = float(cPit.cockPit() ? cPit.getSlowMotionDpS() : cPit.getSlowMotionFSDpS()) * theApp->getTimer().fps()+restEmiss;
+    //if(cPit.getPIPposition()!=tfSettinsClass::pip::noPIP) fEmiss*=.5; // with PiP there is double emission (dual pass)
     //fEmiss+=restEmiss;                                              // add prefious pass fraction
 
     int emiss = fEmiss; 
@@ -510,6 +520,7 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
 
     int count = 0;
     int vtxCount = 0;
+    float const speedMagnitudo = cPit.getInitialSpeed();
     const GLuint szCircular = getSizeCircularBuffer();
     const GLuint64 pCount = getParticlesCount();
     while(isEmitterOn() && emiss-- && (pCount<szCircular)) {
@@ -529,12 +540,12 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
             InsertVbo->getBuffer()[count++] = dist;
             //(*InsertVbo)[3] =
 
-            vec3 speed(fastRandom.VNI(), fastRandom.VNI(), fastRandom.VNI());
-            speed = normalize(speed) * cPit.getInitialSpeed();
+            //vec3 speed(fastRandom.VNI(), fastRandom.VNI(), fastRandom.VNI());
+            //speed = normalize(speed) * cPit.getInitialSpeed();
 
-            InsertVbo->getBuffer()[count++] = speed.x;
-            InsertVbo->getBuffer()[count++] = speed.y;
-            InsertVbo->getBuffer()[count++] = speed.z;
+            InsertVbo->getBuffer()[count++] = fastRandom.VNI()*speedMagnitudo;
+            InsertVbo->getBuffer()[count++] = fastRandom.VNI()*speedMagnitudo;
+            InsertVbo->getBuffer()[count++] = fastRandom.VNI()*speedMagnitudo;
             InsertVbo->getBuffer()[count++] = -bornTime; //bron time: negative for first pass
 
             vInc += vStep;
@@ -562,10 +573,6 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
     const GLuint countV = tfbs[activeBuffer]->End(query, szI+vtxCount);
     tfbs[activeBuffer]->setTransformSize(countV);
     tfbs[activeBuffer^1]->getVertexBase()->setVertexCount(countV);
-    //tfbs[activeBuffer]->getVertexBase()->setVertexCount(countV);
-    //InsertVbo->setVertexCount(countV);
-
-    //printf("%d - %d - %d\n", countV, tfbs[activeBuffer]->getTransformSize());
 }
 #endif
 
@@ -1263,5 +1270,31 @@ void shadowClass::render()
 
 void shadowClass::releaseRender()
 {
+}
+
+tfSettinsClass::tfCommonsStruct tfSettinsClass::tfCommons;
+
+void tfSettinsClass::setViewport(int w, int h) {
+    float szX = float(w)*getPIPzoom()*.5+.5, szY = float(h)*getPIPzoom()*.5+.5;
+    w++; h++;
+    switch(getPIPposition()) {
+        case pip::lTop:
+            setViewportSize(ivec4(0, h-szY, szX, szY));
+            break;
+        case pip::lBottom:
+            setViewportSize(ivec4(0,  0, szX, szY));
+            break;
+        case pip::rTop:
+            setViewportSize(ivec4(w-szX,h-szY, szX, szY));
+            break;
+        case pip::rBottom:
+            setViewportSize(ivec4(w-szX,0 , szX, szY));
+            break;
+        default:
+        case pip::noPIP:
+            setViewportSize(ivec4(0,0, w, h));
+            break;
+    }
+    glViewport(getViewportSize().x, getViewportSize().y, getViewportSize().z, getViewportSize().w);
 }
 

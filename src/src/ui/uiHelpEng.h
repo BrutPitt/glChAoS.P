@@ -215,7 +215,7 @@
     "   gravity - gravity speed (x,y,z) and start time (w)"
 #define GLAPP_HELP_COCKPIT_PARTICLES\
     "Cockpit Particles settings:\n"\
-    "   pointSize - pointSize used only in cockpit view\n"\
+    "   pointSize - pointSize used only in tfSettings view\n"\
     "   smoothDistance - smoothing distance for near particles"
 #define GLAPP_HELP_COCKPIT_PIP\
     "Cockpit Picture in Picture:\n"\

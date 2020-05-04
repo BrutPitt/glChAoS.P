@@ -155,13 +155,15 @@ void BicomplexJExplorer::additionalDataCtrls()
 }
 
 #define GLCHAOSP_FEATURE_WIP
-void slowMotionTool()
+void ftTools()
 {
-    bool b = attractorsList.slowMotion();
-    if(colCheckButton(b , b ? " slowMotion "  ICON_FA_CHECK_SQUARE_O " ": " slowMotion " ICON_FA_SQUARE_O " ")) {
+    const float halfW = (ImGui::GetContentRegionAvail().x)*.5-ImGui::GetStyle().ItemSpacing.x;
+    bool b = tfSettinsClass::tfMode();
+    if(colCheckButton(b , b ? " multiDot emitter "  ICON_FA_CHECK_SQUARE_O " ": " multiDot emitter " ICON_FA_SQUARE_O " ",halfW)) {
         attractorsList.getThreadStep()->stopThread();
-        attractorsList.slowMotion(b^1);
-        const enumEmitterEngine ee = attractorsList.slowMotion() ? enumEmitterEngine::emitterEngine_transformFeedback : enumEmitterEngine::emitterEngine_staticParticles;
+        tfSettinsClass::tfMode(b ^ 1);
+        tfSettinsClass::cockPit(false);
+        const enumEmitterEngine ee = tfSettinsClass::tfMode() ? enumEmitterEngine::emitterEngine_transformFeedback : enumEmitterEngine::emitterEngine_staticParticles;
 
         theWnd->getParticlesSystem()->changeEmitter(ee);
 
@@ -170,7 +172,7 @@ void slowMotionTool()
         attractorsList.getThreadStep()->startThread();
     }
 
-    if(attractorsList.slowMotion()) {
+    if(tfSettinsClass::tfMode()) {
         //ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetStyle().ItemSpacing.x);
 /*
@@ -183,12 +185,11 @@ void slowMotionTool()
         ImGui::SameLine();
 */
         //ImGui::SetCursorPosX()
-        const float halfW = (ImGui::GetContentRegionAvail().x)*.5-ImGui::GetStyle().ItemSpacing.x;
         bool s = theDlg.cockpitDlg.visible();
         if(colCheckButton(s , s ? " settings "  ICON_FA_CHECK_SQUARE_O " " : " settings " ICON_FA_SQUARE_O " ",halfW)) theDlg.cockpitDlg.visible(s^1);
         ImGui::SameLine();
-        bool cP = attractorsList.getCockpit().cockPit();
-        if(colCheckButton(cP , cP ? " cockPit "  ICON_FA_CHECK_SQUARE_O " " : " cockPit " ICON_FA_SQUARE_O " ", halfW)) attractorsList.getCockpit().cockPit(cP^1);
+        bool cP = tfSettinsClass::cockPit();
+        if(colCheckButton(cP , cP ? " cockPit "  ICON_FA_CHECK_SQUARE_O " " : " cockPit " ICON_FA_SQUARE_O " ", halfW)) tfSettinsClass::cockPit(cP ^ 1);
 /*
         int maxDots = pSys->getSlowMotionMaxDots();
         if(ImGui::DragInt("##maxDots", &maxDots, 10.0f, 0, INT32_MAX, "dots# %d")) pSys->setSlowMotionMaxDots(maxDots);
@@ -214,7 +215,7 @@ void slowMotionTool()
 /*
 void PopCorn4DType::additionalDataCtrls()
 {
-    slowMotionTool();
+    ftTools();
 
 }
 */
@@ -226,7 +227,7 @@ void attractorDtType::additionalDataCtrls()
     ImGui::SetCursorPosY(ImGui::GetCursorPosY()-ImGui::GetFrameHeightWithSpacing()); //repos previous line
     particlesSystemClass *pSys = theWnd->getParticlesSystem();
 
-    slowMotionTool();
+    ftTools();
 
     ImGui::NewLine();
     headerAdditionalDataCtrls();

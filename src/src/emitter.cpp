@@ -4,7 +4,7 @@
 void singleEmitterClass::render() {
 /*
     particlesSystemClass *pSys = theWnd->getParticlesSystem();
-    if(attractorsList.get()->dtType() && pSys->slowMotion()) {
+    if(attractorsList.get()->dtType() && pSys->tfMode()) {
         stopFull(true);
         const float increment = float(pSys->getSlowMotionDpS()) * theApp->getTimer().fps();
         const float start = startPointSlowMotion+pSys->getSlowMotionMaxDots()+increment<szCircularBuffer ? 

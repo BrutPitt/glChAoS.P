@@ -2248,133 +2248,6 @@ private:
 };
 
 
-//
-//  cockpitClass
-//
-////////////////////////////////////////////////////////////////////////////////
-class cockpitClass
-{
-protected:
-struct uTFData {
-    vec4 wind = vec4(vec3(0.0), 60.0);
-    vec4 gravity = vec4(vec3(0.0), 60.0);
-    GLfloat airFriction = 10.0;
-    GLfloat diffTime = 0;
-    GLfloat elapsedTime = 0;
-} uData;
-
-public:
-
-    enum pip { noPIP, lTop, rTop, lBottom, rBottom };
-
-    uTFData& getUdata() { return uData; }
-
-    void setViewport(int w, int h);
-
-    bool cockPit() { return isCockPit; }
-    void cockPit(bool b) {  isCockPit = b; }
-
-    int  getPIPposition() { return pipPosition; }
-    void setPIPposition(int f)   { pipPosition = f; }
-
-    float getPIPzoom() { return pipZoom; }
-    void  setPIPzoom(float f) { pipZoom = f; }
-
-    float getPerspAngle() { return perspAngle; }
-    void  setPerspAngle(float f) { perspAngle = f; }
-
-    float getPerspNear() { return perspNear; }
-    void  setPerspNear(float f) { perspNear = f; }
-
-    bool invertPIP() { return invertPip; }
-    void invertPIP(bool b)  { invertPip = b; }
-    bool invertView() { return isInvertView; }
-    void invertView(bool b)  { isInvertView = b; }
-
-    vec3& getPanDollyPos() { return panDollyPos; }
-    void  setPanDollyPos(const vec3& v) { panDollyPos = v; }
-
-    quat& getRotation() { return qRot; }
-    void  setRotation(const quat& q) { qRot = q; }
-
-    float getPointSize() { return pointSize; }
-    void  setPointSize(float f) { pointSize = f; }
-    float getTailPosition() { return tailPosition; }
-    void  setTailPosition(float f) { tailPosition = f; }
-    float getMovePositionHead() { return movePositionHead; }
-    void  setMovePositionHead(float f) { movePositionHead = f; }
-    float getMovePositionTail() { return movePositionTail; }
-    void  setMovePositionTail(float f) { movePositionTail = f; }
-
-    float getLifeTime() { return lifeTime; }
-    void  setLifeTime(float f) { lifeTime = f; }
-    float getLifeTimeAtten() { return lifeTimeAtten; }
-    void  setLifeTimeAtten(float f) { lifeTimeAtten = f; }
-
-    float getSmoothDistance() { return smoothDistance; }
-    void  setSmoothDistance(float f) { smoothDistance = f; }
-
-    float getDtStepInc() { return dtStepInc; }
-    void  setDtStepInc(float f) { dtStepInc = f; }
-
-    float getColorVel() { return colorVel; }
-    void  setColorVel(float f) { colorVel = f; }
-
-    void  setAirFriction(float f) { uData.airFriction =  f; }    
-    float getAirFriction() { return uData.airFriction; }
-
-    void  setInitialSpeed(float f) { initialSpeed =  f; }    
-    float getInitialSpeed() { return initialSpeed; }
-
-    int getSlowMotionDpS() { return slowMotionDpS; }
-    void  setSlowMotionDpS(int v) { slowMotionDpS = v; }
-
-    ivec4 &getViewportSize() { return viewportSize; }
-
-    int getSlowMotionFSDpS() { return slowMotionFSDpS; }
-    void  setSlowMotionFSDpS(int v) { slowMotionFSDpS = v; }
-
-//Feedback Funcs
-    int  getMaxTransformedEmission() { return maxTransformedEmission; }
-    void setTransformedEmission(int i)  {  transformedEmission =  i; }    //getEmittedParticles
-    int  getTransformedEmission() { return transformedEmission; }
-    void setMaxEmissionFrame(int i)  {  maxEmissionFrame =  i; }    //getEmittedParticles
-    int  getMaxEmissionFrame() { return maxEmissionFrame; }
-
-    
-private:
-    float colorVel = .3f;
-    float dtStepInc = 0.001f;
-    float smoothDistance = .250;
-    float lifeTime = 75.0;
-    float lifeTimeAtten = .3;
-    float movePositionHead = 0, movePositionTail = 0;
-    bool isInvertView = false;
-    float tailPosition = .25;
-    float pointSize = 7.f;
-    bool isCockPit = false;
-    int pipPosition = noPIP;
-    float pipZoom = .5; // 1.0 -> 1/4 Window
-    float perspAngle = 65.f;
-    float perspNear = .001f;
-    bool invertPip = false;
-    vec3 panDollyPos = vec3(0.f);
-    quat qRot = quat(1.0f,0.0f, 0.0f, 0.0f);
-    ivec4 viewportSize = ivec4(0, 0, 100, 100);
-    int slowMotionDpS = 100; //cockpit DotPerSec
-    int slowMotionFSDpS = 5000; //FullScreen DotPerSec
-
-
-//Feedback Data
-    int maxTransformedEmission = 50;
-    int transformedEmission = 4;
-    int maxEmissionFrame = 1000;
-    float initialSpeed = 1.0;
-
-    friend transformedEmitterClass;
-};
-
-
 //  Attractor Class container
 ////////////////////////////////////////////////////////////////////////////
 #define ATT_PATH "startData/"
@@ -2491,9 +2364,6 @@ public:
 
         selected = 0;
 
-        //std::sort(ptr.begin(), ptr.end());
-
-
         loadStartData();
     }
 #undef PB
@@ -2589,15 +2459,6 @@ public:
     void selectToContinueDLA(int i);
 
 
-// SlowMotion
-    int getSlowMotionDpS() { return cockpit.getSlowMotionFSDpS(); }
-    void  setSlowMotionDpS(int v) { cockpit.setSlowMotionFSDpS(v); }
-
-    bool slowMotion() { return isSlowMotion; }
-    void slowMotion(bool b) {  isSlowMotion = b; }
-
-    cockpitClass& getCockpit() { return cockpit; }
-
 private:
 
     void newSelection(int i);
@@ -2618,9 +2479,6 @@ private:
     int selected;
 
 // SlowMotion & cockPit
-    bool isSlowMotion = false;
-    cockpitClass cockpit;
-
 
     friend AttractorBase;
     friend threadStepClass;

@@ -233,7 +233,38 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["ToneMap"         ] = glow->getImgTuning()->getToneMap();  
     c["ToneMapVal"      ] = glow->getImgTuning()->getToneMap_A();
     c["ToneMapExp"      ] = glow->getImgTuning()->getToneMap_G();
-                        
+
+    if(attractorsList.get()->dtType()) {
+        tfSettinsClass &cPit = ptr->getTFSettings();
+        c["emitDotsSec"      ] = cPit.getSlowMotionFSDpS();
+        c["emitGenPoints"    ] = cPit.getTransformedEmission();
+        c["emitInitVel"      ] = cPit.getInitialSpeed();
+        c["emitAirFriction"  ] = cPit.getAirFriction();
+        c["emitLifeTime"     ] = cPit.getLifeTime();
+        c["emitLifeTimeAtten"] = cPit.getLifeTimeAtten();
+        {
+            vector<float> v(4);
+            *((vec4 *)v.data())= cPit.getUdata().wind;
+            c["emitWind"       ] = Config::array(v);
+            *((vec4 *)v.data())= cPit.getUdata().gravity;
+            c["emitGravity"    ] = Config::array(v);
+        }
+        c["cpitDotsSec"     ] = cPit.getSlowMotionDpS();
+        c["cpitPointSize"   ] = cPit.getPointSize();
+        c["cpLifeTime"      ] = cPit.getLifeTimeCP();
+        c["cpLifeTimeAtten" ] = cPit.getLifeTimeAttenCP();
+        c["cpitSmoothDist"  ] = cPit.getSmoothDistance();
+        c["cpitTailPos"     ] = cPit.getTailPosition();
+        c["cpitMovPosHead"  ] = cPit.getMovePositionHead();
+        c["cpitMovPosTail"  ] = cPit.getMovePositionTail();
+        c["cpitInvertView"  ] = cPit.invertView();
+        {
+            vector<float> q(4);
+            *((quat *)q.data())= cPit.getRotation();
+            c["cpitRotation"       ] = Config::array(q);
+        }
+    }
+
     savePalette(c, ptr);
 }
 
@@ -304,38 +335,12 @@ void saveSettings(Config &cfg, particlesSystemClass *pSys)
 
 
         if(attractorsList.get()->dtType()) {
-            cockpitClass &cPit = attractorsList.getCockpit();
-            c["slowMotionOn"     ] = attractorsList.slowMotion();
-            c["emitDotsSec"      ] = attractorsList.getSlowMotionDpS();
-            c["emitGenPoints"    ] = cPit.getTransformedEmission();
-            c["emitInitVel"      ] = cPit.getInitialSpeed();
-            c["emitAirFriction"  ] = cPit.getAirFriction();
-            c["emitLifeTime"     ] = cPit.getLifeTime();
-            c["emitLifeTimeAtten"] = cPit.getLifeTimeAtten();
-            {
-                vector<float> v(4); 
-                *((vec4 *)v.data())= cPit.getUdata().wind;
-                c["emitWind"       ] = Config::array(v);
-                *((vec4 *)v.data())= cPit.getUdata().gravity;
-                c["emitGravity"    ] = Config::array(v);
-            }
-            c["cpitOn"          ] = cPit.cockPit(); 
-            c["cpitDotsSec"     ] = cPit.getSlowMotionDpS();
-            c["cpitPointSize"   ] = cPit.getPointSize();
-            c["cpitSmoothDist"  ] = cPit.getSmoothDistance();
-            c["cpitFOVangle"    ] = cPit.getPerspAngle();
-            c["cpitTailPos"     ] = cPit.getTailPosition();
-            c["cpitMovPosHead"  ] = cPit.getMovePositionHead();
-            c["cpitMovPosTail"  ] = cPit.getMovePositionTail();
-            c["cpitInvertView"  ] = cPit.invertView();
-            c["cpitPiPsize"     ] = cPit.getPIPzoom();
-            c["cpitPiPpos"      ] = cPit.getPIPposition();
-            c["cpitPiPinvert"   ] = cPit.invertPIP();
-            {
-                vector<float> q(4); 
-                *((quat *)q.data())= cPit.getRotation();
-                c["cpitRotation"       ] = Config::array(q);
-            }
+            c["tfModeOn"        ] = tfSettinsClass::tfMode();
+            c["cpitOn"          ] = tfSettinsClass::cockPit();
+            c["cpitFOVangle"    ] = tfSettinsClass::getPerspAngle();
+            c["cpitPiPsize"     ] = tfSettinsClass::getPIPzoom();
+            c["cpitPiPpos"      ] = tfSettinsClass::getPIPposition();
+            c["cpitPiPinvert"   ] = tfSettinsClass::invertPIP();
         }
 
     }
@@ -600,6 +605,32 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         glow->getImgTuning()->setToneMap_G(c.get_or("ToneMapExp", glow->getImgTuning()->getToneMap_G()));
     }
 
+    //Transform Feedback for any system
+    if(attractorsList.get()->dtType()) {
+        vec4 v4; quat q;
+        tfSettinsClass &cPit = ptr->getTFSettings();
+        tfSettinsClass cPitDef;
+        cPit.setSlowMotionFSDpS(        c.get_or("emitDotsSec"      , cPitDef.getSlowMotionFSDpS()     ));
+        cPit.setTransformedEmission(    c.get_or("emitGenPoints"    , cPitDef.getTransformedEmission() ));
+        cPit.setInitialSpeed(           c.get_or("emitInitVel"      , cPitDef.getInitialSpeed()        ));
+        cPit.setAirFriction(            c.get_or("emitAirFriction"  , cPitDef.getAirFriction()         ));
+        cPit.setLifeTime(               c.get_or("emitLifeTime"     , cPitDef.getLifeTime()            ));
+        cPit.setLifeTimeAtten(          c.get_or("emitLifeTimeAtten", cPitDef.getLifeTimeAtten()       ));
+        cPit.getUdata().wind    = getVec_asArray(c, "emitWind"        , v4) ? v4 : cPitDef.getUdata().wind;
+        cPit.getUdata().gravity = getVec_asArray(c, "emitGravity"     , v4) ? v4 : cPitDef.getUdata().gravity;
+        cPit.setSlowMotionDpS(   c.get_or("cpitDotsSec"    , cPitDef.getSlowMotionDpS()   ));
+        cPit.setPointSize(       c.get_or("cpitPointSize"  , cPitDef.getPointSize()       ));
+        cPit.setLifeTimeCP(      c.get_or("cpLifeTime"     , cPitDef.getLifeTimeCP()      ));
+        cPit.setLifeTimeAttenCP( c.get_or("cpLifeTimeAtten", cPitDef.getLifeTimeAttenCP() ));
+        cPit.setSmoothDistance(  c.get_or("cpitSmoothDist" , cPitDef.getSmoothDistance()  ));
+        cPit.setTailPosition(    c.get_or("cpitTailPos"    , cPitDef.getTailPosition()    ));
+        cPit.setMovePositionHead(c.get_or("cpitMovPosHead" , cPitDef.getMovePositionHead()));
+        cPit.setMovePositionTail(c.get_or("cpitMovPosTail" , cPitDef.getMovePositionTail()));
+        cPit.invertView(         c.get_or("cpitInvertView" , cPitDef.invertView()         ));
+        cPit.setRotation(getVec_asArray(c,"cpitRotation"   , q) ? q :cPitDef.getRotation() );
+    }
+
+
     if(theDlg.getDataDlg().getColor() || checkSelectGroup) loadPalette(c, ptr);
 }
 
@@ -672,35 +703,16 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
 
         }
 
-        //Transform Feedback
-        if(attractorsList.get()->dtType() && theDlg.getDataDlg().getSlowMotion() || checkSelectGroup) {
-            vec4 v4; quat q;
-            cockpitClass &cPit = attractorsList.getCockpit();
-            cockpitClass cPitDef;
-            attractorsList.slowMotion(      c.get_or("slowMotionOn"     , false   ));
-            attractorsList.setSlowMotionDpS(c.get_or("emitDotsSec"      , cPitDef.getSlowMotionFSDpS()));
-            cPit.setTransformedEmission(    c.get_or("emitGenPoints"    , cPitDef.getTransformedEmission() ));
-            cPit.setInitialSpeed(           c.get_or("emitInitVel"      , cPitDef.getInitialSpeed()        ));
-            cPit.setAirFriction(            c.get_or("emitAirFriction"  , cPitDef.getAirFriction()         ));
-            cPit.setLifeTime(               c.get_or("emitLifeTime"     , cPitDef.getLifeTime()            ));
-            cPit.setLifeTimeAtten(          c.get_or("emitLifeTimeAtten", cPitDef.getLifeTimeAtten()       ));
-            cPit.getUdata().wind    = getVec_asArray(c, "emitWind"        , v4) ? v4 : cPitDef.getUdata().wind;
-            cPit.getUdata().gravity = getVec_asArray(c, "emitGravity"     , v4) ? v4 : cPitDef.getUdata().gravity;
-            cPit.cockPit(            c.get_or("cpitOn"        , false)); 
-            cPit.cockPit(false); // OVERRIDE start anyway OFF // FIXME:
-            cPit.setSlowMotionDpS(   c.get_or("cpitDotsSec"   , cPitDef.getSlowMotionDpS()   ));
-            cPit.setPointSize(       c.get_or("cpitPointSize" , cPitDef.getPointSize()       )); 
-            cPit.setSmoothDistance(  c.get_or("cpitSmoothDist", cPitDef.getSmoothDistance()  )); 
-            cPit.setPerspAngle(      c.get_or("cpitFOVangle"  , cPitDef.getPerspAngle()      )); 
-            cPit.setTailPosition(    c.get_or("cpitTailPos"   , cPitDef.getTailPosition()    )); 
-            cPit.setMovePositionHead(c.get_or("cpitMovPosHead", cPitDef.getMovePositionHead())); 
-            cPit.setMovePositionTail(c.get_or("cpitMovPosTail", cPitDef.getMovePositionTail())); 
-            cPit.invertView(         c.get_or("cpitInvertView", cPitDef.invertView()         )); 
-            cPit.setPIPzoom(         c.get_or("cpitPiPsize"   , cPitDef.getPIPzoom()         ));
-            cPit.setPIPposition(     c.get_or("cpitPiPpos"    , cPitDef.getPIPposition()     ));
-            cPit.invertPIP(          c.get_or("cpitPiPinvert" , cPitDef.invertPIP()          ));
-            cPit.setRotation(getVec_asArray(c,"cpitRotation"  , q) ? q :cPitDef.getRotation() );
-        } 
+        //Transform Feedback static
+        if(attractorsList.get()->dtType()) {
+            tfSettinsClass::tfMode(c.get_or("tfModeOn", false));
+            tfSettinsClass::cockPit(            c.get_or("cpitOn"        , false));
+            tfSettinsClass::cockPit(false); // OVERRIDE start anyway OFF // FIXME:
+            tfSettinsClass::setPerspAngle(      c.get_or("cpitFOVangle"  , tfSettinsClass::getPerspAngle()      ));
+            tfSettinsClass::setPIPzoom(         c.get_or("cpitPiPsize"   , tfSettinsClass::getPIPzoom()         ));
+            tfSettinsClass::setPIPposition(     c.get_or("cpitPiPpos"    , tfSettinsClass::getPIPposition()     ));
+            tfSettinsClass::invertPIP(          c.get_or("cpitPiPinvert" , tfSettinsClass::invertPIP()          ));
+        }
     }
 
     {

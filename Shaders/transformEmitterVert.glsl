@@ -46,7 +46,7 @@ void main(void)
 
     if(time<0.0) {
         time = -time;
-        pos.xyz += vel*.5 * u.diffTime;
+        pos.xyz += vel * u.diffTime;
     } else {
         float dTime = u.elapsedTime-time;
 

@@ -288,7 +288,8 @@ public:
         const int numVtxAttrib = 2;
 
         //Feedback
-        GLsizeiptr size = 1000 * attractorsList.getCockpit().getMaxTransformedEmission();
+        GLsizeiptr size = 1000 *
+                tfSettinsClass::getMaxTransformedEmission();
 
         tfbs[0] = new transformFeedbackInterleaved(GL_POINTS, getSizeAllocatedBuffer(), numVtxAttrib);
         tfbs[1] = new transformFeedbackInterleaved(GL_POINTS, getSizeAllocatedBuffer(), numVtxAttrib);
@@ -320,11 +321,11 @@ public:
         removeAllShaders(true);
 
 #ifdef GLAPP_REQUIRE_OGL45
-        uniformBlocksClass::create(GLuint(sizeof(cockpitClass::uTFData)), (void *) &attractorsList.getCockpit().getUdata());
+        uniformBlocksClass::create(GLuint(sizeof(tfSettinsClass::uTFData)), nullptr);
 #else
         USE_PROGRAM
 
-        uniformBlocksClass::create(GLuint(sizeof(cockpitClass::uTFData)), (void *) &attractorsList.getCockpit().getUdata(), getProgram(), "_TFData");
+        uniformBlocksClass::create(GLuint(sizeof(tfSettinsClass::uTFData)), nullptr, getProgram(), "_TFData");
 #endif
 
     }

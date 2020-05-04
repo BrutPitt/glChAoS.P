@@ -1247,30 +1247,6 @@ const vec3 Magnetic::tryed(const vec3 &vx, int i)
 }
 
 
-void cockpitClass::setViewport(int w, int h) {
-    float szX = float(w)*pipZoom*.5+.5, szY = float(h)*pipZoom*.5+.5;
-    w++; h++;
-    switch(getPIPposition()) {
-        case pip::lTop:
-            viewportSize = ivec4(0, h-szY, szX, szY);
-            break;
-        case pip::lBottom:
-            viewportSize = ivec4(0,  0, szX, szY);
-            break;
-        case pip::rTop:
-            viewportSize = ivec4(w-szX,h-szY, szX, szY);
-            break;
-        case pip::rBottom:
-            viewportSize = ivec4(w-szX,0 , szX, szY);
-            break;
-        default:
-        case pip::noPIP:
-            viewportSize = ivec4(0,0, w, h);
-            break;
-    }
-    glViewport(viewportSize.x, viewportSize.y, viewportSize.z, viewportSize.w);
-}
-
 
 //  Attractors Thread helper class
 ////////////////////////////////////////////////////////////////////////////
@@ -1350,9 +1326,9 @@ void AttractorsClass::newSelection(int i) {
 void AttractorsClass::checkCorrectEmitter()
 {
     if(get()->dtType()) {
-        if(slowMotion() && theApp->getEmitterEngineType()==enumEmitterEngine::emitterEngine_staticParticles)
+        if(tfSettinsClass::tfMode() && theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_staticParticles)
             theWnd->getParticlesSystem()->changeEmitter(enumEmitterEngine::emitterEngine_transformFeedback);
-        else if(!slowMotion() && theApp->getEmitterEngineType()==enumEmitterEngine::emitterEngine_transformFeedback)
+        else if(!tfSettinsClass::tfMode() && theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback)
             theWnd->getParticlesSystem()->changeEmitter(enumEmitterEngine::emitterEngine_staticParticles);
 
     } else {

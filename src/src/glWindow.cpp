@@ -54,24 +54,25 @@ void glWindow::onInit()
 #endif
 
 
-    vg::vGizmo3D &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
+    vg::vGizmo3D &vgizmo = theWnd->getParticlesSystem()->getTMat()->getTrackball();
 
     particlesSystem->getTMat()->setPerspective(30.f, float(theApp->GetWidth())/float(theApp->GetHeight()), 0.f, 100.f);
     particlesSystem->getTMat()->setView(attractorsList.get()->getPOV(), attractorsList.get()->getTGT());
 
-    T.setGizmoRotControl( (vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) 0 /* evNoModifier */ );
+    vgizmo.setGizmoRotControl( (vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) 0 /* evNoModifier */ );
 
-    T.setGizmoRotXControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_SHIFT);
-    T.setGizmoRotYControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_CONTROL);
-    T.setGizmoRotZControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_ALT | GLFW_MOD_SUPER);
+    vgizmo.setGizmoRotXControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_SHIFT);
+    vgizmo.setGizmoRotYControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_CONTROL);
+    vgizmo.setGizmoRotZControl((vgButtons) GLFW_MOUSE_BUTTON_LEFT, (vgModifiers) GLFW_MOD_ALT | GLFW_MOD_SUPER);
 
-    T.setDollyControl((vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) 0);
-    T.setPanControl(  (vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) GLFW_MOD_CONTROL|GLFW_MOD_SUPER);
+    vgizmo.setDollyControl((vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) 0);
+    vgizmo.setPanControl(  (vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) GLFW_MOD_CONTROL|GLFW_MOD_SUPER);
 
 
-    T.setRotationCenter(attractorsList.get()->getTGT());
+    vgizmo.setRotationCenter(attractorsList.get()->getTGT());
+    vgizmo.viewportSize(theApp->GetWidth(), theApp->GetHeight());
 
-    T.viewportSize(theApp->GetWidth(), theApp->GetHeight());
+    vgizmo.setRotStepRatio(.3f);
 
     //load attractor file (if exist) and (if exist) override default parameters
     //attractorsList.setSelection(attractorsList.getSelection()); 
@@ -217,9 +218,16 @@ GLuint glWindow::renderAttractor()
     GLuint texRendered;
 
 
-    if(attractorsList.get()->dtType() && attractorsList.slowMotion() && attractorsList.getCockpit().cockPit()) {
+    if(attractorsList.get()->dtType() && tfSettinsClass::tfMode() && tfSettinsClass::cockPit()) {
 
-        cockpitClass &cPit = attractorsList.getCockpit();
+        // FIXME: TOO COMPLEX!!!!!
+#if !defined(GLCHAOSP_LIGHTVER)
+        particlesBaseClass *particles =  particlesSystem->getRenderMode()==RENDER_USE_BILLBOARD ? (particlesBaseClass *) particlesSystem->shaderBillboardClass::getPtr() :
+                                                                                                  (particlesBaseClass *) particlesSystem->shaderPointClass::getPtr();
+#else
+        particlesBaseClass *particles =  (particlesBaseClass *) particlesSystem->shaderPointClass::getPtr();
+#endif
+        tfSettinsClass &cPit = particles->getTFSettings();
 
         particlesSystem->getEmitter()->preRenderEvents();
 
@@ -245,12 +253,12 @@ GLuint glWindow::renderAttractor()
         m = m * mat4_cast(cPit.getRotation());
         cpPOV = mat4(m) * vec4(cpPOV-cpTGT, 1.0);
 
-        cpTM->setPerspective(attractorsList.getCockpit().getPerspAngle(), float(w)/float(h), 
-                             attractorsList.getCockpit().getPerspNear(), 
+        cpTM->setPerspective(tfSettinsClass::getPerspAngle(), float(w) / float(h),
+                             tfSettinsClass::getPerspNear(),
                              getParticlesSystem()->getTMat()->getPerspFar());
         cpTM->setView(cpPOV, cpTGT);
 
-        // New settings for cockpit
+        // New settings for tfSettings
         cpTM->getTrackball().setRotation(quat(1.0f,0.0f, 0.0f, 0.0f));
         cpTM->getTrackball().setRotationCenter(vec3(0.f));
 

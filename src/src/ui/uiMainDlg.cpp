@@ -1232,6 +1232,8 @@ void particlesDlgClass::view()
                 ImGui::Text( ICON_FA_SLIDERS " Common Settings   " ICON_FA_COMMENT_O);
                 ShowHelpOnTitle(GLAPP_HELP_COMMON_TREE);
 
+                const bool tfActive = tfSettinsClass::tfMode() && attractorsList.get()->dtType();
+
 #if !defined(GLCHAOSP_LIGHTVER)
                 //////////Linea 1//////////
                 // Pointsprite
@@ -1239,7 +1241,8 @@ void particlesDlgClass::view()
                 {
                     const bool b = pSys->whichRenderMode==RENDER_USE_POINTS;
                     if(colCheckButton(b, b ? "Points " ICON_FA_CHECK : "Points", wButt)) {
-                        pSys->setRenderMode(RENDER_USE_POINTS); 
+                        pSys->setRenderMode(RENDER_USE_POINTS);
+                        if(tfActive) attractorsList.restart();
                         bbTreeVisible = false; //Hide Billboard
                     }
                 }
@@ -1266,7 +1269,8 @@ void particlesDlgClass::view()
                 {
                     const bool b = pSys->whichRenderMode==RENDER_USE_BILLBOARD;
                     if(colCheckButton(b, b ? "Billboard " ICON_FA_CHECK : "Billboard", wButt)) {
-                        pSys->setRenderMode(RENDER_USE_BILLBOARD); 
+                        pSys->setRenderMode(RENDER_USE_BILLBOARD);
+                        if(tfActive) attractorsList.restart();
                         psTreeVisible = false; //Hide pointSprite
                     }
                 }
@@ -1301,11 +1305,11 @@ void particlesDlgClass::view()
                 //////////Linea 3//////////
                 // Both
 #if !defined(GLCHAOSP_LIGHTVER)
-                {
+                if(!tfActive) {
                     ImGui::SetCursorPosX(border);
                     const bool b = pSys->whichRenderMode==RENDER_USE_BOTH;
                     if(colCheckButton(b, b ? "Both " ICON_FA_CHECK : "Both", wButt)) pSys->setRenderMode(RENDER_USE_BOTH); 
-                }
+                } else ImGui::NewLine();
 #else 
                 ImGui::NewLine();
 #endif                
@@ -1904,7 +1908,7 @@ void dataDlgClass::view()
 
         ImGui::Checkbox("View/Model settings", &viewSettings);
         if(attractorsList.get()->dtType()) 
-            ImGui::Checkbox("SlowMotion/CockPit (if available)", &adjust);
+            ImGui::Checkbox("multiDot emitter (if available)", &adjust);
         if(ImGui::Button(ICON_FA_FOLDER_OPEN_O " Import from CFG/SCA", ImVec2(w,0))) loadSettingsFile(true);
 /*
     bool psSettings = true, bbSettings = true;
@@ -2017,7 +2021,7 @@ void cockpitDlgClass::view()
 #else
         particlesBaseClass *particles =  (particlesBaseClass *) pSys->shaderPointClass::getPtr();
 #endif
-        cockpitClass &cPit = attractorsList.getCockpit();
+        tfSettinsClass &cPit = particles->getTFSettings();
 
         const ImU32 titleCol = ImGui::GetColorU32(ImGuiCol_PlotLines); 
 
@@ -2026,8 +2030,8 @@ void cockpitDlgClass::view()
             ImGui::AlignTextToFramePadding();
             ImGui::TextDisabled("FixedView dots/s "); ImGui::SameLine();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-            int DpS = attractorsList.getSlowMotionDpS();
-            if(ImGui::DragInt("##DpS__", &DpS, 1.0f, 0, INT32_MAX, "%d")) attractorsList.setSlowMotionDpS(DpS);
+            int DpS = particles->getTFSettings().getSlowMotionFSDpS();
+            if(ImGui::DragInt("##DpS__", &DpS, 1.0f, 0, INT32_MAX, "%d")) particles->getTFSettings().setSlowMotionFSDpS(DpS);
             ImGui::PopItemWidth();
         }
         ImGui::PopItemWidth();
@@ -2059,7 +2063,7 @@ void cockpitDlgClass::view()
                     ImGui::SameLine();
                     {
                         float f = cPit.getInitialSpeed();
-                        if(ImGui::DragFloat("##InitSpeed", &f, .01f, .0f, FLT_MAX, "%.3f")) cPit.setInitialSpeed(f);
+                        if(ImGui::DragFloat("##InitSpeed", &f, .001f, .0f, FLT_MAX, "%.3f")) cPit.setInitialSpeed(f);
                     }
                     ImGui::SameLine();
                     {
@@ -2105,8 +2109,8 @@ void cockpitDlgClass::view()
                 ImGui::PopStyleVar();
             }
         }
-        bool cP = attractorsList.getCockpit().cockPit();
-        if(colCheckButton(cP , cP ? " CockPit "  ICON_FA_CHECK_SQUARE_O " " : " CockPit " ICON_FA_SQUARE_O " ",ImGui::GetContentRegionAvail().x)) attractorsList.getCockpit().cockPit(cP^1);
+        bool cP = particles->getTFSettings().cockPit();
+        if(colCheckButton(cP , cP ? " CockPit "  ICON_FA_CHECK_SQUARE_O " " : " CockPit " ICON_FA_SQUARE_O " ",ImGui::GetContentRegionAvail().x)) particles->getTFSettings().cockPit(cP ^ 1);
 
         if(cP) {
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
@@ -2126,32 +2130,48 @@ void cockpitDlgClass::view()
                 ShowHelpOnTitle(GLAPP_HELP_COCKPIT_PARTICLES);
                 if(isOpen) {
                     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-                    ImGui::BeginChild("##PartCPChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2), true);
+                    ImGui::BeginChild("##PartCPChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*4), true);
 
                     const float w = ImGui::GetContentRegionAvail().x;
                     const float w2 = w*.5;
                     const float spaceX = ImGui::GetStyle().ItemSpacing.x;
 
-                    ImGui::TextDisabled(" pointSize");      ImGui::SameLine(w3+spaceX);
-                    ImGui::TextDisabled(" smoothDist"); ImGui::SameLine(w6+spaceX);
-                    ImGui::TextDisabled(" clipDist"); 
+                    ImGui::TextDisabled(" pointSize");     ImGui::SameLine(w3+spaceX);
+                    ImGui::TextDisabled(" lifeTime");      ImGui::SameLine(w6+spaceX);
+                    ImGui::TextDisabled(" lifeTimeAtten");
 
                     ImGui::PushItemWidth(w3-spaceX*.3333);
-                    {
-                        float f = cPit.getPointSize();
-                        if(ImGui::DragFloat("##pointSzSM", &f, .001f, .001f, FLT_MAX, "%.3f")) cPit.setPointSize(f);
-                    }
-                    ImGui::SameLine();
-                    {
-                        float f = cPit.getSmoothDistance();
-                        if(ImGui::DragFloat("##smoothD", &f, .001f, 0.0f, 5.0, "%.3f")) cPit.setSmoothDistance(f);
-                    }
-                    ImGui::SameLine();
-                    {
-                        float f = particles->getClippingDist();
-                        if(ImGui::DragFloat("##clipDist", &f, .001f, 0.001f, FLT_MAX, "%.3f")) particles->setClippingDist(f);
-                    }
+                        {
+                            float f = cPit.getPointSize();
+                            if(ImGui::DragFloat("##pointSzSM", &f, .001f, .001f, FLT_MAX, "%.3f")) cPit.setPointSize(f);
+                        }
+                        ImGui::SameLine();
+                        {
+                            float f = cPit.getLifeTimeCP();
+                            if(ImGui::DragFloat("##lifeTime", &f, .05f, 1.0f, FLT_MAX, "%.2f")) cPit.setLifeTimeCP(f);
+                        }
+                        ImGui::SameLine();
+                        {
+                            float f = cPit.getLifeTimeAttenCP();
+                            if(ImGui::DragFloat("##lifeTimeAtten", &f, .001f, 0.0f, 1.0, "%.3f")) cPit.setLifeTimeAttenCP(f);
+                        }
                     ImGui::PopItemWidth();
+
+                    ImGui::TextDisabled(" smoothDist"); ImGui::SameLine(w2+spaceX);
+                    ImGui::TextDisabled(" clipDist");
+
+                    ImGui::PushItemWidth(w2-spaceX*.5);
+                        {
+                            float f = cPit.getSmoothDistance();
+                            if(ImGui::DragFloat("##smoothD", &f, .001f, 0.0f, 5.0, "%.3f")) cPit.setSmoothDistance(f);
+                        }
+                        ImGui::SameLine();
+                        {
+                            float f = particles->getClippingDist();
+                            if(ImGui::DragFloat("##clipDist", &f, .001f, 0.001f, FLT_MAX, "%.3f")) particles->setClippingDist(f);
+                        }
+                    ImGui::PopItemWidth();
+
 
                     ImGui::EndChild();
                     ImGui::PopStyleVar();
@@ -3026,7 +3046,7 @@ void mainImGuiDlgClass::renderImGui()
         fastViewDlg.view();
         particleEditDlg.view();
         clippingDlg.view();
-        if(attractorsList.get()->dtType() && attractorsList.slowMotion()) cockpitDlg.view();
+        if(attractorsList.get()->dtType() && tfSettinsClass::tfMode()) cockpitDlg.view();
 #if !defined(GLCHAOSP_LIGHTVER)
         progSettingDlg.view();
         dataDlg.view();

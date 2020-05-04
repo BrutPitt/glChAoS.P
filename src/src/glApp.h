@@ -374,7 +374,7 @@ private:
     bool fixedCanvas = false;
     bool initialGlowOFF = false;
     bool detailedShadows = false;
-    bool isIdleRotation = false;
+    bool isIdleRotation = true;
     bool isSlowGPU = false;
     bool appNeedRestart = false;
 #if defined(__APPLE__) || defined(GLCHAOSP_LIGHTVER)

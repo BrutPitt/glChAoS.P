@@ -303,7 +303,7 @@ public:
     attractorDlgClass& getAttractorDlg() {return  attractorDlg; }
 
 private:
-    ImVec4 guiThemeBaseColor = ImVec4(0.17f, 0.24f, 0.41f, 1.00f); //ImVec4(0.0f, 0.20f, 0.30f, 1.00f); //Solar; 
+    ImVec4 guiThemeBaseColor =  ImVec4(0.227f, 0.307f, 0.477f, 1.00f); //ImVec4(0.17f, 0.24f, 0.41f, 1.00f); //ImVec4(0.0f, 0.20f, 0.30f, 1.00f); //Solar;
     int selectedGuiTheme = 0;
 
     bool fontChanged = false;
@@ -342,7 +342,7 @@ private:
 
 friend void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 friend void setGUIStyle();
-friend void slowMotionTool();
+friend void ftTools();
 friend class particlesDlgClass;
 friend class viewSettingDlgClass;
 friend class attractorDtType;

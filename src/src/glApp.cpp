@@ -79,26 +79,26 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
                 } break;
             case GLFW_KEY_V    :
             case GLFW_KEY_C    :
-                attractorsList.getCockpit().cockPit(attractorsList.getCockpit().cockPit()^1);
+                tfSettinsClass::cockPit(tfSettinsClass::cockPit() ^ 1);
                 break;
             case GLFW_KEY_PAGE_UP :
-                attractorsList.getCockpit().setPIPposition(cockpitClass::pip::rTop);
+                tfSettinsClass::setPIPposition(tfSettinsClass::pip::rTop);
                 break;
-            case GLFW_KEY_PAGE_DOWN :  
-                attractorsList.getCockpit().setPIPposition(cockpitClass::pip::rBottom);
+            case GLFW_KEY_PAGE_DOWN :
+                tfSettinsClass::setPIPposition(tfSettinsClass::pip::rBottom);
                 break;
-            case GLFW_KEY_HOME :  
-                attractorsList.getCockpit().setPIPposition(cockpitClass::pip::lTop);
+            case GLFW_KEY_HOME :
+                tfSettinsClass::setPIPposition(tfSettinsClass::pip::lTop);
                 break;
-            case GLFW_KEY_END :  
-                attractorsList.getCockpit().setPIPposition(cockpitClass::pip::lBottom);
+            case GLFW_KEY_END :
+                tfSettinsClass::setPIPposition(tfSettinsClass::pip::lBottom);
                 break;
-            case GLFW_KEY_P :  
-                attractorsList.getCockpit().invertPIP(attractorsList.getCockpit().invertPIP()^1);
+            case GLFW_KEY_P :
+                tfSettinsClass::invertPIP(tfSettinsClass::invertPIP() ^ 1);
                 break;
             case GLFW_KEY_DELETE :  
-            case GLFW_KEY_INSERT :  
-                attractorsList.getCockpit().setPIPposition(cockpitClass::pip::noPIP);
+            case GLFW_KEY_INSERT :
+                tfSettinsClass::setPIPposition(tfSettinsClass::pip::noPIP);
                 break;
             case GLFW_KEY_LEFT :  
             case GLFW_KEY_L    :  {
@@ -622,8 +622,8 @@ int main(int argc, char **argv)
 /*        // 9
             if(atoi(argv[9])==1) {
                 theApp->setEmitterEngineType(enumEmitterEngine::emitterEngine_transformFeedback);
-                attractorsList.slowMotion(true);
-                attractorsList.getCockpit().cockPit(true);
+                attractorsList.tfMode(true);
+                attractorsList.getTFSettings().cockPit(true);
             }
 */
         // 9

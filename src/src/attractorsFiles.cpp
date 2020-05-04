@@ -457,8 +457,8 @@ void AttractorBase::loadVals(Config &cfg)
         const size_t vSize = v.size()/3;
         vVal.resize(vSize);
 
-        for(int i=0, j=0; i++<vSize; j+=3) {
-            vVal[i] = vec4(v[j], v[j+1], v[j+2], 0.f);
+        for(int i=0, j=0; i<vSize; j+=3) {
+            vVal[i++] = vec4(v[j], v[j+1], v[j+2], 0.f);
         }
 
     } else { //vdata4
@@ -504,8 +504,8 @@ void attractorVectorK::loadKVals(Config &cfg)
         const size_t  kSize = k.size()/3;
         kVal.resize(kSize);
 
-        for(int i=0, j=0; i<kSize; i++, j+=3) {
-            kVal[i] = vec4(k[j], k[j+1], k[j+2], 0.f);
+        for(int i=0, j=0; i<kSize; j+=3) {
+            kVal[i++] = vec4(k[j], k[j+1], k[j+2], 0.f);
         }
     } else {
         for (const Config& e : cfg["kData4"].as_array()) k.push_back(e.as_float());

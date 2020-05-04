@@ -279,6 +279,136 @@ class mergedRenderingClass;
 #endif
 
 //
+//  tfSettinsClass
+//
+////////////////////////////////////////////////////////////////////////////////
+class tfSettinsClass
+{
+protected:
+struct uTFData {
+    vec4 wind = vec4(vec3(0.0), 60.0);
+    vec4 gravity = vec4(vec3(0.0), 60.0);
+    GLfloat airFriction = 10.0;
+    GLfloat diffTime = 0;
+    GLfloat elapsedTime = 0;
+} uData;
+
+public:
+
+    enum pip { noPIP, lTop, rTop, lBottom, rBottom };
+
+    uTFData& getUdata() { return uData; }
+
+    void setViewport(int w, int h);
+
+    static bool cockPit() { return tfCommons.isCockPit; }
+    static void cockPit(bool b) {  tfCommons.isCockPit = b; }
+
+    static int  getPIPposition() { return tfCommons.pipPosition; }
+    static void setPIPposition(int f)   { tfCommons.pipPosition = f; }
+
+    static float getPerspAngle() { return tfCommons.perspAngle; }
+    static void  setPerspAngle(float f) { tfCommons.perspAngle = f; }
+
+    static bool invertPIP() { return tfCommons.invertPip; }
+    static void invertPIP(bool b)  { tfCommons.invertPip = b; }
+
+    static bool tfMode() { return tfCommons.isTFMode; }
+    static void tfMode(bool b) {  tfCommons.isTFMode = b; }
+
+    static float getPIPzoom() { return tfCommons.pipZoom; }
+    static void setPIPzoom(float f) { tfCommons.pipZoom = f; }
+
+    bool invertView() { return isInvertView; }
+    void invertView(bool b)  { isInvertView = b; }
+
+    quat& getRotation() { return qRot; }
+    void  setRotation(const quat& q) { qRot = q; }
+
+    float getPointSize() { return pointSize; }
+    void  setPointSize(float f) { pointSize = f; }
+    float getTailPosition() { return tailPosition; }
+    void  setTailPosition(float f) { tailPosition = f; }
+    float getMovePositionHead() { return movePositionHead; }
+    void  setMovePositionHead(float f) { movePositionHead = f; }
+    float getMovePositionTail() { return movePositionTail; }
+    void  setMovePositionTail(float f) { movePositionTail = f; }
+
+    float getLifeTime() { return lifeTime; }
+    void  setLifeTime(float f) { lifeTime = f; }
+    float getLifeTimeAtten() { return lifeTimeAtten; }
+    void  setLifeTimeAtten(float f) { lifeTimeAtten = f; }
+    float getLifeTimeCP() { return lifeTimeCP; }
+    void  setLifeTimeCP(float f) { lifeTimeCP = f; }
+    float getLifeTimeAttenCP() { return lifeTimeAttenCP; }
+    void  setLifeTimeAttenCP(float f) { lifeTimeAttenCP = f; }
+
+    float getSmoothDistance() { return smoothDistance; }
+    void  setSmoothDistance(float f) { smoothDistance = f; }
+
+    void  setAirFriction(float f) { uData.airFriction =  f; }
+    float getAirFriction() { return uData.airFriction; }
+
+    void  setInitialSpeed(float f) { initialSpeed =  f; }
+    float getInitialSpeed() { return initialSpeed; }
+
+    int getSlowMotionDpS() { return slowMotionDpS; }
+    void  setSlowMotionDpS(int v) { slowMotionDpS = v; }
+
+    int getSlowMotionFSDpS() { return slowMotionFSDpS; }
+    void  setSlowMotionFSDpS(int v) { slowMotionFSDpS = v; }
+
+//const static
+    static float getPerspNear() { return perspNear; }
+    static int  getMaxTransformedEmission() { return maxTransformedEmission; }
+
+//Feedback Funcs
+    void setTransformedEmission(int i)  {  transformedEmission =  i; }    //getEmittedParticles
+    int  getTransformedEmission() { return transformedEmission; }
+    void setMaxEmissionFrame(int i)  {  maxEmissionFrame =  i; }    //getEmittedParticles
+    int  getMaxEmissionFrame() { return maxEmissionFrame; }
+
+private:
+
+    struct tfCommonsStruct {
+        bool isTFMode = false;      // TransformFeedback Mode
+        bool isCockPit = false;
+        int pipPosition = noPIP;
+        float perspAngle = 65.f;
+        bool invertPip = false;
+        ivec4 viewportSize = ivec4(0, 0, 100, 100);
+        float pipZoom = .5; // 1.0 -> 1/4 Window
+    } static tfCommons;
+
+    float smoothDistance = .250;
+    float lifeTime = 75.0;
+    float lifeTimeAtten = .3;
+    float lifeTimeCP = 75.0;
+    float lifeTimeAttenCP = .3;
+    float movePositionHead = 0, movePositionTail = 0;
+    bool isInvertView = false;
+    float tailPosition = .25;
+    float pointSize = 7.f;
+    quat qRot = quat(1.0f,0.0f, 0.0f, 0.0f);
+    int slowMotionDpS = 100; //tfSettings DotPerSec
+    int slowMotionFSDpS = 5000; //FullScreen DotPerSec
+
+    static ivec4 &getViewportSize() { return tfCommons.viewportSize; }
+    static void setViewportSize(const ivec4 &v) { tfCommons.viewportSize = v; }
+
+    static constexpr float perspNear = .001f;
+    static const int maxTransformedEmission = 50;
+
+//Feedback Data
+    int transformedEmission = 4;
+    int maxEmissionFrame = 1000;
+    float initialSpeed = 1.0;
+
+    friend transformedEmitterClass;
+};
+
+
+//
 //  shadowClass
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -492,7 +622,6 @@ protected:
     ambientOcclusionClass *ambientOcclusion = nullptr;
     shadowClass* shadow = nullptr;
 
-
     std::vector<GLuint> blendArray;
     std::vector<const char *> blendingStrings;
     
@@ -515,11 +644,7 @@ public:
 #else
         glowFBO.buildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());
 #endif
-        //BlurBaseClass::create();
     }
-
-    void create() { BlurBaseClass::create(); }
-
 
     void render(GLuint sourceTex, GLuint fbOut) {
 
@@ -1130,6 +1255,8 @@ public:
 
     uniformBlocksClass &getPlanesUBlock() { return planesUBlock; }
 
+    tfSettinsClass& getTFSettings() { return tfSettings; }
+
 protected:
     uniformBlocksClass planesUBlock;
 
@@ -1165,6 +1292,7 @@ protected:
     bool autoLight = true;
 
     float ptSize, ptSizeTF;
+    tfSettinsClass tfSettings;
 
 
 private:
