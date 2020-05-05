@@ -113,7 +113,7 @@ if (BUILD_wglChAoSP)
 
     set(OGL_EMITTER_TYPE ${OGL41})
     
-    set(CMAKE_CXX_STANDARD 14)
+    #set(CMAKE_CXX_STANDARD 14)
     find_package(OpenGL)
 
     #add EMSCRIPTEN PATH with preference to command-line define
@@ -195,6 +195,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
     else()
         set(EMSOUT "${CMAKE_SOURCE_DIR}")
     endif()
+    target_compile_features(${PROJECT_NAME}  PUBLIC cxx_std_14)
     set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${EMSOUT}/emsOut/${CMAKE_BUILD_TYPE})
 
 
@@ -214,7 +215,7 @@ else()
         endif()
     endif()
 
-    set(CMAKE_CXX_STANDARD 14)
+    #set(CMAKE_CXX_STANDARD 14)
     find_package(OpenGL)
     
 
@@ -227,30 +228,6 @@ else ()
     message (FATAL_ERROR "OPENGL not found... REQUIRED!!!!")
 endif(OPENGL_FOUND)
 
-include_directories(${SRC})
-include_directories(${SRC}/tools)
-include_directories(${SRC}/libs)
-include_directories($ENV{INCLUDE})
-
-
-if(APPLE)
-    include_directories(src/libs/glfw/buildOSX/include)
-    link_directories(src/libs/glfw/buildOSX/lib)
-else()
-    if(WIN32)
-        if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU") # MinGW
-            # need to have in the LIB env var
-        else()
-            include_directories(src/libs/glfw/buildWin/include)
-            link_directories(src/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE})
-        endif()
-    else()
-    # both MinGW and Linux
-        include_directories(src/libs/glfw/buildLinux/include)
-        link_directories(src/libs/glfw/buildLinux/lib)
-    endif(WIN32)
-endif(APPLE)
-
 add_executable(${PROJECT_NAME}
         ${SRC}/libs/glad/glad.cpp
         ${SRC}/libs/glad/glad.h
@@ -262,6 +239,28 @@ add_executable(${PROJECT_NAME}
         ${SRC}/tools/oglAxes.h
         ${SOURCE_FILES})
 
+target_include_directories(${PROJECT_NAME} PUBLIC ${SRC})
+target_include_directories(${PROJECT_NAME} PUBLIC ${SRC}/tools)
+target_include_directories(${PROJECT_NAME} PUBLIC ${SRC}/libs)
+target_include_directories(${PROJECT_NAME} PUBLIC ${SRC}/libs/glfw/include)
+#target_include_directories(${PROJECT_NAME} PUBLIC $ENV{INCLUDE})
+
+if(APPLE)
+    target_link_directories(${PROJECT_NAME} PUBLIC ${SRC}/libs/glfw/buildOSX/lib)
+else()
+    if(WIN32)
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU") # MinGW
+            # need to have in the LIB env var
+        else()
+            target_link_directories(${PROJECT_NAME} PUBLIC ${SRC}/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE})
+        endif()
+    else()
+    # both MinGW and Linux
+        target_link_directories(${PROJECT_NAME} PUBLIC ${SRC}/libs/glfw/buildLinux/lib)
+    endif(WIN32)
+endif(APPLE)
+
+
 add_definitions(-DVGM_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -269,15 +268,15 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         set($ENV{CL},"")
         add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -Wno-format-security -Wno-format-nonliteral -Wdeprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -fexceptions -Wno-unused-command-line-argument -Wno-parentheses")
+    target_compile_options(${PROJECT_NAME} PUBLIC -Ofast -Wno-format-security -Wno-format-nonliteral -Wdeprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -fexceptions -Wno-unused-command-line-argument -Wno-parentheses)
     message("Clang...")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -std=c++14 -fpermissive")
+    target_compile_options(${PROJECT_NAME} PUBLIC -Wno-format-security -std=c++14 -fpermissive)
     #add_compile_options(--verbose -Wno-format-security -std=c++14 -fpermissive)
     message("GNU...")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # add_compile_options("/W1 /Qpar /Gm- /O2 /Ob2 /Zc:inline /fp:precise /WX- /Zc:forScope /Gd /FC /Fa /Ot /MP")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /Qpar /Gm- /O2 /Ob2 /Zc:inline /fp:precise /WX- /Zc:forScope /EHsc /Gd /FC /Fa /Ot")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W1 /Qpar /Gm- /O2 /Ob2 /Zc:inline /fp:precise /WX- /Zc:forScope /EHsc /Gd /FC /Fa /Ot")
     # Force to always compile with W1 (before CMake 3.15)
     # if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
     #     string(REGEX REPLACE "/W[0-4]" "/W1" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -316,13 +315,14 @@ if(OPENGL_FOUND)
             if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
                 set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lglfw3")
             else()
-                set(TARGET_LIBS ${CMAKE_DL_LIBS} "${SRC}/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE}/glfw3.lib")
+                set(TARGET_LIBS ${CMAKE_DL_LIBS} "../../src/libs/glfw/buildWin/lib/${CMAKE_BUILD_TYPE}/glfw3")
             endif()
         else()    
             set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lglfw3 -lpthread -lX11")
         endif(WIN32)
     endif(APPLE)
 
+    target_compile_features(${PROJECT_NAME}  PUBLIC cxx_std_14)
     target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARY} ${TARGET_LIBS})
 endif(OPENGL_FOUND)
 
