@@ -91,7 +91,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
     const float lightReduction = theApp->useDetailedShadows() ? .3333 : .25f;
 
-    const bool isTFRender = tfSettinsClass::tfMode(); // transformFeedback Render
+    const bool isTFRender = attractorsList.get()->dtType() && tfSettinsClass::tfMode(); // transformFeedback Render
     const bool computeShadow = useShadow() && !cpitView; // FIXME: cockPit Shadow: no shadow on tfSettings
     const bool blendActive = getBlendState() || showAxes();
     const bool isAO_SHDW = ( useAO() || computeShadow);
@@ -135,7 +135,10 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getUData().lightDir = normalize(vec3(getLigthPOV()));
     }
 
-    getUData().slowMotion = attractorsList.get()->dtType() && tfSettinsClass::tfMode();
+    getUData().slowMotion = isTFRender;
+
+    float distAtt = getUData().pointDistAtten;      // FIXME: use external setting so don't save and restore down
+    if(isTFRender) getUData().pointDistAtten = 0.f; // no distance attenuation on cpitView
 
     tfSettinsClass &cPit = getTFSettings();
     getUData().elapsedTime   = cPit.getUdata().elapsedTime;
@@ -283,6 +286,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
     //glDisable(GL_MULTISAMPLE);
+
+    if(isTFRender) getUData().pointDistAtten = distAtt; // FIXME: look up
 
     return returnedTex;
 }
