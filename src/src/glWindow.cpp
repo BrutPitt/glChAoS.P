@@ -220,8 +220,8 @@ GLuint glWindow::renderAttractor()
 
     if(attractorsList.get()->dtType() && tfSettinsClass::tfMode() && tfSettinsClass::cockPit()) {
 
-        // FIXME: TOO COMPLEX!!!!!
-#if !defined(GLCHAOSP_LIGHTVER)
+
+#if !defined(GLCHAOSP_LIGHTVER) // FIXME: TOO COMPLEX!!!!!
         particlesBaseClass *particles =  particlesSystem->getRenderMode()==RENDER_USE_BILLBOARD ? (particlesBaseClass *) particlesSystem->shaderBillboardClass::getPtr() :
                                                                                                   (particlesBaseClass *) particlesSystem->shaderPointClass::getPtr();
 #else
@@ -241,22 +241,35 @@ GLuint glWindow::renderAttractor()
         vec3 cpPOV((cPit.invertView() ? vecA : vecB));
         vec3 cpTGT((cPit.invertView() ? vecB : vecA));
 
-        const vec3 vecDirH = (cpPOV-cpTGT)*cPit.getMovePositionHead();
-        const vec3 vecDirT = (cpPOV-cpTGT)*cPit.getMovePositionTail();
-
-        cpPOV+=vecDirT;
-        cpTGT+=vecDirH;
-
         transformsClass *cpTM = getParticlesSystem()->getCockPitTMat();
-
-        mat4 m = translate(mat4(1.f), cpTGT);
-        m = m * mat4_cast(cPit.getRotation());
-        cpPOV = mat4(m) * vec4(cpPOV-cpTGT, 1.0);
 
         cpTM->setPerspective(tfSettinsClass::getPerspAngle(), float(w) / float(h),
                              tfSettinsClass::getPerspNear(),
                              getParticlesSystem()->getTMat()->getPerspFar());
+
+
+/*
+        const vec3 vecDirH = (cpTGT) + (cpPOV-cpTGT)*cPit.getMovePositionHead();
+        const vec3 vecDirT = (cpPOV-cpTGT) + (cpPOV-cpTGT)*cPit.getMovePositionTail();
+
+        mat4 m = translate(mat4(1.f), vecDirH);
+        m = m * mat4_cast(cPit.getRotation());
+        cpPOV = mat4(m) * vec4(vecDirT, 1.0);
+        //cpTGT = mat4(m) * vec4(vecDirH, 1.0);
+
+        cpTM->setView(cpPOV, vecDirH);
+
+*/
+        const vec3 vecDirH = (cpPOV-cpTGT) + (cpPOV-cpTGT)*cPit.getMovePositionHead();
+        const vec3 vecDirT = (cpPOV-cpTGT) + (cpPOV-cpTGT)*cPit.getMovePositionTail();
+
+        mat4 m = translate(mat4(1.f), cpTGT);
+        m = m * mat4_cast(cPit.getRotation());
+        cpPOV = mat4(m) * vec4(vecDirT, 1.0);
+        cpTGT = mat4(m) * vec4(vecDirH, 1.0);
+
         cpTM->setView(cpPOV, cpTGT);
+
 
         // New settings for tfSettings
         cpTM->getTrackball().setRotation(quat(1.0f,0.0f, 0.0f, 0.0f));

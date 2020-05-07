@@ -280,7 +280,7 @@ public:
         glNamedBufferSubData(uBuffer, 0, realDataSize, data ? data : ptrData);
 #else
         glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, realDataSize, ptrData); 
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, realDataSize, data ? data : ptrData); 
 #endif
         glBindBufferBase(GL_UNIFORM_BUFFER, bindingLocation, uBuffer);
     }

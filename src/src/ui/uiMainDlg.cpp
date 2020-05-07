@@ -2077,8 +2077,8 @@ void cockpitDlgClass::view()
                 ImGui::TextDisabled(" lifeTimeAtten"); 
                 ImGui::PushItemWidth(w3-spaceX*.3333);
                     {
-                        float f = particles->getSizeTF();
-                        if(ImGui::DragFloat("##pointSize", &f, .01f, 0.01f, FLT_MAX, "%.3f")) particles->setSizeTF(f);
+                        float f = cPit.getSizeTF();
+                        if(ImGui::DragFloat("##pointSize", &f, .01f, 0.01f, FLT_MAX, "%.3f")) cPit.setSizeTF(f);
                     }
                     ImGui::SameLine();
                     {

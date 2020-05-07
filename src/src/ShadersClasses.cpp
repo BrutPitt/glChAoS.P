@@ -150,7 +150,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     getUData().zNear = currentTMat->getPerspNear();
     getUData().zFar  = currentTMat->getPerspFar();
    
-    getUData().pointSize = cpitView ? cPit.getPointSize() : ( isTFRender ? getSizeTF() : getSize());
+    getUData().pointSize = cpitView ? cPit.getPointSize() : ( isTFRender ? cPit.getSizeTF() : getSize());
 
 // Shadow pass
 /////////////////////////////////////////////
@@ -537,20 +537,19 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
         const vec3 vStep = (newPosAttractor-oldPosAttractor)/float(cPit.getTransformedEmission());
         vec3 vInc(0.0);
 
+        //vec3 speed(fastRandom.VNI(), fastRandom.VNI(), fastRandom.VNI());
+        //speed = normalize(speed) * cPit.getInitialSpeed();
+        vec3 speed;
         for(int i=cPit.getTransformedEmission(); i>0; i--) {
             const float bornTime = std::chrono::duration<double> (std::chrono::high_resolution_clock::now()-startEvent).count();
             InsertVbo->getBuffer()[count++] = newPosAttractor.x + vInc.x;
             InsertVbo->getBuffer()[count++] = newPosAttractor.y + vInc.y;
             InsertVbo->getBuffer()[count++] = newPosAttractor.z + vInc.z;
             InsertVbo->getBuffer()[count++] = dist;
-            //(*InsertVbo)[3] =
 
-            //vec3 speed(fastRandom.VNI(), fastRandom.VNI(), fastRandom.VNI());
-            //speed = normalize(speed) * cPit.getInitialSpeed();
-
-            InsertVbo->getBuffer()[count++] = fastRandom.VNI()*speedMagnitudo;
-            InsertVbo->getBuffer()[count++] = fastRandom.VNI()*speedMagnitudo;
-            InsertVbo->getBuffer()[count++] = fastRandom.VNI()*speedMagnitudo;
+            InsertVbo->getBuffer()[count++] = fastRandom.VNI()*cPit.getInitialSpeed();
+            InsertVbo->getBuffer()[count++] = fastRandom.VNI()*cPit.getInitialSpeed();
+            InsertVbo->getBuffer()[count++] = fastRandom.VNI()*cPit.getInitialSpeed();
             InsertVbo->getBuffer()[count++] = -bornTime; //bron time: negative for first pass
 
             vInc += vStep;

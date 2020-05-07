@@ -14,7 +14,7 @@
 
 #include <vector>
 
-#include <vGizmoMath.h>
+#include <vgMath.h>
 
 #include "glApp.h"
 #include "glslProgramObject.h"

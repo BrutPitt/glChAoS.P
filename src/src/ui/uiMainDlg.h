@@ -223,7 +223,7 @@ private:
 class cockpitDlgClass  : public baseDlgClass
 {
 public:
-    cockpitDlgClass() : baseDlgClass("Slow Motion") {}
+    cockpitDlgClass() : baseDlgClass("multiDot emitter") {}
 
     void view();
 

@@ -322,11 +322,15 @@ public:
     bool invertView() { return isInvertView; }
     void invertView(bool b)  { isInvertView = b; }
 
+    void setSizeTF(float sz) { emitterPointSize=sz;}
+    float getSizeTF() { return emitterPointSize; }
+
+
     quat& getRotation() { return qRot; }
     void  setRotation(const quat& q) { qRot = q; }
 
-    float getPointSize() { return pointSize; }
-    void  setPointSize(float f) { pointSize = f; }
+    float getPointSize() { return cpPointSize; }
+    void  setPointSize(float f) { cpPointSize = f; }
     float getTailPosition() { return tailPosition; }
     void  setTailPosition(float f) { tailPosition = f; }
     float getMovePositionHead() { return movePositionHead; }
@@ -388,7 +392,8 @@ private:
     float movePositionHead = 0, movePositionTail = 0;
     bool isInvertView = false;
     float tailPosition = .25;
-    float pointSize = 7.f;
+    float  emitterPointSize = 1;
+    float cpPointSize = 7.f;
     quat qRot = quat(1.0f,0.0f, 0.0f, 0.0f);
     int slowMotionDpS = 100; //tfSettings DotPerSec
     int slowMotionFSDpS = 5000; //FullScreen DotPerSec
@@ -1128,8 +1133,6 @@ public:
 
     void setSize(float sz) { ptSize=sz;}
     float getSize() { return ptSize; }
-    void setSizeTF(float sz) { ptSizeTF=sz;}
-    float getSizeTF() { return ptSizeTF; }
 
     void setAlphaAtten(float v) { getUData().alphaDistAtten=v; setFlagUpdate(); }
     float getAlphaAtten() { return getUData().alphaDistAtten; }
@@ -1291,7 +1294,7 @@ protected:
     bool usingShadow = false;
     bool autoLight = true;
 
-    float ptSize, ptSizeTF;
+    float ptSize;
     tfSettinsClass tfSettings;
 
 

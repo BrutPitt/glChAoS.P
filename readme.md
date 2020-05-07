@@ -1,4 +1,4 @@
-<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.4.2</a> => v.1.5 WiP</h1>
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.5.0 beta</a></h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**wglChAoS.P**](https://michelemorrone.eu/glchaosp): open**gl** / **w**eb**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercomplex fractals
@@ -10,9 +10,9 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 
 ## All available releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
 
-### Desktop - v.1.4.2 (stable release)
+### Desktop - v.1.5.0 beta
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X** 
-### WebGL - v.1.5.0 WiP (Work in Progress - Preview)
+### WebGL - v.1.5.0 beta
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebG 2** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
   - You can select **Advanced Mode** check box (*default*) or deselect it (**Standard Mode**) for low resources devices (mobiles/tablet/smartphones)
   - You can also to explore any single attractor, interactively, staring directly from web-page, using **Explore** button near/below any attractor formula: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
@@ -24,16 +24,50 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 <p>&nbsp;<br></p>
 
 
-### New ver.1.4.2  feature: 11 unpublished attractor types: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
+### ver.1.5.0 feature: TransformFeedback **multiDot emitter**
+Now all dp/dt attractors (yellow tag) have an additional new emitter type to visualize it in a progressive way and/or with multiDot (spray) effect.\
+Is also possible to travel, in first person (cockpit view), within the particles, following the evolution of the attractors.
+
+| Simulating a comet's journey in Lorenz attractor | Voyage in Multi-Chua II attractor |
+| :---: | :---: |
+| [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/LorenzComet.jpg)](https://youtu.be/9RjkGQbzFkA)| [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/MultiChuaComet.jpg)](https://youtu.be/Yh99pMxFLoU) |
+
+<a href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank"><img align="right" src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/cockpitSettings.jpg"/></a>
+
+New menu is available to adjust these settings:
+
+
+**1)** Panoramic/CockPit dots/s: different emitter speed for any view\
+**2)** Number of dots for each step, real dots/s emitted are: `dots/s * Emit#`\
+**3)** Multiplication factor of initial radial random speed\
+**4)** Air friction/deceleration\
+**5)** Point size: there are 3 different "pointSize" for: singleDot emitter, multiDot emitter and cockpitView\
+**6)** LifeTime of particles in sec.\
+**7)** LifeTime attenuation factor: when the lifeTime ends, if in *blending mode*, the particle attenuates the intensity of this factor, any second\
+**8)** Wind direction and intensity (in units/s)\
+**9)** Gravity/Acceleration direction and intensity (in units/s)\
+**A)** Toggle cockpit view and related settings (below)\ 
+**B)** Smoothing distance: in *blending mode* attenuates the intensity of near dots of linear attenuation factor\
+**C)** Clipping distance: skip to draw closer particles\
+**D)** PiP (Picture In Picture) feature\
+**E)** TagretView is the current emitted dot, PointOfView is positioned on the wake: this adjusts the distance from head (it follows the attractor direction).\
+**F)** Move back the PoV: it follows the vector *PoV -> TGT*\
+**G)** Rotate the cam around TagretView, or better: around attractor head (last emitted dot), use reset to reposition the cam\
+**H)** Move forward the TagretView position
+
+<p>&nbsp;<br>&nbsp;<br>&nbsp;<br></p>
+
+
+
+### ver.1.4.2 feature: 11 unpublished attractor types: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
 An absolutely personal and original "transformations" in 3D/4D of famous 2D attractors:
 
-| PopCorn, Morrone 4D transf. (ssss) | Martin, Morrone 4D transf.|
-| :---: | :---: |
-| ![sShot_20191118_173632](https://user-images.githubusercontent.com/16171743/69288769-cbf85300-0bfa-11ea-8b11-1d916e43af89.jpg) | ![sShot_20191113_43629](https://user-images.githubusercontent.com/16171743/69288951-5c369800-0bfb-11ea-8a24-53d4ae9909c6.jpg) |
-|  **Mira, , Morrone 4D  transf.** | **Mira, Morrone 3D  transf.** |
-| ![sShot_20191113_22737](https://user-images.githubusercontent.com/16171743/69289055-a0299d00-0bfb-11ea-98ac-f18e4a62eed6.jpg) | ![sShot_20191113_2269](https://user-images.githubusercontent.com/16171743/69289104-c8b19700-0bfb-11ea-929b-28770887dc46.jpg) |
-|  **PopCorn, Morrone 4D  transf. (scsc)** | **Hopalong, Morrone 4D transf.** |
-| ![sShot_20191112_04710](https://user-images.githubusercontent.com/16171743/69289281-4d041a00-0bfc-11ea-91d0-31a9c00caf37.jpg) | ![sShot_20191113_22333](https://user-images.githubusercontent.com/16171743/69289313-65743480-0bfc-11ea-98d8-ed7f203eb623.jpg) |
+| PopCorn, Morrone 4D transf. (ssss) | Martin, Morrone 4D transf.| PopCorn, Morrone 4D  transf. (scsc) |
+| :---: | :---: |  :---: |
+| ![sShot_20191118_173632](https://user-images.githubusercontent.com/16171743/69288769-cbf85300-0bfa-11ea-8b11-1d916e43af89.jpg)| ![sShot_20191113_43629](https://user-images.githubusercontent.com/16171743/69288951-5c369800-0bfb-11ea-8a24-53d4ae9909c6.jpg) | ![sShot_20191112_04710](https://user-images.githubusercontent.com/16171743/69289281-4d041a00-0bfc-11ea-91d0-31a9c00caf37.jpg) |
+|  **Mira, , Morrone 4D  transf.** | **Mira, Morrone 3D  transf.** |    **Hopalong, Morrone 4D transf.** |
+| ![sShot_20191113_22737](https://user-images.githubusercontent.com/16171743/69289055-a0299d00-0bfb-11ea-98ac-f18e4a62eed6.jpg) | ![sShot_20191113_2269](https://user-images.githubusercontent.com/16171743/69289104-c8b19700-0bfb-11ea-929b-28770887dc46.jpg) | ![sShot_20191113_22333](https://user-images.githubusercontent.com/16171743/69289313-65743480-0bfc-11ea-98d8-ed7f203eb623.jpg) |
+
 
 Full descriptions, math formulas and code in the relative webpage: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
 
@@ -74,7 +108,7 @@ Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, a
 
 <p>&nbsp;<br>&nbsp;<br></p>
 
-## wglChAoS.P - WebGL2 online version - v.1.5 WiP (Work in Progress - Preview)
+## wglChAoS.P - WebGL2 online version
 
 <p align="center"><a href="https://michelemorrone.eu/glchaosp/webGL.html"> 
 <img src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/ssWGLtitle1024.jpg"></a>
@@ -256,7 +290,7 @@ Furthers build option are provided:
 ### Build requirements
 
 - Compilers with full C++14 standard required
-- CMake 3.10 or higher
+- CMake 3.15 or higher
 - ~~Boost Library to build DLA3D (Diffusion Limited Aggregation) object exploration, (or uncomment DISABLE_DLA3D in CMake file to disable it)~~ \
 it has been replaced with **nanoflann** header-only (enclosed)
 
@@ -265,7 +299,7 @@ it has been replaced with **nanoflann** header-only (enclosed)
 
 - Microsoft Visual Studio 2019/2017/2015 (Platform Toolset v.142/141/140: it does not work with previous versions)
 - MinGW (64bit) v.9
-- CLang v.5/6/7/8/9
+- CLang v.5/6/7/8/9/10
 - GNU C++ v.5/6/7/8/9
 
 

@@ -139,8 +139,7 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["BlendState"      ] = ptr->getBlendState();
     c["LightState"      ] = ptr->getLightState();
     c["pointSize"       ] = ptr->getSize();
-    c["pointSizeTF"     ] = ptr->getSizeTF();
-    c["pointSizeFactor" ] = ptr->getPointSizeFactor(); 
+    c["pointSizeFactor" ] = ptr->getPointSizeFactor();
     c["clippingDist"    ] = ptr->getClippingDist();
     c["alphaKFactor"    ] = ptr->getAlphaKFactor();
     c["alphaAttenFactor"] = ptr->getAlphaAtten();
@@ -240,8 +239,10 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
         c["emitGenPoints"    ] = cPit.getTransformedEmission();
         c["emitInitVel"      ] = cPit.getInitialSpeed();
         c["emitAirFriction"  ] = cPit.getAirFriction();
+        c["emitPointSize"    ] = cPit.getSizeTF();
         c["emitLifeTime"     ] = cPit.getLifeTime();
         c["emitLifeTimeAtten"] = cPit.getLifeTimeAtten();
+
         {
             vector<float> v(4);
             *((vec4 *)v.data())= cPit.getUdata().wind;
@@ -474,8 +475,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         ptr->setBlendState(     c.get_or("BlendState"      , ptr->getBlendState()     ));
         ptr->setLightState(     c.get_or("LightState"      , ptr->getLightState()     ));
         ptr->setSize(           c.get_or("pointSize"       , ptr->getSize()           ));
-        ptr->setSizeTF(         c.get_or("pointSizeTF"     , ptr->getSize()           ));
-        ptr->setPointSizeFactor(c.get_or("pointSizeFactor" , ptr->getPointSizeFactor())); 
+        ptr->setPointSizeFactor(c.get_or("pointSizeFactor" , ptr->getPointSizeFactor()));
         ptr->setClippingDist(   c.get_or("clippingDist"    , ptr->getClippingDist()   ));
         ptr->setAlphaKFactor(   c.get_or("alphaKFactor"    , ptr->getAlphaKFactor()   ));
         ptr->setAlphaAtten(     c.get_or("alphaAttenFactor", ptr->getAlphaAtten()     ));
@@ -547,7 +547,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         ptr->getUData().lightColor = (getVec_asArray(c, "lightColor", v3) ? v3 : vec3(1.f));
     }
 
-//glow    
+//glow   
     radialBlurClass *glow = ptr->getGlowRender();
     if(theDlg.getDataDlg().getGlow() || checkSelectGroup) {
         if(c.has_key("glowOn")) { //last version
@@ -614,6 +614,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         cPit.setTransformedEmission(    c.get_or("emitGenPoints"    , cPitDef.getTransformedEmission() ));
         cPit.setInitialSpeed(           c.get_or("emitInitVel"      , cPitDef.getInitialSpeed()        ));
         cPit.setAirFriction(            c.get_or("emitAirFriction"  , cPitDef.getAirFriction()         ));
+        cPit.setSizeTF(                 c.get_or("emitPointSize"    , ptr->getSize()                   ));
         cPit.setLifeTime(               c.get_or("emitLifeTime"     , cPitDef.getLifeTime()            ));
         cPit.setLifeTimeAtten(          c.get_or("emitLifeTimeAtten", cPitDef.getLifeTimeAtten()       ));
         cPit.getUdata().wind    = getVec_asArray(c, "emitWind"        , v4) ? v4 : cPitDef.getUdata().wind;
