@@ -378,26 +378,28 @@ public:
 
     //    Call on wheel (only for Dolly/Zoom)
     ////////////////////////////////////////////////////////////////////////////
-    void wheel( T x, T y) {
-        dolly.z += y * dollyScale * T(5);
+    void wheel( T x, T y, T z=T(0)) {
+        povPanDollyFactor = z;
+        dolly.z += y * dollyScale * T(10) * (povPanDollyFactor>T(0) ? povPanDollyFactor : T(1));
     }
 
     //////////////////////////////////////////////////////////////////
-    void motion( int x, int y) { motion( T(x), T(y)); }
-    void motion( T x, T y) {
+    void motion( int x, int y, T z=T(0)) { motion( T(x), T(y), z); }
+    void motion( T x, T y, T z=T(0)) {
+        povPanDollyFactor = z;
         if( this->tbActive || dollyActive || panActive) VGIZMO_BASE_CLASS::motion(x,y);
     }
 
     //////////////////////////////////////////////////////////////////
     void updatePan() {
         tVec3 v(delta.x, delta.y, T(0));
-        pan += v * panScale;
+        pan += v * panScale * (povPanDollyFactor>T(0) ? povPanDollyFactor : T(1));
     }
 
     //////////////////////////////////////////////////////////////////
     void updateDolly() {
         tVec3 v(T(0), T(0), delta.y);
-        dolly -= v * dollyScale;
+        dolly -= v * dollyScale * (povPanDollyFactor>T(0) ? povPanDollyFactor : T(1));
     }
 
     //////////////////////////////////////////////////////////////////
@@ -509,7 +511,8 @@ private:
 
     tVec3 pan   = tVec3(T(0));
     tVec3 dolly = tVec3(T(0));
-    
+
+    T povPanDollyFactor = T(0);
     T dollyScale = T(.01);  //dolly scale
     T panScale   = T(.01);  //pan scale
     T wheelScale = T(5);   //dolly multiply for wheel

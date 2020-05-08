@@ -93,7 +93,7 @@ public:
 #endif
     }
 
-    void renderAxes(transformsClass *model);
+    void renderAxes();
 
     emitterBaseClass *getEmitter() { return emitter; }
 

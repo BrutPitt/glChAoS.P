@@ -763,6 +763,8 @@ void mainGLApp::invertSettings()
         particlesBaseClass *ptr = pSys->shaderPointClass::getPtr();
         getRenderMode(c,ptr);
     }
+
+    if(tfSettinsClass::tfMode() && attractorsList.get()->dtType()) attractorsList.restart();
 }
 
 

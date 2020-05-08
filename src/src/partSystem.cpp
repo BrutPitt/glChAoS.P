@@ -83,11 +83,12 @@ void particlesSystemClass::onReshape(int w, int h)
 }
 
 
-void particlesSystemClass::renderAxes(transformsClass *model)
+void particlesSystemClass::renderAxes()
 {
 
 #if !defined(GLCHAOSP_LIGHTVER)
 
+    transformsClass *model = getTMat();
     transformsClass *axes = getAxes()->getTransforms();
 
     auto syncAxes = [&] () {
@@ -106,7 +107,7 @@ void particlesSystemClass::renderAxes(transformsClass *model)
         axes->getTrackball().setDollyPosition(vec3(0.0));
 
         // get rotation & translation of model w/o pan & dolly
-        quat q =   model->getTrackball().getRotation() ;
+        quat q = model->getTrackball().getRotation() ;
         model->tM.mMatrix = mat4_cast(q) * translate(mat4(1.f), model->getTrackball().getRotationCenter());
         model->build_MV_MVP();
 

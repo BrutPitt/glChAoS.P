@@ -33,16 +33,6 @@ void glWindow::onInit()
 
     particlesSystem = new particlesSystemClass;
 
-/*
-    if(theApp->getEmitterEngineType()==enumEmitterEngine::emitterEngine_transformFeedback) {
-        particlesSystem->shaderPointClass::getGlowRender()->setGlowOn(false);
-        particlesSystem->shaderPointClass::getFXAA()->activate(false);
-#if !defined(__EMSCRIPTEN__)
-        particlesSystem->shaderBillboardClass::getGlowRender()->setGlowOn(false);
-        particlesSystem->shaderPointClass::getFXAA()->activate(false);
-#endif
-    }
-*/
 #if !defined(__EMSCRIPTEN__)
 
     //pointsprite initialization
@@ -73,9 +63,6 @@ void glWindow::onInit()
     vgizmo.viewportSize(theApp->GetWidth(), theApp->GetHeight());
 
     vgizmo.setRotStepRatio(.3f);
-
-    //load attractor file (if exist) and (if exist) override default parameters
-    //attractorsList.setSelection(attractorsList.getSelection()); 
 
     int listSize = attractorsList.getList().size()-1;
 
@@ -113,13 +100,11 @@ void glWindow::onExit()
 ////////////////////////////////////////////////////////////////////////////
 GLint glWindow::onRender()
 {
-    transformsClass *model = getParticlesSystem()->getTMat();
-
     particlesSystem->renderPalette();
 
 #if !defined(GLCHAOSP_LIGHTVER)
 
-    particlesSystem->renderAxes(model);
+    particlesSystem->renderAxes();
 
     // main render event
     GLuint texRendered = particlesSystem->render();
@@ -143,8 +128,8 @@ GLint glWindow::onRender()
     #endif
     }
 #else
-    model->applyTransforms();
-    GLuint texRendered = renderAttractor();
+    getParticlesSystem()->getTMat()->applyTransforms();
+    GLuint texRendered = particlesSystem->render();
 #endif
     //glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind both FRAMEBUFFERS to default
 
@@ -158,7 +143,6 @@ void glWindow::onIdle()
     if(theApp->idleRotation()) particlesSystem->getTMat()->getTrackball().idle();
 }
 
-
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onReshape(GLint w, GLint h)
 {
@@ -171,7 +155,6 @@ void glWindow::onReshape(GLint w, GLint h)
 
 }
 
-
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onMouseButton(int button, int upOrDown, int x, int y)
 {
@@ -183,7 +166,8 @@ void glWindow::onMouseButton(int button, int upOrDown, int x, int y)
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onMotion(int x, int y)
 {
-    particlesSystem->getTMat()->getTrackball().motion(x, y);
+    const float z = particlesSystem->getTMat()->getPOV().z-particlesSystem->getTMat()->getTrackball().getDollyPosition().z;
+    particlesSystem->getTMat()->getTrackball().motion(x, y, z*.05);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -204,6 +188,7 @@ void glWindow::onSpecialKeyUp(int key, int x, int y) {}
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onMouseWheel(int wheel, int direction, int x, int y) 
 {
-    particlesSystem->getTMat()->getTrackball().wheel(x, y);
+    const float z = particlesSystem->getTMat()->getPOV().z-particlesSystem->getTMat()->getTrackball().getDollyPosition().z;
+    particlesSystem->getTMat()->getTrackball().wheel(x, y, z*.1);
 }
 

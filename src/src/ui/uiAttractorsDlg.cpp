@@ -10,21 +10,10 @@
 //  
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
-#include <sstream>
-#include <limits>
-
 #include "../glApp.h"
 #include "../glWindow.h"
-#include "../attractorsBase.h"
-
-#include "../ShadersClasses.h"
-
-#include <IconsFontAwesome/IconsFontAwesome.h>
 
 #include <imguiControls.h>
-#include <imGuIZMOquat.h>
-
-#include "uiMainDlg.h"
 
 bool colCheckButton(bool b, const char *s, const float sz=0);
 
