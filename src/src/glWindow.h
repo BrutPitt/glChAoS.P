@@ -19,12 +19,12 @@
 
 #include "glApp.h"
 #include "attractorsBase.h"
-#include "emitter.h"
+#include "partSystem.h"
 
 
 // Includes all the files for the library
 
-#include "mmFBO.h"
+//#include "mmFBO.h"
 
 
 using namespace std;
@@ -87,173 +87,6 @@ private:
     int size;
 };
 
-#if !defined(GLCHAOSP_LIGHTVER)
-class particlesSystemClass : public shaderPointClass, public shaderBillboardClass
-#else
-class particlesSystemClass : public shaderPointClass
-#endif
-{
-public:
-    particlesSystemClass() { 
-        buildEmitter((enumEmitterEngine) theApp->getEmitterEngineType());
-    }
-
-    void buildEmitter(enumEmitterEngine ee) {
-        emitter = ee == enumEmitterEngine::emitterEngine_staticParticles ? 
-                        (emitterBaseClass*) new singleEmitterClass : 
-                        (emitterBaseClass*) new transformedEmitterClass;
-
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-        renderBaseClass::create();
-#endif
-
-        emitter->buildEmitter(); // post build for WebGL texture ID outRange
-
-    //start new thread (if aux thread enabled)
-#if !defined(GLCHAOSP_LIGHTVER)
-    //lock aux thread until initialization is complete
-        std::lock_guard<std::mutex> l( attractorsList.getStepMutex() );
-#endif
-        attractorsList.newStepThread(emitter);    
-    }
-    
-    void deleteEmitter() { 
-        attractorsList.deleteStepThread();
-        delete emitter; 
-    }
-
-    void changeEmitter(enumEmitterEngine ee) {
-
-        GLuint circBuffer = emitter->getSizeCircularBuffer();
-        bool fStop = emitter->stopFull();
-        bool restart = emitter->restartCircBuff();
-        deleteEmitter();
-
-        theApp->setEmitterEngineType(ee);
-
-        buildEmitter(ee);
-        emitter->setSizeCircularBuffer(circBuffer);
-        emitter->stopFull(fStop);
-        emitter->restartCircBuff(restart);
-
-    }
-
-    ~particlesSystemClass() { deleteEmitter(); }
-
-    void onReshape(int w, int h) {
-        if(w==0 || h==0) return; //Is in iconic (GLFW do not intercept on Window)
-        
-
-        getTMat()->setPerspective(float(w)/float(h));
-
-        getRenderFBO().reSizeFBO(w, h);
-        getPostRendering()->getFBO().reSizeFBO(w, h);
-        getShadow()->resize(w, h);
-        getAO()->getFBO().reSizeFBO(w, h);
-        shaderPointClass::getGlowRender()->getFBO().reSizeFBO(w, h);
-#if !defined(GLCHAOSP_NO_FXAA)
-        shaderPointClass::getFXAA()->getFBO().reSizeFBO(w, h);
-#endif
-#if !defined(GLCHAOSP_LIGHTVER)
-        shaderBillboardClass::getGlowRender()->getFBO().reSizeFBO(w, h);
-        shaderBillboardClass::getFXAA()->getFBO().reSizeFBO(w, h);
-        getMotionBlur()->getFBO().reSizeFBO(w, h);
-        getMergedRendering()->getFBO().reSizeFBO(w, h);        
-#endif
-
-        //shaderPointClass::getGlowRender()->isToUpdate(true);
-        setFlagUpdate();
-    }
-
-    particlesBaseClass *getParticleRenderPtr() {
-#if !defined(GLCHAOSP_LIGHTVER)
-        return getRenderMode() == RENDER_USE_BILLBOARD ? 
-               (particlesBaseClass *) shaderBillboardClass::getPtr() : 
-               (particlesBaseClass *) shaderPointClass::getPtr();
-#else
-        return (particlesBaseClass *) shaderPointClass::getPtr();
-#endif
-    }
-
-    GLuint renderParticles(bool isFullScreenPiP = true, bool cpitView = false) {
-#if !defined(GLCHAOSP_LIGHTVER)
-        if(showAxes()) {
-            getAxes()->getTransforms()->applyTransforms();
-            getAxes()->renderOnFB(getRenderFBO().getFB(0));
-            float zoomK = getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z;
-            getAxes()->setZoomFactor(vec3(vec2(zoomK/10.f), zoomK/7.f) * getTMat()->getPerspAngle()/30.f);
-        }            
-#endif
-        return getParticleRenderPtr()->render(0, getEmitter(), isFullScreenPiP, cpitView);
-    }
-
-    GLuint renderGlowEffect(GLuint texRendered) {
-#if !defined(GLCHAOSP_LIGHTVER)
-        particlesBaseClass *particles = getParticleRenderPtr();                                       
-
-        const GLuint fbo = (getMotionBlur()->Active() || particles->getFXAA()->isOn()) ? particles->getGlowRender()->getFBO().getFB(1) : 0;
-        particles->getGlowRender()->render(texRendered, fbo); 
-        return particles->getGlowRender()->getFBO().getTex(1);  // used only if FXAA and/or Motionblur
-#else
-        shaderPointClass::getPtr()->getGlowRender()->render(texRendered, 0); 
-        return 0;
-#endif
-    }
-
-#if !defined(GLCHAOSP_NO_FXAA)
-    GLuint renderFXAA(GLuint texRendered, bool useFB=false) {
-        particlesBaseClass *particles = getParticleRenderPtr();                                       
-
-        return particles->getFXAA()->isOn() ? particles->getFXAA()->render(texRendered, useFB) : texRendered;
-    }
-#endif
-
-    GLuint render() {
-        GLuint texRendered;        
-
-        emitter->preRenderEvents();
-
-#if !defined(GLCHAOSP_LIGHTVER)
-        if(getRenderMode() != RENDER_USE_BOTH) {
-            texRendered = renderParticles();
-            texRendered = renderGlowEffect(texRendered);
-            texRendered = renderFXAA(texRendered);
-        } else {
-            GLuint tex1 = shaderBillboardClass::render(0, getEmitter());
-            GLuint tex2 = shaderPointClass::render(1, getEmitter());
-            emitter->bufferRendered();
-            
-            if(shaderBillboardClass::getFXAA()->isOn()) tex1 = shaderBillboardClass::getFXAA()->render(tex1, true);
-            shaderBillboardClass::getGlowRender()->render(tex1, shaderBillboardClass::getGlowRender()->getFBO().getFB(1));  
-
-            if(shaderPointClass::getFXAA()->isOn())  tex2 = shaderPointClass::getFXAA()->render(tex2, true);
-            shaderPointClass::getGlowRender()->render(tex2, shaderPointClass::getGlowRender()->getFBO().getFB(1));
-
-            texRendered = getMergedRendering()->render(shaderBillboardClass::getGlowRender()->getFBO().getTex(1), shaderPointClass::getGlowRender()->getFBO().getTex(1));  // only if Motionblur
-        }
-#else
-        texRendered = renderParticles();
-        texRendered = renderGlowEffect(texRendered);
-    #if !defined(GLCHAOSP_NO_FXAA)
-        if(shaderPointClass::getPtr()->getFXAA()->isOn()) 
-            texRendered = shaderPointClass::getPtr()->getFXAA()->render(texRendered);
-    #endif
-#endif
-        emitter->postRenderEvents();
-        return texRendered;
-
-    }
-
-    emitterBaseClass *getEmitter() { return emitter; }
-    
-    //emitterBaseClass *getTransformInterlieve() { return emitter; }
-    bool clearScreen() { return canClearScreen; }
-    void clearScreen(bool b) {  canClearScreen=b; }
-
-private:
-    emitterBaseClass* emitter;
-    bool canClearScreen = true;
-};
 
 class glWindow 
 {
@@ -281,9 +114,6 @@ public:
     virtual void onKeyUp(unsigned char key, int x, int y);
     virtual void onSpecialKeyUp(int key, int x, int y);
     virtual void onSpecialKeyDown(int key, int x, int y);
-
-    GLuint renderAttractor();
-
 
     int GetWidth()  { return theApp->GetWidth();  }
     int GetHeight() { return theApp->GetHeight(); }

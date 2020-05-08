@@ -46,7 +46,7 @@ New menu is available to adjust these settings:
 **7)** LifeTime attenuation factor: when the lifeTime ends, if in *blending mode*, the particle attenuates the intensity of this factor, any second\
 **8)** Wind direction and intensity (in units/s)\
 **9)** Gravity/Acceleration direction and intensity (in units/s)\
-**A)** Toggle cockpit view and related settings (below)\ 
+**A)** Toggle cockpit view and related settings (below)\
 **B)** Smoothing distance: in *blending mode* attenuates the intensity of near dots of linear attenuation factor\
 **C)** Clipping distance: skip to draw closer particles\
 **D)** PiP (Picture In Picture) feature\

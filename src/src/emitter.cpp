@@ -1,21 +1,6 @@
 #include "emitter.h"
 #include "glWindow.h"
 
-void singleEmitterClass::render() {
-/*
-    particlesSystemClass *pSys = theWnd->getParticlesSystem();
-    if(attractorsList.get()->dtType() && pSys->tfMode()) {
-        stopFull(true);
-        const float increment = float(pSys->getSlowMotionDpS()) * theApp->getTimer().fps();
-        const float start = startPointSlowMotion+pSys->getSlowMotionMaxDots()+increment<szCircularBuffer ? 
-                                startPointSlowMotion : 0;
-
-        getVertexBase()->draw(int(start+.5), pSys->getSlowMotionMaxDots(), szCircularBuffer);
-        startPointSlowMotion= start + increment;
-    }
-    else */ getVertexBase()->draw(szCircularBuffer);
-}
-
 
 void singleEmitterClass::storeData() {
     if(isEmitterOn()) { 

@@ -137,7 +137,7 @@
     <ClCompile Include="..\..\src\emitter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\shine7.cpp">
+    <ClCompile Include="..\..\src\partSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -264,6 +264,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\tools\vgMath.h">
       <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\partSystem.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

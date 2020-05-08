@@ -88,6 +88,7 @@ void shaderPointClass::initShader()
 ////////////////////////////////////////////////////////////////////////////////
 GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool isFullScreenPiP, bool cpitView) 
 {
+    setFlagUpdate();
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
     const float lightReduction = theApp->useDetailedShadows() ? .3333 : .25f;
 
@@ -494,22 +495,13 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
     static auto start = std::chrono::high_resolution_clock::now();
     static const auto startEvent = start;
 
-    // FIXME: TOO COMPLEX!!!!!
-        particlesSystemClass *pSys = theWnd->getParticlesSystem();
-#if !defined(GLCHAOSP_LIGHTVER)
-        particlesBaseClass *particles =  pSys->getRenderMode()==RENDER_USE_BILLBOARD ? (particlesBaseClass *) pSys->shaderBillboardClass::getPtr() :
-                                                                                       (particlesBaseClass *) pSys->shaderPointClass::getPtr();
-#else
-        particlesBaseClass *particles =  (particlesBaseClass *) pSys->shaderPointClass::getPtr();
-#endif
-
-    tfSettinsClass &cPit = particles->getTFSettings();
+    tfSettinsClass &cPit = theWnd->getParticlesSystem()->getParticleRenderPtr()->getTFSettings();
 
     auto end = std::chrono::high_resolution_clock::now();
 
     //const GLint index = program->getAttribLocation(p->name);
-    cPit.getUdata().diffTime    = std::chrono::duration<double>(end-start).count();
-    cPit.getUdata().elapsedTime = std::chrono::duration<double>(end-startEvent).count();
+    cPit.getUdata().diffTime    = std::chrono::duration<float>(end-start).count();
+    cPit.getUdata().elapsedTime = std::chrono::duration<float>(end-startEvent).count();
 
     start = end;
     updateBufferData((void *) &cPit.getUdata());
@@ -541,7 +533,7 @@ void transformedEmitterClass::renderOfflineFeedback(AttractorBase *att)
         //speed = normalize(speed) * cPit.getInitialSpeed();
         vec3 speed;
         for(int i=cPit.getTransformedEmission(); i>0; i--) {
-            const float bornTime = std::chrono::duration<double> (std::chrono::high_resolution_clock::now()-startEvent).count();
+            const float bornTime = std::chrono::duration<float> (std::chrono::high_resolution_clock::now()-startEvent).count();
             InsertVbo->getBuffer()[count++] = newPosAttractor.x + vInc.x;
             InsertVbo->getBuffer()[count++] = newPosAttractor.y + vInc.y;
             InsertVbo->getBuffer()[count++] = newPosAttractor.z + vInc.z;
@@ -591,17 +583,17 @@ renderBaseClass::renderBaseClass()
 #define PB(ID,NAME) blendArray.push_back(ID); blendingStrings.push_back(NAME);
     PB(GL_ZERO                     ,"Zero"                    )
     PB(GL_ONE                      ,"One"                     )
-    PB(GL_SRC_COLOR 	           ,"Src_Color"               )
-    PB(GL_ONE_MINUS_SRC_COLOR 	   ,"One_Minus_Src_Color"     )
-    PB(GL_DST_COLOR 	           ,"Dst_Color"               )
+    PB(GL_SRC_COLOR                ,"Src_Color"               )
+    PB(GL_ONE_MINUS_SRC_COLOR      ,"One_Minus_Src_Color"     )
+    PB(GL_DST_COLOR                ,"Dst_Color"               )
     PB(GL_ONE_MINUS_DST_COLOR      ,"One_Minus_Dst_Color "    )
     PB(GL_SRC_ALPHA                ,"Src_Alpha"               )
     PB(GL_ONE_MINUS_SRC_ALPHA      ,"One_Minus_Src_Alpha"     )
     PB(GL_DST_ALPHA                ,"Dst_Alpha"               )
     PB(GL_ONE_MINUS_DST_ALPHA      ,"One_Minus_Dst_Alpha"     )
-    PB(GL_CONSTANT_COLOR 	       ,"Constant_Color	"         )
+    PB(GL_CONSTANT_COLOR           ,"Constant_Color	"         )
     PB(GL_ONE_MINUS_CONSTANT_COLOR ,"One_Minus_Constant_Color")
-    PB(GL_CONSTANT_ALPHA 	       ,"Constant_Alpha"          )
+    PB(GL_CONSTANT_ALPHA           ,"Constant_Alpha"          )
     PB(GL_ONE_MINUS_CONSTANT_ALPHA ,"One_Minus_Constant_Alpha")
     PB(GL_SRC_ALPHA_SATURATE       ,"Src_Alpha_Saturate"      )
 #if !defined(GLCHAOSP_LIGHTVER)
@@ -611,8 +603,6 @@ renderBaseClass::renderBaseClass()
     PB(GL_ONE_MINUS_SRC1_ALPHA     ,"One_Minus_Src1_Alpha"    )
 #endif
 #undef PB
-
-    setRenderMode(RENDER_USE_POINTS);
 
     {
 #ifdef GLAPP_NO_GLSL_PIPELINE
@@ -646,8 +636,6 @@ renderBaseClass::renderBaseClass()
     shadow  = new shadowClass(this);
     postRendering = new postRenderingClass(this);
 #endif
-
-    // create(); // Now called from particlesBaseClass for Texture WebGL issue
 }
 
 void renderBaseClass::buildFBO()
@@ -696,7 +684,8 @@ void renderBaseClass::setRenderMode(int which)
     else 
         if(which!=RENDER_USE_BOTH && whichRenderMode==RENDER_USE_BOTH) getMergedRendering()->Deactivate();
 #endif
-    whichRenderMode=which; setFlagUpdate(); 
+    whichRenderMode=which;
+    setFlagUpdate();
 }
 
 VertexShader* commonVShader = nullptr;

@@ -87,6 +87,8 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/glApp.h
         ${SRC}/glWindow.cpp
         ${SRC}/glWindow.h
+        ${SRC}/partSystem.cpp
+        ${SRC}/partSystem.h
         ${SRC}/emitter.cpp
         ${SRC}/emitter.h
         ${SRC}/mmFBO.cpp

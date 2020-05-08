@@ -197,7 +197,7 @@ public:
 
     vertexBufferBaseClass *getVertexBase() { return InsertVbo; }
 
-    void render();
+    void render() { getVertexBase()->draw(szCircularBuffer); }
     void storeData();
     void setEmitter(bool emit);
 

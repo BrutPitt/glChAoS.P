@@ -103,7 +103,6 @@ void glWindow::onInit()
     }
 }
 
-// 
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onExit()
 {
@@ -111,73 +110,23 @@ void glWindow::onExit()
     delete vao;
 }
 
-// 
 ////////////////////////////////////////////////////////////////////////////
 GLint glWindow::onRender()
 {
     transformsClass *model = getParticlesSystem()->getTMat();
 
-    //  render ColorMaps: rebuild texture only if settings are changed
-    //////////////////////////////////////////////////////////////////
-    particlesSystem->shaderPointClass::getCMSettings()->render();
+    particlesSystem->renderPalette();
 
 #if !defined(GLCHAOSP_LIGHTVER)
 
-    particlesSystem->shaderBillboardClass::getCMSettings()->render();
+    particlesSystem->renderAxes(model);
 
-    transformsClass *axes = getParticlesSystem()->getAxes()->getTransforms();
-
-    auto syncAxes = [&] () {
-        axes->setView(model->getPOV(), getParticlesSystem()->getTMat()->getTGT());    
-        axes->setPerspective(model->getPerspAngle(), float(theApp->GetWidth())/float(theApp->GetHeight()), model->getPerspNear(), model->getPerspFar() );
-        axes->getTrackball().setRotation(model->getTrackball().getRotation());
-    };
-
-    if(particlesSystem->showAxes() == renderBaseClass::showAxesToSetCoR) {
-    //  Set center of rotation
-    //////////////////////////////////////////////////////////////////
-        syncAxes();
-
-        // no dolly & pan: axes are to center
-        axes->getTrackball().setPanPosition(vec3(0.0));
-        axes->getTrackball().setDollyPosition(vec3(0.0));
-
-        // get rotation & translation of model w/o pan & dolly
-        quat q =   model->getTrackball().getRotation() ;
-        model->tM.mMatrix = mat4_cast(q) * translate(mat4(1.f), model->getTrackball().getRotationCenter());
-        model->build_MV_MVP();
-
-        // apply rotation to matrix... then subtract prevous model translation
-        axes->tM.mMatrix = mat4(1.f); 
-        axes->getTrackball().applyRotation(axes->tM.mMatrix); 
-        axes->tM.mMatrix = translate(axes->tM.mMatrix , -model->getTrackball().getRotationCenter());
-        axes->build_MV_MVP();
-
-
-    } else  {
-    //  Show center of rotation
-    //////////////////////////////////////////////////////////////////
-        if(particlesSystem->showAxes() == renderBaseClass::showAxesToViewCoR) {
-            syncAxes();
-
-            // add RotCent component to dolly & pan... to translate axes with transforms
-            vec3 v(model->getTrackball().getRotationCenter());
-            axes->getTrackball().setPanPosition(model->getTrackball().getPanPosition()-vec3(v.x, v.y, 0.0));
-            axes->getTrackball().setDollyPosition(model->getTrackball().getDollyPosition()-vec3(0.0, 0.0, v.z));
-
-            axes->applyTransforms();
-        }
-
-        model->applyTransforms();
-    }
-
-    GLuint texRendered = renderAttractor();
+    // main render event
+    GLuint texRendered = particlesSystem->render();
 
     //  Motion Blur
-    //////////////////////////////////////////////////////////////////
     if(particlesSystem->getMotionBlur()->Active()) {
 
-    //glDisable(GL_BLEND);
     #ifdef GLAPP_REQUIRE_OGL45
         glBlitNamedFramebuffer(particlesSystem->getMotionBlur()->render(texRendered),
                                0,
@@ -193,117 +142,15 @@ GLint glWindow::onRender()
                           GL_COLOR_BUFFER_BIT, GL_NEAREST );
     #endif
     }
-
-#else 
-
+#else
     model->applyTransforms();
     GLuint texRendered = renderAttractor();
-
 #endif
     //glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind both FRAMEBUFFERS to default
 
     particlesSystem->clearFlagUpdate();
     return texRendered;
 }
-
-
-//  render Attractor
-//////////////////////////////////////////////////////////////////
-GLuint glWindow::renderAttractor()
-{
-
-    const int w =particlesSystem->getWidth(), h =particlesSystem->getHeight();
-    glViewport(0,0, w, h);
-
-    GLuint texRendered;
-
-
-    if(attractorsList.get()->dtType() && tfSettinsClass::tfMode() && tfSettinsClass::cockPit()) {
-
-
-#if !defined(GLCHAOSP_LIGHTVER) // FIXME: TOO COMPLEX!!!!!
-        particlesBaseClass *particles =  particlesSystem->getRenderMode()==RENDER_USE_BILLBOARD ? (particlesBaseClass *) particlesSystem->shaderBillboardClass::getPtr() :
-                                                                                                  (particlesBaseClass *) particlesSystem->shaderPointClass::getPtr();
-#else
-        particlesBaseClass *particles =  (particlesBaseClass *) particlesSystem->shaderPointClass::getPtr();
-#endif
-        tfSettinsClass &cPit = particles->getTFSettings();
-
-        particlesSystem->getEmitter()->preRenderEvents();
-
-        const vec3 vecA(vec3(attractorsList.get()->getCurrent() ));
-
-        const int buffSize = attractorsList.get()->getQueueSize()-1;
-        int idx = cPit.getTailPosition()*buffSize+.5; 
-
-        const vec3 vecB(vec3(attractorsList.get()->getAt(idx<1 ? 1 : (idx>buffSize ? buffSize : idx))));
-
-        vec3 cpPOV((cPit.invertView() ? vecA : vecB));
-        vec3 cpTGT((cPit.invertView() ? vecB : vecA));
-
-        transformsClass *cpTM = getParticlesSystem()->getCockPitTMat();
-
-        cpTM->setPerspective(tfSettinsClass::getPerspAngle(), float(w) / float(h),
-                             tfSettinsClass::getPerspNear(),
-                             getParticlesSystem()->getTMat()->getPerspFar());
-
-
-/*
-        const vec3 vecDirH = (cpTGT) + (cpPOV-cpTGT)*cPit.getMovePositionHead();
-        const vec3 vecDirT = (cpPOV-cpTGT) + (cpPOV-cpTGT)*cPit.getMovePositionTail();
-
-        mat4 m = translate(mat4(1.f), vecDirH);
-        m = m * mat4_cast(cPit.getRotation());
-        cpPOV = mat4(m) * vec4(vecDirT, 1.0);
-        //cpTGT = mat4(m) * vec4(vecDirH, 1.0);
-
-        cpTM->setView(cpPOV, vecDirH);
-
-*/
-        const vec3 vecDirH = (cpPOV-cpTGT) + (cpPOV-cpTGT)*cPit.getMovePositionHead();
-        const vec3 vecDirT = (cpPOV-cpTGT) + (cpPOV-cpTGT)*cPit.getMovePositionTail();
-
-        mat4 m = translate(mat4(1.f), cpTGT);
-        m = m * mat4_cast(cPit.getRotation());
-        cpPOV = mat4(m) * vec4(vecDirT, 1.0);
-        cpTGT = mat4(m) * vec4(vecDirH, 1.0);
-
-        cpTM->setView(cpPOV, cpTGT);
-
-
-        // New settings for tfSettings
-        cpTM->getTrackball().setRotation(quat(1.0f,0.0f, 0.0f, 0.0f));
-        cpTM->getTrackball().setRotationCenter(vec3(0.f));
-
-        cpTM->getTrackball().setPosition(vec3(0.f));
-        cpTM->applyTransforms();
-
-        //Render TF full screen view 
-        texRendered = particlesSystem->renderParticles(true, !cPit.invertPIP());
-        texRendered = particlesSystem->renderGlowEffect(texRendered);
-
-        //Render PiP view 
-        particlesSystem->setFlagUpdate();
-        if(cPit.getPIPposition() != cPit.pip::noPIP) {
-            cPit.setViewport(w,h); 
-
-            texRendered = particlesSystem->renderParticles(false, cPit.invertPIP());
-            texRendered = particlesSystem->renderGlowEffect(texRendered);
-            glViewport(0,0, w, h);
-        }
-
-#if !defined(GLCHAOSP_NO_FXAA)
-        texRendered = particlesSystem->renderFXAA(texRendered);
-#endif                                                           
-
-        particlesSystem->getEmitter()->postRenderEvents();
-    } else {
-        texRendered = particlesSystem->render();
-    }
-
-    return texRendered;
-}
-
 
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onIdle()

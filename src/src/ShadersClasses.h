@@ -617,7 +617,7 @@ protected:
 
     mmFBO renderFBO;
     mmFBO drawFBO;
-//        , msaaFBO;
+//         msaaFBO;
 
     transformsClass tMat, cpTMat;
 

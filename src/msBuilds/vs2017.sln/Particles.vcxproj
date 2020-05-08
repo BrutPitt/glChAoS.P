@@ -44,7 +44,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7BE468C8-02A3-41A6-9553-99A208C2D4D9}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -530,7 +530,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\libs\lodePNG\lodepng.cpp" />
-    <ClCompile Include="..\..\src\shine7.cpp" />
+    <ClCompile Include="..\..\src\partSystem.cpp" />
     <ClCompile Include="..\..\src\tools\fastRandom.cpp" />
     <ClCompile Include="..\..\src\tools\glslProgramObject.cpp" />
     <ClCompile Include="..\..\src\tools\glslShaderObject.cpp" />
@@ -564,6 +564,7 @@
     <ClInclude Include="..\..\src\libs\lodePNG\lodepng.h" />
     <ClInclude Include="..\..\src\libs\nanoflann\nanoflann.hpp" />
     <ClInclude Include="..\..\src\libs\tinyPLY\tinyply.h" />
+    <ClInclude Include="..\..\src\partSystem.h" />
     <ClInclude Include="..\..\src\tools\fastRandom.h" />
     <ClInclude Include="..\..\src\tools\glslProgramObject.h" />
     <ClInclude Include="..\..\src\tools\glslShaderObject.h" />
