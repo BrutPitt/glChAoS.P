@@ -25,7 +25,7 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 
 
 ### ver.1.5.0 feature: TransformFeedback **multiDot emitter**
-Now all dp/dt attractors (yellow tag) have an additional new emitter type to visualize it in a progressive way and/or with multiDot (spray) effect.\
+Now all dp/dt attractors (yellow tag) have an additional new emitter type to visualize them in a progressive way and/or with multiDot (spray) effect.\
 Is also possible to travel, in first person (cockpit view), within the particles, following the evolution of the attractors.
 
 | Simulating a comet's journey in Lorenz attractor | Voyage in Multi-Chua II attractor |
@@ -42,15 +42,15 @@ New menu is available to adjust these settings:
 **3)** Multiplication factor of initial radial random speed\
 **4)** Air friction/deceleration\
 **5)** Point size: there are 3 different "pointSize" for: singleDot emitter, multiDot emitter and cockpitView\
-**6)** LifeTime of particles in sec.\
-**7)** LifeTime attenuation factor: when the lifeTime ends, if in *blending mode*, the particle attenuates the intensity of this factor, any second\
+**6)** Particles LifeTime, in sec.\
+**7)** LifeTime attenuation: when the lifeTime ends, in *blending mode*, the particle attenuates the intensity of this factor, any second\
 **8)** Wind direction and intensity (in units/s)\
 **9)** Gravity/Acceleration direction and intensity (in units/s)\
-**A)** Toggle cockpit view and related settings (below)\
-**B)** Smoothing distance: in *blending mode* attenuates the intensity of near dots of linear attenuation factor\
+**A)** Toggle cockpit view and related settings (following controls)\
+**B)** Smoothing distance: in *blending mode* attenuates the intensity of near dots by distance\
 **C)** Clipping distance: skip to draw closer particles\
 **D)** PiP (Picture In Picture) feature\
-**E)** TagretView is the current emitted dot, PointOfView is positioned on the wake: this adjusts the distance from head (it follows the attractor direction).\
+**E)** TagretView is the current emitted dot, PointOfView is positioned on the wake: it adjusts the distance from head (it follows the attractor direction).\
 **F)** Move back the PoV: it follows the vector *PoV -> TGT*\
 **G)** Rotate the cam around TagretView, or better: around attractor head (last emitted dot), use reset to reposition the cam\
 **H)** Move forward the TagretView position
