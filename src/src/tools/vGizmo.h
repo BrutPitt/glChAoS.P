@@ -123,8 +123,8 @@ public:
     }
     //    Call on Pinching
     ////////////////////////////////////////////////////////////////////////////
-    void pinching( T d ) {
-        delta.y = d;
+    void pinching(T d, T z = T(0)) {
+        delta.y = d * z;
         update();
     }
 

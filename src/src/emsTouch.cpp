@@ -236,29 +236,36 @@ EM_BOOL emsMDeviceClass::touchMove(int eventType, const EmscriptenTouchEvent *e,
         t.touchX = TOUCH(0,X); 
         t.touchY = TOUCH(0,Y);
 
-        if(t.dblTouch) {
-            const float scl = .25;
-            vg::vGizmo3D &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
+        if(t.dblTouch) { // pan
 
-            vec3 pan = T.getPanPosition();
-            pan.x += (t.touchX-t.oldTouchX) * T.getPanScale() * scl;
-            pan.y -= (t.touchY-t.oldTouchY) * T.getPanScale() * scl;
-            T.setPanPosition(pan);
+            transformsClass *Tm = theWnd->getParticlesSystem()->getTMat();
+            vg::vGizmo3D &Tb = Tm->getTrackball();
+
+            //const float scl = .25;
+            const float scl = (Tm->getPOV().z-Tb.getDollyPosition().z) * .05;
+
+            vec3 pan = Tb.getPanPosition();
+            pan.x += (t.touchX-t.oldTouchX) * Tb.getPanScale() * scl;
+            pan.y -= (t.touchY-t.oldTouchY) * Tb.getPanScale() * scl;
+            Tb.setPanPosition(pan);
             t.oldTouchX = t.touchX; t.oldTouchY = t.touchY;
             return true;
         }
             
-        if(e->numTouches==1) {
-            if(ImGui::GetIO().WantCaptureMouse) return true;
-            theWnd->onMotion(TOUCH(0,X), TOUCH(0,Y));
+        if(e->numTouches==1) { // rotate
+            if(!ImGui::GetIO().WantCaptureMouse) theWnd->onMotion(TOUCH(0,X), TOUCH(0,Y));
+            else return true;
         } else if(t.pinchStart && e->numTouches==2) { // pinch
 
-            float d = distance(vec2(TOUCH(0,X), TOUCH(0,Y)), 
+            float d = distance(vec2(TOUCH(0,X), TOUCH(0,Y)),
                                vec2(TOUCH(1,X), TOUCH(1,Y)));
 
-            vg::vGizmo3D &T = theWnd->getParticlesSystem()->getTMat()->getTrackball();
             if(abs(t.prevDist-d)>4) {
-                T.setDollyPosition(T.getDollyPosition().z + T.getDollyScale() * (d-t.prevDist));
+                transformsClass *Tm = theWnd->getParticlesSystem()->getTMat();
+                vg::vGizmo3D &Tb = Tm->getTrackball();
+
+                const float z = (Tm->getPOV().z-Tb.getDollyPosition().z) * .1;
+                Tb.setDollyPosition(Tb.getDollyPosition().z + Tb.getDollyScale() * (d-t.prevDist) * (z>0.0 ? z : 1.0));
                 t.prevDist = d;
             }
 

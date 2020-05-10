@@ -23,7 +23,7 @@ class emsMDeviceClass
 {
 public:
 
-#define TOUCH(I,P) (theApp->useFixedCanvas() ? (e->touches[I].target##P) : (float(e->touches[I].target##P) * float(float(theApp->getSize##P()) / float(theApp->getCanvas##P()))))
+#define TOUCH(I,P) (theApp->useFixedCanvas() ? float(e->touches[I].target##P) : (float(e->touches[I].target##P) * float(float(theApp->getSize##P()) / float(theApp->getCanvas##P()))))
 
 enum touchAct {
     tCancel, tStart, tEnd, tMove
