@@ -359,7 +359,7 @@ public:
         CHECK_GL_ERROR()
     }
 
-    void preRenderEvents() { renderOfflineFeedback(attractorsList.get()); }
+    void preRenderEvents() { renderOfflineFeedback(); }
     void renderEvents() {  render(); }
     void postRenderEvents() { rotateActiveBuffer(); }
 
@@ -380,7 +380,7 @@ public:
 
     void rotateActiveBuffer() { activeBuffer ^= 1; }
 
-    void renderOfflineFeedback(AttractorBase *att);
+    void renderOfflineFeedback();
 
 protected:
     int activeBuffer;
