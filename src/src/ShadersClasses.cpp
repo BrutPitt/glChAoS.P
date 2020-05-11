@@ -112,18 +112,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     
     getUPlanes().buildInvMV_forPlanes(this);    // checkPlanes and eventually build invMat
     
-
-    auto getLigthPOV = [&]() {
-        // FIXME: cockPit Shadow 
-        //if(cpitView) {
-        //    currentTMat->setLightView(getLightDir());
-        //    vec4 v(getTMat()->tM.vMatrix * currentTMat->tM.vMatrix * vec4(getLightDir(), 1.f));
-        //    return v;        
-        //}
-        //else 
-            return getTMat()->tM.vMatrix * vec4(getLightDir(), 1.f);
-    };
-
     if(checkFlagUpdate()) {
         getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
         //getUData().scrnRes = vec2(vp.w, vp.h);
@@ -133,18 +121,20 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getUData().velocity = getCMSettings()->getVelIntensity();        
         getUData().shadowDetail = float(theApp->useDetailedShadows() ? 2.0f : 1.f);
         getUData().rotCenter = currentTMat->getTrackball().getRotationCenter();
-        getUData().lightDir = normalize(vec3(getLigthPOV()));
+        getUData().lightDir = normalize(vec3(currentTMat->tM.vMatrix * vec4(getLightDir(), 1.f)));
     }
 
     getUData().slowMotion = isTFRender;
 
-    float distAtt = getUData().pointDistAtten;      // FIXME: use external setting so don't save and restore down
+    float distAtt = getUData().pointDistAtten;      // FIXME: use external setting so don't save and restore below
     if(isTFRender) getUData().pointDistAtten = 0.f; // no distance attenuation on cpitView
 
     tfSettinsClass &cPit = getTFSettings();
     getUData().elapsedTime   = cPit.getUdata().elapsedTime;
-    getUData().lifeTime      = cpitView ? cPit.getLifeTimeCP() : cPit.getLifeTime();
-    getUData().lifeTimeAtten = cpitView ? cPit.getLifeTimeAttenCP() : cPit.getLifeTimeAtten();
+    getUData().lifeTime      = tfSettinsClass::getPIPposition() ? std::max(cPit.getLifeTimeCP(),cPit.getLifeTime()) :
+            cpitView ? cPit.getLifeTimeCP() : cPit.getLifeTime();           // if PiP get max for both to sync view
+    getUData().lifeTimeAtten = tfSettinsClass::getPIPposition() ? std::max(cPit.getLifeTimeAttenCP(), cPit.getLifeTimeAtten()) :
+            cpitView ? cPit.getLifeTimeAttenCP() : cPit.getLifeTimeAtten(); // if PiP get max for both to sync view
     getUData().smoothDistance= cPit.getSmoothDistance();
     getUData().vpReSize      = isFullScreenPiP ? 1.0 : cPit.getPIPzoom()*.5;
 
