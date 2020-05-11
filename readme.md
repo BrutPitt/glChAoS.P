@@ -89,7 +89,7 @@ With **Billboard** and **PointSprite** techniques
 
 ### 3D DLA (Diffusion Limited Aggregation)  - [DLA3D Video Example](https://youtu.be/_R7akPh64XU)
 [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/dla3D.jpg)](https://youtu.be/_R7akPh64XU)
-Personal [DLAf-optimized](https://github.com/BrutPitt/DLAf-optimized) project, adaptation and optimization from original code of [Michael Fogleman](https://github.com/fogleman), with possibility to export/import to/from PLY format and to continue a previous rendering.
+This is an integrated version of more simple my [**DLAf-optimized**](https://github.com/BrutPitt/DLAf-optimized) repo that I used in [**glChAoS.P / wglChAoS.P**](https://github.com/BrutPitt/glChAoS.P) for large-scale DLA3D growth, with possibility to export/import to/from PLY format and to continue a previous rendering.
 
 ### Rendering models with Aizawa attractor - **[Video Example](https://youtu.be/mkX4fdv-kZU)**
 
