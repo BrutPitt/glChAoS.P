@@ -364,13 +364,15 @@ public:
 
 //const static
     static float getPerspNear() { return perspNear; }
-    static int  getMaxTransformedEmission() { return maxTransformedEmission; }
+    static int getMaxTransformedEmission()      { return maxEmission; }
+    static int getMaxTransformedEmissionFrame() { return maxEmissionFrame; }
 
 //Feedback Funcs
     void setTransformedEmission(int i)  {  transformedEmission =  i; }    //getEmittedParticles
     int  getTransformedEmission() { return transformedEmission; }
-    void setMaxEmissionFrame(int i)  {  maxEmissionFrame =  i; }    //getEmittedParticles
-    int  getMaxEmissionFrame() { return maxEmissionFrame; }
+    //void setMaxEmissionFrame(int i)  {  maxEmissionFrame =  i; }    //getEmittedParticles
+    //static int getMaxEmissionFrame() { return maxEmissionFrame; }
+
 
 private:
 
@@ -402,11 +404,11 @@ private:
     static void setViewportSize(const ivec4 &v) { tfCommons.viewportSize = v; }
 
     static constexpr float perspNear = .001f;
-    static const int maxTransformedEmission = 50;
 
 //Feedback Data
     int transformedEmission = 4;
-    int maxEmissionFrame = 1000;
+    static const int maxEmission = 50;
+    static const int maxEmissionFrame = 1000*maxEmission;
     float initialSpeed = 1.0;
 
     friend transformedEmitterClass;

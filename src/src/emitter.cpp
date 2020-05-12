@@ -56,7 +56,56 @@ void transformedEmitterClass::setEmitter(bool emit)
 #endif
 }
 
-    #if !defined(GLCHAOSP_DISABLE_FEEDBACK)
+#if !defined(GLCHAOSP_DISABLE_FEEDBACK)
+//
+//  transformFeedbackInterleaved
+//
+////////////////////////////////////////////////////////////////////////////////
+
+transformFeedbackInterleaved::transformFeedbackInterleaved(GLenum primitive, uint32_t stepBuffer, int attributesPerVertex)
+{
+    trasformVB = new transformVertexBuffer(primitive, stepBuffer, attributesPerVertex);
+    trasformVB->initBufferStorage(stepBuffer, GL_ARRAY_BUFFER, GL_DYNAMIC_COPY); // stepBuffer is whole buffer
+    trasformVB->buildTransformVertexAttrib();
+}
+
+void transformFeedbackInterleaved::Begin(GLuint query, GLsizeiptr sz) 
+{
+    if (FeedbackActive) return;
+
+    FeedbackActive = true;
+    trasformVB->BindToFeedback(0, sz);
+
+    glBeginTransformFeedback(trasformVB->getPrimitive());
+
+    if(bDiscard) glEnable(GL_RASTERIZER_DISCARD);
+
+#if !defined(GLCHAOSP_LIGHTVER)
+    glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, query);
+#endif
+
+}
+
+GLuint transformFeedbackInterleaved::End(GLuint query, GLsizeiptr sz) 
+{
+    GLuint iPrimitivesWritten = 0;
+    if(!FeedbackActive)  return -1;
+    FeedbackActive = false;
+
+#if !defined(GLCHAOSP_LIGHTVER)
+    glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+    glGetQueryObjectuiv(query,GL_QUERY_RESULT,&iPrimitivesWritten);
+#endif
+    //glGetQueryiv(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, GL_CURRENT_QUERY ,&iPrimitivesWritten);
+    if(bDiscard)  glDisable(GL_RASTERIZER_DISCARD);
+    glEndTransformFeedback();
+    trasformVB->endBindToFeedback(0);
+
+    if(iPrimitivesWritten == 0) iPrimitivesWritten = sz;
+    return iPrimitivesWritten;
+}
+
+
 
 //
 //  transformedEmitter
@@ -64,11 +113,50 @@ void transformedEmitterClass::setEmitter(bool emit)
 ////////////////////////////////////////////////////////////////////////////////
 bool transformFeedbackInterleaved::FeedbackActive = false;
 
-float stdRandom(float lo, float hi)  {
-    static thread_local std::mt19937 gen(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-    std::uniform_real_distribution<tPrec> dist(lo, hi); return dist(gen);
-}
+void transformedEmitterClass::buildEmitter() 
+{
+    const int numVtxAttrib = 2;
 
+    //Feedback
+    GLsizeiptr size = tfSettinsClass::getMaxTransformedEmissionFrame();
+
+    tfbs[0] = new transformFeedbackInterleaved(GL_POINTS, getSizeAllocatedBuffer(), numVtxAttrib);
+    tfbs[1] = new transformFeedbackInterleaved(GL_POINTS, getSizeAllocatedBuffer(), numVtxAttrib);
+
+#if !defined(GLCHAOSP_LIGHTVER)
+    glGenQueries(1,&query);
+#endif
+    InsertVbo = new transformVertexBuffer(GL_POINTS, size, numVtxAttrib);
+    InsertVbo->initBufferStorage(size, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, true);
+    InsertVbo->buildTransformVertexAttrib();
+
+    activeBuffer = 0;
+
+    //build shader
+    const GLchar *namesParticlesLoc[] {"posOut", "velTOut", "TexCoord0Out", "TexCoord1Out", "TexCoord2Out"};
+    useVertex();
+    useFragment();
+
+    getVertex()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "transformEmitterVert.glsl");
+    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "transformEmitterFrag.glsl");
+
+    addVertex();
+    addFragment();
+
+    glTransformFeedbackVaryings(getHandle(), numVtxAttrib, namesParticlesLoc, GL_INTERLEAVED_ATTRIBS);
+
+    link();
+
+    removeAllShaders(true);
+
+#ifdef GLAPP_REQUIRE_OGL45
+    uniformBlocksClass::create(GLuint(sizeof(tfSettinsClass::uTFData)), nullptr);
+#else
+    USE_PROGRAM
+
+    uniformBlocksClass::create(GLuint(sizeof(tfSettinsClass::uTFData)), nullptr, getProgram(), "_TFData");
+#endif
+}
 
 void transformedEmitterClass::renderOfflineFeedback()
 {
@@ -96,13 +184,14 @@ void transformedEmitterClass::renderOfflineFeedback()
 
     int emiss = fEmiss;
     restEmiss = fEmiss-float(emiss);
-    if(emiss>cPit.getMaxEmissionFrame()) emiss = cPit.getMaxEmissionFrame();
+    if(emiss>tfSettinsClass::getMaxTransformedEmissionFrame()) emiss = tfSettinsClass::getMaxTransformedEmissionFrame();
 
     vec4 *vboBuffer = (vec4 *)InsertVbo->getBuffer();
     int vtxCount = 0;
     float const speedMagnitudo = cPit.getInitialSpeed();
     const GLuint szCircular = getSizeCircularBuffer();
-    const GLuint64 pCount = getParticlesCount();
+    const GLuint pCount = getParticlesCount() % szCircular;
+
     while(isEmitterOn() && emiss-- && (pCount<szCircular)) {
         attractorsList.get()->Step();
 
@@ -112,8 +201,6 @@ void transformedEmitterClass::renderOfflineFeedback()
         const vec3 vStep = (newPosAttractor-oldPosAttractor)/float(cPit.getTransformedEmission());
         vec3 vInc(0.0);
 
-        //vec3 speed(fastRandom.VNI(), fastRandom.VNI(), fastRandom.VNI());
-        //speed = normalize(speed) * cPit.getInitialSpeed();
         for(int i=cPit.getTransformedEmission(); i>0; i--) {
             const float bornTime = std::chrono::duration<float> (std::chrono::high_resolution_clock::now()-startEvent).count();
             *vboBuffer++ = vec4(newPosAttractor + vInc, dist);
@@ -125,20 +212,20 @@ void transformedEmitterClass::renderOfflineFeedback()
     }
 
     InsertVbo->uploadData(vtxCount);
-    tfbs[activeBuffer]->Begin(query, getSizeCircularBuffer() * InsertVbo->getBytesPerVertex());
-    if(vtxCount) InsertVbo->drawRange(GL_ARRAY_BUFFER, 0,vtxCount);
+    
+    transformFeedbackInterleaved *tfCurr = tfbs[activeBuffer], *tfNext = tfbs[activeBuffer^1];
+    const uint64_t szI =  tfNext->getTransformSize();
 
-    CHECK_GL_ERROR()
+    tfCurr->Begin(query, (GLsizeiptr) szCircular);
+    if(vtxCount) InsertVbo->drawRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0,vtxCount);
 
-    const long szI =  tfbs[activeBuffer^1]->getTransformSize();
 
     // if GL_TRANSFORM_FEEDBACK_BUFFER get error ONLY on FireFox 71 Mobile:
     // Error: WebGL warning: drawArrays: Vertex attrib 1's buffer is bound for transform feedback.
-    if(szI) tfbs[activeBuffer^1]->getVertexBase()->drawRange(GL_ARRAY_BUFFER, 0, szI<szCircular ? szI : szCircular);
-    CHECK_GL_ERROR()
+    if(szI) tfNext->getVertexBase()->drawRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0, szI<szCircular ? szI : szCircular);
 
-    const GLuint countV = tfbs[activeBuffer]->End(query, szI+vtxCount);
-    tfbs[activeBuffer]->setTransformSize(countV);
-    tfbs[activeBuffer^1]->getVertexBase()->setVertexCount(countV);
+    const GLuint countV = tfCurr->End(query, szI+vtxCount<szCircular ? szI+vtxCount : szCircular);
+    tfCurr->setTransformSize(countV);
+    addVertexCount(vtxCount);
 }
 #endif

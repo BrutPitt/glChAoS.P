@@ -54,7 +54,8 @@ public:
     GLuint64 *getPtrVertexUploaded() { return &uploadedVtx; }
     void     incVertexCount() { uploadedVtx++;  }
     void     resetVertexCount()  { uploadedVtx = 0; }
-    void     setVertexCount(GLuint i) { uploadedVtx = i; }
+    void     setVertexCount(GLuint64 i) { uploadedVtx = i; }
+    void     addVertexCount(GLuint64 i) { uploadedVtx+= i; }
     GLuint   getVAO()            { return vao; };
     GLuint   getVBO()            { return vbo; };
     GLenum   getPrimitive() { return primitive; }
@@ -159,9 +160,11 @@ public:
     void BindToFeedback(int index, GLsizeiptr sz)
     {
 #ifdef GLAPP_REQUIRE_OGL45
-        glTransformFeedbackBufferRange(0,index,vbo,0,sz);
+        glTransformFeedbackBufferRange(0,index,vbo,0,sz*bytesPerVertex);
 #else
-        glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, vbo, 0, sz);
+        //WebGL need *Base (otherwise circular don't works)
+        glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, index, vbo);
+        //glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, vbo, 0, sz*bytesPerVertex);
 #endif
     }
     
@@ -189,8 +192,8 @@ public:
         glBindBuffer(type, vbo);
 
         glDrawArrays(primitive,start,size);
+        CHECK_GL_ERROR()
         if(theApp->useSyncOGL()) glFinish(); // stuttering with frequent calls on slow GPU & APPLE
-
     }
 
 protected:

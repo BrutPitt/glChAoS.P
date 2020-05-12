@@ -219,14 +219,10 @@ private:
 
 #if !defined(GLCHAOSP_DISABLE_FEEDBACK)
 
-class transformFeedbackInterleaved {
+class transformFeedbackInterleaved 
+{
 public:
-    transformFeedbackInterleaved(GLenum primitive, uint32_t stepBuffer, int attributesPerVertex)
-    {
-        trasformVB = new transformVertexBuffer(primitive, stepBuffer, attributesPerVertex);
-        trasformVB->initBufferStorage(stepBuffer, GL_TRANSFORM_FEEDBACK_BUFFER, GL_DYNAMIC_COPY); // stepBuffer is whole buffer
-        trasformVB->buildTransformVertexAttrib();
-    }
+    transformFeedbackInterleaved(GLenum primitive, uint32_t stepBuffer, int attributesPerVertex);
     ~transformFeedbackInterleaved() { delete trasformVB; }
 
     void Pause()  { glPauseTransformFeedback();  }
@@ -237,49 +233,10 @@ public:
     uint64_t getTransformSize() { return transformSize; }
     void setTransformSize(uint64_t v = 0L) { transformSize = v; }
 
-    void Begin(GLuint query, GLsizeiptr sz) {
-        if (FeedbackActive) return;
-
-        FeedbackActive = true;
-        trasformVB->BindToFeedback(0, sz);
-
-        glBeginTransformFeedback(trasformVB->getPrimitive());
-
-        if (bDiscard) glEnable(GL_RASTERIZER_DISCARD);
-
-#if !defined(GLCHAOSP_LIGHTVER)
-      glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, query);
-#endif
-    }
-
-    GLuint End(GLuint query, GLsizeiptr sz) {
-        GLuint iPrimitivesWritten = 0;
-        if(!FeedbackActive)  return -1;
-        FeedbackActive = false;
-
-        //glGetQueryiv(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, GL_CURRENT_QUERY ,&iPrimitivesWritten);
-        if(bDiscard)  glDisable(GL_RASTERIZER_DISCARD);
-        glEndTransformFeedback();
-        trasformVB->endBindToFeedback(0);
-
-#if !defined(GLCHAOSP_LIGHTVER)
-        glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
-        glGetQueryObjectuiv(query,GL_QUERY_RESULT,&iPrimitivesWritten);
-#endif
-
-//#ifdef __EMSCRIPTEN__
-//        iPrimitivesWritten = EM_ASM_INT({
-//            return Module.ctx.getQueryParameter(GL.queries[$0], Module.ctx.QUERY_RESULT);
-//        }, query);
-//#endif
-
-        if(iPrimitivesWritten == 0) iPrimitivesWritten = sz;
-
-        return iPrimitivesWritten;
-    }
+    void Begin(GLuint query, GLsizeiptr sz);
+    GLuint End(GLuint query, GLsizeiptr sz);
     
     void SetDiscard(bool value=true){ bDiscard = value; }
-
 
 private:
     vertexBufferBaseClass *trasformVB;
@@ -291,56 +248,10 @@ private:
 
 class transformedEmitterClass : public mainProgramObj, public emitterBaseClass, public uniformBlocksClass
 {
-
 public:      
-
     transformedEmitterClass() { setEmitterOff(); }
 
-    void buildEmitter() {
-        const int numVtxAttrib = 2;
-
-        //Feedback
-        GLsizeiptr size = 1000 *
-                tfSettinsClass::getMaxTransformedEmission();
-
-        tfbs[0] = new transformFeedbackInterleaved(GL_POINTS, getSizeAllocatedBuffer(), numVtxAttrib);
-        tfbs[1] = new transformFeedbackInterleaved(GL_POINTS, getSizeAllocatedBuffer(), numVtxAttrib);
-
-#if !defined(GLCHAOSP_LIGHTVER)
-        glGenQueries(1,&query);
-#endif
-        InsertVbo = new transformVertexBuffer(GL_POINTS, size, numVtxAttrib);
-        InsertVbo->initBufferStorage(size, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, true);
-        InsertVbo->buildTransformVertexAttrib();
-
-        activeBuffer = 0;
-
-        //build shader
-        const GLchar *namesParticlesLoc[] {"posOut", "velTOut", "TexCoord0Out", "TexCoord1Out", "TexCoord2Out"};
-        useVertex();
-        useFragment();
-
-        getVertex()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "transformEmitterVert.glsl");
-        fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "transformEmitterFrag.glsl");
-
-        addVertex();
-        addFragment();
-
-        glTransformFeedbackVaryings(getHandle(), numVtxAttrib, namesParticlesLoc, GL_INTERLEAVED_ATTRIBS);
-
-        link();
-
-        removeAllShaders(true);
-
-#ifdef GLAPP_REQUIRE_OGL45
-        uniformBlocksClass::create(GLuint(sizeof(tfSettinsClass::uTFData)), nullptr);
-#else
-        USE_PROGRAM
-
-        uniformBlocksClass::create(GLuint(sizeof(tfSettinsClass::uTFData)), nullptr, getProgram(), "_TFData");
-#endif
-
-    }
+    void buildEmitter();
 
     ~transformedEmitterClass() {
         delete tfbs[0];
@@ -356,7 +267,6 @@ public:
         // Error: WebGL warning: drawArrays: Vertex attrib 1's buffer is bound for transform feedback.
         const uint64_t sz = tfbs[activeBuffer]->getTransformSize();
         tfbs[activeBuffer]->getTrasformVB()->drawRange(GL_ARRAY_BUFFER, 0, sz<szCircularBuffer ? sz : szCircularBuffer);
-        CHECK_GL_ERROR()
     }
 
     void preRenderEvents() { renderOfflineFeedback(); }
@@ -367,15 +277,23 @@ public:
     void storeData() {}
     void setEmitter(bool emit);
 
-    GLuint getVBO() { return tfbs[activeBuffer]->getVertexBase()->getVBO(); }
-    vertexBufferBaseClass *getVertexBase() { return tfbs[activeBuffer]->getVertexBase(); }
+    GLuint getVBO() { return tfbs[0]->getVertexBase()->getVBO(); }
+    vertexBufferBaseClass *getVertexBase() { return tfbs[0]->getVertexBase(); }
+    vertexBufferBaseClass *getVertexBase(int i) { return tfbs[i]->getVertexBase(); }
 
     void resetVBOindexes()
     {
         activeBuffer = 0;
-        getVertexBase()->resetVertexCount();
+        tfbs[0]->getVertexBase()->resetVertexCount();
         tfbs[0]->setTransformSize();
+
+        tfbs[1]->getVertexBase()->resetVertexCount();
         tfbs[1]->setTransformSize();
+    }
+
+    void addVertexCount(GLuint64 i) {
+        tfbs[0]->getVertexBase()->addVertexCount(i);
+        tfbs[1]->getVertexBase()->addVertexCount(i);
     }
 
     void rotateActiveBuffer() { activeBuffer ^= 1; }
@@ -388,5 +306,10 @@ protected:
 
     transformFeedbackInterleaved *tfbs[2];
     vertexBufferBaseClass *InsertVbo = nullptr;
+
+    //float stdRandom(float lo, float hi)  {
+    //    static thread_local std::mt19937 gen(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    //    std::uniform_real_distribution<tPrec> dist(lo, hi); return dist(gen);
+    //}
 };
 #endif
