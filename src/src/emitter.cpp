@@ -41,18 +41,9 @@ void singleEmitterClass::storeData() {
 void singleEmitterClass::setEmitter(bool emit) 
 { 
     bEmitter = emit;
-    if(emit) startPointSlowMotion = 0;
 #if !defined(GLCHAOSP_LIGHTVER)
     if(emit) theWnd->getParticlesSystem()->viewObjOFF();
     attractorsList.getStepCondVar().notify_one();
-#endif
-}
-
-void transformedEmitterClass::setEmitter(bool emit) 
-{ 
-    bEmitter = emit;
-#if !defined(GLCHAOSP_LIGHTVER)
-    if(emit) theWnd->getParticlesSystem()->viewObjOFF();
 #endif
 }
 
@@ -61,6 +52,19 @@ void transformedEmitterClass::setEmitter(bool emit)
 //  transformFeedbackInterleaved
 //
 ////////////////////////////////////////////////////////////////////////////////
+void transformedEmitterClass::setEmitter(bool emit)
+{
+    if(!bEmitter && emit && restartCircBuff()) {
+        attractorsList.getThreadStep()->restartEmitter();
+        attractorsList.get()->initStep();
+    }
+
+    bEmitter = emit;
+#if !defined(GLCHAOSP_LIGHTVER)
+    if(emit) theWnd->getParticlesSystem()->viewObjOFF();
+#endif
+
+}
 
 transformFeedbackInterleaved::transformFeedbackInterleaved(GLenum primitive, uint32_t stepBuffer, int attributesPerVertex)
 {
@@ -192,7 +196,7 @@ void transformedEmitterClass::renderOfflineFeedback()
     const GLuint szCircular = getSizeCircularBuffer();
     const GLuint pCount = getParticlesCount() % szCircular;
 
-    while(isEmitterOn() && emiss-- && (pCount<szCircular)) {
+    while(isEmitterOn() && emiss-- && (pCount+vtxCount<szCircular)) {
         attractorsList.get()->Step();
 
         const vec3 oldPosAttractor(attractorsList.get()->getPrevious());
@@ -201,7 +205,7 @@ void transformedEmitterClass::renderOfflineFeedback()
         const vec3 vStep = (newPosAttractor-oldPosAttractor)/float(cPit.getTransformedEmission());
         vec3 vInc(0.0);
 
-        for(int i=cPit.getTransformedEmission(); i>0; i--) {
+        for(int i=cPit.getTransformedEmission(); i>0 && (pCount+vtxCount<szCircular); i--) {
             const float bornTime = std::chrono::duration<float> (std::chrono::high_resolution_clock::now()-startEvent).count();
             *vboBuffer++ = vec4(newPosAttractor + vInc, dist);
             *vboBuffer++ = vec4(vec3(fastRandom.VNI(),fastRandom.VNI(),fastRandom.VNI())*speedMagnitudo, -bornTime);
@@ -227,5 +231,10 @@ void transformedEmitterClass::renderOfflineFeedback()
     const GLuint countV = tfCurr->End(query, szI+vtxCount<szCircular ? szI+vtxCount : szCircular);
     tfCurr->setTransformSize(countV);
     addVertexCount(vtxCount);
+
+    if(pCount+vtxCount>=szCircular) {
+        if(stopFull()) { setEmitter(false); }
+        else { if(restartCircBuff()) attractorsList.restart(); }
+    }
 }
 #endif

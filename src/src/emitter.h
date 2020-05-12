@@ -134,8 +134,6 @@ public:
         }
     }
 
-    float getStartPointSlowMotion() { return startPointSlowMotion; }
-
 protected:
     friend class particlesSystemClass; 
 
@@ -145,10 +143,7 @@ protected:
 
     uint32_t emittedPoints = 0;
 
-
-    float startPointSlowMotion = 0.f;
-
-    bool bEmitter = false; 
+    bool bEmitter = false;
     bool bStopFull = false, bRestartCircBuff = false;
 
     bool bUseThread = true;
@@ -203,7 +198,6 @@ public:
     GLuint getVBO() { return InsertVbo->getVBO(); }
 
     void resetVBOindexes() {
-        startPointSlowMotion = 0.f;
         getVertexBase()->resetVertexCount();
     }
 
