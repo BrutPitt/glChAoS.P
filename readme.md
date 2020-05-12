@@ -405,7 +405,9 @@ For example, run:
 
 `emsCMakeGen.cmd C:\emsdk\emscripten\1.38.20 Debug|Release|RelWithDebInfo|MinSizeRel`
 
-To build the EMSCRIPTEN version, in Windows, with CMake, need to have **mingw32-make.exe** in your computer and in the search PATH (only the make utility is enough): it is a condition of EMSDK tool to build with CMake in Windows.
+To build the EMSCRIPTEN version, in Windows, with CMake, need to have **mingw32-make** in your computer and in the search PATH (only the make utility is enough) or **Ninja**.
+
+Currently all the shell/cmd scripts use **Ninja** to build **wglChAoS.P** (WebGL/WebAssembly release)
 
 
 <p>&nbsp;<br>&nbsp;<br></p>
