@@ -242,7 +242,7 @@ EM_BOOL emsMDeviceClass::touchMove(int eventType, const EmscriptenTouchEvent *e,
             vg::vGizmo3D &Tb = Tm->getTrackball();
 
             //const float scl = .25;
-            const float scl = (Tm->getPOV().z-Tb.getDollyPosition().z) * .05;
+            const float scl = Tm->getOverallDistance() * Tb.getDistScale() * .5;
 
             vec3 pan = Tb.getPanPosition();
             pan.x += (t.touchX-t.oldTouchX) * Tb.getPanScale() * scl;
@@ -264,7 +264,7 @@ EM_BOOL emsMDeviceClass::touchMove(int eventType, const EmscriptenTouchEvent *e,
                 transformsClass *Tm = theWnd->getParticlesSystem()->getTMat();
                 vg::vGizmo3D &Tb = Tm->getTrackball();
 
-                const float z = (Tm->getPOV().z-Tb.getDollyPosition().z) * .1;
+                const float z = Tm->getOverallDistance() * Tb.getDistScale();
                 Tb.setDollyPosition(Tb.getDollyPosition().z + Tb.getDollyScale() * (d-t.prevDist) * (z>0.0 ? z : 1.0));
                 t.prevDist = d;
             }
