@@ -98,6 +98,7 @@
 
 namespace vgm {
 
+TEMPLATE_TYPENAME_T class Vec3;
 TEMPLATE_TYPENAME_T class Vec4;
 TEMPLATE_TYPENAME_T class Mat4;
 
@@ -118,6 +119,7 @@ public:
     Vec2(const VEC2_T&) = default;
     explicit Vec2(T s)  : x(s), y(s) {}
     Vec2(T x, T y)      : x(x), y(y) {}
+    Vec2(const VEC3_T&);
 
     Vec2 operator-() const { return {-x, -y}; }
 
@@ -372,6 +374,7 @@ public:
 };
 // cast / conversion
 //////////////////////////
+TEMPLATE_TYPENAME_T inline VEC2_T::Vec2(const VEC3_T& v) : VEC2_T{ v.x, v.y } {}
 TEMPLATE_TYPENAME_T inline VEC3_T::Vec3(const VEC4_T& v) : VEC3_T{ v.x, v.y, v.z } {}
 TEMPLATE_TYPENAME_T inline MAT3_T::Mat3(const MAT4_T& m) : v { VEC3_T(m.v[0]), m.v[1], m.v[2] } {}
 TEMPLATE_TYPENAME_T inline MAT3_T mat3_cast(QUAT_T const& q) {
