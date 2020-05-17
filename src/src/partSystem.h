@@ -45,7 +45,7 @@ public:
         if(showAxes()) {
             getAxes()->getTransforms()->applyTransforms();
             getAxes()->renderOnFB(getRenderFBO().getFB(0));
-            float zoomK = getTMat()->getPOV().z - getTMat()->getTrackball().getDollyPosition().z;
+            float zoomK = getTMat()->getOverallDistance();
             getAxes()->setZoomFactor(vec3(vec2(zoomK/10.f), zoomK/7.f) * getTMat()->getPerspAngle()/30.f);
         }
 #endif

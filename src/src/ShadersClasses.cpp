@@ -149,8 +149,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     if(computeShadow && !blendActive ) {
         if(autoLightDist() ) {
             vec3 vL(normalize(getLightDir()));
-            
-            currentTMat->setPOV(currentTMat->getPOV()-vec3(0.f, 0.f, currentTMat->getTrackball().getDollyPosition().z));
+            currentTMat->setPOV(vec3(vec2(currentTMat->getPOV()), currentTMat->getOverallDistance()));
             currentTMat->getTrackball().setDollyPosition(0.f);
             currentTMat->applyTransforms();
 

@@ -62,7 +62,7 @@ void glWindow::onInit()
     vgizmo.setRotationCenter(attractorsList.get()->getTGT());
     vgizmo.viewportSize(theApp->GetWidth(), theApp->GetHeight());
 
-    vgizmo.setRotStepRatio(.3f);
+    vgizmo.setIdleRotSpeed(.3f);
 
     int listSize = attractorsList.getList().size()-1;
 
@@ -166,8 +166,8 @@ void glWindow::onMouseButton(int button, int upOrDown, int x, int y)
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onMotion(int x, int y)
 {
-    const float z = particlesSystem->getTMat()->getPOV().z-particlesSystem->getTMat()->getTrackball().getDollyPosition().z;
-    particlesSystem->getTMat()->getTrackball().motion(x, y, z*.05);
+    const float z = particlesSystem->getTMat()->getOverallDistance()*particlesSystem->getTMat()->getTrackball().getDistScale();
+    particlesSystem->getTMat()->getTrackball().motion(x, y, z);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -188,7 +188,7 @@ void glWindow::onSpecialKeyUp(int key, int x, int y) {}
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onMouseWheel(int wheel, int direction, int x, int y) 
 {
-    const float z = particlesSystem->getTMat()->getPOV().z-particlesSystem->getTMat()->getTrackball().getDollyPosition().z;
-    particlesSystem->getTMat()->getTrackball().wheel(x, y, z*.1);
+    const float z = particlesSystem->getTMat()->getOverallDistance()*particlesSystem->getTMat()->getTrackball().getDistScale();
+    particlesSystem->getTMat()->getTrackball().wheel(x, y, z);
 }
 

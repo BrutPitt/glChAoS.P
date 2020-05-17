@@ -115,7 +115,7 @@ public:
         transforms = new transformsClass;
 
         transforms->setView(vec3(0.f, 0.f, 5.0f), vec3(0.f, 0.f, .0f)); 
-        transforms->setPerspective(30.f, theApp->GetHeight() != 0 ? float(theApp->GetWidth())/float(theApp->GetHeight()) : 1.f, 0.f, 30.f);
+        transforms->setPerspective(30.f, theApp->GetHeight() != 0 ? float(theApp->GetWidth())/float(theApp->GetHeight()) : 1.f, 0.05f, 100.f);
 
         startArrow = showCube ? cubeSize : cylRadius;
 
@@ -183,6 +183,8 @@ public:
 
     uAxesData &getUData() { return uData; }
 
+    vg::vGizmo3D &getGizmo() { return transforms->getTrackball(); }
+
 
 private:
     float startArrow;
@@ -199,6 +201,7 @@ private:
     GLuint _pMat, _mvMat, _zoomF;
     bool showFullAxes = true, showCube = false;
 
+    
 
     vec4 bgColor = vec4(0.0f);
  
