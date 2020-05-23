@@ -142,8 +142,13 @@ public:
                              vec3(0.0f, 1.0f, 0.0f));
     }
     void setLightView(const vec3 &lightPos) {
-        tM.mvLightM = lookAt(lightPos + povVec,
+        tM.mvLightM = lookAt(lightPos,
                              tgtVec, //getTrackball().getRotationCenter(),
+                             vec3(0.0f, 1.0f, 0.0f));
+    }
+    void setLightView(const vec3 &pov, const vec3 &tgt) {
+        tM.mvLightM = lookAt(pov,
+                             tgt, //getTrackball().getRotationCenter(),
                              vec3(0.0f, 1.0f, 0.0f));
     }
 
