@@ -90,7 +90,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 {
     setFlagUpdate();
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
-    const float lightReduction = theApp->useDetailedShadows() ? .3333 : .25f;
+    const float lightReduction = theApp->useDetailedShadows() ? 1.f : .667f;
 
     const bool isTFRender = attractorsList.get()->dtType() && tfSettinsClass::tfMode(); // transformFeedback Render
     const bool computeShadow = useShadow() && !cpitView; // FIXME: cockPit Shadow: no shadow on tfSettings
@@ -143,18 +143,26 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
    
     getUData().pointSize = cpitView ? cPit.getPointSize() : ( isTFRender ? cPit.getSizeTF() : getSize());
 
+
 // Shadow pass
 /////////////////////////////////////////////
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
+#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+
+
+    //FIXME: POV.z+Dolly.z (shadow) and Light Distance
+    const vec3 tmpPov = currentTMat->getPOV();
+    const float tmpDolly = currentTMat->getTrackball().getDollyPosition().z;
+    currentTMat->setPOV(vec3(vec2(currentTMat->getPOV()), currentTMat->getOverallDistance()));
+    currentTMat->getTrackball().setDollyPosition(0.f);
+    currentTMat->applyTransforms();
+
+    const vec3 light(getLightDir()*lightReduction);
+    const vec3 lightTGT(0.f);
+
     if(computeShadow && !blendActive ) {
         if(autoLightDist() ) {
-            vec3 vL(normalize(getLightDir()));
-            currentTMat->setPOV(vec3(vec2(currentTMat->getPOV()), currentTMat->getOverallDistance()));
-            currentTMat->getTrackball().setDollyPosition(0.f);
-            currentTMat->applyTransforms();
-
-            const float dist = currentTMat->getPOV().z<FLT_EPSILON ?  FLT_EPSILON : currentTMat->getPOV().z;            
-            setLightDir(vL * (dist*(theApp->useDetailedShadows() ? 5.5f : 4.f) + dist*.1f));
+            const float dist = currentTMat->getPOV().z<FLT_EPSILON ?  FLT_EPSILON : currentTMat->getPOV().z;
+            setLightDir(normalize(getLightDir()) * (dist*(theApp->useDetailedShadows() ? 2.f : 2.5f) + dist*.1f));
         }
         //if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
         ivec4 vp;
@@ -165,8 +173,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 
         getShadow()->bindRender();
 
-        currentTMat->setLightView(getLightDir()*lightReduction);
-        currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * currentTMat->tM.mMatrix;
+        currentTMat->setLightView(light,lightTGT);
+        currentTMat->tM.mvLightM = currentTMat->tM.mvLightM*currentTMat->tM.mMatrix;
 
         currentTMat->updateBufferData();
         getPlanesUBlock().updateBufferData();
@@ -241,11 +249,13 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     if(!blendActive && isAO_RD_SHDW)  {
 
         if(!cpitView) {
-            currentTMat->setLightView(getLightDir()*lightReduction);
+            currentTMat->setLightView(light,lightTGT);
             mat4 m(1.f);
-            m = translate(m,currentTMat->getPOV());
+
+            m = translate(m,vec3(vec2(0.f), currentTMat->getOverallDistance()));
             currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * m;
-            currentTMat->tM.mvpLightM = currentTMat->tM.pMatrix * currentTMat->tM.mvLightM; 
+            //currentTMat->tM.mvLightM = (currentTMat->tM.mvLightM * currentTMat->tM.mMatrix) ;
+            currentTMat->tM.mvpLightM = currentTMat->tM.pMatrix * currentTMat->tM.mvLightM;
             getUData().halfTanFOV = tanf(currentTMat->getPerspAngleRad()*.5f);
         }
 
@@ -269,6 +279,13 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 
         returnedTex = getPostRendering()->getFBO().getTex(0);
     }
+
+    //FIXME: POV.z+Dolly.z (shadow) ==> look UP
+    //setLightDir(lightVec);
+    currentTMat->setPOV(tmpPov);
+    currentTMat->getTrackball().setDollyPosition(tmpDolly);
+    currentTMat->applyTransforms();
+
 #endif
 
     //restore GL state
@@ -277,7 +294,9 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     glDepthMask(GL_FALSE);
     //glDisable(GL_MULTISAMPLE);
 
-    if(isTFRender) getUData().pointDistAtten = distAtt; // FIXME: look up
+    // FIXME: use external setting so don't save and restore below ==> look UP
+    if(isTFRender) getUData().pointDistAtten = distAtt;
+
 
     return returnedTex;
 }
