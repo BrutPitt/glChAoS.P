@@ -6,7 +6,7 @@ echo ""
 echo "    ---  CMake stage  ---"
 echo ""
 
-BUILD_DIR=cmake-build-Release
+BUILD_DIR=builds/cmakeRelease
 cmake -DBUILD_wglChAoSP:BOOL=FALSE -G Unix\ Makefiles -DCMAKE_BUILD_TYPE:String=Release -B$BUILD_DIR
 #-DOpenGL_GL_PREFERENCE="GLVND"
 #-DCMAKE_EXE_LINKER_FLAGS="-static"
