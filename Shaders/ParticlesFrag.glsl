@@ -89,7 +89,7 @@ vec4 pixelColorDirect(vec4 color, vec4 N)
     //Light @ vertex position
     vec3 light = u.lightDir;
     
-    float lambertian = max(0.0, dot(light, N.xyz)); 
+    float lambertian = max(0.0, dot(normalize(light), N.xyz));
 
     vec3 V = normalize(newVertex.xyz);
 #if defined(GL_ES) || defined(GLCHAOSP_NO_USES_GLSL_SUBS)
@@ -112,9 +112,9 @@ vec4 pixelColorAO(vec4 color, vec4 N)
     if(alphaAttenuation<.25) { discard; return vec4(0.0); } // timeout particle slowMotion 
 
     //Light @ vertex position
-    vec3 light = u.lightDir;
+    vec3 light = normalize(u.lightDir);
     
-    float lambertian = max(0.0, dot(light, N.xyz)); 
+    float lambertian = max(0.0, dot(light, N.xyz));
 
     vec3 V = normalize(newVertex.xyz);
 #if defined(GL_ES) || defined(GLCHAOSP_NO_USES_GLSL_SUBS)

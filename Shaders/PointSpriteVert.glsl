@@ -58,10 +58,8 @@ void main()
     // NVidia & Intel do not supports gl_PointSize<1.0 -> point disappear
     // AMD driver (some times) supports gl_PointSize from 0.1
     // Look in Info dialog: point Range and Granularity
-    
-#ifdef SHADOW_PASS
-    gl_PointSize = max(distance(gl_Position.xyz, pt.xyz)/max(abs(gl_Position.w),.0001), u.pointspriteMinSize) * u.shadowDetail;
-#else
     gl_PointSize = max(distance(gl_Position.xyz, pt.xyz)/max(abs(gl_Position.w),.0001), u.pointspriteMinSize);
+#ifdef SHADOW_PASS
+     gl_PointSize *= u.shadowDetail;
 #endif
 }
