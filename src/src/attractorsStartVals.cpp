@@ -510,6 +510,17 @@ void dla3D::startData()
 }
 #endif
 
+void ChenCelikovsky::startData()
+{
+    vVal.push_back(vec4(1.f, 1.0f, 1.f, 0.f));
+
+    kVal.push_back(36.f);
+    kVal.push_back( 3.f);
+    kVal.push_back(20.f);
+
+    Insert(vVal[0]);
+}
+
 void ChenLee::startData()
 {
     vVal.push_back(vec4(1.f, 0.0f, 4.5f, 0.f));
@@ -520,6 +531,7 @@ void ChenLee::startData()
 
     Insert(vVal[0]);
 }
+
 
 void TSUCS::startData()
 {
@@ -649,6 +661,17 @@ void Bouali::startData()
 
     Insert(vVal[0]);
 }
+
+void BrukeShaw::startData()
+{
+    vVal.push_back(vec4(1.f, 0.f, 0.f, 0.f));
+
+    kVal.push_back(10.f);
+    kVal.push_back(4.273f);
+
+    Insert(vVal[0]);
+}
+
 
 void Hadley::startData()
 {

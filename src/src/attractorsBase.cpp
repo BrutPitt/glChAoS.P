@@ -751,12 +751,20 @@ void Lorenz::Step(vec4 &v, vec4 &vp)
     vp.z = v.z+dtStepInc*(v.x*v.y-kVal[2]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
+void ChenCelikovsky::Step(vec4 &v, vec4 &vp)
+{
+    vp.x = v.x + dtStepInc*(kVal[0]*(v.y-v.x));
+    vp.y = v.y + dtStepInc*(-v.x*v.z + kVal[2]*v.y);
+    vp.z = v.z + dtStepInc*( v.x*v.y - kVal[1]*v.z);
+}
+////////////////////////////////////////////////////////////////////////////
 void ChenLee::Step(vec4 &v, vec4 &vp) 
 {
     vp.x = v.x + dtStepInc*(kVal[0]*v.x - v.y*v.z);
     vp.y = v.y + dtStepInc*(kVal[1]*v.y + v.x*v.z);
     vp.z = v.z + dtStepInc*(kVal[2]*v.z + v.x*v.y/3.f);
 }
+
 ////////////////////////////////////////////////////////////////////////////
 void TSUCS::Step(vec4 &v, vec4 &vp) 
 {
@@ -827,6 +835,13 @@ void Bouali::Step(vec4 &v, vec4 &vp)
     vp.x = v.x + dtStepInc*( v.x*(kVal[0] - v.y) + kVal[4]*v.z);
     vp.y = v.y + dtStepInc*(-v.y*(kVal[1] - v.x*v.x));
     vp.z = v.z + dtStepInc*(-v.x*(kVal[2] - kVal[3]*v.z) - kVal[5]*v.z);
+}
+////////////////////////////////////////////////////////////////////////////
+void BrukeShaw::Step(vec4 &v, vec4 &vp)
+{ // kVal[] -> a,b,c,s,alfa,beta
+    vp.x = v.x + dtStepInc*(-kVal[0] * (v.x + v.y));
+    vp.y = v.y + dtStepInc*(-v.y -kVal[0]*v.x*v.z);
+    vp.z = v.z + dtStepInc*(kVal[0]*v.x*v.y + kVal[1]);
 }
 ////////////////////////////////////////////////////////////////////////////
 void Hadley::Step(vec4 &v, vec4 &vp) 

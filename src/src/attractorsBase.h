@@ -1582,492 +1582,47 @@ public:
 */
 };
 
-//  ChenLee base class
-////////////////////////////////////////////////////////////////////////////
-class ChenLee : public attractorDtType
-{
-public:
-
-    ChenLee() {
-        stepFn = (stepPtrFn) &ChenLee::Step;
-
-        m_POV = vec3( 0.f, 0, 50.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  TSUCS1 base class
-////////////////////////////////////////////////////////////////////////////
-class TSUCS : public attractorDtType
-{
-public:
-
-    TSUCS() {
-        stepFn = (stepPtrFn) &TSUCS::Step;
-
-        m_POV = vec3( 0.f, 0, 240.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Aizawa
-////////////////////////////////////////////////////////////////////////////
-class Aizawa : public attractorDtType
-{
-public:
-
-    Aizawa() {
-        stepFn = (stepPtrFn) &Aizawa::Step;
-
-        m_POV = vec3( 0.f, 0, 10.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  YuWang
-////////////////////////////////////////////////////////////////////////////
-class YuWang : public attractorDtType
-{
-public:
-
-    YuWang() {
-        stepFn = (stepPtrFn) &YuWang::Step;
-
-        m_POV = vec3( 0.f, 0, 10.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  FourWing
-////////////////////////////////////////////////////////////////////////////
-class FourWing : public attractorDtType
-{
-public:
-
-    FourWing() {
-        stepFn = (stepPtrFn) &FourWing::Step;
-
-        m_POV = vec3( 0.f, 0, 30.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  FourWing2
-////////////////////////////////////////////////////////////////////////////
-class FourWing2 : public attractorDtType
-{
-public:
-
-    FourWing2() {
-        stepFn = (stepPtrFn) &FourWing2::Step;
-
-        m_POV = vec3( 0.f, 0, 100.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  FourWing3
-////////////////////////////////////////////////////////////////////////////
-class FourWing3 : public attractorDtType
-{
-public:
-
-    FourWing3() {
-        stepFn = (stepPtrFn) &FourWing3::Step;
-
-        m_POV = vec3( 0.f, 0, 70.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Thomas
-////////////////////////////////////////////////////////////////////////////
-class Thomas : public attractorDtType
-{
-public:
-
-    Thomas() {
-        stepFn = (stepPtrFn) &Thomas::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Halvorsen
-////////////////////////////////////////////////////////////////////////////
-class Halvorsen : public attractorDtType
-{
-public:
-
-    Halvorsen() {
-        stepFn = (stepPtrFn) &Halvorsen::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Arneodo 
-////////////////////////////////////////////////////////////////////////////
-class Arneodo : public attractorDtType
-{
-public:
-
-    Arneodo() {
-        stepFn = (stepPtrFn) &Arneodo::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Bouali 
-////////////////////////////////////////////////////////////////////////////
-class Bouali : public attractorDtType
-{
-public:
-
-    Bouali() {
-        stepFn = (stepPtrFn) &Bouali::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Hadley
-////////////////////////////////////////////////////////////////////////////
-class Hadley : public attractorDtType
-{
-public:
-
-    Hadley() {
-        stepFn = (stepPtrFn) &Hadley::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  LiuChen
-////////////////////////////////////////////////////////////////////////////
-class LiuChen : public attractorDtType
-{
-public:
-
-    LiuChen() {
-        stepFn = (stepPtrFn) &LiuChen::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  GenesioTesi
-////////////////////////////////////////////////////////////////////////////
-class GenesioTesi : public attractorDtType
-{
-public:
-
-    GenesioTesi() {
-        stepFn = (stepPtrFn) &GenesioTesi::Step;
-
-        m_POV = vec3( 0.f, 0, 10.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  NewtonLeipnik
-////////////////////////////////////////////////////////////////////////////
-class NewtonLeipnik : public attractorDtType
-{
-public:
-
-    NewtonLeipnik() {
-        stepFn = (stepPtrFn) &NewtonLeipnik::Step;
-
-        m_POV = vec3( 0.f, 0, 10.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  NoseHoover
-////////////////////////////////////////////////////////////////////////////
-class NoseHoover : public attractorDtType
-{
-public:
-
-    NoseHoover() {
-        stepFn = (stepPtrFn) &NoseHoover::Step;
-
-        m_POV = vec3( 0.f, 0, 10.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  RayleighBenard
-////////////////////////////////////////////////////////////////////////////
-class RayleighBenard : public attractorDtType
-{
-public:
-
-    RayleighBenard() {
-        stepFn = (stepPtrFn) &RayleighBenard::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Sakarya  
-////////////////////////////////////////////////////////////////////////////
-class Sakarya : public attractorDtType
-{
-public:
-
-    Sakarya() {
-        stepFn = (stepPtrFn) &Sakarya::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Robinson
-////////////////////////////////////////////////////////////////////////////
-class Robinson : public attractorDtType
-{
-public:
-
-    Robinson() {
-        stepFn = (stepPtrFn) &Robinson::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Rossler
-////////////////////////////////////////////////////////////////////////////
-class Rossler : public attractorDtType
-{
-public:
-
-    Rossler() {
-        stepFn = (stepPtrFn) &Rossler::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Rucklidge
-////////////////////////////////////////////////////////////////////////////
-class Rucklidge : public attractorDtType
-{
-public:
-
-    Rucklidge() {
-        stepFn = (stepPtrFn) &Rucklidge::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Dequan Li 
-////////////////////////////////////////////////////////////////////////////
-class DequanLi : public attractorDtType
-{
-public:
-
-    DequanLi() {
-        stepFn = (stepPtrFn) &DequanLi::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-//  Multi Chua II
-////////////////////////////////////////////////////////////////////////////
-class MultiChuaII : public attractorDtType
-{
-public:
-
-    MultiChuaII() {
-        stepFn = (stepPtrFn) &MultiChuaII::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-//  Zhou-Chen
-////////////////////////////////////////////////////////////////////////////
-class ZhouChen : public attractorDtType
-{
-public:
-
-    ZhouChen() {
-        stepFn = (stepPtrFn) &ZhouChen::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-//  SprottLinzB
-////////////////////////////////////////////////////////////////////////////
-class SprottLinzB : public attractorDtType
-{
-public:
-
-    SprottLinzB() {
-        stepFn = (stepPtrFn) &SprottLinzB::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-//  SprottLinzF
-////////////////////////////////////////////////////////////////////////////
-class SprottLinzF : public attractorDtType
-{
-public:
-
-    SprottLinzF() {
-        stepFn = (stepPtrFn) &SprottLinzF::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-//  Coullet 
-////////////////////////////////////////////////////////////////////////////
-class Coullet : public attractorDtType
-{
-public:
-
-    Coullet() {
-        stepFn = (stepPtrFn) &Coullet::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-//  Coullet 
-////////////////////////////////////////////////////////////////////////////
-class Dadras : public attractorDtType
-{
-public:
-
-    Dadras() {
-        stepFn = (stepPtrFn) &Dadras::Step;
-
-        m_POV = vec3( 0.f, 0, 20.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-//  GloboToroid
-////////////////////////////////////////////////////////////////////////////
-class GloboToroid : public attractorDtType
-{
-public:
-
-    GloboToroid() {
-        stepFn = (stepPtrFn) &GloboToroid::Step;
-
-        m_POV = vec3( 0.f, 0, 50.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
- 
+#define DT(A) class A : public attractorDtType {\
+                    public:\
+                        A() { stepFn = (stepPtrFn) &A::Step; }\
+                    protected:\
+                        void Step(vec4 &v, vec4 &vp);\
+                        void startData();\
+                };
+
+DT(Aizawa)
+DT(Arneodo)
+DT(Bouali)
+DT(BrukeShaw)
+DT(ChenCelikovsky)
+DT(ChenLee)
+DT(Coullet)
+DT(Dadras)
+DT(DequanLi)
+DT(FourWing)
+DT(FourWing2)
+DT(FourWing3)
+DT(GenesioTesi)
+DT(GloboToroid)
+DT(Halvorsen)
+DT(Hadley)
+DT(LiuChen)
+DT(MultiChuaII)
+DT(NewtonLeipnik)
+DT(NoseHoover)
+DT(Sakarya)
+DT(RayleighBenard)
+DT(Robinson)
+DT(Rossler)
+DT(Rucklidge)
+DT(SprottLinzB)
+DT(SprottLinzF)
+DT(Thomas)
+DT(TSUCS)
+DT(YuWang)
+DT(ZhouChen)
+
+#undef DT
 
 //  Magnetic base class
 ////////////////////////////////////////////////////////////////////////////
@@ -2319,6 +1874,8 @@ public:
         PB(Aizawa             , u8"\uf0da", DT_COLOR      , "Aizawa"             )
         PB(Arneodo            , u8"\uf0da", DT_COLOR      , "Arneodo"            )
         PB(Bouali             , u8"\uf0da", DT_COLOR      , "Bouali"             )
+        PB(BrukeShaw          , u8"\uf0da", DT_COLOR      , "Bruke-Shaw"         )
+        PB(ChenCelikovsky     , u8"\uf0da", DT_COLOR      , "Chen-Celikovsky"    )
         PB(ChenLee            , u8"\uf0da", DT_COLOR      , "Chen-Lee"           )
         PB(Coullet            , u8"\uf0da", DT_COLOR      , "Coullet"            )
         PB(Dadras             , u8"\uf0da", DT_COLOR      , "Dadras"             )
