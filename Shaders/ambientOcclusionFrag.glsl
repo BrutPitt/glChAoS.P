@@ -164,7 +164,7 @@ float getBlurredZ(ivec2 uv)
 void main()
 {
     float depth = texture(zTex,gl_FragCoord.xy*u.invScrnRes).x;
-    if(depth>.9999) { discard; outColor = vec4(0.0); return; }
+    if(depth>.9999) { discard; /* outColor = vec4(0.0); return; */ }
 
     float z = restoreZ(depth);
     vec4 vtx = getVertexFromDepth(viewRay,z);
@@ -183,15 +183,14 @@ void main()
 
         for (int i = 0 ; i < RAD ; i++) {
             vec3 sampleP = TBN * texelFetch(ssaoSample, ivec2(i,0), 0).xyz;  // ssaoSamples[i];
-            //vec3 sampleP = TBN * ssaoSamples[i];
-            sampleP = vtx.xyz + sampleP * radius; 
+
+            sampleP = vtx.xyz + sampleP * radius;
             vec4 offset = vec4(sampleP, 1.0);
             offset = m.pMatrix * offset;
             offset.xy /= -offset.w;
             offset.xy = offset.xy * 0.5 + 0.5;
 
             float sampleDepth = restoreZ(texture(zTex,offset.xy).x);
-            //float sampleDepth = CalcViewZ(offset.xy);
 
             float rangeCheck = smoothstep(0.0, 1.0, radius / abs(vtx.z - sampleDepth));
             AO += sampleDepth >= sampleP.z + u.aoBias ? (1.0-u.aoDarkness) * u.aoMul  * rangeCheck: 0.0;
@@ -199,10 +198,5 @@ void main()
 
     AO = u.aoModulate -  clamp(AO/float(RAD), 0.0, 1.0);
 
-    //float shadow = bool(u.pass &  RENDER_SHADOW) ? buildSmoothShadow(vtx): 1.0;
-
-    outColor = vec4(vec3(1.0)/*N*.5 + .5 */, AO);
-    //outColor = vec4(N.xyz*.5 + .5 , 1.0);
-    //outColor = vec4( vec3(texelFetch(prevData,ivec2(uv), 0).w) , 1.0);
-    //outColor = vec4(texelFetch(prevData,ivec2(uv               ) , 0).xyz , 1.0);
+    outColor = vec4(vec3(1.0), AO);
 }
