@@ -19,16 +19,13 @@ else
         BUILD_TYPE='MinSizeRel'
     fi
 
-    EMS_DIR="cmake-ems-"$BUILD_TYPE
 
-    if [ ! -d "$EMS_DIR" ]; then
-        mkdir $EMS_DIR    
-    fi
+    EMS_DIR=$RAMDISK"builds/ems"$BUILD_TYPE
+
+    cmake -DCMAKE_TOOLCHAIN_FILE:STRING=$EMSCRIPTEN/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE -DBUILD_wglChAoSp:BOOL=TRUE -G "Ninja" -B$EMS_DIR
 
     cd $EMS_DIR
+    ninja
 
-    cmake --target wglChAoSP -DCMAKE_TOOLCHAIN_FILE:STRING=%EMSCRIPTEN%\cmake\Modules\Platform\Emscripten.cmake -DCMAKE_BUILD_TYPE:STRING=%BUILD_TYPE% -DBUILD_wglChAoSp:BOOL=TRUE -G "Unix Makefiles" ..
-
-    make -j8 wglChAoSP
 fi
 
