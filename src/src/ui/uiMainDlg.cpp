@@ -679,7 +679,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     ImGui::TextDisabled("Ratio");
                     ImGui::SameLine();
 
-                    ImGui::PushItemWidth(border + (wButt2 - ImGui::GetCursorPosX()));
+                    ImGui::PushItemWidth((w - ImGui::GetCursorPosX()) * .3 - border);
                     {
                         int idx = int(1.f/particles->getShadowGranularity()+.5)-1;
                         if (ImGui::Combo(buildID(base, idA++, id), &idx, "rad:1\0"\
@@ -692,12 +692,19 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     ImGui::PopItemWidth();
 
                     ImGui::SameLine();
-
+                    const float sz = (w - ImGui::GetCursorPosX()) * .5 - border;
+                    {
+                        char txt[48];
+                        bool b = particles->useScatterdShadow();
+                        sprintf(txt, b ? "Scatter " ICON_FA_CHECK_SQUARE_O "%s" : "Scatter " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
+                        if(colCheckButton(b , txt, sz)) particles->useScatterdShadow(b^1);
+                    }
+                    ImGui::SameLine();
                     {
                         char txt[48];
                         bool b = particles->autoLightDist();
-                        sprintf(txt, b ? "AutoLightDist " ICON_FA_CHECK_SQUARE_O "%s" : "AutoLightDist " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
-                        if(colCheckButton(b , txt, w - (ImGui::GetCursorPosX() +border))) particles->autoLightDist(b^1);
+                        sprintf(txt, b ? "AutoLight " ICON_FA_CHECK_SQUARE_O "%s" : "AutoLight " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
+                        if(colCheckButton(b , txt, sz)) particles->autoLightDist(b^1);
                     }
 
                     ImGui::AlignTextToFramePadding();

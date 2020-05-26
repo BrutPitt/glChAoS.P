@@ -90,7 +90,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 {
     setFlagUpdate();
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
-    const float lightReduction = theApp->useDetailedShadows() ? 1.f : .667f;
+    const float lightReduction = theApp->useDetailedShadows() ? 1.f : 1.f /*1.f : .667f*/;
 
     const bool isTFRender = attractorsList.get()->dtType() && tfSettinsClass::tfMode(); // transformFeedback Render
     const bool computeShadow = useShadow() && !cpitView; // FIXME: cockPit Shadow: no shadow on tfSettings
@@ -106,7 +106,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
                              isFullScreenPiP                     ? pixColIDX::pixDR : pixColIDX::pixDirect; //!isFullScreenPiP: no dual pass on tfSettings
     
     //isFullScreenPiP: no dual pass on PiP
-    getUData().pass = (isShadow ? 4:0) | (postRenderingActive() && isFullScreenPiP ? 2:0) | (useAO() ? 1:0);
+    getUData().pass = (scatteredShadow ? 8:0) | (isShadow ? 4:0) | (postRenderingActive() && isFullScreenPiP ? 2:0) | (useAO() ? 1:0);
 
     transformsClass *currentTMat = cpitView ? getCockPitTMat() : getTMat();
     
@@ -121,7 +121,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getUData().velocity = getCMSettings()->getVelIntensity();        
         getUData().shadowDetail = float(theApp->useDetailedShadows() ? 2.0f : 1.f);
         getUData().rotCenter = currentTMat->getTrackball().getRotationCenter();
-        getUData().lightDir = normalize(vec3(currentTMat->tM.vMatrix * vec4(getLightDir(), 1.f)));
+        getUData().lightDir = normalize(getLightDir());
     }
 
     getUData().slowMotion = isTFRender;
@@ -149,20 +149,21 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
 
 
-    //FIXME: POV.z+Dolly.z (shadow) and Light Distance
-    const vec3 tmpPov = currentTMat->getPOV();
-    const float tmpDolly = currentTMat->getTrackball().getDollyPosition().z;
-    currentTMat->setPOV(vec3(vec2(currentTMat->getPOV()), currentTMat->getOverallDistance()));
-    currentTMat->getTrackball().setDollyPosition(0.f);
-    currentTMat->applyTransforms();
 
     const vec3 light(getLightDir()*lightReduction);
-    const vec3 lightTGT(0.f);
+    const vec3 lightTGT(currentTMat->getTGT());
 
     if(computeShadow && !blendActive ) {
+        //FIXME: POV.z+Dolly.z (shadow) and Light Distance
+        const vec3 tmpPov = currentTMat->getPOV();
+        const float tmpDolly = currentTMat->getTrackball().getDollyPosition().z;
+        currentTMat->setPOV(vec3(vec2(currentTMat->getPOV()), currentTMat->getOverallDistance()));
+        currentTMat->getTrackball().setDollyPosition(0.f);
+        currentTMat->applyTransforms();
+
         if(autoLightDist() ) {
-            const float dist = currentTMat->getPOV().z<FLT_EPSILON ?  FLT_EPSILON : currentTMat->getPOV().z;
-            setLightDir(normalize(getLightDir()) * (dist*(theApp->useDetailedShadows() ? 2.f : 2.5f) + dist*.1f));
+            const float dist = currentTMat->getOverallDistance()<FLT_EPSILON ?  FLT_EPSILON : currentTMat->getOverallDistance();
+            setLightDir(normalize(getLightDir()) * (dist*(theApp->useDetailedShadows() ? 1.5f : 1.5f /* 2/2.5*/) + dist*.1f));
         }
         //if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
         ivec4 vp;
@@ -174,6 +175,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getShadow()->bindRender();
 
         currentTMat->setLightView(light,lightTGT);
+        mat4 m(1.f);
+
         currentTMat->tM.mvLightM = currentTMat->tM.mvLightM*currentTMat->tM.mMatrix;
 
         currentTMat->updateBufferData();
@@ -186,6 +189,10 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getShadow()->releaseRender();
         glViewport(vp.x,vp.y, vp.z, vp.w);
 
+        //FIXME: POV.z+Dolly.z (shadow) ==> look UP
+        currentTMat->setPOV(tmpPov);
+        currentTMat->getTrackball().setDollyPosition(tmpDolly);
+        currentTMat->applyTransforms();
     }
 #endif
 
@@ -280,11 +287,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         returnedTex = getPostRendering()->getFBO().getTex(0);
     }
 
-    //FIXME: POV.z+Dolly.z (shadow) ==> look UP
-    //setLightDir(lightVec);
-    currentTMat->setPOV(tmpPov);
-    currentTMat->getTrackball().setDollyPosition(tmpDolly);
-    currentTMat->applyTransforms();
 
 #endif
 

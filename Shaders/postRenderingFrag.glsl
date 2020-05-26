@@ -160,8 +160,7 @@ vec4 pixelColorLight(vec3 vtx, vec4 color, vec3 N, float AO, float shadow)
     
         //N.xyz = normalize(N.xyz); 
 
-        //Light @ vertex position
-        vec3 light =  normalize(u.lightDir);  //
+        vec3 light =  u.lightDir;  // already normalized light
     
         float lambertian = max(0.0, dot(light, N.xyz));
 
@@ -201,9 +200,7 @@ float getShadow(vec2 uv)
 float buildShadow(vec4 frag)
 {
     
-    vec4 pt = vec4(viewRay*-frag.z, frag.z, 1.0);
-           
-    vec4 fragPosLightSpace = m.pMatrix * m.mvLightM  * pt;
+    vec4 fragPosLightSpace = m.mvpLightM * frag;
     // perspective divide
     vec3 projCoords = (fragPosLightSpace.xyz)/(fragPosLightSpace.w);
     // to [0,1] range
@@ -211,25 +208,40 @@ float buildShadow(vec4 frag)
     // get closest depth ==> from light's perspective
     float closestDepth = restoreZ(texture(shadowTex, projCoords.xy).r); 
     // get depth ==> light's perspective
-    float currentDepth = restoreZ(projCoords.z) + u.shadowBias;
+    float currentDepth = restoreZ(projCoords.z);
+    currentDepth += -currentDepth*.00175 + u.shadowBias;
     // check whether current frag pos is in shadow
     float shadow = (currentDepth+u.shadowBias) < closestDepth  ? 0.0 : 1.0;
 
     return shadow;
 }  
 
-float random(vec3 seed, int i){
+float random(vec3 seed, float i){
     vec4 seed4 = vec4(seed,i);
     float dot_product = dot(seed4, vec4(12.9898,78.233,45.164,94.673));
     return fract(sin(dot_product) * 43758.5453);
+}
+
+// David Hoskins: https://www.shadertoy.com/view/4djSRW
+vec4 hash44(vec4 p4)
+{
+    p4 = fract(p4  * vec4(.1031, .1030, .0973, .1099));
+    p4 += dot(p4, p4.wzxy+33.33);
+    return fract((p4.xxyz+p4.yzzw)*p4.zywx);
+}
+float hash13(vec3 p3)
+{
+    p3  = fract(p3 * .1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
 }
 
 float buildScatterShadow(vec4 frag)
 {
     float shadow = 0.0;
     for(int i=0; i<8; i++) {
-        int idx = int(16.0*random(gl_FragCoord.xyy, i));
-        vec4 pt = vec4((viewRay*-frag.z)+poissonDisk[idx]/1000.0, frag.z, 1.0);
+        int idx = int(16.0*random(frag.xyz, float(i)));
+        vec4 pt = vec4(frag.xy+poissonDisk[idx]*u.invScrnRes.y, frag.z, 1.0);
            
         vec4 fragPosLightSpace = m.mvpLightM  * pt;
         //fragPosLightSpace = m.pMatrix * m.mvLightM * (vec4(viewLight*frag.z, frag.z, 1.0));
@@ -239,10 +251,10 @@ float buildScatterShadow(vec4 frag)
         projCoords = projCoords * 0.5 + .5;
         // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
         //float closestDepth = (SampleTextureCatmullRom(projCoords.xy).x);
-        float closestDepth = restoreZ(texture(shadowTex, projCoords.xy+poissonDisk[idx]/1000.0).r); 
+        float closestDepth = restoreZ(texture(shadowTex, projCoords.xy+poissonDisk[idx]*u.invScrnRes.y).r);
         // get depth of current fragment from light's perspective
         float currentDepth = restoreZ(projCoords.z);
-        currentDepth += -currentDepth*.002 + u.shadowBias;
+        currentDepth += -currentDepth*.00175 + u.shadowBias;
 
         // check whether current frag pos is in shadow
         shadow += currentDepth < closestDepth  ? 0.0 : 1.0/8.0;
@@ -253,65 +265,72 @@ float buildScatterShadow(vec4 frag)
 
 float buildSmoothScattereShadow(vec4 frag)
 {
-    vec4 pt = vec4(viewRay*-frag.z, frag.z, 1.0);
 
-
-    vec4 fragPosLightSpace = m.mvpLightM  * pt;
+    vec4 fragPosLightSpace = m.mvpLightM * frag;
     // perform perspective divide and port to [0,1] range
     vec3 projCoords = 0.5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
 
     if(projCoords.z>1.0) return 0.0;
-    // get depth of current fragment from light's perspective    
+    // get depth of current fragment from light's perspective
 
     float currentDepth = restoreZ(projCoords.z);
-    currentDepth += -currentDepth*.0025 + u.shadowBias;
+    currentDepth += -currentDepth*.002 + u.shadowBias;
 
     vec2 stepTex = u.shadowGranularity*u.invScrnRes;
 
     float shadow = 0.0;
-    int radius = int(u.shadowSmoothRadius);
+    int radius = int(u.shadowSmoothRadius)+1;
     int diam = radius * 2 + 1;
     float invDiv = 1.0/float(diam * diam);
 
+    const int iter = 4;
+    float counter = 1.0;
+    //for(int i=0; i<iter && diam>1; i++)
     for (int x = -radius; x <= radius ; x++)
         for (int y = -radius; y <= radius; y++) {
-            float closestDepth = restoreZ(texture(shadowTex, projCoords.xy+vec2(x,y)*stepTex).r);
+            counter+=.1;
+            int idx = int(16.0*hash13(frag.xyz*counter));
+
+            float closestDepth = restoreZ(texture(shadowTex, projCoords.xy+vec2(x,y)*stepTex+poissonDisk[idx]*u.invScrnRes.y).r);
 
             shadow += currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv ;    // 1.0/9.0
-
-            vec4 pt = vec4((viewRay+vec2(x,y)*stepTex)*-frag.z-(vec2(x,y)*stepTex), frag.z, 1.0);
+/*
+            {
+            int idx = int(16.0*random(frag.xyz, y*diam+x));
+            vec4 pt = vec4(frag.xy+poissonDisk[idx]*u.invScrnRes.y, frag.z, 1.0);
            
-            vec4 fragPosLightSpace = m.mvpLightM * pt;
+            vec4 fragPosLightSpace = m.mvpLightM * frag;
             vec3 projCoords = .5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
 
-            closestDepth = restoreZ(texture(shadowTex, projCoords.xy+poissonDisk[(x*diam+y)%16]/1000.0).r);
-            float currentDepth = restoreZ(projCoords.z) + u.shadowBias;
-
+            closestDepth = restoreZ(texture(shadowTex, projCoords.xy+poissonDisk[idx]*u.invScrnRes.y).r);
+            float currentDepth = restoreZ(projCoords.z);
+            currentDepth += -currentDepth*.00175 + u.shadowBias;
+            }
             shadow += currentDepth < closestDepth  ?  u.shadowDarkness*u.shadowDarkness*invDiv : invDiv ;    // 1.0/9.0
+*/
         }
 
-    return shadow * .5;
+    return shadow;
 }
 
 
 float buildSmoothShadow(vec4 frag)
 {
-    vec4 pt = getVertexFromDepth(-viewRay, frag.z);
-
-    vec4 fragPosLightSpace = m.mvpLightM * pt;
+    vec4 fragPosLightSpace = m.mvpLightM * frag;
 
     vec3 projCoords = 0.5 * (fragPosLightSpace.xyz)/fragPosLightSpace.w + .5;
 
     if(projCoords.z>1.0) return 0.0;
 
     float currentDepth = restoreZ(projCoords.z);
-    currentDepth += -currentDepth*.0015 + u.shadowBias;
+
+    currentDepth += -currentDepth*.00175 + u.shadowBias; //+currentDepth*currentDepth*.00005 +
 
     vec2 stepTex = u.shadowGranularity*u.invScrnRes;
 
     float shadow = 0.0;
     int radius = int(u.shadowSmoothRadius);
-    float diam = float(radius) * 2. + 1.0;
+    float diam = u.shadowSmoothRadius * 2. + 1.0;
     float invDiv = 1.0/(diam * diam);
 
 
@@ -389,19 +408,16 @@ void main()
     float depth = texture(zTex,uv).x;
     if(depth>.9999) { discard; /*outColor = vec4(0.0); return;*/ }
 
-    float z = restoreZ(depth);
-    vec4 vtx = getVertexFromDepth(viewRay, z);
+    vec4 vtx = getVertexFromDepth(-viewRay, restoreZ(depth));
 
     float AO = bool(u.pass&RENDER_AO) ? getBlurredAO(uv) : 1.0;
-    float shadow = bool(u.pass &  RENDER_SHADOW) ?  buildSmoothShadow(vtx) : 1.0;
+    float shadow = bool(u.pass &  RENDER_SHADOW) ?  bool(u.pass & RENDER_SCATTER) ? buildSmoothScattereShadow(vtx) : buildSmoothShadow(vtx) : 1.0;
 
     if(bool(u.pass &  RENDER_DEF)) {
 
-        vec3 N = getSelectedNormal(vtx, zTex);
+        vec3 N = getSelectedNormal(vec4(-vtx.xy, vtx.zw), zTex);
 
         vec4 color = texture(texBaseColor,uv);
-
-        vec4 vtx = getVertexFromDepth(-viewRay, z);
 
         outColor = pixelColorLight(vtx.xyz, color, N, AO, shadow);
 

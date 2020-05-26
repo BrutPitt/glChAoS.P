@@ -1250,6 +1250,9 @@ public:
 
     bool autoLightDist() { return autoLight; }
     void autoLightDist(bool b) { autoLight = b; }
+
+    bool useScatterdShadow() { return scatteredShadow; }
+    void useScatterdShadow(bool b) {  scatteredShadow = b; }
     // Depth Rendering
     /////////////////////////////////////////////
     float dpAdjConvex() { return uData.dpAdjConvex; }
@@ -1295,6 +1298,7 @@ protected:
     bool usingAO = false;
     bool usingShadow = false;
     bool autoLight = true;
+    bool scatteredShadow = false;
 
     float ptSize;
     tfSettinsClass tfSettings;
