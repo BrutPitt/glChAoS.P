@@ -194,9 +194,10 @@ void transformedEmitterClass::renderOfflineFeedback()
     int vtxCount = 0;
     float const speedMagnitudo = cPit.getInitialSpeed();
     const GLuint szCircular = getSizeCircularBuffer();
+    const GLuint vtxStepBuff = InsertVbo->getNumVtxStepBuffer();
     const GLuint pCount = getParticlesCount() % szCircular;
 
-    while(isEmitterOn() && emiss-- && (pCount+vtxCount<szCircular)) {
+    while(isEmitterOn() && emiss-- && (pCount+vtxCount<szCircular) && vtxCount<vtxStepBuff) {
         attractorsList.get()->Step();
 
         const vec3 oldPosAttractor(attractorsList.get()->getPrevious());
@@ -205,7 +206,7 @@ void transformedEmitterClass::renderOfflineFeedback()
         const vec3 vStep = (newPosAttractor-oldPosAttractor)/float(cPit.getTransformedEmission());
         vec3 vInc(0.0);
 
-        for(int i=cPit.getTransformedEmission(); i>0 && (pCount+vtxCount<szCircular); i--) {
+        for(int i=cPit.getTransformedEmission(); i>0 && (pCount+vtxCount<szCircular) && vtxCount<vtxStepBuff; i--) {
             const float bornTime = std::chrono::duration<float> (std::chrono::high_resolution_clock::now()-startEvent).count();
             *vboBuffer++ = vec4(newPosAttractor + vInc, dist);
             *vboBuffer++ = vec4(vec3(fastRandom.VNI(),fastRandom.VNI(),fastRandom.VNI())*speedMagnitudo, -bornTime);

@@ -59,6 +59,7 @@ public:
     GLuint   getVAO()            { return vao; };
     GLuint   getVBO()            { return vbo; };
     GLenum   getPrimitive() { return primitive; }
+    GLuint   getNumVtxStepBuffer() { return nVtxStepBuffer; }
 
 
     virtual void initBufferStorage(GLsizeiptr numElements) {}
