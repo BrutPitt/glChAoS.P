@@ -651,14 +651,14 @@ void PopCorn4Dset::Step(vec4 &v, vec4 &vp)
     vp.y = v.y - kVal[2] * pfY((double)v.x+tan((double)kVal[3]*v.x));
     vp.z = v.z - kVal[4] * pfZ((double)v.w+tan((double)kVal[5]*v.w));
     vp.w = v.w - kVal[6] * pfW((double)v.z+tan((double)kVal[7]*v.z));
-/*
-// debug double in JS
-    static int64_t count = 0;
-    static int cycle = 0;
-    if(!(count++%100000)) {
-        printf("%04d) - vec4: %.7f,\t %.7f,\t %.7f,\t %.7f\n",++cycle, vp.x, vp.y, vp.z, vp.w);
-    }
-*/
+}
+////////////////////////////////////////////////////////////////////////////
+void PopCorn4Dsimple::Step(vec4 &v, vec4 &vp)
+{
+    vp.x = kVal[0] * pfX((double)v.y+tan((double)kVal[1]*v.y));
+    vp.y = kVal[2] * pfY((double)v.x+tan((double)kVal[3]*v.x));
+    vp.z = kVal[4] * pfZ((double)v.w+tan((double)kVal[5]*v.w));
+    vp.w = kVal[6] * pfW((double)v.z+tan((double)kVal[7]*v.z));
 }
 ////////////////////////////////////////////////////////////////////////////
 void PopCorn4Drnd::Step(vec4 &v, vec4 &vp) 
@@ -942,10 +942,17 @@ void ZhouChen::Step(vec4 &v, vec4 &vp)
     vp.z = v.z + dtStepInc*(kVal[4]*v.z - v.x*v.y);
 }
 ////////////////////////////////////////////////////////////////////////////
+void ShimizuMorioka::Step(vec4 &v, vec4 &vp)
+{ // kVal[] -> a
+    vp.x = v.x + dtStepInc*v.y;
+    vp.y = v.y + dtStepInc*((1.f-v.z)*v.x - kVal[0]*v.y);
+    vp.z = v.z + dtStepInc*(v.x*v.x - kVal[1]*v.z);
+}
+////////////////////////////////////////////////////////////////////////////
 void SprottLinzF::Step(vec4 &v, vec4 &vp) 
 { // kVal[] -> a
     vp.x = v.x + dtStepInc*(v.y + v.z);
-    vp.y = v.y + dtStepInc*(-v.x + kVal[0]*v.y); 
+    vp.y = v.y + dtStepInc*(-v.x + kVal[0]*v.y);
     vp.z = v.z + dtStepInc*(v.x*v.x - v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
@@ -955,6 +962,13 @@ void SprottLinzB::Step(vec4 &v, vec4 &vp)
     vp.y = v.y + dtStepInc*(kVal[1]*v.x - kVal[2]*v.y); 
     vp.z = v.z + dtStepInc*(1 - kVal[3]*v.x*v.y);
 }
+void Tamari::Step(vec4 &v, vec4 &vp)
+{ // kVal[] -> a
+    vp.x = v.x + dtStepInc*((v.x - kVal[0]*v.y)*cos(v.z) - kVal[1]*v.y*sin(v.z));
+    vp.y = v.y + dtStepInc*((v.x + kVal[2]*v.y)*sin(v.z) + kVal[3]*v.y*cos(v.z));
+    vp.z = v.z + dtStepInc*(kVal[4] + kVal[5]*v.z + kVal[6]*atan(((1-kVal[7])*v.y) / ((1-kVal[8])*v.x)));
+}
+////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 void Coullet::Step(vec4 &v, vec4 &vp) 
 { // kVal[] -> a, b, c, d

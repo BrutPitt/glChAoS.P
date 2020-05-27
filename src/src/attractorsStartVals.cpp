@@ -821,24 +821,11 @@ void MultiChuaII::startData()
     Insert(vVal[0]);
 }
 
-void ZhouChen::startData()
-{
-    vVal.push_back(vec4(3.f, 1.f, 1.f, 0.f));
-
-    kVal.push_back(2.97f);
-    kVal.push_back(.15f);
-    kVal.push_back(-3.f);
-    kVal.push_back(1.f);
-    kVal.push_back(-8.78f);
-
-    Insert(vVal[0]);
-}
-
-void SprottLinzF::startData()
+void ShimizuMorioka::startData()
 {
     vVal.push_back(vec4(.1f, 0.f, 0.f, 0.f));
-
-    kVal.push_back(.5f);
+    kVal.push_back(.75f);
+    kVal.push_back(.45f);
 
     Insert(vVal[0]);
 }
@@ -851,6 +838,45 @@ void SprottLinzB::startData()
     kVal.push_back(1.0f);
     kVal.push_back(1.0f);
     kVal.push_back(1.0f);
+
+    Insert(vVal[0]);
+}
+
+void SprottLinzF::startData()
+{
+    vVal.push_back(vec4(.1f, 0.f, 0.f, 0.f));
+    kVal.push_back(.5f);
+
+    Insert(vVal[0]);
+}
+
+void Tamari::startData()
+{
+    vVal.push_back(vec4(1.f, 1.f, 1.f, 0.f));
+
+    kVal.push_back(1.013f);
+    kVal.push_back(-.011f);
+    kVal.push_back( .02f );
+    kVal.push_back( .96f);
+    kVal.push_back(0.0f );
+    kVal.push_back( .01f);
+    kVal.push_back(1.0f );
+    kVal.push_back( .05f);
+    kVal.push_back( .05f);
+
+    Insert(vVal[0]);
+}
+
+
+void ZhouChen::startData()
+{
+    vVal.push_back(vec4(3.f, 1.f, 1.f, 0.f));
+
+    kVal.push_back(2.97f);
+    kVal.push_back(.15f);
+    kVal.push_back(-3.f);
+    kVal.push_back(1.f);
+    kVal.push_back(-8.78f);
 
     Insert(vVal[0]);
 }

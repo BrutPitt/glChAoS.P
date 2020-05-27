@@ -189,7 +189,7 @@ protected:
     bool bDlgAdditionalDataVisible = false;
     
 
-    vec3 m_POV, m_TGT = vec3(0.f);
+    vec3 m_POV = vec3(0.f, 0.f, 10.f), m_TGT = vec3(0.f);
 
     string displayName, fileName, nameID, graphChar;
     vec4 colorGraphChar;
@@ -1045,7 +1045,7 @@ protected:
     void searchAttractor()  { searchLyapunov(); }
 };
 
-//  PopCorn 4D BaseClass
+//  PopCorn 4D BaseClasses
 ////////////////////////////////////////////////////////////////////////////
 class PopCorn4DType : public attractorScalarK
 {
@@ -1061,7 +1061,6 @@ protected:
     virtual void startData();
     //virtual void additionalDataCtrls();
 };
-
 class PopCorn4Dset : public PopCorn4DType
 {
 public:
@@ -1100,6 +1099,18 @@ public:
     PopCorn4Dsscc() { stepFn = (stepPtrFn) &PopCorn4Dset::Step; 
                       pfX = pfY = sin;  pfZ = pfW = cos; }
 };
+
+class PopCorn4Dsimple : public PopCorn4DType
+{
+public:
+    PopCorn4Dsimple() { stepFn = (stepPtrFn) &PopCorn4Dsimple::Step;
+                      pfX = pfY = pfZ = pfW = sin; }
+    void Step(vec4 &v, vec4 &vp);
+
+protected:
+    double (*pfX)(double), (*pfY)(double), (*pfZ)(double), (*pfW)(double);
+};
+
 ////////////////////////////////////////////////////////////////////////////
 class PopCorn4Drnd : public PopCorn4DType
 {
@@ -1541,86 +1552,49 @@ private:
 //--------------------------------------------------------------------------
 //  d(x,y,z)/dt Attractors
 //--------------------------------------------------------------------------
-
-//  Lorenz base class
-////////////////////////////////////////////////////////////////////////////
-class Lorenz : public attractorDtType
-{
-public:
-
-    Lorenz() {
-        stepFn = (stepPtrFn) &Lorenz::Step;
-
-        kMin = -10; kMax = 10; vMin = 0; vMax = 0;
-        m_POV = vec3(0.f, .0, 40.f);
-    }
-
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-/*
-    void Step()
-    {
-    //static GLfloat h=0.135f;
-    vec3 vect=getCurrent();
-
-//Lorenz 84
-//    Insert(vec3(vect.x+dtStepInc*(-kVal[0]*vect.x-vect.y*vect.y-vect.x*vect.x+kVal[0]*kVal[2]),
-//                 vect.y+dtStepInc*(-vect.y+vect.x*vect.y-kVal[1]*vect.x*vect.z+kVal[3]),
-//                 vect.z+dtStepInc*(-vect.z+kVal[1]*vect.x*vect.y+vect.x*vect.z)));
-    }
-*/
-/*
-    void newRandomValues()
-    {
-        kVal[0] = (float)rand()/(float)RAND_MAX * 20.f;
-        kVal[1] = (float)rand()/(float)RAND_MAX * 56.f;
-        kVal[2] = (float)rand()/(float)RAND_MAX * (16/3.f);
-
-    }
-
-    float getDistance(int i=0, int j=1) { return  distance(stepQueue[i], stepQueue[j]); }
-*/
+#define DT(A)\
+class A : public attractorDtType {\
+    public:\
+        A() { stepFn = (stepPtrFn) &A::Step; }\
+    protected:\
+        void Step(vec4 &v, vec4 &vp);\
+        void startData();\
 };
 
-#define DT(A) class A : public attractorDtType {\
-                    public:\
-                        A() { stepFn = (stepPtrFn) &A::Step; }\
-                    protected:\
-                        void Step(vec4 &v, vec4 &vp);\
-                        void startData();\
-                };
-
-DT(Aizawa)
-DT(Arneodo)
-DT(Bouali)
-DT(BrukeShaw)
-DT(ChenCelikovsky)
-DT(ChenLee)
-DT(Coullet)
-DT(Dadras)
-DT(DequanLi)
-DT(FourWing)
-DT(FourWing2)
-DT(FourWing3)
-DT(GenesioTesi)
-DT(GloboToroid)
-DT(Halvorsen)
-DT(Hadley)
-DT(LiuChen)
-DT(MultiChuaII)
-DT(NewtonLeipnik)
-DT(NoseHoover)
-DT(Sakarya)
-DT(RayleighBenard)
-DT(Robinson)
-DT(Rossler)
-DT(Rucklidge)
-DT(SprottLinzB)
-DT(SprottLinzF)
-DT(Thomas)
-DT(TSUCS)
-DT(YuWang)
-DT(ZhouChen)
+DT(Aizawa         )
+DT(Arneodo        )
+DT(Bouali         )
+DT(BrukeShaw      )
+DT(ChenCelikovsky )
+DT(ChenLee        )
+DT(Coullet        )
+DT(Dadras         )
+DT(DequanLi       )
+DT(FourWing       )
+DT(FourWing2      )
+DT(FourWing3      )
+DT(GenesioTesi    )
+DT(GloboToroid    )
+DT(Halvorsen      )
+DT(Hadley         )
+DT(LiuChen        )
+DT(Lorenz         )
+DT(MultiChuaII    )
+DT(NewtonLeipnik  )
+DT(NoseHoover     )
+DT(Sakarya        )
+DT(RayleighBenard )
+DT(Robinson       )
+DT(Rossler        )
+DT(Rucklidge      )
+DT(ShimizuMorioka )
+DT(SprottLinzB    )
+DT(SprottLinzF    )
+DT(Tamari         )
+DT(Thomas         )
+DT(TSUCS          )
+DT(YuWang         )
+DT(ZhouChen       )
 
 #undef DT
 
@@ -1866,6 +1840,8 @@ public:
         PB(PopCorn4Dscss      , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D scss"     )
         PB(PopCorn4Dscsc      , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D scsc"     )
         PB(PopCorn4Dsscc      , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D sscc"     )
+        PB(PopCorn4Dsimple    , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D simple"   )
+
 //        PB(PopCorn4Drnd       , u8"\uf006" " PopCorn4D rnd"     )
 //        PB(SymmetricIcons4D   , u8"\uf006" " SymmetricIcons4D"   )
 #if !defined(GLAPP_DISABLE_DLA)
@@ -1896,8 +1872,10 @@ public:
         PB(Rossler            , u8"\uf0da", DT_COLOR      , "Rossler"            )
         PB(Rucklidge          , u8"\uf0da", DT_COLOR      , "Rucklidge"          )
         PB(Sakarya            , u8"\uf0da", DT_COLOR      , "Sakarya"            )
+        PB(ShimizuMorioka     , u8"\uf0da", DT_COLOR      , "Shimizu-Morioka"    )
         PB(SprottLinzB        , u8"\uf0da", DT_COLOR      , "Sprott-Linz B"      )
         PB(SprottLinzF        , u8"\uf0da", DT_COLOR      , "Sprott-Linz F"      )
+        PB(Tamari             , u8"\uf0da", DT_COLOR      , "Tamari"             )
         PB(Thomas             , u8"\uf0da", DT_COLOR      , "Thomas"             )
         PB(TSUCS              , u8"\uf0da", DT_COLOR      , "TSUCS 1&2"          )
         PB(YuWang             , u8"\uf0da", DT_COLOR      , "Yu-Wang"            )
