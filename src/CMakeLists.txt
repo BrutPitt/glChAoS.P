@@ -198,7 +198,12 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
         set(EMSOUT "${CMAKE_SOURCE_DIR}")
     endif()
     target_compile_features(${PROJECT_NAME}  PUBLIC cxx_std_14)
-    set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${EMSOUT}/emsOut/${CMAKE_BUILD_TYPE})
+
+    if(EXISTS $ENV{RAMDISK}) #my RAMDISK env
+        set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY $ENV{RAMDISK}/emsOut/${CMAKE_BUILD_TYPE})
+    else ()
+        set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${EMSOUT}/emsOut/${CMAKE_BUILD_TYPE})
+    endif()
 
 
 ###########################################################
