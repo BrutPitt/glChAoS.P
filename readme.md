@@ -17,6 +17,7 @@ To view all Attractors / Fractals currently inserted in this version, follow the
   - You can select **Advanced Mode** check box (*default*) or deselect it (**Standard Mode**) for low resources devices (mobiles/tablet/smartphones)
   - You can also to explore any single attractor, interactively, staring directly from web-page, using **Explore** button near/below any attractor formula: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
 
+**WebGL release is a more limited/lightened version, but frequently updated/rebuilt with last commits*
 <a href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank"><img align="right" width="100" height="100" src="https://michelemorrone.eu/glchaosp/img/jetbrains.svg"/></a>
 <p>&nbsp;<br></p>
 <p align="right"><b><a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">JetBrains</a></b> supports <b>glChAoS.P</b> &#x22C5; <b>wglChAoS.P</b><br><i>many thanks to <b>JetBrains</b> for donating <a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">o.s.license</a> for all their excellent products</i></p>
@@ -222,7 +223,7 @@ If you have slow performance try, in this order:
 **Tested Operating System Versions:**
 
 - Microsoft Windows 7/8.x/10
-- Linux distributions: Ubuntu 16.04 -> 20.04, Fedora 27 -> 31
+- Linux distributions: Ubuntu 16.04 -> 20.04, Fedora 27 -> 32
 - Mac OS 10.14 (Mojave), 10.15 (Catalina)
 - Android 5/6/7/8/9 with Firefox and Chrome
 
@@ -244,7 +245,6 @@ Are provided executable for the followings OS:
 `glChAoSP_viewports.exe`: beta version of multiple viewports is also provided (floating GUI windows that can go out outside of main Viewport/Window): (only 64 bits).
 This is a great version, solid beta and full functional, but based on a *under development* version of  [**ImGui**](https://github.com/ocornut/imgui) library.
 \
-*Tested on Windows 7, 8 and 10*
 
 - **Linux**\
 `glChAoSP_Linux`: native executable (64 bit) is provided for OpenGL \>= 4.5, 
@@ -257,7 +257,6 @@ Take care to have installed OpenGL library, whereas `libX11 libXext` should alre
 It was tested on Fedora 27/28 and Ubuntu 16.04/18.04 LTS, although with subsequent updates and different library versions you may need to rebuild it.
 Read Build/CMake sections for further information.
 \
-*Tested on Fedora 27 -> 31 and Ubuntu 16.04 -> 20.04*
 
     - **wine**    
     The Windows executable, 32/64 bit, works fine also in wine 3.xx with no evident loss of performance
@@ -270,7 +269,6 @@ From *Finder* click on applescript: `glChAoSP_OSX.app`, or form command line typ
 It was tested on OS X ver 10.14 (Mojave) only, although with subsequent updates and different library versions you may need to rebuild it.
 Read Build/CMake sections for further information.
 \
-*Tested on 10.14 Mojave and 10.15 Catalina*
 
 **NOTE**:
 \
@@ -297,10 +295,10 @@ it has been replaced with **nanoflann** header-only (enclosed)
 
 **Tested Compilers**
 
-- Microsoft Visual Studio 2019/2017/2015 (Platform Toolset v.142/141/140: it does not work with previous versions)
+- Microsoft Visual Studio 2019/2017/2015 (Platform Toolset v.142/141/140: it does not work with previous releases)
 - MinGW (64bit) v.9
-- CLang v.5/6/7/8/9/10
-- GNU C++ v.5/6/7/8/9
+- CLang from v.5 to current
+- GNU C++ from v.5 to current
 
 
 **CMake**
@@ -400,7 +398,7 @@ Use `emsCMakeGen.cmd` or `emsCMakeGen.sh` from ./src directory, or look inside i
 
 For example, run:
 
-`emsCMakeGen.sh /opt/emsdk/emscripten/1.38.20 Debug|Release|RelWithDebInfo|MinSizeRel`
+`emsCMakeGen.sh /opt/emsdk/emscripten/1.38.20 Debug|Release|RelWithDebInfo|MinSizeRel wglChAoSP|wglChAoSP_lowres`
 
 
 `emsCMakeGen.cmd C:\emsdk\emscripten\1.38.20 Debug|Release|RelWithDebInfo|MinSizeRel`
