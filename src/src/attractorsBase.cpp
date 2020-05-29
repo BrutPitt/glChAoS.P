@@ -873,10 +873,17 @@ void NewtonLeipnik::Step(vec4 &v, vec4 &vp)
 }
 ////////////////////////////////////////////////////////////////////////////
 void NoseHoover::Step(vec4 &v, vec4 &vp) 
-{ // kVal[] -> a
+{ // kVal[] -> a, b, c ...
     vp.x = v.x + dtStepInc*v.y;
     vp.y = v.y + dtStepInc*(-v.x + v.y*v.z); 
     vp.z = v.z + dtStepInc*(kVal[0] - v.y*v.y);
+}
+////////////////////////////////////////////////////////////////////////////
+void QiChen::Step(vec4 &v, vec4 &vp)
+{ // kVal[] -> a, b, c ...
+    vp.x = v.x + dtStepInc*(kVal[0]*(v.y-v.x)+kVal[4]*v.y*v.z);
+    vp.y = v.y + dtStepInc*(kVal[2]*v.x+kVal[3]*v.y-v.x*v.z);
+    vp.z = v.z + dtStepInc*(v.x*v.y-kVal[1]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
 void RayleighBenard::Step(vec4 &v, vec4 &vp) 

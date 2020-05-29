@@ -730,6 +730,19 @@ void NoseHoover::startData()
     Insert(vVal[0]);
 }
 
+void QiChen::startData()
+{
+    vVal.push_back(vec4(3.f, -4.f, 3.f, 0.f));
+    
+    kVal.push_back(16.0 );
+    kVal.push_back(43.0 );
+    kVal.push_back(-16.0);
+    kVal.push_back(16.0 );
+    kVal.push_back(-1.0 );
+
+    Insert(vVal[0]);
+}
+
 void RayleighBenard::startData()
 {
     vVal.push_back(vec4(.1f, 0.f, 0.f, 0.f));
