@@ -43,12 +43,9 @@ void AttractorsClass::endlessStep(emitterBaseClass *emitter)
 {
     auto singleStep = [&] (float *ptr) -> void
     {
-        //mtxStep.lock();
+        if(!emitter->isEmitterOn()) return;
 
-        if(!emitter->isEmitterOn()/* || getSelection() < 0*/) return;
-
-        vec4 v = get()->getCurrent();
-        vec4 vp = v;
+        vec4 v = get()->getCurrent(), vp = v;
 
         if(emitter->useMappedMem()) {   // USE_MAPPED_BUFFER
             GLuint64 &inc = *emitter->getVertexBase()->getPtrVertexUploaded();
@@ -62,7 +59,6 @@ void AttractorsClass::endlessStep(emitterBaseClass *emitter)
                 get()->Step(ptr, v, vp); 
         }
         get()->Insert(vp);
-        //mtxStep.unlock();
     };
 
     while(endlessLoop) {
@@ -84,12 +80,10 @@ void AttractorsClass::endlessStep(emitterBaseClass *emitter)
             emitter->setThreadRunning(false);
         }
     }
-    
 }
 
 void AttractorBase::resetQueue()
 {
-    //stepQueue.clear();
 #if !defined(GLCHAOS_USES_SEMPLIFED_QUEUE)
     stepQueue.resize(BUFFER_DIM,vec4(0.f));
 #endif
@@ -97,11 +91,9 @@ void AttractorBase::resetQueue()
 
 void AttractorBase::Step() 
 {
-    vec4 v = getCurrent();
-    vec4 vp;
+    vec4 v = getCurrent(), vp;
 
-    //Step(v,vp);
-    (this->*stepFn)(v,vp);
+    (this->*stepFn)(v,vp); //attractor::Step(v,vp);
 
     Insert(vp);
 
@@ -122,8 +114,7 @@ void AttractorBase::Step(float *&ptr, vec4 &v, vec4 &vp)
 
 uint32_t AttractorBase::Step(float *ptr, uint32_t numElements) 
 {
-    vec4 vp;
-    vec4 v=getCurrent();
+    vec4 v = getCurrent(), vp;
 
     static timerClass t;
 
@@ -295,84 +286,8 @@ void AttractorBase::searchLyapunov()
     } while(!canExit && iter-->0);
 }
 
-
 //  Hopalong Attractor
 ////////////////////////////////////////////////////////////////////////////
-/*
-void Hopalong::Step(float *ptr, int numElements) 
-{
-    vec3 vp;
-    vec3 v=getCurrent();
-    oldZ = v.z;
-
-    while(numElements--) Step(ptr, v, vp); 
-
-    Insert(vec3(vp));
-
-}
-
-
-void Hopalong::Step()
-{
-
-    vec3 v = getCurrent();
-    vec3 w = getPrevious();
-
-    const float r=.01f;
-    float a = kVal[0]*r, b = kVal[1]*r, c = kVal[2]*r;
-
-    //Insert(vec3(
-    //    v.z - sqrt(abs(kVal[1] * v.x - kVal[2])) * (v.x>0. ? 1. : -1.),
-    //    v.z - sqrt(abs(kVal[3] * v.y - kVal[4])) * (v.y>0. ? 1. : -1.),
-    //    (kVal[0] + kVal[5])  - v.x - v.y
-    //    ));
-    static float zy = 0;
-    static float oldZ = v.z;
-    vec3 nV;
-
-    static float x =0, y=0;
-        
-    float oldX = x, oldY = y;
-                    x = oldY - sqrt(abs(b*r * x - c*r)) * (x > 0.f ? 1. : (x < 0.f ? -1.: 0));
-                    y = a*r - oldX;
-    float z = step;
-
-    nV = vec3( step*sin(2.f*M_PI*x)*cos(2.f*M_PI*y),
-                step*sin(2.f*M_PI*x)*sin(2.f*M_PI*y),
-                step*cos(2.f*M_PI*x));
-
-        
-    zy = oldZ - sqrt(abs(kVal[4]*r * v.x - kVal[5]*r)) * (v.x > 0.f ? 1. : (v.x < 0.f ? -1.: 0)),
-
-    Insert(nV);
-
-    step += .00000001;
-        
-
-}
-
-
-void Hopalong::Step(float *&ptr, vec3 &v, vec3 &vp) {
-    float a = kVal[0]*_r, b = kVal[1]*_r, c = kVal[2]*_r;  
-        
-    float oldX = _x, oldY = _y;
-                    _x = oldY - sqrt(abs(b*_r * _x - c*_r)) * (_x > 0.f ? 1. : (_x < 0.f ? -1.: 0));
-                    _y = a*_r - oldX;
-    float z = step;
-
-    vp.x = *(ptr++) = step*sin(2.f*M_PI*_x)*cos(2.f*M_PI*_y);
-    vp.y = *(ptr++) = step*sin(2.f*M_PI*_x)*sin(2.f*M_PI*_y);
-    vp.z = *(ptr++) = step*cos(2.f*M_PI*_x)                ;
-    *(ptr++) = distance(v,vp);
-
-    _zy = oldZ - sqrt(abs(kVal[4]*_r * v.x - kVal[5]*_r)) * (v.x > 0.f ? 1. : (v.x < 0.f ? -1.: 0)),
-
-    v = vp;            
-
-    oldZ = v.z;
-    step += kVal[6]/100000.f;
-}
-*/
 void Hopalong::Step(vec4 &v, vec4 &vp) {
     float a = kVal[0]*_r, b = kVal[1]*_r, c = kVal[2]*_r;  
         
@@ -395,8 +310,7 @@ void Hopalong::Step(vec4 &v, vec4 &vp) {
 
 //  PowerN3D Attractor
 ////////////////////////////////////////////////////////////////////////////
-
-void PowerN3D::Step(vec4 &v, vec4 &vp) 
+void PowerN3D::Step(vec4 &v, vec4 &vp)
 {
     elv[0] = vec3(1.f);
     for(int i=1; i<=order; i++) elv[i] = elv[i-1] * (vec3)v;
@@ -419,40 +333,6 @@ void PowerN3D::Step(vec4 &v, vec4 &vp)
     vp = vec4(vt, 0.f);
 } 
 
-/*
-void PowerN3D::Step(vec4 &v, vec4 &vp) 
-{
-    elv[0] = dvec3(1.f);
-    for(int i=1; i<=order; i++) elv[i] = elv[i-1] * (dvec3)v;
-
-    std::vector<double> dcf(cf.size()); 
-    auto itCf = dcf.begin();
-
-    for(int x=order-1; x>=0; x--)
-        for(int y=order-1; y>=0; y--)
-            for(int z=order-1; z>=0; z--) 
-                if(x+y+z <= order) *itCf++ = elv[x].x * elv[y].y * elv[z].z;
-
-    *itCf++ = elv[order].x;
-    *itCf++ = elv[order].y;
-    *itCf++ = elv[order].z;
-
-    itCf = dcf.begin();
-    dvec3 vNew(0.0);
-    for(auto &it : kVal) vNew += dvec3(it.x, it.y, it.z)  * *itCf++;
-
-    vp = vec4(vNew.x, vNew.y, vNew.z, 0.f);
-}
-*/
-
-/*
-    static int i = 0;
-    switch(i++%3) {
-        case 0 :  break;
-        case 1 :  vp = vec4(vp.y,vp.z,vp.x); break;
-        case 2 :  vp = vec4(vp.z,vp.x,vp.y); break;
-    }
- */
 
 ////////////////////////////////////////////////////////////////////////////
 void PolynomialA::Step(vec4 &v, vec4 &vp)
@@ -493,25 +373,9 @@ void PolynomialPow::Step(vec4 &v, vec4 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void PolynomialSin::Step(vec4 &v, vec4 &vp)
 {
-//SinCosA
-//    vp.x = kVal[0].x + kVal[1].x*v.x + kVal[2].x*v.y + kVal[3].x*v.z + kVal[4].x*cos(kVal[5].x*v.x) + kVal[6].x*sin(kVal[7].x*v.y) +kVal[8].x*sin(kVal[9].x*v.z);
-//    vp.y = kVal[0].y + kVal[1].y*v.x + kVal[2].y*v.y + kVal[3].y*v.z + kVal[4].y*sin(kVal[5].y*v.x) + kVal[6].y*cos(kVal[7].y*v.y) +kVal[8].y*sin(kVal[9].y*v.z);
-//    vp.z = kVal[0].z + kVal[1].z*v.x + kVal[2].z*v.y + kVal[3].z*v.z + kVal[4].z*sin(kVal[5].z*v.x) + kVal[6].z*sin(kVal[7].z*v.y) +kVal[8].z*cos(kVal[9].z*v.z);
-/*
-    vp.x = kVal[0].x + kVal[1].x*v.x + kVal[2].x*v.y + kVal[3].x*v.z + kVal[4].x*cos(kVal[5].x*v.x) + kVal[6].x*sin(kVal[7].x*v.y) +kVal[8].x*cos(kVal[9].x*v.z);
-    vp.y = kVal[0].y + kVal[1].y*v.x + kVal[2].y*v.y + kVal[3].y*v.z + kVal[4].y*sin(kVal[5].y*v.x) + kVal[6].y*cos(kVal[7].y*v.y) +kVal[8].y*sin(kVal[9].y*v.z);
-    vp.z = kVal[0].z + kVal[1].z*v.x + kVal[2].z*v.y + kVal[3].z*v.z + kVal[4].z*cos(kVal[5].z*v.x) + kVal[6].z*sin(kVal[7].z*v.y) +kVal[8].z*cos(kVal[9].z*v.z);
-*/
-
     vp.x = kVal[0].x + kVal[1].x*v.x + kVal[2].x*v.y + kVal[3].x*v.z + kVal[4].x*sin(kVal[5].x*v.x) + kVal[6].x*sin(kVal[7].x*v.y) +kVal[8].x*sin(kVal[9].x*v.z);
     vp.y = kVal[0].y + kVal[1].y*v.x + kVal[2].y*v.y + kVal[3].y*v.z + kVal[4].y*sin(kVal[5].y*v.x) + kVal[6].y*sin(kVal[7].y*v.y) +kVal[8].y*sin(kVal[9].y*v.z);
     vp.z = kVal[0].z + kVal[1].z*v.x + kVal[2].z*v.y + kVal[3].z*v.z + kVal[4].z*sin(kVal[5].z*v.x) + kVal[6].z*sin(kVal[7].z*v.y) +kVal[8].z*sin(kVal[9].z*v.z);
-
-/*
-    vp.x = kVal[0].x + kVal[1].x*v.x + kVal[2].x*v.y + kVal[3].x*v.z + kVal[4].x*sin(kVal[5].x*kVal[6].x*v.x) + kVal[7].x*sin(kVal[8].x*kVal[9].x*v.y) +kVal[10].x*sin(kVal[11].x*kVal[12].x*v.z);
-    vp.y = kVal[0].y + kVal[1].y*v.x + kVal[2].y*v.y + kVal[3].y*v.z + kVal[4].y*sin(kVal[5].y*kVal[6].y*v.x) + kVal[7].y*sin(kVal[8].y*kVal[9].y*v.y) +kVal[10].y*sin(kVal[11].y*kVal[12].y*v.z);
-    vp.z = kVal[0].z + kVal[1].z*v.x + kVal[2].z*v.y + kVal[3].z*v.z + kVal[4].z*sin(kVal[5].z*kVal[6].z*v.x) + kVal[7].z*sin(kVal[8].z*kVal[9].z*v.y) +kVal[10].z*sin(kVal[11].z*kVal[12].z*v.z);
-*/
 }
 ////////////////////////////////////////////////////////////////////////////
 void Rampe01::Step(vec4 &v, vec4 &vp)

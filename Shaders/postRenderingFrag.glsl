@@ -274,7 +274,7 @@ float buildSmoothScattereShadow(vec4 frag)
     // get depth of current fragment from light's perspective
 
     float currentDepth = restoreZ(projCoords.z);
-    currentDepth += -currentDepth*.002 + u.shadowBias;
+    currentDepth += -currentDepth*.0025 + u.shadowBias;
 
     vec2 stepTex = u.shadowGranularity*u.invScrnRes;
 
@@ -324,7 +324,7 @@ float buildSmoothShadow(vec4 frag)
 
     float currentDepth = restoreZ(projCoords.z);
 
-    currentDepth += -currentDepth*.00175 + u.shadowBias; //+currentDepth*currentDepth*.00005 +
+    currentDepth += -currentDepth*.0025 + u.shadowBias; //+currentDepth*currentDepth*.00005 +
 
     vec2 stepTex = u.shadowGranularity*u.invScrnRes;
 

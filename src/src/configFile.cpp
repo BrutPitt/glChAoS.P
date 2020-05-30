@@ -158,7 +158,7 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["ShadowRadius"       ] = ptr->getShadowRadius();
     c["ShadowGranularity"  ] = ptr->getShadowGranularity();
     c["ShadowAutoLightDist"] = ptr->autoLightDist();
-
+    c["ShadowScattered"    ] = ptr->useScatterdShadow();
 
     c["AOenabled"       ] = ptr->useAO();
     c["AOstrong"        ] = ptr->getAOStrong();
@@ -514,6 +514,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         ptr->setShadowRadius(      c.get_or("ShadowRadius"       , 2.0   ));
         ptr->setShadowGranularity( c.get_or("ShadowGranularity"  , 1.0   ));
         ptr->autoLightDist(        c.get_or("ShadowAutoLightDist", true  ));
+        ptr->useScatterdShadow(    c.get_or("ShadowScattered"    , false ));
     }
 
 
