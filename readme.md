@@ -1,4 +1,4 @@
-<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.5.0 beta</a></h1>
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.5.0</a></h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**wglChAoS.P**](https://michelemorrone.eu/glchaosp): open**gl** / **w**eb**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercomplex fractals
@@ -10,9 +10,9 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 
 ## All available releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
 
-### Desktop - v.1.5.0 beta
+### Desktop - v.1.5.0
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X** 
-### WebGL - v.1.5.0 beta
+### WebGL - v.1.5.0
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebG 2** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
   - You can select **Advanced Mode** check box (*default*) or deselect it (**Standard Mode**) for low resources devices (mobiles/tablet/smartphones)
   - You can also to explore any single attractor, interactively, staring directly from web-page, using **Explore** button near/below any attractor formula: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
@@ -244,19 +244,15 @@ Are provided executable for the followings OS:
 \
 `glChAoSP_viewports.exe`: beta version of multiple viewports is also provided (floating GUI windows that can go out outside of main Viewport/Window): (only 64 bits).
 This is a great version, solid beta and full functional, but based on a *under development* version of  [**ImGui**](https://github.com/ocornut/imgui) library.
-\
 
 - **Linux**\
-`glChAoSP_Linux`: native executable (64 bit) is provided for OpenGL \>= 4.5, 
+`glChAoSP_Linux`: native executable (64 bit) is provided for OpenGL \>= 4.5: it was tested on Fedora and Ubuntu LTS. 
 (you can recompile it, with appropriate define, to obtain an OpenGL 4.1 compliant)
 \
-After clone, copy or decompression, take care that executable bit of the file `glChAoSP_Linux` is active (chmod +x).
+Take care to have installed OpenGL library, whereas `libX11 libXext` should already be installed.\
 \
-Take care to have installed OpenGL library, whereas `libX11 libXext` should already be installed.
-\
-It was tested on Fedora 27/28 and Ubuntu 16.04/18.04 LTS, although with subsequent updates and different library versions you may need to rebuild it.
-Read Build/CMake sections for further information.
-\
+After clone, copy or decompression, take care that executable bit of the file `glChAoSP_Linux` is active (chmod +x).\
+Use `glChAoSP_Linux.sh` to launch it from fileBrowsers like Nautilus or Caja.
 
     - **wine**    
     The Windows executable, 32/64 bit, works fine also in wine 3.xx with no evident loss of performance
@@ -268,10 +264,9 @@ From *Finder* click on applescript: `glChAoSP_OSX.app`, or form command line typ
 \
 It was tested on OS X ver 10.14 (Mojave) only, although with subsequent updates and different library versions you may need to rebuild it.
 Read Build/CMake sections for further information.
-\
 
-**NOTE**:
-\
+
+**NOTE**:\
 For **Windows** and **Linux** glChAoS.P uses OpenGL 4.5 with AZDO (Approaching Zero Driver Overhead) and a separate thread (multithread) emitter/generator of particles with memory mapped directly on GPU vRAM.
 
 On **Mac OS**, for a limitation of the OS (from Mojave Apple have deprecated OpenGL) there is a downgraded version, that use OpenGL 4.1 (higher possible) with a separate thread emitter/generator that use the conventional CPU memory.
@@ -324,20 +319,15 @@ In this case you need to have installed GLFW Library, ver 3.3 or higher, or re-b
 Windows user needs of Visual Studio 2019 (it works also wit VS 2017/2015, but is need to change appropriate *Platform Toolset* and/or *Windows SDK version* that you have installed). In alternative, CMake 3.10 (or higher) for other compilers toolchain (non tested, but it should work).
 
 - **Microsoft Visual Studio**
-  - **VS solution**
-\
-In the folder `./src/msBuilds` there is the solution project for use with Visual Studio 2017/2019.
-\
-*(check appropriate **Platform Toolset** and/or **Windows SDK version** that you have installed)*
-\
+  - **VS solution**\
+In the folder `./src/msBuilds` there is the solution project for use with Visual Studio 2017/2019.\
+*(check appropriate **Platform Toolset** and/or **Windows SDK version** that you have installed)*\
 You can use also **LLVM CLang** to build **glChAoS.P** from Visual Studio: you can use the LLVM plugin (after to have installed clang, in windows) and simply change the *toolchain* in *Properties -> General -> Platform Toolset*
      - The current VisualStudio solution refers to my environment variable RAMDISK (`R:`), and subsequent VS intrinsic variables to generate binary output:
-`$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\` 
-\
+`$(RAMDISK)\$(MSBuildProjectDirectoryNoRoot)\$(DefaultPlatformToolset)\$(Platform)\$(Configuration)\`\
 Even without a RAMDISK variable, executable and binary files are outputted in base to the values of these VS variables, starting from root of current drive.
 
-   - **VS with CMakeFile.txt and CMakeSettings.json** (testing fase - VS2019 only)
-   \
+   - **VS with CMakeFile.txt and CMakeSettings.json** (testing fase - VS2019 only)   \
    Open `./src` folder in **vs2019** you can build both **Emscripten** / **CLang** inside Visual Studio
 
 
@@ -350,8 +340,7 @@ Even without a RAMDISK variable, executable and binary files are outputted in ba
 
 ### Build glChAoS.P in Linux
 
-**Tools required**
-\
+**Tools required**\
 Linux users need to install the GCC C/C++ v.5 or higher (or clang v.5 or higher) compilers and associated tools such as *make* and *CMake* (need v3.10 or higher).
 \
 To install gcc C/C++:
@@ -361,15 +350,13 @@ To install gcc C/C++:
  You need also to have installed OpenGL library and relative development package:
 `libgl1-mesa libgl1-mesa-dev` (Ubuntu) or `mesa-libGL mesa-libGL-devel` (Fedora).
 
-**Build**
-\
+**Build**\
 Form a *Terminal* window, just launch `sh build_glChAoSP.sh` script (from `./src` folder) to build **glChAoSP**, it first runs `cmake` with appropriate parameters and then starts `make` to build `glChAoSP_Linux` executable: it will stored in parent folder (`../`).
 
 - the script uses the enclosed built version of GLFW
 
 Another script, `buildLinux.sh`, is provided (as helper) to re-build GLFW: it calls `buildGLFW.sh` (to build/re-build GLFW) and `build_glChAoSP.sh` sequentially.
- - To build/rebuild GLFW from enclosed sources you must have installed also development packages: `libx11-dev libxext-dev` (Ubuntu) or `libX11-devel libXext-devel` (Fedora).
-\
+ - To build/rebuild GLFW from enclosed sources you must have installed also development packages: `libx11-dev libxext-dev` (Ubuntu) or `libX11-devel libXext-devel` (Fedora).\
 **(documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))*
 
 ### Build glChAoS.P in Mac OS
@@ -379,14 +366,11 @@ Another script, `buildLinux.sh`, is provided (as helper) to re-build GLFW: it ca
 Mac users must have installed **Xcode** and the **Command Line Tools**, also **CMake 3.10** or higher is necessary.
 
 
-**Build**
-\
+**Build**\
 Form a *Terminal* window, just launch `sh build_glChAoSP.sh` script (from `./src` folder) to build **glChAoSP**, it first runs `cmake` with appropriate parameters and then starts `make` to build `glChAoSP_OSX` executable: it will stored in parent folder (`../`)
-\
 - the script uses the enclosed built version of GLFW
 
-Another script, `buildOSX.sh`, is provided (as helper) to re-build GLFW: it calls `buildGLFW.sh OSX` (to build/re-build GLFW) and `build_glChAoSP.sh` sequentially.
-\
+Another script, `buildOSX.sh`, is provided (as helper) to re-build GLFW: it calls `buildGLFW.sh OSX` (to build/re-build GLFW) and `build_glChAoSP.sh` sequentially.\
 **(documentation: [https://github.com/glfw/glfw](https://github.com/glfw/glfw))*
 
 
@@ -394,8 +378,7 @@ Another script, `buildOSX.sh`, is provided (as helper) to re-build GLFW: it call
 
 The CMake file is able to build also an [**EMSCRIPTEN**](https://kripken.github.io/emscripten-site/index.html) version, obviously you need to have installed EMSCRIPTEN SDK on your computer (~~1.38.20~~ ~~1.38.28~~ 1.38.40 or higher).
 Use `emsCMakeGen.cmd` or `emsCMakeGen.sh` from ./src directory, or look inside it, to pass appropriate defines/parameters to CMake command line.
-`emsCMakeGen` need to know the location of EMSDK, and the "build-type" object to create.
-
+`emsCMakeGen` need to know the location of EMSDK, and the "build-type" object to create.\
 For example, run:
 
 `emsCMakeGen.sh /opt/emsdk/emscripten/1.38.20 Debug|Release|RelWithDebInfo|MinSizeRel wglChAoSP|wglChAoSP_lowres`
@@ -403,8 +386,7 @@ For example, run:
 
 `emsCMakeGen.cmd C:\emsdk\emscripten\1.38.20 Debug|Release|RelWithDebInfo|MinSizeRel`
 
-To build the EMSCRIPTEN version, in Windows, with CMake, need to have **mingw32-make** in your computer and in the search PATH (only the make utility is enough) or **Ninja**.
-
+To build the EMSCRIPTEN version, in Windows, with CMake, need to have **mingw32-make** in your computer and in the search PATH (only the make utility is enough) or **Ninja**.\
 Currently all the shell/cmd scripts use **Ninja** to build **wglChAoS.P** (WebGL/WebAssembly release)
 
 
@@ -420,16 +402,19 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
 **Libs and Tools**
 
 - Personal tools
-    - tools/[**vgMath**](https://github.com/BrutPitt/vgMath) → 3D Mathematics https://github.com/BrutPitt/vgMath (single file header, **glm** compatible)
+    - tools/[**vgMath**](https://github.com/BrutPitt/vgMath) → 3D Math Library (single file header, **glm** compatible)
+     https://github.com/BrutPitt/vgMath 
 
-    - tools/[**vitualGizmo3D**](https://github.com/BrutPitt/virtualGizmo3D) → 3D objects manipulator https://github.com/BrutPitt/virtualGizmo3D (single file header)
+    - tools/[**vitualGizmo3D**](https://github.com/BrutPitt/virtualGizmo3D) → 3D objects manipulator (single file header)
+    https://github.com/BrutPitt/virtualGizmo3D
 
-    - tools/[**imGuIZMO.quat**](https://github.com/BrutPitt/imGuIZMO.quat) → ImGui widget: visual 3D objects manipulator https://github.com/BrutPitt/imGuIZMO.quat
+    - tools/[**imGuIZMO.quat**](https://github.com/BrutPitt/imGuIZMO.quat) → ImGui widget: visual 3D objects manipulator 
+    https://github.com/BrutPitt/imGuIZMO.quat
 
 - Third party tools 
     - libs/imGui → Dear ImGui
     [https://github.com/ocornut/imgui](https://github.com/ocornut/imgui)
-    *(need version \>= 1.72)*
+    **glChAoS.P uses **docking** release of **ImGui** (need \>= 1.75)*
 
     - libs/configuru → Configuru, an experimental JSON config library for C++
     [https://github.com/emilk/Configuru](https://github.com/emilk/Configuru)
