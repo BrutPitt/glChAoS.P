@@ -19,7 +19,6 @@
 #include <iostream>
 #include <fstream>
 #include <deque>
-#include <vector>
 #include <string>
 #include <complex>
 
@@ -29,9 +28,9 @@
 
 #include <configuru/configuru.hpp>
 
-#include <fastRandom.h>
+//#include <fastRandom.h>
 
-#include <vgMath.h>
+#include "IFS.h"
 #include "tools/glslProgramObject.h"
 
 using namespace std;
@@ -44,7 +43,6 @@ extern fFastRand32 fastRandom;
 
 #define BUFFER_DIM 200
 #define STABILIZE_DIM 1500
-
 
 class attractorDlgClass;
 class AttractorsClass;
@@ -63,14 +61,8 @@ public:
     enum { attHaveKVect, attHaveKScalar }; 
     enum { attPt3D = 3, attPt4D };
 
-    AttractorBase() 
-    {
-        AttractorBase::resetQueue();
-    }
-
+    AttractorBase() { AttractorBase::resetQueue(); }
     virtual ~AttractorBase() {}
-
-
 
     virtual void resetQueue();
 
@@ -78,8 +70,6 @@ public:
     virtual void newRandomValues() = 0;
 
     virtual void searchAttractor() {};
-    void searchLyapunov();
-
 
     virtual void saveVals(const char *name) {}
     virtual void loadVals(const char *name) {}
@@ -109,6 +99,8 @@ public:
     virtual float getDtStepInc() { return 0.0; }
     virtual void setDtStepInc(float f) { }
 
+    virtual ifsBaseClass *getIFS() { return nullptr; }
+
     //thread Step with shared GPU memory
     void Step(float *&ptr, vec4 &v, vec4 &vp);
     //single step
@@ -118,9 +110,7 @@ public:
     //attractor step algorithm
     virtual void Step(vec4 &v, vec4 &vp) = 0;
 
-    void stabilize(int samples) {
-        for(int i = samples; i>0; i--) Step();
-    }
+    void stabilize(int samples) { for(int i = samples; i>0; i--) Step(); }
 
     vec4& getCurrent()  { return stepQueue.front(); }
     vec4& getPrevious() { return stepQueue[1]; }
@@ -156,13 +146,16 @@ public:
 
     void setBufferRendered() {  bufferRendered = true; }
 
-
     bool dlgAdditionalDataVisible() { return bDlgAdditionalDataVisible; }
     void dlgAdditionalDataVisible(bool b) { bDlgAdditionalDataVisible=b; }
 
-    bool dtType() { return isDTtype; }
-    bool dlaType() { return isDLAtype; }
-    bool fractalType() { return isFractal; }
+    bool dtType() { return attractorType == dtTpo; }
+    bool dlaType() { return attractorType == dlaTpo; }
+    bool fractalType() { return attractorType == fractalTpo; }
+
+    void setDTType() { attractorType = dtTpo; }
+    void setDLAType() { attractorType = dlaTpo; }
+    void setFractalType() { attractorType = fractalTpo; }
 
     virtual int getPtSize() { return attPt3D; }
 
@@ -173,6 +166,8 @@ public:
 
     vector<vec4> vVal;
 protected:
+    enum aType { genericTpo, dtTpo, dlaTpo, fractalTpo };
+    void searchLyapunov();
 
     //innerThreadStepPtrFn innerThreadStepFn;
     stepPtrFn stepFn;
@@ -199,9 +194,8 @@ protected:
     bool bufferRendered = false;
 
     bool flagFileData = false;
-    bool isDTtype = false;
-    bool isDLAtype = false;
-    bool isFractal = false;
+
+    aType attractorType = genericTpo;
 
     float inputKMin = 0.0, inputKMax = 0.0;
     float inputVMin = 0.0, inputVMax = 0.0;
@@ -258,7 +252,7 @@ protected:
 
     attractorDtType() {
         kMin = -5.0; kMax = 5.0; vMin = 0.0; vMax = 0.0;
-        isDTtype = true;
+        setDTType();
     }
 
     virtual void additionalDataCtrls();
@@ -328,29 +322,50 @@ protected:
 class fractalIIMBase : public attractorScalarK
 {
 public:
+    bool ifsActive() { return ifs.active(); }
+    ifsBaseClass *getIFS() { return &ifs; }
+
+    vec4 &getIFSvec4() { return ifs.getTransfStruct(ifs.getCurrentTransform())->variations; }
 
 protected:
     fractalIIMBase() {
         vMin = 0.f; vMax = 0.f; kMin = 0.f; kMax = 0.f;
         m_POV = vec3( 0.f, 0, 7.f);
-        isFractal = true; 
+        setFractalType();
     }
 
     void maxDepthReached() {
 
     }
 
+    void testDepth(vec4 &v, vec4 &vp) {
+        if(depth++>maxDepth || distance(v,vp)<.001) {
+            depth = 0;
+            v = vVal[0] + ((vMin == vMax) ? vec4(vMin) :
+                   vec4(fastRandom.range(vMin, vMax),
+                        fastRandom.range(vMin, vMax),
+                        fastRandom.range(vMin, vMax),
+                        fastRandom.range(vMin, vMax)));
+            
+            kRnd = kMin == kMax ? vec4(kMin) :
+                   vec4(fastRandom.range(kMin, kMax),
+                        fastRandom.range(kMin, kMax),
+                        fastRandom.range(kMin, kMax),
+                        fastRandom.range(kMin, kMax));
+        } 
+    }
+
     virtual void preStep(vec4 &v) {
         if(depth++>maxDepth) {
             depth = 0;
-
-            //last4D = dim4D +   fastRandom.range(vMin, vMax); remove
-            v = vVal[0] + vec4(fastRandom.range(vMin, vMax),
-                               fastRandom.range(vMin, vMax),
-                               fastRandom.range(vMin, vMax),
-                               fastRandom.range(vMin, vMax));
+            v = vVal[0] + ((vMin == vMax) ? vec4(vMin) :
+                   vec4(fastRandom.range(vMin, vMax),
+                        fastRandom.range(vMin, vMax),
+                        fastRandom.range(vMin, vMax),
+                        fastRandom.range(vMin, vMax)));
             
-            kRnd = vec4(fastRandom.range(kMin, kMax),
+            kRnd = kMin == kMax ? vec4(kMin) :
+                   vec4(fastRandom.range(kMin, kMax),
                         fastRandom.range(kMin, kMax),
                         fastRandom.range(kMin, kMax),
                         fastRandom.range(kMin, kMax));
@@ -368,8 +383,11 @@ protected:
     
     int maxDepth = 50;
     int degreeN = 2;
+    float minDistance = .001;
 
     int depth = 0;
+
+    ifsBaseClass ifs;
 private:
 };
 
@@ -426,15 +444,15 @@ public:
     void startData();
 
     void radiciBicomplex(const vec4 &pt, vec4 &vp)
-    {           
+    {
         const int rnd = fastRand32::xorShift();
-        const float sign1 = (rnd&1) ? 1.f : -1.f, sign2 = (rnd&2) ? 1.f : -1.f;
-        const vec4 p(pt - ((vec4 &)*kVal.data()+kRnd));
+        const float sign1 = (rnd&2) ? 1.f : -1.f, sign2 = (rnd&1) ? 1.f : -1.f;
+        const vec4 c = ifs.active() ? kRnd+getIFSvec4() : kRnd; // IFS transforms
+        const vec4 p(pt - ((vec4 &)*kVal.data()+c));
 
         const std::complex<float> z1(p.x, p.y), z2(-p.w, p.z);
         const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
         vp = vec4(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag(), w1.real()-w2.real())*.5f;
-        //last4D =  ;
     };
 
 };
@@ -598,67 +616,6 @@ protected:
     void startData();
 };
 
-
-//  Hopalong base class
-////////////////////////////////////////////////////////////////////////////
-class Hopalong : public attractorScalarK
-{
-public:
-
-    Hopalong()  {
-        stepFn = (stepPtrFn) &Hopalong::Step;    
-
-        kMin = -10; kMax = 10; vMin = 0; vMax = 0;
-
-        Init();        
-
-    }
-
-    void Init()
-    {
-
-        step = 1.05;
-
-        _zy = _x = _y = oldZ = 0.f;
-        _r=.01f;
-
-        m_POV = vec3(0.f, .0, 7.f);
-
-    }
-
-    virtual void resetQueue() {
-        AttractorBase::resetQueue();
-        step = 1.05;
-        _zy = _x = _y = oldZ = 0.f;
-        _r=.01f;
-    }
-
-    //void Step();
-    //void Step(float *ptr, int numElements);
-    //inline void Step(float *&ptr, vec4 &v, vec4 &vp);
-    void Step(vec4 &v, vec4 &vp);
-
-    void startData();
-
-    void newRandomValues() {
-        resetQueue();
-
-        float temp = kVal[6];
-        for (int i = 0; i<getKSize(); i++) kVal[i] = RANDOM(kMin,kMax);
-        
-        kVal[0] = (float)rand() / (float)RAND_MAX;
-
-        kVal[6] = temp;
-
-    }
-
-private:
-    float step;
-    float _zy, _x, _y, oldZ, _r;
-
-    float getRnadomK() { return 10. * (float)rand() / (float)RAND_MAX; }
-
-};
 
 //--------------------------------------------------------------------------
 //  Vector K Coeff Attractors
@@ -844,105 +801,29 @@ public:
 protected:
     void searchAttractor()  { searchLyapunov(); }
 };
-/////////////////////////////////////////////////
-class Rampe01 : public RampeBase
-{
-public:
-    Rampe01() { stepFn = (stepPtrFn) &Rampe01::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-/////////////////////////////////////////////////
-class Rampe02 : public RampeBase
-{
-public:
-    Rampe02() { stepFn = (stepPtrFn) &Rampe02::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-/////////////////////////////////////////////////
-class Rampe03 : public RampeBase
-{
-public:
-    Rampe03() { stepFn = (stepPtrFn) &Rampe03::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-/////////////////////////////////////////////////
-class Rampe03A : public RampeBase
-{
-public:
-    Rampe03A() { stepFn = (stepPtrFn) &Rampe03A::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-/////////////////////////////////////////////////
-class Rampe04 : public RampeBase
-{
-public:
-    Rampe04() { stepFn = (stepPtrFn) &Rampe04::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-/////////////////////////////////////////////////
-class Rampe05 : public RampeBase
-{
-public:
-    Rampe05() { stepFn = (stepPtrFn) &Rampe05::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-/////////////////////////////////////////////////
-class Rampe06 : public RampeBase
-{
-public:
-    Rampe06() { stepFn = (stepPtrFn) &Rampe06::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-/////////////////////////////////////////////////
-class Rampe07 : public RampeBase
-{
-public:
-    Rampe07() { stepFn = (stepPtrFn) &Rampe07::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-/////////////////////////////////////////////////
-class Rampe08 : public RampeBase
-{
-public:
-    Rampe08() { stepFn = (stepPtrFn) &Rampe08::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-/////////////////////////////////////////////////
-class Rampe09 : public RampeBase
-{
-public:
-    Rampe09() { stepFn = (stepPtrFn) &Rampe09::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-/////////////////////////////////////////////////
-class Rampe10 : public RampeBase
-{
-public:
-    Rampe10() { stepFn = (stepPtrFn) &Rampe10::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
+
+#define RAMPE(A)\
+class Rampe##A : public RampeBase {\
+public:\
+    Rampe##A() { stepFn = (stepPtrFn) &Rampe##A::Step; }\
+protected:\
+    void Step(vec4 &v, vec4 &vp);\
+    void startData(); };
+
+RAMPE(01)
+RAMPE(02)
+RAMPE(03)
+RAMPE(03A)
+RAMPE(04)
+RAMPE(05)
+RAMPE(06)
+RAMPE(07)
+RAMPE(08)
+RAMPE(09)
+RAMPE(10)
+
+#undef RAMPE
+
 
 //--------------------------------------------------------------------------
 //  Scalar K Coeff Attractors
@@ -1305,7 +1186,7 @@ public:
 
         m_POV = vec3( 0.f, 0, 12.f);
         inputKMin = 0.0001, inputKMax = 10000.0;
-        isDLAtype = true;
+        setDLAType();
     }
 #if !defined(GLAPP_USE_BOOST_LIBRARY)
     ~dla3D() { delete m_Index; }

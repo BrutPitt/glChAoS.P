@@ -28,11 +28,7 @@ inline float cosAprx(float x) {
 #undef PIQ
 #undef PIH
 
-inline float mOne_One(float x)
-{
-    return x>1.f ? 1.f : x<-1.f ? -1.f : x;
-
-}
+inline float clampNormalized(float x) { return x>1.f ? 1.f : x<-1.f ? -1.f : x; }
 
 //  Attractor base class
 ////////////////////////////////////////////////////////////////////////////
@@ -286,28 +282,6 @@ void AttractorBase::searchLyapunov()
     } while(!canExit && iter-->0);
 }
 
-//  Hopalong Attractor
-////////////////////////////////////////////////////////////////////////////
-void Hopalong::Step(vec4 &v, vec4 &vp) {
-    float a = kVal[0]*_r, b = kVal[1]*_r, c = kVal[2]*_r;  
-        
-    float oldX = _x, oldY = _y;
-                    _x = oldY - sqrt(abs(b*_r * _x - c*_r)) * (_x > 0.f ? 1. : (_x < 0.f ? -1.: 0));
-                    _y = a*_r - oldX;
-
-    vp.x = step*sin(2.f*T_PI*_x)*cos(2.f*pi<float>()*_y);
-    vp.y = step*sin(2.f*T_PI*_x)*sin(2.f*pi<float>()*_y);
-    vp.z = step*cos(2.f*T_PI*_x)                ;
-
-    _zy = oldZ - sqrt(abs(kVal[4]*_r * v.x - kVal[5]*_r)) * (v.x > 0.f ? 1. : (v.x < 0.f ? -1.: 0)),
-
-    v = vp;            
-
-    oldZ = v.z;
-    step += kVal[6]/100000.f;
-}
-
-
 //  PowerN3D Attractor
 ////////////////////////////////////////////////////////////////////////////
 void PowerN3D::Step(vec4 &v, vec4 &vp)
@@ -387,9 +361,9 @@ void Rampe01::Step(vec4 &v, vec4 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void Rampe02::Step(vec4 &v, vec4 &vp)
 {
-    vp.x = v.z*sin(kVal[0].x*v.x)+acos(mOne_One(kVal[1].x*v.y));
-    vp.y = v.x*sin(kVal[0].y*v.y)+acos(mOne_One(kVal[1].y*v.z));
-    vp.z = v.y*sin(kVal[0].z*v.z)+acos(mOne_One(kVal[1].z*v.x));
+    vp.x = v.z*sin(kVal[0].x*v.x)+acos(clampNormalized(kVal[1].x*v.y));
+    vp.y = v.x*sin(kVal[0].y*v.y)+acos(clampNormalized(kVal[1].y*v.z));
+    vp.z = v.y*sin(kVal[0].z*v.z)+acos(clampNormalized(kVal[1].z*v.x));
 }
 ////////////////////////////////////////////////////////////////////////////
 void Rampe03::Step(vec4 &v, vec4 &vp)
@@ -443,14 +417,14 @@ void Rampe08::Step(vec4 &v, vec4 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void Rampe09::Step(vec4 &v, vec4 &vp)
 {
-    vp.x = v.z*sin(kVal[0].x*v.x)-acos(mOne_One(kVal[1].x*v.y))+sin(kVal[2].x*v.z);
-    vp.y = v.x*sin(kVal[0].y*v.x)-acos(mOne_One(kVal[1].y*v.y))+sin(kVal[2].y*v.z);
-    vp.z = v.y*sin(kVal[0].z*v.x)-acos(mOne_One(kVal[1].z*v.y))+sin(kVal[2].z*v.z);
+    vp.x = v.z*sin(kVal[0].x*v.x)-acos(clampNormalized(kVal[1].x*v.y))+sin(kVal[2].x*v.z);
+    vp.y = v.x*sin(kVal[0].y*v.x)-acos(clampNormalized(kVal[1].y*v.y))+sin(kVal[2].y*v.z);
+    vp.z = v.y*sin(kVal[0].z*v.x)-acos(clampNormalized(kVal[1].z*v.y))+sin(kVal[2].z*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
 void Rampe10::Step(vec4 &v, vec4 &vp)
 {
-    vp.x = v.z*v.y*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y)+asin(mOne_One(kVal[2].x*v.z));
+    vp.x = v.z*v.y*sin(kVal[0].x*v.x)-cos(kVal[1].x*v.y)+asin(clampNormalized(kVal[2].x*v.z));
     vp.y = v.x*v.z*sin(kVal[0].y*v.x)-cos(kVal[1].y*v.y)+ sin(kVal[2].y*v.z);
     vp.z = v.y*v.x*sin(kVal[0].z*v.x)-cos(kVal[1].z*v.y)+ sin(kVal[2].z*v.z);
 }
@@ -886,8 +860,9 @@ void juliaBulb_IIM::Step(vec4 &v, vec4 &vp)
 
     preStep(v);
     const uint32_t rnd = fastRand32::xorShift();
-    radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)kRnd), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
-    //if(depth<10) Step(v, vp);
+    const vec4 c = ifs.active() ? kRnd+getIFSvec4() : kRnd; // IFS transforms
+
+    radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)c), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
 
 }
 // stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set
@@ -908,16 +883,19 @@ void juliaBulb4th_IIM::Step(vec4 &v, vec4 &vp)
         vp = vec4(powf(r, 1.0f/float(degreeN)) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi)), 0.f);
     };
 
-    preStep(v);
-    //const vec3 p(v.z, v.y, v.x);
-    radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)kRnd), fastRand32::xorShift() % degreeN, fastRand32::xorShift() % degreeN);
+    //preStep(v);
 
+    const vec4 c = ifs.active() ? kRnd+getIFSvec4() : kRnd; // IFS transforms
+    radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)c), fastRand32::xorShift() % degreeN, fastRand32::xorShift() % degreeN);
+
+    testDepth(v,vp);
 }
 
 // stochastic adaptation of P.Nylander's Mathematica formula of quaternion Julia set
 // http://bugman123.com/Hypercomplex/index.html
 ////////////////////////////////////////////////////////////////////////////
-void quatJulia_IIM::Step(vec4 &v, vec4 &vp) 
+
+void quatJulia_IIM::Step(vec4 &v, vec4 &vp)
 { // kVal[] -> a, k
 
     auto radiciEq = [&](const vec4 &p, float sign)
@@ -929,37 +907,16 @@ void quatJulia_IIM::Step(vec4 &v, vec4 &vp)
         vp = sign * vec4(a, b*p.y, b*p.z, b*p.w);
     };
 
-    preStep(v);
+    //preStep(v);
     const uint32_t rnd = fastRand32::xorShift();
-    radiciEq(v-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f);
+    const vec4 c = ifs.active() ? kRnd+getIFSvec4() : kRnd; // IFS transforms
+    radiciEq(v-((vec4 &)*kVal.data()+c), (rnd&1) ? 1.f : -1.f);
 
+    testDepth(v,vp);
 }
 
-/*
-void quatJulia_IIM::Step(vec3 &v, vec3 &vp) 
-{ // kVal[] -> a, k
 
-    auto radiciEq = [&](const vec4 &p, float sign)
-    {
-        const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z, wQ = p.w * p.w;
-        const float r = sqrtf(xQ + yQ + zQ + wQ);
-        const float a = sqrtf((p.x+r)*.5);
-        const float b = (r-p.x) * a / (yQ + zQ + wQ);
-        vIter = sign * vec4(a, b*p.y, b*p.z, b*p.w);
-    };
 
-    preStep(v,vp);
-    vIter = vec4(v, last4D);
-
-    while(depth++<maxDepth) {
-        const int rnd = Random::get<int>(int(0),int(INT_MAX));
-        radiciEq(vIter-((vec4 &)*kVal.data()+kRnd), (rnd&1) ? 1.f : -1.f);
-    };
-    
-    vp = vec3(vIter); last4D = vIter.w;
-
-}
-*/
 
 // stochastic adaptation of P.Nylander's Mathematica formula of quaternion Julia set
 // http://bugman123.com/Hypercomplex/index.html
