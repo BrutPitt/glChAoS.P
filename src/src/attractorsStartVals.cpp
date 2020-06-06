@@ -85,32 +85,6 @@ void Magnetic::startData()
     Insert(vec4(0.f));
 }
 
-void Hopalong::startData()
-{
-    vVal.push_back(vec4(0.f));
-
-    kVal.push_back(0.4249092);
-    kVal.push_back(8.0294190);
-    kVal.push_back(2.4463632);
-    kVal.push_back(0.5752739);
-    kVal.push_back(4.9726858);
-    kVal.push_back(1.6537983);
-
-    kVal.push_back(.00); // TIME!!! 
-
-    //kVal.push_back(0.66805);
-    //kVal.push_back(2.277291);
-    //kVal.push_back(7.2335);
-    //kVal.push_back(1.75268);
-    //kVal.push_back(4.56892);
-    //kVal.push_back(2.2096);
-
-    //.66805 2.277291 7.2335
-    //.52266017 8.237556458 2.13812685
-
-    Insert(vVal[0]);
-}
-
 void PowerN3D::startData()
 {
     vVal.push_back(vec4(0.f));
@@ -126,17 +100,6 @@ void PowerN3D::startData()
     kVal.push_back(vec4(-0.7562220338732    ,0.576225875411183  ,0.830178850330412  , 0.f));
     kVal.push_back(vec4(-0.517461677547544  ,-0.28781412076205  ,-0.11858548829332  , 0.f));
     kVal.push_back(vec4(-0.0975346867926419 ,-0.708178671076894 ,-0.143647947814316 , 0.f));
-
-    //kVal.push_back(vec4(-1.2,  .7, 1.2));
-    //kVal.push_back(vec4(-0.9,  .4, 0.6));
-    //kVal.push_back(vec4(-0.2,-0.4,-0.3));
-    //kVal.push_back(vec4(-0.6,-0.9,-0.7));
-    //kVal.push_back(vec4( 0.6,-0.3, 0.7));
-    //kVal.push_back(vec4(-0.9,-0.4, 0.1));
-    //kVal.push_back(vec4(-0.3,-0.5,-0.8));
-    //kVal.push_back(vec4( 0.5,-0.3,-0.4));
-    //kVal.push_back(vec4( 1.1,-0.3, 1.1));
-    //kVal.push_back(vec4(-1.1,-1.0, 0.8));
 
     Insert(vVal[0]);
 }
@@ -168,10 +131,6 @@ void Pickover::startData()
     kVal.push_back(-1.2392f);
     kVal.push_back(-2.07657f);
 
-    //kVal.push_back(1.50398734177215f);
-    //kVal.push_back(2.46335443037974f);
-    //kVal.push_back(1.46798734177215f);
-    //kVal.push_back(1.51198734177215f);
     Insert(vVal[0]);
 }
 
@@ -181,9 +140,6 @@ void PolynomialA::startData()
 
     kVal.push_back(vec4(1.586, 1.124, 0.281, 0.f));
 
-    //kVal[0]=1.626;
-    //kVal[1]=1.1;
-    //kVal[2]=0.252;
     Insert(vVal[0]);
 }
 
@@ -489,7 +445,7 @@ void SymmetricIcons4D::startData()
 
 
 #if !defined(GLAPP_DISABLE_DLA)
-// https://github.com/fogleman/dlaf
+// https://github.com/BrutPitt/DLAf-optimized
 void dla3D::startData()
 {
     //staring point: Center
