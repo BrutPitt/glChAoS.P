@@ -22,7 +22,7 @@ void setGUIStyle();
 
 class particlesBaseClass;
 
-#define DLG_BORDER_SIZE 2
+#define DLG_BORDER_SIZE (ImGui::GetStyle().FramePadding.x)
 #define INDENT(x) ((x)+border+2)
 
 bool loadAttractorFile(bool fileImport = false, const char *file = nullptr);
@@ -49,6 +49,16 @@ protected:
     bool isVisible;
     std::string wndTitle;
 
+};
+
+class ifsDlgClass : public baseDlgClass
+{
+public:
+    ifsDlgClass() : baseDlgClass(" IFS") { }
+
+    void view();
+
+protected:
 };
 
 class attractorDlgClass : public baseDlgClass
@@ -294,6 +304,8 @@ public:
 
     dataDlgClass& getDataDlg() { return dataDlg; }
 
+    ifsDlgClass& getIFSDlg() { return ifsDlg; }
+
 
 #ifdef GLCHAOSP_LIGHTVER
     bool getInvertSettings() { return invertSettings; }
@@ -322,6 +334,7 @@ private:
 
 aboutDlgClass aboutDlg;
 attractorDlgClass attractorDlg;
+ifsDlgClass ifsDlg;
 particlesDlgClass particlesDlg;
 imGuIZMODlgClass imGuIZMODlg;
 infoDlgClass infoDlg;

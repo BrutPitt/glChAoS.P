@@ -15,6 +15,9 @@
 
 #include <imguiControls.h>
 
+void pushColorButton();
+void popColorButton();
+
 bool colCheckButton(bool b, const char *s, const float sz=0);
 
 int AttractorBase::additionalDataDlg()
@@ -53,7 +56,7 @@ inline void headerAdditionalDataCtrls(int numControls = 1)
     const float border = DLG_BORDER_SIZE;
 
     const float w = ImGui::GetContentRegionAvail().x;
-    const float wButt = (w - (border*6)) *.4 / float(numControls); // dim/5 * 2
+    const float wButt = (w) *.5 / float(numControls) - border; // dim/5 * 2
 
     ImGui::SameLine();
 
@@ -67,12 +70,30 @@ inline void headerAdditionalDataCtrls(int numControls = 1)
 void fractalIIMBase::additionalDataCtrls()
 {
 
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x*.5 + ImGui::GetStyle().FramePadding.x);
+    {
+        bool b = ifs.active();
+        if(ImGui::Checkbox("IFS", &b)) { ifs.active(b); }
+    }
+    if(ifs.active()) {
+        ImGui::SameLine();
+        const float w = ImGui::GetContentRegionAvail().x;
+        bool b = ifs.dlgActive();
+        if(colCheckButton(b , b ? " IFS Settings "  ICON_FA_CHECK_SQUARE_O " " : " IFS Settings " ICON_FA_SQUARE_O " ",w))
+            ifs.dlgActive(b^1);
+    }
+    theDlg.getIFSDlg().visible(ifs.active() && ifs.dlgActive());
+
     ImGui::NewLine();
 
-    headerAdditionalDataCtrls();
+    headerAdditionalDataCtrls(2);
 
     int i = maxDepth;
-    if(ImGui::DragInt("##or", &i, 1, 1, 2000, "Depth: %03d")) maxDepth = i;
+    if(ImGui::DragInt("##or", &i, 1, 1, 5000, "Depth: %03d")) maxDepth = i;
+    
+    ImGui::SameLine();
+    float f = minDistance;
+    if(ImGui::DragFloat("##or", &f, .000001, 0.f, 5000, "Dist: %.7f")) minDistance = f;
     ImGui::SameLine();
     ImGui::PopItemWidth();
 
@@ -102,7 +123,7 @@ void fractalIIM_4D::additionalDataCtrls()
 void fractalIIM_Nth::additionalDataCtrls()
 {
 
-    ImGui::NewLine();
+    //ImGui::NewLine();
 
     headerAdditionalDataCtrls(2);
 
@@ -114,15 +135,11 @@ void fractalIIM_Nth::additionalDataCtrls()
             degreeN = i>-2 && i<2 ? (degreeN = oldN > i ? -2 : 2) : i;
             oldN = i;
         }
-        ImGui::SameLine();
-    }
-    {
-        int i = maxDepth;
-        if(ImGui::DragInt("##or", &i, 1, 1, 2000, "Depth: %03d")) maxDepth = i;
-        ImGui::SameLine();
+        //ImGui::SameLine();
     }
     ImGui::PopItemWidth();
 
+    fractalIIMBase::additionalDataCtrls();
 }
 
 void BicomplexJExplorer::additionalDataCtrls()
@@ -138,9 +155,8 @@ void BicomplexJExplorer::additionalDataCtrls()
     ImGui::DragInt("##indici3", &idx3, .02, 0, 7, str[idx3]); 
     ImGui::PopItemWidth();
 
-    //ImGui::NewLine();
-
     fractalIIMBase::additionalDataCtrls();
+
 }
 
 #define GLCHAOSP_FEATURE_WIP
@@ -622,14 +638,6 @@ const float border = 5;
 
         populateData(wCl, nElem, nCol, att->getInputKMin(), att->getInputKMax(), 1);
     }
-/*
-    if(attractorsList.get()->getKType() == attractorsList.get()->attHaveKVect )
-        populateVect(wCl2, ImGui::GetCursorPosX()+border);
-    else
-        //populateScalar(wCl2, "##c_%03d", ImGui::GetCursorPosX()+border);
-        populateScalar(wCl2, ImGui::GetCursorPosX()+border);
-*/
-                
     selIdx = valIdx;
 
 }
@@ -652,22 +660,79 @@ void fastViewDlgClass::view()
     ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-szW-posW,posH ), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(szW, szH), ImGuiCond_FirstUseEver);
 
-    //ImGui::SetNextWindowSize(ImVec2(150, 400), ImGuiCond_FirstUseEver);
-    //ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-330,0), ImGuiCond_FirstUseEver);
-
     if(ImGui::Begin(getTitle(), &isVisible)) {
-            int idx = theApp->selectedListQuickView();
+        int idx = theApp->selectedListQuickView();
 
-            ImGui::BeginChild("chaoticA");  //,ImVec2(ImGui::GetContentRegionAvailWidth(), -ImGui::GetFrameHeightWithSpacing())
-                for (int i = 0; i < theApp->getListQuickView().size(); i++)   {
-                    if (ImGui::Selectable(theApp->getListQuickView().at(i).c_str(), idx == i)) {
-                        theApp->loadQuikViewSelection(i);
-                        theDlg.needToScrooll();
-                    }
+        ImGui::BeginChild("chaoticA");  //,ImVec2(ImGui::GetContentRegionAvailWidth(), -ImGui::GetFrameHeightWithSpacing())
+            for (int i = 0; i < theApp->getListQuickView().size(); i++)   {
+                if (ImGui::Selectable(theApp->getListQuickView().at(i).c_str(), idx == i)) {
+                    theApp->loadQuikViewSelection(i);
+                    theDlg.needToScrooll();
                 }
+            }
+        ImGui::EndChild();
+    } ImGui::End();
+}
 
-            ImGui::EndChild();            
+
+void ifsDlgClass::view()
+{
+    if(!visible() || attractorsList.get()->getIFS()==nullptr) return;
+
+    ifsBaseClass *ifs = attractorsList.get()->getIFS(); //already tested
+
+#ifdef GLCHAOSP_LIGHTVER
+    const int szX = 300, szY = 200;
+#else
+    const int szX = 300, szY = 270;
+#endif
+    ImGui::SetNextWindowSize(ImVec2(szX, szY), ImGuiCond_FirstUseEver);
+    {
+        int w,h; glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
+        ImGui::SetNextWindowPos(ImVec2(w-szX, h-szY), ImGuiCond_FirstUseEver);
+    }
+    if(ImGui::Begin(getTitle(), &isVisible)) {
+        const float w = ImGui::GetContentRegionAvail().x-DLG_BORDER_SIZE*2.f;
+        const float realButtW = w * .16667 - DLG_BORDER_SIZE;
+        const float buttW = realButtW<48 ? 48 : realButtW>64 ? 64 : realButtW;
+
+        ImGui::SetNextWindowContentSize(ImVec2(buttW*6.f+ImGui::GetFrameHeightWithSpacing(),0.0f));
+        ImGui::BeginChild("params", ImVec2(0,-ImGui::GetFrameHeightWithSpacing()), true, ImGuiWindowFlags_HorizontalScrollbar);
+        char checkName[16] = "##chkAx";
+        char weightName[16] = "##wgtAx";
+        char comboName[16] = "##cmbAx";
+        char varsName[16] = "##vrsAAx";
+
+        ImGui::PushItemWidth(buttW);
+        for(int i = 0; i<ifs->getNumTransf(); i++) {
+            checkName[5] = comboName[5] = varsName[5] = weightName[5] = 'A'+i; //dynamic names
+            if(ImGui::Checkbox(checkName,&ifs->ifsTransforms[i].active))         ifs->rebuildWeight(); ImGui::SameLine();
+            if(ImGui::DragFloat(weightName, &ifs->ifsTransforms[i].weight,.001)) ifs->rebuildWeight(); ImGui::SameLine();
+            for(int j = 0; j<4; j++) {
+                varsName[6] = 'A'+j;
+                ImGui::DragFloat(varsName, &ifs->ifsTransforms[i].variations[j],.001);
+                ImGui::SameLine();
+            }
+            ImGui::Combo(comboName, &ifs->ifsTransforms[i].transfType, tranformsText);
+        }
+        ImGui::PopItemWidth();
+
+
+
+        ImGui::EndChild();
+
+        if(ifs->getTmpTransf()!= ifs->getNumTransf()) pushColorButton();
+        bool buttonPressed = ImGui::Button(" Set ");
+        if(ifs->getTmpTransf()!= ifs->getNumTransf()) popColorButton();
+        ImGui::SameLine();
+
+        int n = ifs->getTmpTransf();
+        if(ImGui::DragInt("##transf",&n,.2,1,20,"%d transforms")) ifs->setTmpTransf(n);
+
+        if(buttonPressed && ifs->getTmpTransf()!= ifs->getNumTransf()) {
+            ifs->setNumTransf(ifs->getTmpTransf());
+            ifs->set();
+        }
 
     } ImGui::End();
-
 }
