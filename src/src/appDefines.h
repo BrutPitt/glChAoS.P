@@ -12,7 +12,7 @@
 //------------------------------------------------------------------------------
 #pragma once
 
-#define GLCHAOSP_VERSION "1.5.0"
+#define GLCHAOSP_VERSION "1.5.1"
 
 #define APP_USE_FBO
 
