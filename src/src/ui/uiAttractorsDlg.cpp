@@ -89,11 +89,11 @@ void fractalIIMBase::additionalDataCtrls()
     headerAdditionalDataCtrls(2);
 
     int i = maxDepth;
-    if(ImGui::DragInt("##or", &i, 1, 1, 5000, "Depth: %03d")) maxDepth = i;
+    if(ImGui::DragInt("##dpt", &i, 1, 1, 5000, "Depth: %03d")) maxDepth = i;
     
     ImGui::SameLine();
     float f = minDistance;
-    if(ImGui::DragFloat("##or", &f, .000001, 0.f, 5000, "Dist: %.7f")) minDistance = f;
+    if(ImGui::DragFloat("##dst", &f, .000001, 0.f, 5000, "Dist: %.7f")) minDistance = f;
     ImGui::SameLine();
     ImGui::PopItemWidth();
 

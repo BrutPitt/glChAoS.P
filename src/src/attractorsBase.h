@@ -339,9 +339,9 @@ protected:
     }
 
     void testDepth(vec4 &v, vec4 &vp) {
-        if(depth++>maxDepth || distance(v,vp)<.001) {
+        if(depth++>maxDepth || (distance(v,vp)<minDistance && depth>50)) {
             depth = 0;
-            v = vVal[0] + ((vMin == vMax) ? vec4(vMin) :
+            v = vVal[0] + (vMin == vMax ? vec4(vMin) :
                    vec4(fastRandom.range(vMin, vMax),
                         fastRandom.range(vMin, vMax),
                         fastRandom.range(vMin, vMax),
@@ -358,7 +358,7 @@ protected:
     virtual void preStep(vec4 &v) {
         if(depth++>maxDepth) {
             depth = 0;
-            v = vVal[0] + ((vMin == vMax) ? vec4(vMin) :
+            v = vVal[0] + (vMin == vMax ? vec4(vMin) :
                    vec4(fastRandom.range(vMin, vMax),
                         fastRandom.range(vMin, vMax),
                         fastRandom.range(vMin, vMax),
@@ -465,7 +465,7 @@ public:
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v, last4D), vp); } //remove
-    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(v, vp); }
+    void Step(vec4 &v, vec4 &vp) { radiciBicomplex(v, vp); testDepth(v, vp); }
 };
 
 /////////////////////////////////////////////////
@@ -476,7 +476,7 @@ public:
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v, dim4D), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4((vec3)v, vVal[0].w), vp); }
+    void Step(vec4 &v, vec4 &vp) { vec4 pt((vec3)v, vVal[0].w); radiciBicomplex(pt, vp); testDepth(pt, vp); }
 };
 
 /////////////////////////////////////////////////
@@ -487,7 +487,7 @@ public:
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, vVal[0].z, last4D), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, vVal[0].z, v.w), vp); }
+    void Step(vec4 &v, vec4 &vp) { vec4 pt(v.x, v.y, vVal[0].z, v.w); radiciBicomplex(pt, vp); testDepth(pt, vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod2_IIM : public BicomplexBase
@@ -501,7 +501,7 @@ protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.x, v.y, v.y, v.y), vp); }
 
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.z, v.y), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.z, v.y), vp); }
+    void Step(vec4 &v, vec4 &vp) { preStep(v); vec4 pt(v.x, v.y, v.z, v.y); radiciBicomplex(pt, vp); testDepth(pt, vp); }
 };
 
 /////////////////////////////////////////////////
@@ -511,7 +511,7 @@ public:
     BicomplexJMod3_IIM() { stepFn = (stepPtrFn) &BicomplexJMod3_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(vVal[0].x, v.y, v.z, v.w), vp); }
+    void Step(vec4 &v, vec4 &vp) { vec4 pt(vVal[0].x, v.y, v.z, v.w);  radiciBicomplex(pt, vp); testDepth(pt, vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod4_IIM : public BicomplexBase
@@ -520,7 +520,7 @@ public:
     BicomplexJMod4_IIM() { stepFn = (stepPtrFn) &BicomplexJMod4_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.x, v.w), vp); }
+    void Step(vec4 &v, vec4 &vp) { vec4 pt(v.x, v.y, v.x, v.w); radiciBicomplex(pt, vp); testDepth(pt, vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod5_IIM : public BicomplexBase
@@ -529,7 +529,7 @@ public:
     BicomplexJMod5_IIM() { stepFn = (stepPtrFn) &BicomplexJMod5_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4( v.y, v.x, v.w, v.z), vp); }
+    void Step(vec4 &v, vec4 &vp) { vec4 pt( v.y, v.x, v.w, v.z); radiciBicomplex(pt, vp); testDepth(pt, vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod6_IIM : public BicomplexBase
@@ -538,7 +538,7 @@ public:
     BicomplexJMod6_IIM() { stepFn = (stepPtrFn) &BicomplexJMod6_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(vVal[0].x, vVal[0].y, v.z, v.w), vp); }
+    void Step(vec4 &v, vec4 &vp) { vec4 pt(vVal[0].x, vVal[0].y, v.z, v.w); radiciBicomplex(pt, vp); testDepth(pt, vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod7_IIM : public BicomplexBase
@@ -548,7 +548,7 @@ public:
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, v.x), vp); }
-    void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4( v.x, v.x, v.z, vVal[0].w), vp); }
+    void Step(vec4 &v, vec4 &vp) { vec4 pt( v.x, v.x, v.z, vVal[0].w); radiciBicomplex(pt, vp); testDepth(pt, vp); }
     //void Step(vec4 &v, vec4 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, last4D), vp); }
 };
 
@@ -581,10 +581,11 @@ public:
     }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { 
-        preStep(v); 
+    void Step(vec4 &v, vec4 &vp) {         
         vt = v; 
-        radiciBicomplex(vec4( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]), vp); 
+        vec4 pt( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]);
+        radiciBicomplex(pt, vp); 
+        testDepth(pt, vp); 
     }
 private:
     float *a1[8], *a2[8], *a3[8], *a4[8];

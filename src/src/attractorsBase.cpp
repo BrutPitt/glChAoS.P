@@ -858,12 +858,12 @@ void juliaBulb_IIM::Step(vec4 &v, vec4 &vp)
                   0.f);
     };
 
-    preStep(v);
+    //preStep(v);
     const uint32_t rnd = fastRand32::xorShift();
     const vec4 c = ifs.active() ? kRnd+getIFSvec4() : kRnd; // IFS transforms
 
     radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)c), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
-
+    testDepth(v, vp); 
 }
 // stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set
 // http://bugman123.com/Hypercomplex/index.html
@@ -975,10 +975,10 @@ void glynnJB_IIM::Step(vec4 &v, vec4 &vp)
     
 
 
-    preStep(v);
+    //preStep(v);
     int nRad = numRadici();
     radiciEq( nRad);
-
+    testDepth(v, vp); 
 }
 
 
