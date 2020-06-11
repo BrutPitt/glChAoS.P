@@ -140,6 +140,9 @@
     <ClCompile Include="..\..\src\partSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\IFS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\glApp.h">
@@ -266,6 +269,9 @@
       <Filter>Tools</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\partSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\IFS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

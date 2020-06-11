@@ -529,6 +529,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release OpenGL 4.1|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug OpenGL 4.1|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\src\IFS.cpp" />
     <ClCompile Include="..\..\src\libs\lodePNG\lodepng.cpp" />
     <ClCompile Include="..\..\src\partSystem.cpp" />
     <ClCompile Include="..\..\src\tools\fastRandom.cpp" />
@@ -561,6 +562,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\emitter.h" />
     <ClInclude Include="..\..\src\emsTouch.h" />
+    <ClInclude Include="..\..\src\IFS.h" />
     <ClInclude Include="..\..\src\libs\lodePNG\lodepng.h" />
     <ClInclude Include="..\..\src\libs\nanoflann\nanoflann.hpp" />
     <ClInclude Include="..\..\src\libs\tinyPLY\tinyply.h" />
