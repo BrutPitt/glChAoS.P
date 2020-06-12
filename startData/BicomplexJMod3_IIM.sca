@@ -7,7 +7,7 @@
 		"kMin":         0.0,
 		"vMax":         -0.1101,
 		"vMin":         -0.1101,
-		"vData4":       [ 0.0, 0.0, 0.0, 0.0 ],
+		"vData4":       [ 3e-06, 0.0, 0.0, 0.0 ],
 		"kData4":       [ 0.0, 0.0, 0.0, 0.0 ]
 	},
 	"Render":      {
@@ -48,6 +48,7 @@
 		"ShadowRadius":        2.0,
 		"ShadowGranularity":   1.0,
 		"ShadowAutoLightDist": true,
+		"ShadowScattered":     false,
 		"AOenabled":           false,
 		"AOstrong":            0.0,
 		"AObias":              0.021,
@@ -897,6 +898,7 @@
 		"ShadowRadius":        2.0,
 		"ShadowGranularity":   1.0,
 		"ShadowAutoLightDist": true,
+		"ShadowScattered":     false,
 		"AOenabled":           true,
 		"AOstrong":            0.0,
 		"AObias":              0.011,
@@ -925,7 +927,7 @@
 		"lightModel":          2,
 		"ggxRoughness":        0.794,
 		"ggxFresnel":          0.573,
-		"lightDir":            [ 3.891726, -0.31287172, 15.463744 ],
+		"lightDir":            [ 1.5187224, -0.12209629, 6.0346322 ],
 		"lightColor":          [ 1.0, 0.99999875, 0.99999 ],
 		"glowOn":              false,
 		"glowSelect":          3,

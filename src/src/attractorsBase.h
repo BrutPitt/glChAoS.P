@@ -501,7 +501,7 @@ protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.x, v.y, v.y, v.y), vp); }
 
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.z, v.y), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { preStep(v); vec4 pt(v.x, v.y, v.z, v.y); radiciBicomplex(pt, vp); testDepth(pt, vp); }
+    void Step(vec4 &v, vec4 &vp) { vec4 pt(v.x, v.y, v.z, v.y); radiciBicomplex(pt, vp); testDepth(pt, vp); }
 };
 
 /////////////////////////////////////////////////
