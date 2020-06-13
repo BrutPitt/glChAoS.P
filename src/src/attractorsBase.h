@@ -339,7 +339,7 @@ protected:
     }
 
     void testDepth(vec4 &v, vec4 &vp) {
-        if(depth++>maxDepth || (distance(v,vp)<minDistance && depth>50)) {
+        if(depth++>maxDepth || distance(v,vp)<minDistance) {
             depth = 0;
             v = vVal[0] + (vMin == vMax ? vec4(vMin) :
                    vec4(fastRandom.range(vMin, vMax),

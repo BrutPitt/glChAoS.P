@@ -73,7 +73,7 @@ void fractalIIMBase::additionalDataCtrls()
     ImGui::SameLine(ImGui::GetContentRegionAvail().x*.5 + ImGui::GetStyle().FramePadding.x);
     {
         bool b = ifs.active();
-        if(ImGui::Checkbox("IFS", &b)) { ifs.active(b); }
+        if(ImGui::Checkbox("IFS ", &b)) { ifs.active(b); }
     }
     if(ifs.active()) {
         ImGui::SameLine();
@@ -445,9 +445,19 @@ void attractorDlgClass::view()
                                                     0.0025f, -10.0f, 10.0f, 
                                                     "Min: %.4f", "Max: %.4f");
                     ImGui::SameLine();
-                    ImGui::DragFloatRange2("##kR", &attractorsList.get()->kMin, &attractorsList.get()->kMax, 
-                                                    0.0025f, -10.0f, 10.0f, 
-                                                    "Min: %.4f", "Max: %.4f");
+                    float min = attractorsList.get()->kMin, max = attractorsList.get()->kMax;
+                    if(ImGui::DragFloatRange2("##kR", &min, &max, 0.0025f, -10.0f, 10.0f, "Min: %.4f", "Max: %.4f")) {
+                        if(attractorsList.get()->fractalType()) {
+                            if(min != attractorsList.get()->kMin) 
+                                attractorsList.get()->kMin = attractorsList.get()->kMax = min;
+                            else 
+                                attractorsList.get()->kMin = attractorsList.get()->kMax = max;
+                        } else {
+                            attractorsList.get()->kMin = min;
+                            attractorsList.get()->kMax = max;
+                        }
+                    }
+
                     ImGui::PopItemWidth();
                     if(!attractorsList.get()->fractalType()) {
 
@@ -727,7 +737,7 @@ void ifsDlgClass::view()
         ImGui::SameLine();
 
         int n = ifs->getTmpTransf();
-        if(ImGui::DragInt("##transf",&n,.2,1,20,"%d transforms")) ifs->setTmpTransf(n);
+        if(ImGui::DragInt("##transf",&n,.05,1,20,"%d transforms")) ifs->setTmpTransf(n);
 
         if(buttonPressed && ifs->getTmpTransf()!= ifs->getNumTransf()) {
             ifs->setNumTransf(ifs->getTmpTransf());
