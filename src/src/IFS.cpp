@@ -14,6 +14,16 @@
 
 const char *tranformsText = \
 "Linear\0"\
-"Swirl\0"\
+"Swirl2D\0"\
+"Swirl4D\0"\
 "Sphere\0"\
+"Polar3D\0"\
 ;
+
+std::vector<std::function<vec4(const vec4 &)>> variationFuncsArray = {
+    &variationFuncsClass::linear,
+    &variationFuncsClass::swirl2D,
+    &variationFuncsClass::swirl4D,
+    &variationFuncsClass::spherical,
+    &variationFuncsClass::polar3D
+};
