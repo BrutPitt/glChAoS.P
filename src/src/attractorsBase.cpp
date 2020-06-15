@@ -843,8 +843,8 @@ void GloboToroid::Step(vec4 &v, vec4 &vp)
 // stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set
 // http://bugman123.com/Hypercomplex/index.html
 ////////////////////////////////////////////////////////////////////////////
-void juliaBulb_IIM::Step(vec4 &v, vec4 &vp) 
-{ // kVal[] -> a, k
+void juliaBulb_IIM::Step(vec4 &v, vec4 &vp)
+{
     auto radiciEq = [&](const vec3 &p, float sign1, float sign2) {
         const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z;
         const float r = sqrtf(xQ+yQ+zQ);
@@ -856,11 +856,12 @@ void juliaBulb_IIM::Step(vec4 &v, vec4 &vp)
                   b,
                   -p.z/sqrtf(2 * (r - d *(xQ+yQ)/c)),
                   0.f);
+        if(ifsPoint.active()) vp *= getIFSvec4(ifsPoint); // IFS point transforms
     };
 
     //preStep(v);
     const uint32_t rnd = fastRand32::xorShift();
-    const vec4 c = ifs.active() ? kRnd+getIFSvec4() : kRnd; // IFS transforms
+    const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
 
     radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)c), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
     testDepth(v, vp); 
@@ -869,8 +870,7 @@ void juliaBulb_IIM::Step(vec4 &v, vec4 &vp)
 // http://bugman123.com/Hypercomplex/index.html
 ////////////////////////////////////////////////////////////////////////////
 void juliaBulb4th_IIM::Step(vec4 &v, vec4 &vp) 
-{ // kVal[] -> a, k
-    
+{
     auto radiciEq = [&](const vec3 &p, int kTheta, int kPhi) {
         const float r = length(p);
         const int absOrder = abs(degreeN);
@@ -881,11 +881,10 @@ void juliaBulb4th_IIM::Step(vec4 &v, vec4 &vp)
         const float phi    = (asinf(p.z/r)    + (2 * kPhi   - dk) * T_PI) / float(degreeN);
         const float cosphi = cosf(phi);
         vp = vec4(powf(r, 1.0f/float(degreeN)) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi)), 0.f);
+
     };
 
-    //preStep(v);
-
-    const vec4 c = ifs.active() ? kRnd+getIFSvec4() : kRnd; // IFS transforms
+    const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
     radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)c), fastRand32::xorShift() % degreeN, fastRand32::xorShift() % degreeN);
 
     testDepth(v,vp);
@@ -896,8 +895,7 @@ void juliaBulb4th_IIM::Step(vec4 &v, vec4 &vp)
 ////////////////////////////////////////////////////////////////////////////
 
 void quatJulia_IIM::Step(vec4 &v, vec4 &vp)
-{ // kVal[] -> a, k
-
+{
     auto radiciEq = [&](const vec4 &p, float sign)
     {
         const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z, wQ = p.w * p.w;
@@ -905,11 +903,13 @@ void quatJulia_IIM::Step(vec4 &v, vec4 &vp)
         const float a = sqrtf((p.x+r)*.5);
         const float b = (r-p.x) * a / (yQ + zQ + wQ);
         vp = sign * vec4(a, b*p.y, b*p.z, b*p.w);
+        if(ifsPoint.active()) vp *= getIFSvec4(ifsPoint); // IFS point transforms
     };
 
     //preStep(v);
     const uint32_t rnd = fastRand32::xorShift();
-    const vec4 c = ifs.active() ? kRnd+getIFSvec4() : kRnd; // IFS transforms
+    const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
+
     radiciEq(v-((vec4 &)*kVal.data()+c), (rnd&1) ? 1.f : -1.f);
 
     testDepth(v,vp);

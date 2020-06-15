@@ -28,8 +28,6 @@
 
 #include <configuru/configuru.hpp>
 
-//#include <fastRandom.h>
-
 #include "IFS.h"
 #include "tools/glslProgramObject.h"
 
@@ -99,7 +97,8 @@ public:
     virtual float getDtStepInc() { return 0.0; }
     virtual void setDtStepInc(float f) { }
 
-    virtual ifsBaseClass *getIFS() { return nullptr; }
+    virtual ifsBaseClass *getIFSParam() { return nullptr; }
+    virtual ifsBaseClass *getIFSPoint() { return nullptr; }
 
     //thread Step with shared GPU memory
     void Step(float *&ptr, vec4 &v, vec4 &vp);
@@ -322,10 +321,17 @@ protected:
 class fractalIIMBase : public attractorScalarK
 {
 public:
-    bool ifsActive() { return ifs.active(); }
-    ifsBaseClass *getIFS() { return &ifs; }
+    bool ifsActive() { return ifsParam.active() || ifsPoint.active(); }
+    ifsBaseClass *getIFSParam() { return &ifsParam; }
+    ifsBaseClass *getIFSPoint() { return &ifsPoint; }
 
-    vec4 &getIFSvec4() { return ifs.getTransfStruct(ifs.getCurrentTransform())->variations; }
+    vec4 getIFSvec4(ifsBaseClass &ifs) {
+        if(ifs.getCurrentTransform()<0) return vec4(ifs.getInitValue()); // no active transforms: neutral value
+        else {
+            ifsDataStruct *ifsStruct = ifs.getTransfStruct(ifs.getCurrentTransform());
+            return ifsStruct->variationFunc(ifsStruct->variations) * ifsStruct->variationFactor;
+        }
+    }
 
 protected:
     fractalIIMBase() {
@@ -334,29 +340,8 @@ protected:
         setFractalType();
     }
 
-    void maxDepthReached() {
-
-    }
-
     void testDepth(vec4 &v, vec4 &vp) {
         if(depth++>maxDepth || distance(v,vp)<minDistance) {
-            depth = 0;
-            v = vVal[0] + (vMin == vMax ? vec4(vMin) :
-                   vec4(fastRandom.range(vMin, vMax),
-                        fastRandom.range(vMin, vMax),
-                        fastRandom.range(vMin, vMax),
-                        fastRandom.range(vMin, vMax)));
-            
-            kRnd = kMin == kMax ? vec4(kMin) :
-                   vec4(fastRandom.range(kMin, kMax),
-                        fastRandom.range(kMin, kMax),
-                        fastRandom.range(kMin, kMax),
-                        fastRandom.range(kMin, kMax));
-        } 
-    }
-
-    virtual void preStep(vec4 &v) {
-        if(depth++>maxDepth) {
             depth = 0;
             v = vVal[0] + (vMin == vMax ? vec4(vMin) :
                    vec4(fastRandom.range(vMin, vMax),
@@ -387,7 +372,7 @@ protected:
 
     int depth = 0;
 
-    ifsBaseClass ifs;
+    ifsBaseClass ifsPoint = ifsBaseClass(1.f), ifsParam = ifsBaseClass(0.f);
 private:
 };
 
@@ -447,12 +432,13 @@ public:
     {
         const int rnd = fastRand32::xorShift();
         const float sign1 = (rnd&2) ? 1.f : -1.f, sign2 = (rnd&1) ? 1.f : -1.f;
-        const vec4 c = ifs.active() ? kRnd+getIFSvec4() : kRnd; // IFS transforms
+        const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
         const vec4 p(pt - ((vec4 &)*kVal.data()+c));
 
         const std::complex<float> z1(p.x, p.y), z2(-p.w, p.z);
         const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
         vp = vec4(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag(), w1.real()-w2.real())*.5f;
+        if(ifsPoint.active()) vp *= getIFSvec4(ifsPoint); // IFS point transforms
     };
 
 };
