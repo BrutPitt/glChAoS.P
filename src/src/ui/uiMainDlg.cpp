@@ -3045,7 +3045,8 @@ void mainImGuiDlgClass::renderImGui()
 
         aboutDlg.view();
         attractorDlg.view();
-        ifsDlg.view();
+        ifsDlgParam.view(attractorsList.get()->getIFSParam());
+        ifsDlgPoint.view(attractorsList.get()->getIFSPoint());
         particlesDlg.view();
         paletteDlg.view();
         imGuIZMODlg.view();

@@ -21,6 +21,7 @@ void writePalette(const char *filename, int idx);
 void setGUIStyle();
 
 class particlesBaseClass;
+class ifsBaseClass;
 
 #define DLG_BORDER_SIZE (ImGui::GetStyle().FramePadding.x)
 #define INDENT(x) ((x)+border+2)
@@ -54,9 +55,9 @@ protected:
 class ifsDlgClass : public baseDlgClass
 {
 public:
-    ifsDlgClass() : baseDlgClass(" IFS") { }
+    ifsDlgClass(const char *title) : baseDlgClass(title) { }
 
-    void view();
+    void view(ifsBaseClass *ifs);
 
 protected:
 };
@@ -304,7 +305,8 @@ public:
 
     dataDlgClass& getDataDlg() { return dataDlg; }
 
-    ifsDlgClass& getIFSDlg() { return ifsDlg; }
+    ifsDlgClass& getIFSDlgParam() { return ifsDlgParam; }
+    ifsDlgClass& getIFSDlgPoint() { return ifsDlgPoint; }
 
 
 #ifdef GLCHAOSP_LIGHTVER
@@ -334,7 +336,7 @@ private:
 
 aboutDlgClass aboutDlg;
 attractorDlgClass attractorDlg;
-ifsDlgClass ifsDlg;
+ifsDlgClass ifsDlgParam = ifsDlgClass("IFS fractal variations") , ifsDlgPoint = ifsDlgClass("IFS points variations");
 particlesDlgClass particlesDlg;
 imGuIZMODlgClass imGuIZMODlg;
 infoDlgClass infoDlg;

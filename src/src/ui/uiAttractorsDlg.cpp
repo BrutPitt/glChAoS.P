@@ -72,17 +72,22 @@ void fractalIIMBase::additionalDataCtrls()
 
     ImGui::SameLine(ImGui::GetContentRegionAvail().x*.5 + ImGui::GetStyle().FramePadding.x);
     {
-        bool b = ifs.active();
-        if(ImGui::Checkbox("IFS ", &b)) { ifs.active(b); }
+        bool b = ifsActive();
+        if(ImGui::Checkbox("IFS ", &b)) ifsParam.active(b), ifsPoint.active(b);
     }
-    if(ifs.active()) {
+    if(ifsActive()) {
         ImGui::SameLine();
-        const float w = ImGui::GetContentRegionAvail().x;
-        bool b = ifs.dlgActive();
-        if(colCheckButton(b , b ? " IFS Settings "  ICON_FA_CHECK_SQUARE_O " " : " IFS Settings " ICON_FA_SQUARE_O " ",w))
-            ifs.dlgActive(b^1);
+        const float w = (ImGui::GetContentRegionAvail().x - DLG_BORDER_SIZE) *.5 ;
+        {
+        bool b = ifsParam.dlgActive();
+        if(colCheckButton(b , b ? " Param " ICON_FA_CHECK_SQUARE_O " " : " Param " ICON_FA_SQUARE_O " ",w)) ifsParam.dlgActive(b^1);
+        } ImGui::SameLine(); {
+        bool b = ifsPoint.dlgActive();
+        if(colCheckButton(b , b ? " Point " ICON_FA_CHECK_SQUARE_O " " : " Point " ICON_FA_SQUARE_O " ",w)) ifsPoint.dlgActive(b^1);
+        }
     }
-    theDlg.getIFSDlg().visible(ifs.active() && ifs.dlgActive());
+    theDlg.getIFSDlgParam().visible(ifsActive() && ifsParam.dlgActive());
+    theDlg.getIFSDlgPoint().visible(ifsActive() && ifsPoint.dlgActive());
 
     ImGui::NewLine();
 
@@ -103,23 +108,7 @@ void AttractorBase::additionalDataCtrls()
 {
     ImGui::NewLine();
 }
-/*
-void fractalIIM_4D::additionalDataCtrls()
-{
 
-    headerAdditionalDataCtrls(2);
-
-    float f = dim4D;
-    if(ImGui::DragFloat("##4d", &f, .0001, 0.0, 0.0, "4D: %.7f")) dim4D = f;
-    ImGui::SameLine();
-
-    int i = maxDepth;
-    if(ImGui::DragInt("##or", &i, 1, 1, 2000, "Depth: %03d")) maxDepth = i;
-    ImGui::SameLine();
-    ImGui::PopItemWidth();
-
-}
-*/
 void fractalIIM_Nth::additionalDataCtrls()
 {
 
@@ -685,11 +674,9 @@ void fastViewDlgClass::view()
 }
 
 
-void ifsDlgClass::view()
+void ifsDlgClass::view(ifsBaseClass *ifs)
 {
-    if(!visible() || attractorsList.get()->getIFS()==nullptr) return;
-
-    ifsBaseClass *ifs = attractorsList.get()->getIFS(); //already tested
+    if(!visible() || ifs==nullptr) return;
 
 #ifdef GLCHAOSP_LIGHTVER
     const int szX = 300, szY = 200;
@@ -708,22 +695,32 @@ void ifsDlgClass::view()
 
         ImGui::SetNextWindowContentSize(ImVec2(buttW*6.f+ImGui::GetFrameHeightWithSpacing(),0.0f));
         ImGui::BeginChild("params", ImVec2(0,-ImGui::GetFrameHeightWithSpacing()), true, ImGuiWindowFlags_HorizontalScrollbar);
+        char buttName[16] = "rnd##Ax";
         char checkName[16] = "##chkAx";
         char weightName[16] = "##wgtAx";
         char comboName[16] = "##cmbAx";
         char varsName[16] = "##vrsAAx";
+        char ampliName[16] = "##ampAAx";
 
         ImGui::PushItemWidth(buttW);
         for(int i = 0; i<ifs->getNumTransf(); i++) {
-            checkName[5] = comboName[5] = varsName[5] = weightName[5] = 'A'+i; //dynamic names
+            ampliName[5] = buttName[5] = checkName[5] = comboName[5] = varsName[5] = weightName[5] = 'A'+i; //dynamic names
             if(ImGui::Checkbox(checkName,&ifs->ifsTransforms[i].active))         ifs->rebuildWeight(); ImGui::SameLine();
-            if(ImGui::DragFloat(weightName, &ifs->ifsTransforms[i].weight,.001)) ifs->rebuildWeight(); ImGui::SameLine();
+            if(ImGui::DragFloat(weightName, &ifs->ifsTransforms[i].weight,.001,0.0,FLT_MAX)) ifs->rebuildWeight(); ImGui::SameLine();
+            if(ImGui::Button(buttName)) {
+                ifs->ifsTransforms[i].variations = vec4(fastRandom.VNI(),fastRandom.VNI(),fastRandom.VNI(),fastRandom.VNI());
+                // ifs->ifsTransforms[i].weight = fastRandom.UNI();
+            } ImGui::SameLine();
             for(int j = 0; j<4; j++) {
                 varsName[6] = 'A'+j;
                 ImGui::DragFloat(varsName, &ifs->ifsTransforms[i].variations[j],.001);
                 ImGui::SameLine();
             }
-            ImGui::Combo(comboName, &ifs->ifsTransforms[i].transfType, tranformsText);
+            if(ImGui::Combo(comboName, &ifs->ifsTransforms[i].transfType, tranformsText)) {
+                ifs->ifsTransforms[i].variationFunc = variationFuncsArray[ifs->ifsTransforms[i].transfType];
+            }
+            ImGui::SameLine();
+            ImGui::DragFloat(ampliName, &ifs->ifsTransforms[i].variationFactor,.01);
         }
         ImGui::PopItemWidth();
 
