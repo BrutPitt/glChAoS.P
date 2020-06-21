@@ -307,21 +307,33 @@ void PowerN3D::Step(vec4 &v, vec4 &vp)
     vp = vec4(vt, 0.f);
 } 
 
-
+void tetrahedronGaussMap::Step(vec4 &v, vec4 &vp)
+{
+    const float rnd = fastRandom.UNI();
+    if(rnd<.2) {
+        const float x2 = v.x*v.x, y2 = v.y*v.y;
+        const float coeff = 1.f / (1.f+x2+y2);
+        vp = vec3(2.f*v.x, 2.f*v.y, 1.f-x2-y2) * coeff + (vec3)kVal[0];
+    } else if(rnd<.4) {
+        const float z2 = v.z*v.z, y2 = v.y*v.y;
+        const float coeff = 1.f / (1.f+z2+y2);
+        vp = vec3(1.f-z2-y2, 2.f*v.y, 2.f*v.z) * coeff + (vec3)kVal[1];
+    } else if(rnd<.6) {
+        const float x2 = v.x*v.x, z2 = v.z*v.z;
+        const float coeff = 1.f / (1.f+x2+z2);
+        vp = vec3(2.f*v.x, 1.f-x2-z2, 2.f*v.z) * coeff + (vec3)kVal[2];
+    } else if(rnd<.8) {
+        vp = v * .5;
+    } else {
+        vp = v * .5 + kVal[3];
+    }
+}
 ////////////////////////////////////////////////////////////////////////////
 void PolynomialA::Step(vec4 &v, vec4 &vp)
-{
-    vp.x = kVal[0].x+ v.y - v.y*v.z;
-    vp.y = kVal[0].y+ v.z - v.x*v.z;
-    vp.z = kVal[0].z+ v.x - v.x*v.y;                                
-}
+{   vp = vec3(v.y - v.y*v.z, v.z - v.x*v.z, v.x - v.x*v.y) + (vec3) kVal[0]; }
 ////////////////////////////////////////////////////////////////////////////
 void PolynomialB::Step(vec4 &v, vec4 &vp)
-{
-    vp.x = kVal[0].x+v.y-v.z*(kVal[1].x+v.y);
-    vp.y = kVal[0].y+v.z-v.x*(kVal[1].y+v.z);
-    vp.z = kVal[0].z+v.x-v.y*(kVal[1].z+v.x);                                
-}
+{   vp = vec3(v.y-v.z*(kVal[1].x+v.y), v.z-v.x*(kVal[1].y+v.z), v.x-v.y*(kVal[1].z+v.x)) + (vec3) kVal[0]; }
 ////////////////////////////////////////////////////////////////////////////
 void PolynomialC::Step(vec4 &v, vec4 &vp)
 {
@@ -829,6 +841,7 @@ void Dadras::Step(vec4 &v, vec4 &vp)
     vp.z = v.z + dtStepInc*(kVal[3]*v.x*v.y - kVal[4]*v.z);
 }
 ////////////////////////////////////////////////////////////////////////////
+// http://globotoroid.com by Nick Samardzija,  http://vixra.org/pdf/1712.0419v1.pdf 
 void GloboToroid::Step(vec4 &v, vec4 &vp) 
 { // kVal[] -> p, q, r, s, e
     const float A = kVal[0];

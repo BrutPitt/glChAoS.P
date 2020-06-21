@@ -134,6 +134,19 @@ void Pickover::startData()
     Insert(vVal[0]);
 }
 
+void tetrahedronGaussMap::startData()
+{
+    vVal.push_back(vec4(0.0f));
+
+    kVal.push_back(vec4(-1.f,-1.f, 0.f, 0.f));
+    kVal.push_back(vec4( 0.f,-1.f,-1.f, 0.f));
+    kVal.push_back(vec4(-1.f, 0.f,-1.f, 0.f));
+    kVal.push_back(vec4( 1.f, 1.f, 1.f, 0.f));
+
+    Insert(vVal[0]);
+}
+
+
 void PolynomialA::startData()
 {
     vVal.push_back(vec4(0.0f));

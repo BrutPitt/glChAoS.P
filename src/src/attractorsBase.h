@@ -691,6 +691,21 @@ private:
     int order, tmpOrder;
 };
 
+
+class tetrahedronGaussMap : public attractorVectorK
+{
+public:
+    tetrahedronGaussMap() {
+        vMin = 0.0; vMax = 0.0; kMin = -1.0; kMax = 1.0;
+        m_POV = vec3( 0.f, 0, 7.f);
+        stepFn = (stepPtrFn) &tetrahedronGaussMap::Step;
+    }
+
+protected:
+    void Step(vec4 &v, vec4 &vp);
+    void startData();
+};
+
 //  Polinomial base class
 ////////////////////////////////////////////////////////////////////////////
 class PolynomialBase : public attractorVectorK
@@ -1668,6 +1683,7 @@ private:
 #define DLA3D_COLOR    vec4(0.00f, 0.70f, 0.00f, 1.00f)
 #define DT_COLOR       vec4(1.00f, 1.00f, 0.00f, 1.00f)
 #define FRACTAL_COLOR  vec4(1.00f, 0.50f, 0.00f, 1.00f)
+#define IFS_COLOR      vec4(1.00f, 1.00f, 1.00f, 1.00f)
 
 class AttractorsClass 
 {
@@ -1765,6 +1781,8 @@ public:
         PB(quatJulia_IIM      , u8"\uf0da", FRACTAL_COLOR , "quatJulia"          )
         PB(BicomplexJExplorer , u8"\uf0da", FRACTAL_COLOR , "biComplexJExplorer" )
         PB(glynnJB_IIM        , u8"\uf0da", FRACTAL_COLOR , "Glynn JuliaBulb"    )
+
+        PB(tetrahedronGaussMap, u8"\uf0da", IFS_COLOR     , "tetrahedronGaussMap")
 //        PB(Hopalong        , "Hopalong"         )
 
         selected = 0;
