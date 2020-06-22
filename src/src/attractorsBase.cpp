@@ -30,6 +30,8 @@ inline float cosAprx(float x) {
 
 inline float clampNormalized(float x) { return x>1.f ? 1.f : x<-1.f ? -1.f : x; }
 
+fastXS64 fractalIIMBase::fRnd64;
+
 //  Attractor base class
 ////////////////////////////////////////////////////////////////////////////
 
@@ -309,7 +311,7 @@ void PowerN3D::Step(vec4 &v, vec4 &vp)
 
 void tetrahedronGaussMap::Step(vec4 &v, vec4 &vp)
 {
-    const float rnd = fastRandom.UNI();
+    const float rnd = fastPrng64.xoroshiro128p_VNI<float>();
     if(rnd<.2) {
         const float x2 = v.x*v.x, y2 = v.y*v.y;
         const float coeff = 1.f / (1.f+x2+y2);
@@ -872,12 +874,19 @@ void juliaBulb_IIM::Step(vec4 &v, vec4 &vp)
         if(ifsPoint.active()) vp *= getIFSvec4(ifsPoint); // IFS point transforms
     };
 
-    //preStep(v);
-    const uint32_t rnd = fastRand32::xorShift();
-    const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
+    auto mainFunc = [&](vec4 &v, vec4 &vp) {
+        const uint32_t rnd = fRnd64.xorShift();
+        const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
+        vec4 tmpV((vec3)v-((vec3 )*kVal.data()+(vec3)c));
 
-    radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)c), (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
-    testDepth(v, vp); 
+        radiciEq(tmpV, (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
+    };
+
+    while(depth++<skipTop) { mainFunc(v,vp); v = vp; } // skip first "skipTop" points
+
+    preStep(v);
+    mainFunc(v,vp);
+
 }
 // stochastic adaptation of P.Nylander's Mathematica formula of JuliaBulb set
 // http://bugman123.com/Hypercomplex/index.html
@@ -894,13 +903,19 @@ void juliaBulb4th_IIM::Step(vec4 &v, vec4 &vp)
         const float phi    = (asinf(p.z/r)    + (2 * kPhi   - dk) * T_PI) / float(degreeN);
         const float cosphi = cosf(phi);
         vp = vec4(powf(r, 1.0f/float(degreeN)) * vec3(cosf(theta)*cosphi,sinf(theta)*cosphi,sinf(phi)), 0.f);
-
+        if(ifsPoint.active()) vp *= getIFSvec4(ifsPoint);
     };
 
-    const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
-    radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)c), fastRand32::xorShift() % degreeN, fastRand32::xorShift() % degreeN);
+    auto mainFunc = [&](vec4 &v, vec4 &vp) {
+        const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
+        radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)c), fRnd64.xorShift() % degreeN, fRnd64.xorShift() % degreeN);
+    };
 
-    testDepth(v,vp);
+    while(depth++<skipTop) { mainFunc(v,vp); v = vp; } // skip first "skipTop" points
+
+    preStep(v);
+    mainFunc(v,vp);
+
 }
 
 // stochastic adaptation of P.Nylander's Mathematica formula of quaternion Julia set
@@ -909,8 +924,7 @@ void juliaBulb4th_IIM::Step(vec4 &v, vec4 &vp)
 
 void quatJulia_IIM::Step(vec4 &v, vec4 &vp)
 {
-    auto radiciEq = [&](const vec4 &p, float sign)
-    {
+    auto radiciEq = [&](const vec4 &p, float sign) {
         const float xQ = p.x * p.x, yQ = p.y * p.y, zQ = p.z * p.z, wQ = p.w * p.w;
         const float r = sqrtf(xQ + yQ + zQ + wQ);
         const float a = sqrtf((p.x+r)*.5);
@@ -919,13 +933,16 @@ void quatJulia_IIM::Step(vec4 &v, vec4 &vp)
         if(ifsPoint.active()) vp *= getIFSvec4(ifsPoint); // IFS point transforms
     };
 
-    //preStep(v);
-    const uint32_t rnd = fastRand32::xorShift();
-    const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
+    auto mainFunc = [&](vec4 &v, vec4 &vp) {
+        const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
+        vec4 tmpV(v-((vec4 &)*kVal.data()+c));
+        radiciEq(tmpV, (fRnd64.xoroshiro128xx()&1) ? 1.f : -1.f);
+    };
 
-    radiciEq(v-((vec4 &)*kVal.data()+c), (rnd&1) ? 1.f : -1.f);
+    while(depth++<skipTop) { mainFunc(v,vp); v = vp; } // skip first "skipTop" points
 
-    testDepth(v,vp);
+    preStep(v);
+    mainFunc(v,vp);
 }
 
 
@@ -988,10 +1005,9 @@ void glynnJB_IIM::Step(vec4 &v, vec4 &vp)
     
 
 
-    //preStep(v);
+    preStep(v);
     int nRad = numRadici();
     radiciEq( nRad);
-    testDepth(v, vp); 
 }
 
 

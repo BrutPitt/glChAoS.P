@@ -630,7 +630,11 @@ bool AttractorsClass::loadVals(Config &cfg)
 {
     auto& c = cfg["Attractor"];
     if(c.has_key("Name")) {
+#ifdef GLCHAOSP_TEST_RANDOM_DISTRIBUTION
+        int i = getSelection();
+#else
         int i = getSelectionByName((std::string)c.get_or("Name",""));
+#endif
         if(i>=0) {
             selected = i;
             get()->loadVals(c);            

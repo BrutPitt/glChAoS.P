@@ -33,10 +33,10 @@
 
 using namespace std;
 using namespace configuru;
-using namespace fstRnd;
+using namespace fastPRNG;
 
-#define RANDOM(MIN, MAX) (fastRandom.range(MIN, MAX))
-extern fFastRand32 fastRandom;
+extern fastRand32 fastRandom;
+#define RANDOM(MIN, MAX) (fastRandom.KISS_Range<float>(MIN, MAX))
 
 
 #define BUFFER_DIM 200
@@ -251,6 +251,7 @@ protected:
 
     attractorDtType() {
         kMin = -5.0; kMax = 5.0; vMin = 0.0; vMax = 0.0;
+        m_POV = vec3( 0.f, 0, 7.f);
         setDTType();
     }
 
@@ -332,6 +333,7 @@ public:
             return ifsStruct->variationFunc(ifsStruct->variations) * ifsStruct->variationFactor;
         }
     }
+    static fastXS64 fRnd64;
 
 protected:
     fractalIIMBase() {
@@ -340,22 +342,22 @@ protected:
         setFractalType();
     }
 
-    void testDepth(vec4 &v, vec4 &vp) {
-        if(depth++>maxDepth || distance(v,vp)<minDistance) {
+    inline void refreshRandoms(vec4 &v) {
             depth = 0;
             v = vVal[0] + (vMin == vMax ? vec4(vMin) :
-                   vec4(fastRandom.range(vMin, vMax),
-                        fastRandom.range(vMin, vMax),
-                        fastRandom.range(vMin, vMax),
-                        fastRandom.range(vMin, vMax)));
-            
+                   vec4(fRnd64.xoroshiro128p_Range(vMin, vMax),
+                        fRnd64.xoroshiro128p_Range(vMin, vMax),
+                        fRnd64.xoroshiro128p_Range(vMin, vMax),
+                        fRnd64.xoroshiro128p_Range(vMin, vMax)));
+
             kRnd = kMin == kMax ? vec4(kMin) :
-                   vec4(fastRandom.range(kMin, kMax),
-                        fastRandom.range(kMin, kMax),
-                        fastRandom.range(kMin, kMax),
-                        fastRandom.range(kMin, kMax));
-        } 
+                   vec4(fRnd64.xoroshiro128p_Range(kMin, kMax),
+                        fRnd64.xoroshiro128p_Range(kMin, kMax),
+                        fRnd64.xoroshiro128p_Range(kMin, kMax),
+                        fRnd64.xoroshiro128p_Range(kMin, kMax));
     }
+
+    inline void preStep(vec4 &v) { if(depth++>maxDepth) refreshRandoms(v); }
 
     //  Specific attractor values
     void saveAdditionalData(Config &cfg);
@@ -368,7 +370,7 @@ protected:
     
     int maxDepth = 50;
     int degreeN = 2;
-    float minDistance = .001;
+    int skipTop = 10;
 
     int depth = 0;
 
@@ -428,9 +430,9 @@ public:
     typedef void (BicomplexBase::*magneticPtrFn)(const vec4 &, int);
     void startData();
 
-    void radiciBicomplex(const vec4 &pt, vec4 &vp)
+    inline void radiciBicomplex(const vec4 &pt, vec4 &vp)
     {
-        const int rnd = fastRand32::xorShift();
+        const uint32_t rnd = fRnd64.xoroshiro128pp();
         const float sign1 = (rnd&2) ? 1.f : -1.f, sign2 = (rnd&1) ? 1.f : -1.f;
         const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
         const vec4 p(pt - ((vec4 &)*kVal.data()+c));
@@ -440,6 +442,15 @@ public:
         vp = vec4(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag(), w1.real()-w2.real())*.5f;
         if(ifsPoint.active()) vp *= getIFSvec4(ifsPoint); // IFS point transforms
     };
+
+    inline void mainFunc(vec4 &v, const vec4 &vMod, vec4 &vp) {
+        while(depth++<skipTop) {
+            radiciBicomplex(vMod,vp);
+            v = vp;
+        }
+        preStep(v);
+        radiciBicomplex(vMod,vp);
+    }
 
 };
 
@@ -451,33 +462,33 @@ public:
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v, last4D), vp); } //remove
-    void Step(vec4 &v, vec4 &vp) { radiciBicomplex(v, vp); testDepth(v, vp); }
+    void Step(vec4 &v, vec4 &vp) { mainFunc(v, v, vp); }
 };
 
 /////////////////////////////////////////////////
 class BicomplexJMod0_IIM : public BicomplexBase
-{    
+{
 public:
     BicomplexJMod0_IIM() { stepFn = (stepPtrFn) &BicomplexJMod0_IIM::Step; }
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v, dim4D), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { vec4 pt((vec3)v, vVal[0].w); radiciBicomplex(pt, vp); testDepth(pt, vp); }
+    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4((vec3)v, vVal[0].w), vp); }
 };
 
 /////////////////////////////////////////////////
 class BicomplexJMod1_IIM : public BicomplexBase
-{    
+{
 public:
     BicomplexJMod1_IIM() { stepFn = (stepPtrFn) &BicomplexJMod1_IIM::Step; }
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, vVal[0].z, last4D), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { vec4 pt(v.x, v.y, vVal[0].z, v.w); radiciBicomplex(pt, vp); testDepth(pt, vp); }
+    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(v.x, v.y, vVal[0].z, v.w), vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod2_IIM : public BicomplexBase
-{    
+{
 public:
     BicomplexJMod2_IIM() { stepFn = (stepPtrFn) &BicomplexJMod2_IIM::Step; }
 
@@ -487,54 +498,54 @@ protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.x, v.y, v.y, v.y), vp); }
 
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.z, v.y), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { vec4 pt(v.x, v.y, v.z, v.y); radiciBicomplex(pt, vp); testDepth(pt, vp); }
+    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(v.x, v.y, v.z, v.y), vp); }
 };
 
 /////////////////////////////////////////////////
 class BicomplexJMod3_IIM : public BicomplexBase
-{    
+{
 public:
     BicomplexJMod3_IIM() { stepFn = (stepPtrFn) &BicomplexJMod3_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { vec4 pt(vVal[0].x, v.y, v.z, v.w);  radiciBicomplex(pt, vp); testDepth(pt, vp); }
+    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(vVal[0].x, v.y, v.z, v.w), vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod4_IIM : public BicomplexBase
-{    
+{
 public:
     BicomplexJMod4_IIM() { stepFn = (stepPtrFn) &BicomplexJMod4_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { vec4 pt(v.x, v.y, v.x, v.w); radiciBicomplex(pt, vp); testDepth(pt, vp); }
+    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(v.x, v.y, v.x, v.w), vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod5_IIM : public BicomplexBase
-{    
+{
 public:
     BicomplexJMod5_IIM() { stepFn = (stepPtrFn) &BicomplexJMod5_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { vec4 pt( v.y, v.x, v.w, v.z); radiciBicomplex(pt, vp); testDepth(pt, vp); }
+    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4( v.y, v.x, v.w, v.z), vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod6_IIM : public BicomplexBase
-{    
+{
 public:
     BicomplexJMod6_IIM() { stepFn = (stepPtrFn) &BicomplexJMod6_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { vec4 pt(vVal[0].x, vVal[0].y, v.z, v.w); radiciBicomplex(pt, vp); testDepth(pt, vp); }
+    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(vVal[0].x, vVal[0].y, v.z, v.w), vp); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod7_IIM : public BicomplexBase
-{    
+{
 public:
     BicomplexJMod7_IIM() { stepFn = (stepPtrFn) &BicomplexJMod7_IIM::Step; }
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, v.x), vp); }
-    void Step(vec4 &v, vec4 &vp) { vec4 pt( v.x, v.x, v.z, vVal[0].w); radiciBicomplex(pt, vp); testDepth(pt, vp); }
+    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4( v.x, v.x, v.z, vVal[0].w), vp); }
     //void Step(vec4 &v, vec4 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, last4D), vp); }
 };
 
@@ -567,11 +578,15 @@ public:
     }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) {         
-        vt = v; 
-        vec4 pt( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]);
-        radiciBicomplex(pt, vp); 
-        testDepth(pt, vp); 
+    void Step(vec4 &v, vec4 &vp) {
+        while(depth++<skipTop) {
+            vt = v;
+            radiciBicomplex(vec4( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]), vp);
+            v = vp;
+        }
+        preStep(v);
+        vt = v;
+        radiciBicomplex(vec4( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]), vp);
     }
 private:
     float *a1[8], *a2[8], *a3[8], *a4[8];
@@ -1107,8 +1122,8 @@ using tPrec = VG_T_TYPE;
 
 #define DLA_USE_FAST_RANDOM
 #ifdef DLA_USE_FAST_RANDOM
-    #define DLA_RANDOM_NORM fastRandom.VNI()
-    #define DLA_RANDOM_01   fastRandom.UNI()
+    #define DLA_RANDOM_NORM fastPrng64.xorShift_VNI<float>()
+    #define DLA_RANDOM_01   fastPrng64.xorShift_UNI<float>()
 #else
     #define DLA_RANDOM_NORM stdRandom(-1.f, 1.f)
     #define DLA_RANDOM_01   stdRandom( 0.f, 1.f)
@@ -1397,11 +1412,12 @@ protected:
     void startData();
 
 private:
+#if !defined(DLA_USE_FAST_RANDOM)
     tPrec stdRandom(tPrec lo, tPrec hi) const {
         static thread_local std::mt19937 gen(std::chrono::high_resolution_clock::now().time_since_epoch().count());
         std::uniform_real_distribution<tPrec> dist(lo, hi); return dist(gen);
     }
-
+#endif
     vec3 lerp(const vec3 &a, const vec3 &b, tPrec d) const {
         return a + normalize(b-a) * d;
     }
@@ -1634,6 +1650,65 @@ public:
     MagneticStraight() { increment = &Magnetic::straight; }
 };
 
+//#define GLCHAOSP_TEST_RANDOM_DISTRIBUTION
+#ifdef GLCHAOSP_TEST_RANDOM_DISTRIBUTION
+class testPRNGbaseClass : public attractorScalarK
+{
+public:
+    //testPRNGbaseClass() {}
+    fastXS64 fRnd64;
+    fastXS32 fRnd32;
+    fastRand32 ff32;
+    fastRand64 ff64;
+};
+
+#define PRNG(A, func)\
+class A : public testPRNGbaseClass {\
+    public:\
+        A() { stepFn = (stepPtrFn) &A::Step; }\
+    protected:\
+        void Step(vec4 &v, vec4 &vp) { vp = vec4(func(), func(), func(), 0.f); }\
+        void startData() { vVal.push_back(vec4(0.f)); kVal.push_back(0.f); Insert(vVal[0]); }\
+};
+
+//#define TEST_UNI_FUNC
+#ifdef TEST_UNI_FUNC // test [0,1] funcs
+PRNG(xoshiro256p   , fRnd64.    xoshiro256p_UNI  <float>)
+PRNG(xoroshiro128p , fRnd64.    xoroshiro128p_UNI<float>)
+PRNG(marsKiss64    , ff64.      kiss_UNI         <float>)
+PRNG(xorShft64     , fRnd64.    xorShift_UNI     <float>)
+PRNG(xoshiro256ps  , fastXS64s::xoshiro256p_UNI  <float>)
+PRNG(xoroshiro128ps, fastXS64s::xoroshiro128p_UNI<float>)
+PRNG(xorShft64s    , fastXS64s::xorShift_UNI     <float>)
+
+PRNG(xoshiro128p   , fRnd32.    xoshiro128p_UNI <float>)
+PRNG(xoroshiro64x  , fRnd32.    xoroshiro64x_UNI<float>)
+PRNG(marsKiss32    , ff32.      kiss_UNI        <float>)
+PRNG(xorShft32     , fRnd32.    xorShift_UNI    <float>)
+PRNG(xoshiro128ps  , fastXS32s::xoshiro128p_UNI <float>)
+PRNG(xoroshiro64xs , fastXS32s::xoroshiro64x_UNI<float>)
+PRNG(xorShft32s    , fastXS32s::xorShift_UNI    <float>)
+#else
+PRNG(xoshiro256p   , fRnd64.    xoshiro256p_VNI  <float>)
+PRNG(xoroshiro128p , fRnd64.    xoroshiro128p_VNI<float>)
+PRNG(marsKiss64    , ff64.      KISS_VNI         <float>)
+PRNG(xorShft64     , fRnd64.    xorShift_VNI     <float>)
+PRNG(xoshiro256ps  , fastXS64s::xoshiro256p_VNI  <float>)
+PRNG(xoroshiro128ps, fastXS64s::xoroshiro128p_VNI<float>)
+PRNG(xorShft64s    , fastXS64s::xorShift_VNI     <float>)
+
+PRNG(xoshiro128p   , fRnd32.    xoshiro128p_VNI <float>)
+PRNG(xoroshiro64x  , fRnd32.    xoroshiro64x_VNI<float>)
+PRNG(marsKiss32    , ff32.      KISS_VNI        <float>)
+PRNG(xorShft32     , fRnd32.    xorShift_VNI    <float>)
+PRNG(xoshiro128ps  , fastXS32s::xoshiro128p_VNI <float>)
+PRNG(xoroshiro64xs , fastXS32s::xoroshiro64x_VNI<float>)
+PRNG(xorShft32s    , fastXS32s::xorShift_VNI    <float>)
+#endif
+
+#undef PRNG
+#endif
+
 //  Attractors Thread helper class
 ////////////////////////////////////////////////////////////////////////////
 class threadStepClass
@@ -1663,16 +1738,7 @@ private:
 
 //  Attractor Class container
 ////////////////////////////////////////////////////////////////////////////
-#define ATT_PATH "startData/"
 #define ATT_EXT ".sca"
-
-#define PB(ATT, GRAPH_CHAR, COLOR_GRAPH_CHAR, DISPLAY_NAME)\
-    ptr.push_back(new ATT());\
-    ptr.back()->fileName = (ATT_PATH #ATT ATT_EXT);\
-    ptr.back()->nameID = (#ATT);\
-    ptr.back()->graphChar = (GRAPH_CHAR);\
-    ptr.back()->colorGraphChar = (COLOR_GRAPH_CHAR);\
-    ptr.back()->displayName = (DISPLAY_NAME);
 
 #define MAGNETIC_COLOR vec4(0.00f, 1.00f, 0.00f, 1.00f)
 #define POLINOM_COLOR  vec4(0.00f, 0.00f, 1.00f, 1.00f)
@@ -1689,6 +1755,40 @@ class AttractorsClass
 {
 public:
     AttractorsClass() {
+#ifdef GLCHAOSP_TEST_RANDOM_DISTRIBUTION
+#define PB(ATT, GRAPH_CHAR, COLOR_GRAPH_CHAR, DISPLAY_NAME)\
+    ptr.push_back(new ATT());\
+    ptr.back()->fileName = ("rndData/" "randomTest.sca");\
+    ptr.back()->nameID = (#ATT);\
+    ptr.back()->graphChar = (GRAPH_CHAR);\
+    ptr.back()->colorGraphChar = (COLOR_GRAPH_CHAR);\
+    ptr.back()->displayName = (DISPLAY_NAME);
+
+        PB(xoshiro256p       , u8"\uf0da", IFS_COLOR     , "64bit xoshiro256+"       )
+        PB(xoroshiro128p     , u8"\uf0da", IFS_COLOR     , "64bit xoroshiro128+"     )
+        PB(xorShft64         , u8"\uf0da", IFS_COLOR     , "64bit xorShift"          )
+        PB(xoshiro256ps      , u8"\uf0da", DT_COLOR      , "64bit static xoshiro256+")
+        PB(xoroshiro128ps    , u8"\uf0da", DT_COLOR      , "64bit static xoroshiro128+")
+        PB(xorShft64s        , u8"\uf0da", DT_COLOR      , "64bit static xorShift"   )
+        PB(marsKiss64        , u8"\uf0da", POLINOM_COLOR , "64bit Marsaglia Kiss"    )
+
+        PB(xoshiro128p       , u8"\uf0da", PORTED3D_COLOR, "32bit xoshiro128+"       )
+        PB(xoroshiro64x      , u8"\uf0da", PORTED3D_COLOR, "32bit xoroshiro64x"      )
+        PB(xorShft32         , u8"\uf0da", PORTED3D_COLOR, "32bit xorShift"          )
+        PB(xoshiro128ps      , u8"\uf0da", FRACTAL_COLOR , "32bit static xoshiro128p")
+        PB(xoroshiro64xs     , u8"\uf0da", FRACTAL_COLOR , "32bit static xoroshiro64x")
+        PB(xorShft32s        , u8"\uf0da", FRACTAL_COLOR , "32bit static xorShift"   )
+        PB(marsKiss32        , u8"\uf0da", PICKOVER_COLOR, "32bit Marsaglia Kiss"    )
+#else
+#define ATT_PATH "startData/"
+#define PB(ATT, GRAPH_CHAR, COLOR_GRAPH_CHAR, DISPLAY_NAME)\
+    ptr.push_back(new ATT());\
+    ptr.back()->fileName = (ATT_PATH #ATT ATT_EXT);\
+    ptr.back()->nameID = (#ATT);\
+    ptr.back()->graphChar = (GRAPH_CHAR);\
+    ptr.back()->colorGraphChar = (COLOR_GRAPH_CHAR);\
+    ptr.back()->displayName = (DISPLAY_NAME);
+
         PB(MagneticRight      , u8"\uf0da", MAGNETIC_COLOR, "MagneticRight"      )
         PB(MagneticLeft       , u8"\uf0da", MAGNETIC_COLOR, "MagneticLeft"       )
         PB(MagneticFull       , u8"\uf0da", MAGNETIC_COLOR, "MagneticFull"       )
@@ -1784,7 +1884,7 @@ public:
 
         PB(tetrahedronGaussMap, u8"\uf0da", IFS_COLOR     , "tetrahedronGaussMap")
 //        PB(Hopalong        , "Hopalong"         )
-
+#endif
         selected = 0;
 
         loadStartData();
