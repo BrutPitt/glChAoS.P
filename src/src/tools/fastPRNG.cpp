@@ -10,12 +10,8 @@
 //  
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
-//
-//  From George Marsaglia Algorithms
-//
-////////////////////////////////////////////////////////////////////////////////
+#include "fastPRNG.h"
 
-#include "fastRandom.h"
-
-fstRnd::fFastRand32 fastRandom;
+fastPRNG::fastRand32 fastRandom;
+fastPRNG::fastXS64 fastPrng64;
 
