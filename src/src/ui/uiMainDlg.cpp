@@ -772,7 +772,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
                     {
                         float f = particles->getAOMul();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.1, 2.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOMul(f);
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.1, 2.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOMul(f);
                     }
                     ImGui::PopItemWidth();
 
@@ -783,7 +783,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     ImGui::SameLine();
                     {
                         float f = particles->getAOModulate();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.01, 0.1, 3.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOModulate(f);
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.1, 3.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOModulate(f);
                     }
                     ImGui::PopItemWidth();
                     
@@ -793,7 +793,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
                     {
                         float f = particles->getAOStrong();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOStrong(f);
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 3.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOStrong(f);
                     }
                     ImGui::PopItemWidth();
 
@@ -1350,8 +1350,12 @@ void particlesDlgClass::view()
                     emitterBaseClass *emit = pSys->getEmitter();
                     ImGui::PushItemWidth(wButt);
                     float f = float(emit->getSizeCircularBuffer())*.000001f;
-                    if(ImGui::DragFloat("##max", &f, .01f, .1, 
-                                                     emit->getSizeAllocatedBuffer()*.000001f,"%.3f M")) {
+#ifdef GLCHAOSP_TEST_RANDOM_DISTRIBUTION
+                    const float minBuff = .01f;
+#else
+                    const float minBuff = .05f;
+#endif
+                    if(ImGui::DragFloat("##max", &f, .01f, minBuff, emit->getSizeAllocatedBuffer()*.000001f,"%.3f M")) {
                         uint maxBuff = uint(f*1000000.f);
                         emit->setSizeCircularBuffer(maxBuff>emit->getSizeAllocatedBuffer() ? emit->getSizeAllocatedBuffer() : maxBuff);
                         emit->getVertexBase()->resetVertexCount();
@@ -2789,7 +2793,11 @@ void clippingDlgClass::view()
 {
     if(!isVisible) return;
 
+#ifdef GLCHAOSP_TEST_RANDOM_DISTRIBUTION
+    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-IMGUIZMO_DEF_SIZE*1.8, 180), ImGuiCond_FirstUseEver);
+#else
     ImGui::SetNextWindowPos(ImVec2(270, 0), ImGuiCond_FirstUseEver);
+#endif
     ImGui::SetNextWindowSize(ImVec2(IMGUIZMO_DEF_SIZE*1.8, IMGUIZMO_DEF_SIZE*(1.8*3)+8.5*ImGui::GetFrameHeightWithSpacing()), ImGuiCond_FirstUseEver);
 
     if(ImGui::Begin(getTitle(), &isVisible,ImGuiWindowFlags_NoScrollbar)) { 
@@ -3044,7 +3052,6 @@ void mainImGuiDlgClass::renderImGui()
         ImGui::NewFrame();
 
         aboutDlg.view();
-        attractorDlg.view();
         ifsDlgParam.view(attractorsList.get()->getIFSParam());
         ifsDlgPoint.view(attractorsList.get()->getIFSPoint());
         particlesDlg.view();
@@ -3056,6 +3063,7 @@ void mainImGuiDlgClass::renderImGui()
         particleEditDlg.view();
         clippingDlg.view();
         if(attractorsList.get()->dtType() && tfSettinsClass::tfMode()) cockpitDlg.view();
+        attractorDlg.view();
 #if !defined(GLCHAOSP_LIGHTVER)
         progSettingDlg.view();
         dataDlg.view();

@@ -212,7 +212,11 @@ private:
 class clippingDlgClass  : public baseDlgClass
 {
 public:
+#ifdef GLCHAOSP_TEST_RANDOM_DISTRIBUTION
+    clippingDlgClass() : baseDlgClass("Clipping planes", true) {}
+#else
     clippingDlgClass() : baseDlgClass("Clipping planes") {}
+#endif
 
     void view();
 

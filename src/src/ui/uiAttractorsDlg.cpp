@@ -93,12 +93,19 @@ void fractalIIMBase::additionalDataCtrls()
 
     headerAdditionalDataCtrls(2);
 
-    int i = maxDepth;
-    if(ImGui::DragInt("##dpt", &i, 1, 1, 5000, "Depth: %03d")) maxDepth = i;
+    {
+        int i = maxDepth;
+        if(ImGui::DragInt("##dpt", &i, 1, skipTop, 35000, "Depth: %03d")) {
+            if(i<skipTop) skipTop = i-1;
+            maxDepth = i;
+        }
+    }
     
     ImGui::SameLine();
-    float f = minDistance;
-    if(ImGui::DragFloat("##dst", &f, .000001, 0.f, 5000, "Dist: %.7f")) minDistance = f;
+    {
+        int i = skipTop;
+        if(ImGui::DragInt("##skp", &i, .25, 0, maxDepth, "Skip: %03d")) skipTop = i>=maxDepth ? maxDepth-1 : i;
+    }
     ImGui::SameLine();
     ImGui::PopItemWidth();
 
@@ -315,7 +322,11 @@ void attractorDlgClass::view()
     const float border = DLG_BORDER_SIZE;
     //const float oldWindowPadding = style.WindowPadding.x;
 #ifdef GLCHAOSP_LIGHTVER
-    const int szX = 520, szY = 200;    
+#if !defined(GLCHAOSP_TEST_RANDOM_DISTRIBUTION)
+    const int szX = 520, szY = 200;
+#else
+    const int szX = 340, szY = 260;
+#endif
 #else
     const int szX = 600, szY = 270;    
 #endif
@@ -324,16 +335,25 @@ void attractorDlgClass::view()
         int w,h; glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
         ImGui::SetNextWindowPos(ImVec2(w-szX, h-szY), ImGuiCond_FirstUseEver);
     }
+#ifdef GLCHAOSP_TEST_RANDOM_DISTRIBUTION
+    if(ImGui::Begin("PRNG functions", &isVisible)) {
+#else
     if(ImGui::Begin(getTitle(), &isVisible)) {
+#endif
 
+#if !defined(GLCHAOSP_TEST_RANDOM_DISTRIBUTION)
         ImGui::Columns(2);
 
-#ifdef GLCHAOSP_LIGHTVER
+    #ifdef GLCHAOSP_LIGHTVER
         const float szReg = .3f;
-#else
+    #else
         const float szReg = .25f;
-#endif
+    #endif
+
         if(firstTime) { ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth()*szReg); firstTime = false; }
+#else
+        const float szReg = 1.f;
+#endif
 
         // left
         ImGui::BeginGroup(); 
@@ -343,7 +363,11 @@ void attractorDlgClass::view()
 #else
     const int sizeLeft = ImGui::GetFrameHeightWithSpacing()+border;
 #endif
-            ImGui::BeginChild("List", ImVec2(wGrp,-sizeLeft));            
+#if !defined(GLCHAOSP_TEST_RANDOM_DISTRIBUTION)
+            ImGui::BeginChild("List", ImVec2(wGrp,-sizeLeft));
+#else
+            ImGui::BeginChild("List");
+#endif
             
                 ImGuiStyle& style = ImGui::GetStyle();
                 ImGui::PushStyleColor(ImGuiCol_Header       ,style.Colors[ImGuiCol_PlotHistogram       ]); 
@@ -390,10 +414,11 @@ void attractorDlgClass::view()
 
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY()+border*2);
 #endif
+#if !defined(GLCHAOSP_TEST_RANDOM_DISTRIBUTION)
                 const bool b = theDlg.getfastViewDlg().visible();
                 if(colCheckButton(b, b ? ICON_FA_SEARCH " MORE " ICON_FA_LONG_ARROW_RIGHT " savedList"  : ICON_FA_SEARCH " MORE " ICON_FA_LONG_ARROW_RIGHT " savedList", wGrp)) 
                     { theDlg.getfastViewDlg().visible(b^1); }
-
+#endif
                 //ImGui::PopItemWidth();
 
             } ImGui::EndChild();
@@ -401,11 +426,11 @@ void attractorDlgClass::view()
             //style.WindowPadding.x = oldWindowPadding;
 
         ImGui::EndGroup();
+#if !defined(GLCHAOSP_TEST_RANDOM_DISTRIBUTION)
         ImGui::NextColumn();
 
         ImGui::SameLine();
-
-        // right        
+        // right
         ImGui::BeginGroup();
             ImGui::BeginChild("Parameters", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()*3-border)); // Leave room for 1 line below us            
                 
@@ -489,6 +514,7 @@ void attractorDlgClass::view()
 
             } ImGui::EndChild(); 
         ImGui::EndGroup();
+#endif
     } ImGui::End();
 }
  
@@ -708,7 +734,7 @@ void ifsDlgClass::view(ifsBaseClass *ifs)
             if(ImGui::Checkbox(checkName,&ifs->ifsTransforms[i].active))         ifs->rebuildWeight(); ImGui::SameLine();
             if(ImGui::DragFloat(weightName, &ifs->ifsTransforms[i].weight,.001,0.0,FLT_MAX)) ifs->rebuildWeight(); ImGui::SameLine();
             if(ImGui::Button(buttName)) {
-                ifs->ifsTransforms[i].variations = vec4(fastRandom.VNI(),fastRandom.VNI(),fastRandom.VNI(),fastRandom.VNI());
+                ifs->ifsTransforms[i].variations = vec4(fastPrng64.xoroshiro128p_VNI<float>(),fastPrng64.xoroshiro128p_VNI<float>(),fastPrng64.xoroshiro128p_VNI<float>(),fastPrng64.xoroshiro128p_VNI<float>());
                 // ifs->ifsTransforms[i].weight = fastRandom.UNI();
             } ImGui::SameLine();
             for(int j = 0; j<4; j++) {
