@@ -13,6 +13,7 @@
 cmake_minimum_required(VERSION 3.15)
 SET(BUILD_wglChAoSP TRUE CACHE BOOL TRUE)
 SET(BUILD_wglChAoSP_lowres FALSE CACHE BOOL FALSE)
+SET(BUILD_prng_test FALSE CACHE BOOL FALSE)
 ###########################################################
 #
 # *** CHANGES NOTE ***
@@ -59,8 +60,8 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/libs/imgui/imstb_textedit.h
         ${SRC}/libs/imgui/imstb_truetype.h
         ${SRC}/libs/configuru/configuru.hpp
-        ${SRC}/tools/fastRandom.cpp
-        ${SRC}/tools/fastRandom.h
+        ${SRC}/tools/fastPRNG.cpp
+        ${SRC}/tools/fastPRNG.h
         ${SRC}/tools/imGuIZMOquat.cpp
         ${SRC}/tools/imGuIZMOquat.h
         ${SRC}/tools/imguiControls.cpp
@@ -172,11 +173,19 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 # grouped EMCC_OPTIONS
 #     --embed-file \"${CMAKE_SOURCE_DIR}/../ChaoticAttractors@ChaoticAttractors/\"\
 
-    set(M_EMCC_EMBED_FILES "--preload-file \"${CMAKE_SOURCE_DIR}/../Shaders@Shaders/\"\
-     --preload-file \"${M_EMCC_EMBED_FEW_ATTRACTORS}\"\
-     --preload-file \"${CMAKE_SOURCE_DIR}/../colorMaps/palettes.json@colorMaps/\"\
-     --preload-file \"${CMAKE_SOURCE_DIR}/../Fonts@Fonts/\"\
-     --preload-file \"${CMAKE_SOURCE_DIR}/../startData@startData/\"")
+    if(BUILD_prng_test)
+        set(M_EMCC_EMBED_FILES "--preload-file \"${CMAKE_SOURCE_DIR}/../Shaders@Shaders/\"\
+         --preload-file \"${CMAKE_SOURCE_DIR}/../colorMaps/palettes.json@colorMaps/\"\
+         --preload-file \"${CMAKE_SOURCE_DIR}/../Fonts@Fonts/\"\
+         --preload-file \"${CMAKE_SOURCE_DIR}/../rndData@rndData/\"")
+        add_definitions(-DGLCHAOSP_TEST_RANDOM_DISTRIBUTION)
+    else()
+        set(M_EMCC_EMBED_FILES "--preload-file \"${CMAKE_SOURCE_DIR}/../Shaders@Shaders/\"\
+         --preload-file \"${M_EMCC_EMBED_FEW_ATTRACTORS}\"\
+         --preload-file \"${CMAKE_SOURCE_DIR}/../colorMaps/palettes.json@colorMaps/\"\
+         --preload-file \"${CMAKE_SOURCE_DIR}/../Fonts@Fonts/\"\
+         --preload-file \"${CMAKE_SOURCE_DIR}/../startData@startData/\"")
+    endif()
      
 #     --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts/Cousine-Regular.ttf@Fonts/\"\
 #     --embed-file \"${CMAKE_SOURCE_DIR}/../Fonts/fontawesome-webfont.ttf@Fonts/\"\
