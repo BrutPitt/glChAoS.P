@@ -381,13 +381,7 @@ void mainGLApp::saveAttractor(const char *name)
 // QuickView Dir List
 void mainGLApp::getQuickViewDirList()
 {
-/*
-
-    std::string path = "ChaoticAttractors";
-    for (const auto & entry : std::filesystem::directory_iterator(path))
-        std::cout << entry.path().filename() << std::endl;
-*/
-
+#if !defined(GLCHAOSP_TEST_RANDOM_DISTRIBUTION)
     DIR *dir;
     struct dirent *ent;
     if ((dir = opendir ("ChaoticAttractors")) != NULL) {
@@ -406,6 +400,7 @@ void mainGLApp::getQuickViewDirList()
     } 
 
     std::sort(getListQuickView().begin(), getListQuickView().end());
+#endif
 }
 
 void mainGLApp::loadQuikViewSelection(int idx)

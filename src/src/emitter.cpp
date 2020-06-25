@@ -209,7 +209,7 @@ void transformedEmitterClass::renderOfflineFeedback()
         for(int i=cPit.getTransformedEmission(); i>0 && (pCount+vtxCount<szCircular) && vtxCount<vtxStepBuff; i--) {
             const float bornTime = std::chrono::duration<float> (std::chrono::high_resolution_clock::now()-startEvent).count();
             *vboBuffer++ = vec4(newPosAttractor + vInc, dist);
-            *vboBuffer++ = vec4(vec3(fastRandom.VNI(),fastRandom.VNI(),fastRandom.VNI())*speedMagnitudo, -bornTime);
+            *vboBuffer++ = vec4(vec3(fastPrng64.xoroshiro128p_VNI<float>(),fastPrng64.xoroshiro128p_VNI<float>(),fastPrng64.xoroshiro128p_VNI<float>())*speedMagnitudo, -bornTime);
 
             vInc += vStep;
             vtxCount++;

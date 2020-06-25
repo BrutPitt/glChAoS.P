@@ -10,7 +10,7 @@
 //  
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
-#include <fastRandom.h>
+#include <fastPRNG.h>
 
 #include "glWindow.h"
 
@@ -966,12 +966,21 @@ ambientOcclusionClass::ambientOcclusionClass(renderBaseClass *ptrRE) : renderEng
 
     // generate sample kernel
     // ----------------------
+#ifdef GLCHAOSP_AO_STD_RND
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
     std::default_random_engine generator;
+    #define AO_RND_GEN() randomFloats(generator)
+    #define AO_RND_GEN() (randomFloats(generator) * 2.0 - 1.0)
+#else
+    #define AO_RND_GEN_UNI() fastXS64s::xoshiro256p_UNI<float>()
+    #define AO_RND_GEN_VNI() fastXS64s::xoshiro256p_VNI<float>()
+#endif
+
+
     for(unsigned int i = 0; i < kernelSize; i++)  {
-        vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
+        vec3 sample(AO_RND_GEN_VNI(), AO_RND_GEN_VNI(), AO_RND_GEN_UNI());
         sample = normalize(sample);
-        sample *= randomFloats(generator);
+        sample *= AO_RND_GEN_UNI();
         float scale = float(i) / float(kernelSize);
 
         // scale samples s.t. they're more aligned to center of kernel
@@ -985,7 +994,7 @@ ambientOcclusionClass::ambientOcclusionClass(renderBaseClass *ptrRE) : renderEng
     std::vector<vec3> ssaoNoise;
     for(unsigned int i = 0; i < 16; i++) {
         //vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); // rotate around z-axis (in tangent space)
-        vec3 noise(randomFloats(generator), randomFloats(generator), 0.0f); // rotate around z-axis (in tangent space)
+        vec3 noise(AO_RND_GEN_UNI(), AO_RND_GEN_UNI(), 0.0f); // rotate around z-axis (in tangent space)
         ssaoNoise.push_back(noise);
     }
 #ifdef GLAPP_REQUIRE_OGL45

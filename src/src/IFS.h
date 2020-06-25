@@ -16,7 +16,7 @@
 #include <functional>
 #include <float.h>
 
-#include <fastRandom.h>
+#include <fastPRNG.h>
 #include <vgMath.h>
 
 extern const char *tranformsText;
@@ -77,7 +77,8 @@ struct ifsDataStruct
     std::function<vec4(const vec4 &)> variationFunc = &variationFuncsClass::linear;
 };
 
-extern fstRnd::fFastRand32 fastRandom;
+extern fastPRNG::fastRand32 fastRandom;
+extern fastPRNG::fastXS64 fastPrng64;
 
 class ifsBaseClass
 {
@@ -108,7 +109,7 @@ public:
         totalActive = j;
     }
 
-    int getCurrentTransform() { return getCurrentTransform(fastRandom.UNI()); }
+    int getCurrentTransform() { return getCurrentTransform(fastPrng64.xoroshiro128p_UNI<float>()); }
 
     int getCurrentTransform(float rndValue) {
         for(int i=0; i<totalActive; i++)

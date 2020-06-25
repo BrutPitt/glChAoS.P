@@ -72,11 +72,6 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
                 int idx = attractorsList.getSelection();
                 attractorsList.setSelection((idx <= 0) ? attractorsList.getList().size()-1 : idx-1);
                 } break;
-            case GLFW_KEY_RIGHT :  
-            case GLFW_KEY_R     :  {
-                int idx = theApp->selectedListQuickView();
-                theApp->loadQuikViewSelection((idx >= theApp->getListQuickView().size()-1) ? 0 : idx+1);
-                } break;
             case GLFW_KEY_V    :
             case GLFW_KEY_C    :
                 tfSettinsClass::cockPit(tfSettinsClass::cockPit() ^ 1);
@@ -100,11 +95,18 @@ void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int 
             case GLFW_KEY_INSERT :
                 tfSettinsClass::setPIPposition(tfSettinsClass::pip::noPIP);
                 break;
-            case GLFW_KEY_LEFT :  
+#if !defined(GLCHAOSP_TEST_RANDOM_DISTRIBUTION)
+            case GLFW_KEY_RIGHT :
+            case GLFW_KEY_R     :  {
+                int idx = theApp->selectedListQuickView();
+                theApp->loadQuikViewSelection((idx >= theApp->getListQuickView().size()-1) ? 0 : idx+1);
+                } break;
+            case GLFW_KEY_LEFT :
             case GLFW_KEY_L    :  {
                 int idx = theApp->selectedListQuickView();
                 theApp->loadQuikViewSelection((idx <= 0) ? theApp->getListQuickView().size()-1 : idx-1);
                 } break;
+#endif
             case GLFW_KEY_LEFT_SHIFT :
                 leftShift = true;
                 break;

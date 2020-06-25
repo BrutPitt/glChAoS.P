@@ -12,7 +12,7 @@
 //------------------------------------------------------------------------------
 #include <vgMath.h>
 
-#include <fastRandom.h>
+#include <fastPRNG.h>
 
 #include "glWindow.h"
 
@@ -67,8 +67,7 @@ void glWindow::onInit()
     int listSize = attractorsList.getList().size()-1;
 
     auto getRandomIDX = [&]() {
-        fstRnd::fFastRand32 fastRandom;
-        return int(fastRandom.UNI() * float(listSize));
+        return int(fastXS64s::xorShift_UNI<float>() * float(listSize));
     };
 
     if(theApp->getStartWithAttractorName()=="random") {
