@@ -33,7 +33,7 @@ Is also possible to travel, in first person (cockpit view), within the particles
 | :---: | :---: |
 | [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/LorenzComet.jpg)](https://youtu.be/9RjkGQbzFkA)| [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/MultiChuaComet.jpg)](https://youtu.be/Yh99pMxFLoU) |
 
-<a href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank"><img align="right" src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/cockpitSettings.jpg"/></a>
+<img align="right" src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/cockpitSettings.jpg"/>
 
 New menu is available to adjust these settings:
 
