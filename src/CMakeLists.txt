@@ -290,7 +290,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     message("Clang...")
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(${PROJECT_NAME} PRIVATE -Wno-format-security -fpermissive)
-    #add_compile_options(--verbose -Wno-format-security -std=c++14 -fpermissive)
+    #add_compile_options(--verbose -Wno-format-security -std=c++14 -fpermissive)  -O3 -ftree-vectorize -mavx2
     message("GNU...")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # add_compile_options("/W1 /Qpar /Gm- /O2 /Ob2 /Zc:inline /fp:precise /WX- /Zc:forScope /Gd /FC /Fa /Ot /MP")
