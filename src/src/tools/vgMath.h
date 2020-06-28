@@ -197,6 +197,7 @@ public:
     Vec4(T x, T y, T z, T w)            : x(x),   y(y),   z(z),   w(w)   {}
     explicit Vec4(const VEC3_T& v, T s) : x(v.x), y(v.y), z(v.z), w(s)   {}
     explicit Vec4(T s, const VEC3_T& v) : x(s),   y(v.x), z(v.y), w(v.z) {}
+    Vec4(const VEC3_T& v)               : x(v.x), y(v.y), z(v.z) {}
 
     //operator VEC3_T() const { return *((VEC3_T *) &x); }
     Vec4 operator-() const { return {-x, -y, -z, -w}; }

@@ -63,7 +63,6 @@ public:
     }
 };
 
-
 struct ifsDataStruct
 {
     ifsDataStruct(float f) : variations(vec4(f)) {}

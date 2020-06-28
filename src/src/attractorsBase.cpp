@@ -1198,7 +1198,15 @@ void AttractorsClass::newSelection(int i) {
     getThreadStep()->stopThread();
     selection(i);
     theApp->getMainDlg().getParticlesDlgClass().resetTreeParticlesFlags();
+#ifdef GLCHAOSP_TEST_RANDOM_DISTRIBUTION // all settings are same
+    static bool isFirstTime = true;
+    if(isFirstTime) {
+        theApp->loadAttractor(getFileName().c_str());
+        isFirstTime = false;
+    }
+#else
     theApp->loadAttractor(getFileName().c_str());
+#endif
 #ifdef GLCHAOSP_LIGHTVER
     theApp->setLastFile(getFileName()); //to reload invert settings
 #endif

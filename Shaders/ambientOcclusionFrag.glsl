@@ -193,7 +193,7 @@ void main()
             float sampleDepth = restoreZ(texture(zTex,offset.xy).x);
 
             float rangeCheck = smoothstep(0.0, 1.0, radius / abs(vtx.z - sampleDepth));
-            AO += sampleDepth >= sampleP.z + u.aoBias ? (1.0-u.aoDarkness) * u.aoMul  * rangeCheck: 0.0;
+            AO += sampleDepth >= sampleP.z + u.aoBias ? (1.0-u.aoDarkness) * u.aoMul  * rangeCheck : 0.0;
         }
 
     AO = u.aoModulate -  clamp(AO/float(RAD), 0.0, 1.0);

@@ -432,7 +432,9 @@ public:
 
     inline void radiciBicomplex(const vec4 &pt, vec4 &vp)
     {
-        const uint32_t rnd = fRnd64.xoroshiro128pp();
+        //static fastXS64_mt fff;
+        //fff.jump_xoroshiro128p();
+        const uint32_t rnd = fRnd64.xoroshiro128p();
         const float sign1 = (rnd&2) ? 1.f : -1.f, sign2 = (rnd&1) ? 1.f : -1.f;
         const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
         const vec4 p(pt - ((vec4 &)*kVal.data()+c));

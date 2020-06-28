@@ -704,7 +704,7 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
         if(attractorsList.get()->dtType()) {
             tfSettinsClass::tfMode(c.get_or("tfModeOn", false));
             tfSettinsClass::cockPit(            c.get_or("cpitOn"        , false));
-            tfSettinsClass::cockPit(false); // OVERRIDE start anyway OFF // FIXME:
+            tfSettinsClass::cockPit(false); // OVERRIDE start anyway OFF // FIXME:???
             tfSettinsClass::setPerspAngle(      c.get_or("cpitFOVangle"  , tfSettinsClass::getPerspAngle()      ));
             tfSettinsClass::setPIPzoom(         c.get_or("cpitPiPsize"   , tfSettinsClass::getPIPzoom()         ));
             tfSettinsClass::setPIPposition(     c.get_or("cpitPiPpos"    , tfSettinsClass::getPIPposition()     ));
