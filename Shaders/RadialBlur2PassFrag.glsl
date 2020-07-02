@@ -185,7 +185,7 @@ vec4 gPass(sampler2D tex, vec2 direction)
     
     // separable Gaussian
     for ( float r = -radius; r <= radius; r++) {
-        float factor = exp( -(r*r) * invSigmaSqx2 ) * invSigmaxSqrt2PI;
+        float factor = exp( -(r*r*r*r) * invSigmaSqx2 ) * invSigmaxSqrt2PI;
         vec4 c = texelFetch(tex, ivec2(gl_FragCoord.xy + r * direction), 0);
         accumBuff += factor * c;
     }
@@ -359,7 +359,7 @@ vec2 scale (vec2 p, float s) {
 ////////////////////////////////////////////////////////////////////////////
 LAYOUT_INDEX(idxBYPASS) SUBROUTINE(_radialPass) vec4 byPass()
 {
-    return qualitySetting(min(texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y, 1.0f));
+    return qualitySetting(min(texture(origTexture,gl_FragCoord.xy*invScreenSize) * texControls.y, 1.0f));
 }
 
 void main ()

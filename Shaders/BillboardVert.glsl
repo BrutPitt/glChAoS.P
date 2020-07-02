@@ -17,6 +17,7 @@ out float pointDist;
 out vec4 vertParticleColor;
 out vec4 vertShadowlightView;
 out float alphaAttenuationVert;
+out float magnitudeVert;
 
 
 
@@ -25,10 +26,13 @@ void main(void)
 
     gl_Position = m.mvMatrix * vec4(a_ActualPoint.xyz,1.f);
 
-    pointDist = length(gl_Position.xyz); 
+    pointDist = length(gl_Position.xyz);
+
+    magnitudeVert = getMagnitudoAtten();
+
 
     float ptAtten = exp(-0.01*sign(pointDist)*pow(abs(pointDist)+1.f, u.pointDistAtten*.1));
-    gl_PointSize = u.pointSize*u.invScrnRes.y * ptAtten * u.ySizeRatio;
+    gl_PointSize = u.pointSize*u.invScrnRes.y * ptAtten * u.ySizeRatio * getMagnitude();
 
     alphaAttenuationVert = getLifeTimeAtten();
 

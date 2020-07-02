@@ -19,6 +19,7 @@ layout (location = 1) in vec4 velTIn;
 
 out vec4 posOut;
 out vec4 velTOut;
+out float magnitude;
 
 LAYOUT_BINDING(2) uniform _TFData {
     vec4 wind;
@@ -26,6 +27,7 @@ LAYOUT_BINDING(2) uniform _TFData {
     float airFriction;
     float diffTime;
     float elapsedTime;
+    float magnitude;
 } u;
 
 #ifndef GL_ES

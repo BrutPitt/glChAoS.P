@@ -31,6 +31,7 @@ in float pointDistance;
 in vec4 particleColor;
 in float particleSize;
 in float alphaAttenuation;
+in float magnitudeFrag;
 
 //in vec4 shadowlightView;
 
@@ -59,8 +60,15 @@ float getAlpha(float alpha)
 vec4 acquireColor(vec2 coord)
 {
     vec4 color = particleColor * texture(tex, coord).r;
+    float mag = clamp(magnitudeFrag, 0.0, 1.0);
 
-    return vec4(color.rgb * u.colIntensity, getAlpha(color.a)) ;
+    vec3 newColor = (u.slowMotion != uint(0)) ?
+                    (color.rgb + vec3(u.magnitudeInt) * mag) * u.colIntensity :
+                     color.rgb  * u.colIntensity;
+
+    //vec3 newColor = mix(color.rgb, vec3(1.0), mag) * u.colIntensity;
+
+    return vec4(newColor , getAlpha(color.a)) ;
 }
 
 

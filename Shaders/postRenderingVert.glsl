@@ -66,6 +66,9 @@ LAYOUT_BINDING(2) uniform _particlesData {
     float lifeTimeAtten;
     float smoothDistance;
     float vpReSize;
+    float magnitude;
+    float magnitudeInt;
+    float invMagnitudeAtten;
     uint  slowMotion;
 
     uint  lightModel;

@@ -65,6 +65,9 @@ LAYOUT_BINDING(2) uniform _particlesData {
     float lifeTimeAtten;
     float smoothDistance;
     float vpReSize;
+    float magnitude;
+    float magnitudeInt;
+    float invMagnitudeAtten;
     uint  slowMotion;
 
     uint  lightModel;
@@ -129,6 +132,20 @@ vec4 velColor()
     return vec4(texture(paletteTex, vec2(vel,0.f)).rgb,1.0);
 }
 
+
+float getMagnitudoAtten()
+{
+    float pointLife = u.elapsedTime-a_Vel.w;
+    float pointLifeAtten = pointLife * u.invMagnitudeAtten;
+    return 1.0 - pointLifeAtten;
+    //(pointLifeAtten>0.0 && u.slowMotion != uint(0))  ? pointLifeAtten : 0.0
+}
+float getMagnitude()
+{
+    float magnitude = u.magnitude * getMagnitudoAtten();
+
+    return ((magnitude>1.0 && u.slowMotion != uint(0)) ? magnitude : 1.0);
+}
 
 float getLifeTimeAtten()
 {
