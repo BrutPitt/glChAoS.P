@@ -250,15 +250,19 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
             *((vec4 *)v.data())= cPit.getUdata().gravity;
             c["emitGravity"    ] = Config::array(v);
         }
-        c["cpitDotsSec"     ] = cPit.getSlowMotionDpS();
-        c["cpitPointSize"   ] = cPit.getPointSize();
-        c["cpLifeTime"      ] = cPit.getLifeTimeCP();
-        c["cpLifeTimeAtten" ] = cPit.getLifeTimeAttenCP();
-        c["cpitSmoothDist"  ] = cPit.getSmoothDistance();
-        c["cpitTailPos"     ] = cPit.getTailPosition();
-        c["cpitMovPosHead"  ] = cPit.getMovePositionHead();
-        c["cpitMovPosTail"  ] = cPit.getMovePositionTail();
-        c["cpitInvertView"  ] = cPit.invertView();
+        c["cpitDotsSec"       ] = cPit.getSlowMotionDpS();
+        c["cpitPointSize"     ] = cPit.getPointSize();
+        c["cpLifeTime"        ] = cPit.getLifeTimeCP();
+        c["cpLifeTimeAtten"   ] = cPit.getLifeTimeAttenCP();
+        c["cpMagnitude"       ] = cPit.getMagnitude();
+        c["cpMagnitudeCP"     ] = cPit.getCpMagnitude();
+        c["cpMagnitudeAtten"  ] = cPit.getMagnitudeAtten();
+        c["cpMagnitudeAttenCp"] = cPit.getCpMagnitudeAtten();
+        c["cpitSmoothDist"    ] = cPit.getSmoothDistance();
+        c["cpitTailPos"       ] = cPit.getTailPosition();
+        c["cpFixedDistance"   ] = cPit.fixedDistance();
+        c["cpitMovPosTail"    ] = cPit.getMovePositionTail();
+        c["cpitInvertView"    ] = cPit.invertView();
         {
             vector<float> q(4);
             *((quat *)q.data())= cPit.getRotation();
@@ -615,16 +619,20 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         cPit.setLifeTimeAtten(          c.get_or("emitLifeTimeAtten", cPitDef.getLifeTimeAtten()       ));
         cPit.getUdata().wind    = getVec_asArray(c, "emitWind"        , v4) ? v4 : cPitDef.getUdata().wind;
         cPit.getUdata().gravity = getVec_asArray(c, "emitGravity"     , v4) ? v4 : cPitDef.getUdata().gravity;
-        cPit.setSlowMotionDpS(   c.get_or("cpitDotsSec"    , cPitDef.getSlowMotionDpS()   ));
-        cPit.setPointSize(       c.get_or("cpitPointSize"  , cPitDef.getPointSize()       ));
-        cPit.setLifeTimeCP(      c.get_or("cpLifeTime"     , cPitDef.getLifeTimeCP()      ));
-        cPit.setLifeTimeAttenCP( c.get_or("cpLifeTimeAtten", cPitDef.getLifeTimeAttenCP() ));
-        cPit.setSmoothDistance(  c.get_or("cpitSmoothDist" , cPitDef.getSmoothDistance()  ));
-        cPit.setTailPosition(    c.get_or("cpitTailPos"    , cPitDef.getTailPosition()    ));
-        cPit.setMovePositionHead(c.get_or("cpitMovPosHead" , cPitDef.getMovePositionHead()));
-        cPit.setMovePositionTail(c.get_or("cpitMovPosTail" , cPitDef.getMovePositionTail()));
-        cPit.invertView(         c.get_or("cpitInvertView" , cPitDef.invertView()         ));
-        cPit.setRotation(getVec_asArray(c,"cpitRotation"   , q) ? q :cPitDef.getRotation() );
+        cPit.setSlowMotionDpS(   c.get_or("cpitDotsSec"       , cPitDef.getSlowMotionDpS()   ));
+        cPit.setPointSize(       c.get_or("cpitPointSize"     , cPitDef.getPointSize()       ));
+        cPit.setLifeTimeCP(      c.get_or("cpLifeTime"        , cPitDef.getLifeTimeCP()      ));
+        cPit.setLifeTimeAttenCP( c.get_or("cpLifeTimeAtten"   , cPitDef.getLifeTimeAttenCP() ));
+        cPit.setMagnitude(       c.get_or("cpMagnitude"       , cPitDef.getMagnitude()       ));
+        cPit.setCpMagnitude(     c.get_or("cpMagnitudeCP"     , cPitDef.getCpMagnitude()     ));
+        cPit.setMagnitudeAtten(  c.get_or("cpMagnitudeAtten"  , cPitDef.getMagnitudeAtten()  ));
+        cPit.setCpMagnitudeAtten(c.get_or("cpMagnitudeAttenCp", cPitDef.getCpMagnitudeAtten()));
+        cPit.setSmoothDistance(  c.get_or("cpitSmoothDist"    , cPitDef.getSmoothDistance()  ));
+        cPit.setTailPosition(    c.get_or("cpitTailPos"       , cPitDef.getTailPosition()    ));
+        cPit.fixedDistance(      c.get_or("cpFixedDistance"   , cPitDef.fixedDistance()      ));
+        cPit.setMovePositionTail(c.get_or("cpitMovPosTail"    , cPitDef.getMovePositionTail()));
+        cPit.invertView(         c.get_or("cpitInvertView"    , cPitDef.invertView()         ));
+        cPit.setRotation(getVec_asArray(c,"cpitRotation"      , q) ? q :cPitDef.getRotation() );
     }
 
 

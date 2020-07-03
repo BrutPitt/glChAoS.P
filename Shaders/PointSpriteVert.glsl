@@ -53,14 +53,14 @@ void main()
 
     vec4 pt  = m.pMatrix * vec4(vtxPos.xy + vec2(size) * u.ptSizeRatio , vtxPos.zw);
 
+    // TF time-dependent values to pass to fragment
     alphaAttenuation = getLifeTimeAtten();
-
+    magnitudeFrag = getMagnitudoAtten();
 
     // NVidia & Intel do not supports gl_PointSize<1.0 -> point disappear
     // AMD driver (some times) supports gl_PointSize from 0.1
     // Look in Info dialog: point Range and Granularity
-    magnitudeFrag = getMagnitude();
-    gl_PointSize = max(distance(gl_Position.xyz, pt.xyz)/max(abs(gl_Position.w),.0001), u.pointspriteMinSize) * magnitudeFrag;
+    gl_PointSize = max(distance(gl_Position.xyz, pt.xyz)/max(abs(gl_Position.w),.0001), u.pointspriteMinSize) * getMagnitude();
 #ifdef SHADOW_PASS
      gl_PointSize *= u.shadowDetail;
 #endif

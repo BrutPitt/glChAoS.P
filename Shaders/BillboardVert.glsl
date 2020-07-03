@@ -28,13 +28,14 @@ void main(void)
 
     pointDist = length(gl_Position.xyz);
 
-    magnitudeVert = getMagnitudoAtten();
 
 
     float ptAtten = exp(-0.01*sign(pointDist)*pow(abs(pointDist)+1.f, u.pointDistAtten*.1));
     gl_PointSize = u.pointSize*u.invScrnRes.y * ptAtten * u.ySizeRatio * getMagnitude();
 
+// TF time-dependent values to pass to fragment
     alphaAttenuationVert = getLifeTimeAtten();
+    magnitudeVert = getMagnitudoAtten();
 
 #if defined(GL_ES)
     vertParticleColor = velColor();

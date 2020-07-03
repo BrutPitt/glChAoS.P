@@ -333,8 +333,6 @@ public:
     void  setPointSize(float f) { cpPointSize = f; }
     float getTailPosition() { return tailPosition; }
     void  setTailPosition(float f) { tailPosition = f; }
-    float getMovePositionHead() { return movePositionHead; }
-    void  setMovePositionHead(float f) { movePositionHead = f; }
     float getMovePositionTail() { return movePositionTail; }
     void  setMovePositionTail(float f) { movePositionTail = f; }
 
@@ -361,6 +359,27 @@ public:
 
     int getSlowMotionFSDpS() { return slowMotionFSDpS; }
     void  setSlowMotionFSDpS(int v) { slowMotionFSDpS = v; }
+
+    float getMagnitude() { return magnitude; }
+    void  setMagnitude(float f) { magnitude=f; }
+
+    float getCpMagnitude() { return cpMagnitude; }
+    void  setCpMagnitude(float f) { cpMagnitude=f; }
+
+    float getMagnitudeInt() { return magnitudeInt; }
+    void  setMagnitudeInt(float f) { magnitudeInt=f; }
+
+    float getCpMagnitudeInt() { return cpMagnitudeInt; }
+    void  setCpMagnitudeInt(float f) { cpMagnitudeInt=f; }
+
+    float getMagnitudeAtten() { return magnitudeAtten; }
+    void  setMagnitudeAtten(float f) { magnitudeAtten=f; }
+
+    float getCpMagnitudeAtten() { return cpMagnitudeAtten; }
+    void  setCpMagnitudeAtten(float f) { cpMagnitudeAtten=f; }
+
+    bool fixedDistance() { return cpFixDistance; }
+    void fixedDistance(bool b)  { cpFixDistance=b; }
 
 //const static
     static float getPerspNear() { return perspNear; }
@@ -391,11 +410,18 @@ private:
     float lifeTimeAtten = .3;
     float lifeTimeCP = 75.0;
     float lifeTimeAttenCP = .3;
-    float movePositionHead = 0, movePositionTail = 0;
+    float magnitude = 2.0;
+    float magnitudeInt = .2;
+    float magnitudeAtten = .15;
+    float movePositionTail = 0;
     bool isInvertView = false;
     float tailPosition = .25;
     float  emitterPointSize = 1;
     float cpPointSize = 7.f;
+    float cpMagnitude = 3.0;
+    float cpMagnitudeInt = .1;
+    float cpMagnitudeAtten = .25;
+    bool cpFixDistance = true;
     quat qRot = quat(1.0f,0.0f, 0.0f, 0.0f);
     int slowMotionDpS = 100; //tfSettings DotPerSec
     int slowMotionFSDpS = 5000; //FullScreen DotPerSec
@@ -1018,6 +1044,9 @@ struct uParticlesData {
     GLfloat lifeTimeAtten = .1;
     GLfloat smoothDistance = 0.0;
     GLfloat vpReSize = 1.0;
+    GLfloat magnitude = 5.0;
+    GLfloat magnitudeInt = .1;
+    GLfloat invMagnitudeAtten = 1.0/.2;
     GLuint  slowMotion = 0;
 // __APPLE__ & GL_ES
     GLuint lightModel = modelBlinnPhong - modelOffset;

@@ -141,7 +141,27 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     getUData().zNear = currentTMat->getPerspNear();
     getUData().zFar  = currentTMat->getPerspFar();
    
-    getUData().pointSize = cpitView ? cPit.getPointSize() : ( isTFRender ? cPit.getSizeTF() : getSize());
+    //getUData().pointSize = cpitView ? cPit.getPointSize() : ( isTFRender ? cPit.getSizeTF() : getSize());
+
+    if(cpitView) {          // TransformFedback cockpit view
+        getUData().pointSize = cPit.getPointSize();
+        getUData().magnitude = cPit.getCpMagnitude();
+        getUData().magnitudeInt = cPit.getCpMagnitudeInt();
+        getUData().invMagnitudeAtten = 1.f/cPit.getCpMagnitudeAtten();
+    } else if(isTFRender) { // TransformFedback full screen
+        getUData().pointSize = cPit.getSizeTF();
+        getUData().magnitude = cPit.getMagnitude();
+        getUData().magnitudeInt = cPit.getMagnitudeInt();
+        getUData().invMagnitudeAtten = 1.f/cPit.getMagnitudeAtten();
+    } else {                // Single point emitter
+        getUData().pointSize = getSize();
+        getUData().magnitude = 1.0;
+        getUData().magnitudeInt = 0.0;
+        getUData().invMagnitudeAtten = 1.0;
+    }
+
+
+
 
 
 // Shadow pass

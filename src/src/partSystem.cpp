@@ -204,9 +204,10 @@ GLuint particlesSystemClass::renderTF()
                          getTMat()->getPerspFar());
 
 
-    const float realPosH = cPit.getMovePositionHead()==cPit.getMovePositionTail() ? cPit.getMovePositionHead()-.001 : cPit.getMovePositionHead();
-    const vec3 vecDirH = (cpPOV-cpTGT) + (cpPOV-cpTGT)*realPosH;
-    const vec3 vecDirT = (cpPOV-cpTGT) + (cpPOV-cpTGT)*cPit.getMovePositionTail();
+    const float realPosH = cPit.getMovePositionTail()==0.0 ? -.001 : 0.0;
+    const vec4 dirVec = cPit.fixedDistance() ? normalize(cpPOV-cpTGT)*.3 : cpPOV-cpTGT;
+    const vec3 vecDirH = dirVec + dirVec*realPosH;
+    const vec3 vecDirT = dirVec + dirVec*cPit.getMovePositionTail();
 
     mat4 m = translate(mat4(1.f), cpTGT);
     m = m * mat4_cast(cPit.getRotation());
