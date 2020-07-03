@@ -207,16 +207,27 @@
     "Emitter settings:\n"\
     "   Emit # - Number of dots for single step\n"\
     "   EmitVel - Starting max random vel. for dot\n"\
-    "   airFriction - Air resistance\n"\
+    "   airFriction - Air resistance\n\n"\
+    "   pointSize - pointSize used only in TF full view\n"\
     "   lifeTime - time of particle with full bright\n"\
     "   lifeTimeAtten - Attenuation factor to hide particle after\n"\
     "                   lifeTime\n"\
+    "   coreMag - core Magnitude: increases core size\n"\
+    "   coreInt - core Intensity: increases core whiteness\n"\
+    "   coreAtten - core intensity attenuation, in sec\n\n"\
     "   wind - wind speed (x,y,z) and start time (w)\n"\
     "   gravity - gravity speed (x,y,z) and start time (w)"
 #define GLAPP_HELP_COCKPIT_PARTICLES\
     "Cockpit Particles settings:\n"\
-    "   pointSize - pointSize used only in tfSettings view\n"\
-    "   smoothDistance - smoothing distance for near particles"
+    "   pointSize - pointSize used only in TF cockpit view\n"\
+    "   lifeTime - time of particle with full bright\n"\
+    "   lifeTimeAtten - Attenuation factor to hide particle after\n"\
+    "                   lifeTime\n"\
+    "   coreMag - core Magnitude: increases core size\n"\
+    "   coreInt - core Intensity: increases core whiteness\n"\
+    "   coreAtten - core intensity attenuation, in sec\n\n"\
+    "   smoothDistance - smoothing distance for near particles\n"\
+    "   clipDistance - hihe nearest particles"
 #define GLAPP_HELP_COCKPIT_PIP\
     "Cockpit Picture in Picture:\n"\
     "   Corner - Activate PiP in that corner\n"\
@@ -236,8 +247,9 @@
     "-The POV view is placed on emitter tail\n\n"\
     "   fov angle - focal angle\n"\
     "   tail POV - move POV far from head follow attractor wake\n"\
-    "   move Target - move Target view point long POV-TGT vector\n"\
     "   move POV - move POV long POV-TGT vector\n"\
+    "   fixedDist - fixed distance from nozzle\n"\
+    "            or fixed time (distance change with speed)\n"\
     "   Invert view - POV <-> TGT inversion\n"\
     "   GIZMO trackball - rotate POV around TGT\n"\
     "   Reset - Reset GIZMO trackball\n\n"\

@@ -70,6 +70,7 @@ inline void headerAdditionalDataCtrls(int numControls = 1)
 void fractalIIMBase::additionalDataCtrls()
 {
 
+#ifdef SHOW_BETA_FEATURES
     ImGui::SameLine(ImGui::GetContentRegionAvail().x*.5 + ImGui::GetStyle().FramePadding.x);
     {
         bool b = ifsActive();
@@ -88,7 +89,8 @@ void fractalIIMBase::additionalDataCtrls()
     }
     theDlg.getIFSDlgParam().visible(ifsActive() && ifsParam.dlgActive());
     theDlg.getIFSDlgPoint().visible(ifsActive() && ifsPoint.dlgActive());
-
+#endif
+    
     ImGui::NewLine();
 
     headerAdditionalDataCtrls(2);

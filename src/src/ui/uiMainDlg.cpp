@@ -2059,7 +2059,7 @@ void cockpitDlgClass::view()
             ShowHelpOnTitle(GLAPP_HELP_EMIT_SM);
             if(isOpen) {
                 ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-                ImGui::BeginChild("##EmitSMChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*7+ImGui::GetStyle().ItemSpacing.y), true);
+                ImGui::BeginChild("##EmitSMChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*9-ImGui::GetStyle().ItemSpacing.y), true);
 
 
                 ImGui::TextDisabled(" Emit #");  ImGui::SameLine(w3+spaceX);
@@ -2103,6 +2103,27 @@ void cockpitDlgClass::view()
                     }
                 ImGui::PopItemWidth();
 
+                ImGui::TextDisabled(" coreMag"); ImGui::SameLine(w3+spaceX);
+                ImGui::TextDisabled(" coreInt");  ImGui::SameLine(w6+spaceX);
+                ImGui::TextDisabled(" coreAtten");
+
+                ImGui::PushItemWidth(w3-spaceX*.3333);
+                    {
+                        float f = cPit.getMagnitude();
+                        if(ImGui::DragFloat("##nozMag", &f, .001f, 0.001f, 100.0, "%.3f")) cPit.setMagnitude(f);
+                    }
+                    ImGui::SameLine();
+                    {
+                        float f = cPit.getMagnitudeInt();
+                        if(ImGui::DragFloat("##nozInt", &f, .001f,  0.0f, 1.0f, "%.3f")) cPit.setMagnitudeInt(f);
+                    }
+                    ImGui::SameLine();
+                    {
+                        float f = cPit.getMagnitudeAtten();
+                        if(ImGui::DragFloat("##nozAtt", &f, .001f, 0.001f, FLT_MAX, "%.3f")) cPit.setMagnitudeAtten(f);
+                    }
+                ImGui::PopItemWidth();
+
                 ImGui::PushItemWidth(w);
                     ImGui::TextDisabled(" Wind x y z startTime");
                     {
@@ -2141,10 +2162,9 @@ void cockpitDlgClass::view()
                 ShowHelpOnTitle(GLAPP_HELP_COCKPIT_PARTICLES);
                 if(isOpen) {
                     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-                    ImGui::BeginChild("##PartCPChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*4), true);
+                    ImGui::BeginChild("##PartCPChld", ImVec2(0,ImGui::GetFrameHeightWithSpacing()*5+ImGui::GetStyle().ItemSpacing.y*3), true);
 
                     const float w = ImGui::GetContentRegionAvail().x;
-                    const float w2 = w*.5;
                     const float spaceX = ImGui::GetStyle().ItemSpacing.x;
 
                     ImGui::TextDisabled(" pointSize");     ImGui::SameLine(w3+spaceX);
@@ -2165,6 +2185,27 @@ void cockpitDlgClass::view()
                         {
                             float f = cPit.getLifeTimeAttenCP();
                             if(ImGui::DragFloat("##lifeTimeAtten", &f, .001f, 0.0f, 1.0, "%.3f")) cPit.setLifeTimeAttenCP(f);
+                        }
+                    ImGui::PopItemWidth();
+
+                    ImGui::TextDisabled(" coreMag"); ImGui::SameLine(w3+spaceX);
+                    ImGui::TextDisabled(" coreInt");  ImGui::SameLine(w6+spaceX);
+                    ImGui::TextDisabled(" coreAtten");
+
+                    ImGui::PushItemWidth(w3-spaceX*.3333);
+                        {
+                            float f = cPit.getCpMagnitude();
+                            if(ImGui::DragFloat("##nozMagCP", &f, .001f, 0.001f, 100.0, "%.3f")) cPit.setCpMagnitude(f);
+                        }
+                        ImGui::SameLine();
+                        {
+                            float f = cPit.getCpMagnitudeInt();
+                            if(ImGui::DragFloat("##nozIntCP", &f, .001f, 0.0f, 1.0f, "%.3f")) cPit.setCpMagnitudeInt(f);
+                        }
+                        ImGui::SameLine();
+                        {
+                            float f = cPit.getCpMagnitudeAtten();
+                            if(ImGui::DragFloat("##nozAttCP", &f, .001f, 0.001f, FLT_MAX, "%.3f")) cPit.setCpMagnitudeAtten(f);
                         }
                     ImGui::PopItemWidth();
 
@@ -2261,16 +2302,15 @@ void cockpitDlgClass::view()
                         float f = cPit.getTailPosition();
                         if(ImGui::DragFloat("##tailPos", &f, .001f, 0.0f, 1.0, "%.3f")) cPit.setTailPosition(f);
                     }
-                    ImGui::PopItemWidth();
-
-                    ImGui::PushItemWidth(w6);
-                    ImGui::TextDisabled(" move Target / POV");
+                    ImGui::TextDisabled(" move POV");
                     {
-                        float f[2] = { cPit.getMovePositionHead(), cPit.getMovePositionTail() };
-                        if(ImGui::DragFloat2("##TgtPOV", f, .001f, -FLT_MAX, FLT_MAX, "%.3f")) {
-                            cPit.setMovePositionHead(f[0]);
-                            cPit.setMovePositionTail(f[1]);
-                        }
+                        float f = cPit.getMovePositionTail();
+                        if(ImGui::DragFloat("##TgtPOV", &f, .001f, -FLT_MAX, FLT_MAX, "%.3f")) cPit.setMovePositionTail(f);
+                    }
+                        ImGui::SameLine();
+                    {
+                        bool b = cPit.fixedDistance();
+                        if(ImGui::Checkbox("fixedDist", &b)) cPit.fixedDistance(b);
                     }
                     ImGui::PopItemWidth();
 
