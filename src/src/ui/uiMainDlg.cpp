@@ -842,7 +842,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
     ////////////////////////////////////
     {
         ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
-        const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_LOW_VISION " Glow Effect   "  ICON_FA_COMMENT_O);
+        const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_LOW_VISION " Blur/Glow/deNoise Effects   "  ICON_FA_COMMENT_O);
         ImGui::PopStyleColor();
         ShowHelpOnTitle(GLAPP_HELP_GLOW_TREE);
 
@@ -877,9 +877,9 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                     {
                         int idx = mode-1;
-                        if (ImGui::Combo(buildID(base, idA++, id), &idx, "Gaussian blur\0"\
-                                                                          "Gaussian + bilateral\0"\
-                                                                          "bilateral threshold\0"))
+                        if (ImGui::Combo(buildID(base, idA++, id), &idx, "GaussBlur / Glow \0"\
+                                                                          "GaussGlow + deNoise\0"\
+                                                                          "deNoise\0"))
                             { glow->setGlowState(idx+1); }
                     }
 
@@ -919,9 +919,9 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
     
                 //////////Linea 9//////////        
                 ImGui::SetCursorPosX(INDENT(posA )); ImGui::TextDisabled("rendrI"); 
-                if(mode == glow->glowType_Blur      || mode == glow->glowType_Threshold) { ImGui::SameLine(     INDENT(posB5)); ImGui::TextDisabled("gaussI");         }
-                if(mode == glow->glowType_Bilateral || mode == glow->glowType_Threshold) { ImGui::SameLine(     INDENT(posC5)); ImGui::TextDisabled("bilatI"  );      
-                                                                                           ImGui::SameLine(     INDENT(posD5)); ImGui::TextDisabled("bilat thrshld"); }
+                if(mode == glow->glowType_Blur      || mode == glow->glowType_Threshold) { ImGui::SameLine(INDENT(posB5)); ImGui::TextDisabled("gaussI");         }
+                if(mode == glow->glowType_Bilateral || mode == glow->glowType_Threshold) { ImGui::SameLine(INDENT(posC5)); ImGui::TextDisabled("deNoisI"  );
+                                                                                           ImGui::SameLine(INDENT(posD5)); ImGui::TextDisabled("deNoise thrsld"); }
                 //ImGui::SameLine(     INDENT(posD5)); ImGui::TextDisabled("render " ICON_FA_ARROWS_H " glow"); 
 
                 //////////Linea 10//////////        
@@ -956,10 +956,13 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
     
 
                 //////////Linea 9//////////        
-                ImGui::SetCursorPosX(INDENT(posA)); ImGui::TextDisabled("render " ICON_FA_ARROWS_H " glow"); 
-                if(mode == glow->glowType_Threshold) { ImGui::SameLine(     INDENT(posC4)); ImGui::TextDisabled("gauss " ICON_FA_ARROWS_H " bilat"); }
-                ImGui::SetCursorPosX(posA); 
-                const int sz = wButt4*2+border;
+                ImGui::SetCursorPosX(INDENT(posA)); ImGui::TextDisabled("rend" ICON_FA_ARROWS_H "blur");
+                if(mode == glow->glowType_Threshold || mode == glow->glowType_Blur) {
+                    ImGui::SameLine(INDENT(posB3)); ImGui::TextDisabled("gauss" ICON_FA_ARROWS_H "glow");
+                }
+                if(mode == glow->glowType_Threshold) { ImGui::SameLine(INDENT(posC3)); ImGui::TextDisabled("gauss" ICON_FA_ARROWS_H "thres"); }
+                ImGui::SetCursorPosX(posA);
+                const int sz = wButt3+border;
                 ImGui::AlignTextToFramePadding();
                 {
                     //ImGui::TextDisabled("threshold"); ImGui::SameLine(); 
@@ -970,10 +973,16 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     if(ImGui::SliderFloat(buildID(base, idA++, id), &f, -1.0f, 1.0f, "% .3f")) glow->setMixTexture(f);
                     ImGui::PopItemWidth();
                 }
+                if(mode == glow->glowType_Blur || mode == glow->glowType_Threshold) {
+                    ImGui::SameLine(posB3); ImGui::PushItemWidth(sz);
+                    float f = glow->getMixBrurGlow();
+                    if(ImGui::SliderFloat(buildID(base, idA++, id), &f, 0.0f, 1.0f, "% .3f")) glow->setMixBrurGlow(f);
+                    ImGui::PopItemWidth();
+                }
                 if(mode == glow->glowType_Threshold) {
                     //ImGui::SameLine(wHalf); ImGui::TextDisabled("thrshldMix"); ImGui::SameLine(); 
                     //ImGui::PushItemWidth(w-ImGui::GetCursorPosX()-border);         
-                    ImGui::SameLine(posC4); ImGui::PushItemWidth(sz); 
+                    ImGui::SameLine(posC3); ImGui::PushItemWidth(sz);
                     float f = glow->getImgTuning()->getMixBilateral();
                     if(ImGui::SliderFloat(buildID(base, idA++, id), &f, -1.0f, 1.0f, "% .3f")) glow->getImgTuning()->setMixBilateral(f);
                     ImGui::PopItemWidth();

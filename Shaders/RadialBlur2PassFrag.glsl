@@ -46,16 +46,18 @@ layout(std140) uniform;
 
 
 LAYOUT_BINDING(2) uniform _blurData {
-    vec4 sigma;
-    float threshold;
-    bool toneMap;
-    vec2 toneMapVals; // tonemap -> col = A * pow(col, G); -> x = A and y = G
-
     vec4 texControls;
     vec4 videoControls; //videoControls vec4 ->  1.f/m_gamma, m_exposure, m_bright, m_contrast
     vec2 invScreenSize;
+    vec2 toneMapVals; // tonemap -> col = A * pow(col, G); -> x = A and y = G
+
+    float sigmaSize;
+    float sigmaRange;
+    float noiseThreshold;
+    bool toneMap;
 
     float mixTexture;
+    float mixBrurGlow;
 
     int blurCallType;
 };
@@ -126,13 +128,14 @@ CONST vec2 aspect = vec2(1.0, 1.0);
 //
 //          fXY = exp( -dot(k,k) * invSigmaQx2) * invSigmaQx2PI
 
-vec4 bilateralSmartSmooth(CONST float reductFactor)
+vec4 bilateralSmartSmooth(float reductFactor)
 {
-    float bsigma = threshold*reductFactor;
-    float radius = float(round(sigma.y*sigma.x-1.f));
+    float bsigma = noiseThreshold*reductFactor;
+    float reductSigma = sigmaSize * reductFactor;
+    float radius = float(round(sigmaRange*reductSigma-1.f));
     float radQ = radius * radius;
     
-    float invSigma = 1.f/sigma.x;
+    float invSigma = 1.f/reductSigma;
     float invSigmaQx2 = .5 * invSigma * invSigma;          // 1.0 / (sigma^2 * 2.0)
     float invSigmaQx2PI = INV_PI * invSigmaQx2;    // 1.0 / (sqrt(PI) * sigma)
     
@@ -146,14 +149,14 @@ vec4 bilateralSmartSmooth(CONST float reductFactor)
     vec4 accumBuff = vec4(0.0);
     
     vec2 d;
-    for (d.x=-radius; d.x <= radius; d.x++)	{
+    for(d.x=-radius; d.x <= radius; d.x++)	{
         float pt = sqrt(radQ-d.x*d.x);
-        for (d.y=-pt; d.y <= pt; d.y++) {
+        for(d.y=-pt; d.y <= pt; d.y++) {
             float blurFactor = exp( -dot(d , d) * invSigmaQx2 ) * invSigmaQx2PI;
             
             vec4 walkPx =  texelFetch(origTexture, ivec2(gl_FragCoord.xy+d),0 );
             vec4 dC = walkPx-centrPx;
-            float deltaFactor = exp( -dot(dC, dC) * invBSigmaSqx2) * invBSigmaxSqrt2PI * blurFactor;
+            float deltaFactor = exp( -dot(dC.rgb, dC.rgb) * invBSigmaSqx2) * invBSigmaxSqrt2PI * blurFactor;
                                  
             Zbuff     += deltaFactor;
             accumBuff += deltaFactor*walkPx;
@@ -173,79 +176,31 @@ vec4 gPass(sampler2D tex, vec2 direction)
     //vec2 offset = wSize; 
     
     //compute the radius across the kernel
-    float radius = sigma.y*sigma.x-1.f;
+    float radius = sigmaRange*sigmaSize-1.f;
     
     float Zbuff = 0.0;
-    vec4 accumBuff = vec4(0.0);
+    vec4 accumBuffGauss = vec4(0.0);
+    vec4 accumBuffGlow  = vec4(0.0);
     
     //precompute factors used every iteration
-    float invSigma = 1.f/sigma.x;
+    float invSigma = 1.f/sigmaSize;
     float invSigmaSqx2 = .5 * invSigma * invSigma;          // 1.0 / (sigma^2 * 2.0)
     float invSigmaxSqrt2PI = INV_SQRT_OF_2PI * invSigma;    // 1.0 / (sqrt(PI) * sigma)
     
     // separable Gaussian
-    for ( float r = -radius; r <= radius; r++) {
-        float factor = exp( -(r*r*r*r) * invSigmaSqx2 ) * invSigmaxSqrt2PI;
+    for( float r = -radius; r <= radius; r++) {
+        float factor = exp( -(r*r) * invSigmaSqx2 ) * invSigmaxSqrt2PI;
         vec4 c = texelFetch(tex, ivec2(gl_FragCoord.xy + r * direction), 0);
-        accumBuff += factor * c;
+        accumBuffGauss += factor * c;
+        accumBuffGlow  += factor * vec4((c.rgb*c.a), c.a);
     }
     
-    return accumBuff;
+    return mix(accumBuffGauss, accumBuffGlow, mixBrurGlow);
 }
-
-
-
-//#define NVIDIA_GAUSS 
-#ifdef NVIDIA_GAUSS 
- 
-// The inverse of the texture dimensions along X and Y
- 
-float blurSize = 1.0*wSize.x;       
-                           // The sigma value for the gaussian function: higher value means more blur
-                            // A good value for 9x9 is around 3 to 5
-                            // A good value for 7x7 is around 2.5 to 4
-                            // A good value for 5x5 is around 2 to 3.5
-                            // ... play around with this based on what you need 
- 
-const float pi = 3.14159265;
-float numBlurPixelsPerSide = (3.0*sigma);
- 
-vec4 glow(sampler2D tex, vec2 direction) {  
- 
- 
-  // Incremental Gaussian Coefficent Calculation (See GPU Gems 3 pp. 877 - 889)
-  vec3 incrementalGaussian;
-  incrementalGaussian.x = 1.0 / (sqrt(2.0 * pi) * sigma.x);
-  incrementalGaussian.y = exp(-0.5 / (sigma.x * sigma.x));
-  incrementalGaussian.z = incrementalGaussian.y * incrementalGaussian.y;
- 
-  vec4 avgValue = vec4(0.0, 0.0, 0.0, 0.0);
-  float coefficientSum = 0.0;
- 
-  // Take the central sample first...
-  avgValue += texelFetch(tex, ivec2(gl_FragCoord.xy), 0) * incrementalGaussian.x;
-  coefficientSum += incrementalGaussian.x;
-  incrementalGaussian.xy *= incrementalGaussian.yz;
- 
-  // Go through the remaining 8 vertical samples (4 on each side of the center)
-  for (float i = 1.0; i <= numBlurPixelsPerSide; i++) { 
-    avgValue += texelFetch(tex, ivec2(gl_FragCoord.xy - i * blurSize * direction), 0) * incrementalGaussian.x;         
-    avgValue += texelFetch(tex, ivec2(gl_FragCoord.xy + i * blurSize * direction), 0) * incrementalGaussian.x;         
-    coefficientSum += 2.0 * incrementalGaussian.x;
-    incrementalGaussian.xy *= incrementalGaussian.yz;
-  }
- 
-  return avgValue / coefficientSum;
-}
-
-#endif
 
 
 vec4 qualitySetting(vec4 col)
 {
-
-
-
     // Gamma
     col.rgb = pow(col.rgb, vec3(videoControls.x));  //approx gamma -> 1/gamma
 
@@ -269,13 +224,13 @@ vec4 qualitySetting(vec4 col)
         //if(videoControls.w>0.0) col.rgb = contrast2(col.rgb, (videoControls.w ));
 
     return col;
-
 }
 
 //  Pass1 Gauss Blur
 ////////////////////////////////////////////////////////////////////////////
 LAYOUT_INDEX(idxRADIAL_P1) SUBROUTINE(_radialPass) vec4 radialPass1()
 {
+    //vec4 c = texelFetch(origTexture, ivec2(gl_FragCoord.xy), 0);
     return gPass(origTexture, vec2(1.0, 0.0));
 }
 
@@ -283,26 +238,24 @@ LAYOUT_INDEX(idxRADIAL_P1) SUBROUTINE(_radialPass) vec4 radialPass1()
 ////////////////////////////////////////////////////////////////////////////
 LAYOUT_INDEX(idxRADIAL_P2) SUBROUTINE(_radialPass) vec4 radialPass2()
 {
-    vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y; //origTex * intensity
-    vec4 blurred = gPass(pass1Texture, vec2(0.0, 1.0))* texControls.x;                //blur * intensity
+    vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0); //origTex * intensity
+    vec4 blurred = gPass(pass1Texture, vec2(0.0, 1.0));                //blur * intensity
 
-    return qualitySetting(min(mix(original,blurred,mixTexture), 1.0f));
+    return qualitySetting(min(mix(original * texControls.y,vec4(blurred.rgb*texControls.x,original.a),mixTexture), 1.0f));
 
     //return qualitySetting(mix(original,clamp(mix(blurred,newBlur,clamp(dotP+.5, 0.0, 1.0)), 0.0, 1.0),mixTexture));
 
 }
 
-//  Pass2 Gauss Blur + threshold -> reduced (1/4) bilateral
+//  Pass2 Gauss Blur + noiseThreshold -> reduced (1/4) bilateral
 ////////////////////////////////////////////////////////////////////////////
 LAYOUT_INDEX(idxRADIAL_P2_BILAT) SUBROUTINE(_radialPass) vec4 radialPass2withBilateral()
 {
     vec4 original = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0) * texControls.y;
     vec4 blurred = gPass(pass1Texture, vec2(0.0, 1.0))* texControls.x;
-    vec4 newBlur = bilateralSmartSmooth(.2) * texControls.z;
+    vec4 newBlur = bilateralSmartSmooth(.5) * texControls.z;
 
-    float dotP = clamp(linearLum(newBlur.rgb)+texControls.w, 0.0f, 1.0f);
-
-    return qualitySetting(min(mix(original,mix(blurred,newBlur, dotP),mixTexture), 1.0));
+    return qualitySetting(min(mix(original,mix(blurred,newBlur, texControls.w),mixTexture), 1.0));
     // mix(blurred,newBlur, dotP)
 
 }

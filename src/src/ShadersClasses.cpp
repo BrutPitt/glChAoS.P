@@ -700,11 +700,10 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
 
 void BlurBaseClass::updateData(GLuint subIndex) 
 {
-    const float invSigma = 1.f/sigma.x;
-    sigma.z = .5 * invSigma * invSigma;
-    sigma.w = T_INV_PI * sigma.z;
-    getUData().sigma        = sigma;
+    getUData().sigmaRange   = sigmaRange;
+    getUData().sigmaSize    = sigmaSize;
     getUData().threshold    = threshold;
+    getUData().mixBrurGlow  = mixBrurGlow;
 
     getUData().toneMapping  = imageTuning->toneMapping;
     getUData().toneMapVals  = imageTuning->toneMapValsAG;
@@ -714,7 +713,7 @@ void BlurBaseClass::updateData(GLuint subIndex)
     const float bright   = imageTuning->videoControls.z; 
     const float contrast = imageTuning->videoControls.w;        
     getUData().videoControls = vec4(gamma , exposure, bright, contrast); 
-    getUData().texControls = imageTuning->texControls;
+    getUData().texControls = vec4(vec3(imageTuning->texControls), (imageTuning->texControls.w+1.f)*.5f);
 
     getUData().mixTexture   = (1.f + mixTexture)*.5;
 

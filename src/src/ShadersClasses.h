@@ -172,13 +172,13 @@ public:
 
     ////////////////////////////
 // dataBlurClass
-    GLfloat getSigma()       { return sigma.x; }
-    void setSigma(GLfloat s)    { sigma.x = s; setFlagUpdate(); }
+    GLfloat getSigma()       { return sigmaSize; }
+    void setSigma(GLfloat s)    { sigmaSize = s; setFlagUpdate(); }
 
-    GLfloat getSigmaRadX()     { return sigma.y; }
-    void setSigmaRadX(float f) { sigma.y = f; setFlagUpdate(); }
-    void setSigmaRad2X()       { sigma.y = 2.0; setFlagUpdate(); }
-    void setSigmaRad3X()       { sigma.y = 3.0; setFlagUpdate(); }
+    GLfloat getSigmaRadX()     { return sigmaRange; }
+    void setSigmaRadX(float f) { sigmaRange = f; setFlagUpdate(); }
+    void setSigmaRad2X()       { sigmaRange = 2.0; setFlagUpdate(); }
+    void setSigmaRad3X()       { sigmaRange = 3.0; setFlagUpdate(); }
 
     GLfloat getMixTexture()       { return mixTexture; }
     void setMixTexture(GLfloat s)    { mixTexture = s; setFlagUpdate(); }
@@ -198,12 +198,15 @@ public:
     float getThreshold() { return threshold; }
     void setThreshold(float f) { threshold = f; setFlagUpdate(); }
 
+    float  getMixBrurGlow() { return mixBrurGlow; }
+    void setMixBrurGlow(float f) {   mixBrurGlow = f; setFlagUpdate(); }
 
 protected:
-    vec4 sigma = vec4(3.0); 
+    float sigmaSize, sigmaRange;
     int glowState = glowType_Threshold;
     bool glowActive = false;
     float threshold = .1;
+    float mixBrurGlow = .5;
     GLfloat mixTexture;
     mmFBO glowFBO;
     renderBaseClass *renderEngine;
@@ -233,16 +236,20 @@ inline void imgTuningClass::setMixBilateral(GLfloat v) { texControls.w = v; glow
 class BlurBaseClass : public mainProgramObj, public uniformBlocksClass, public virtual dataBlurClass
 {
 struct uBlurData {
-    vec4 sigma;             // align 0
-    GLfloat threshold;
-    GLuint toneMapping;     //bool, but need to align 4 byte
-    vec2 toneMapVals;       // align 16+2N 24
-
     vec4 texControls;       // align 32
     vec4 videoControls;     // align 48
     vec2 invScreenSize;
+    vec2 toneMapVals;       // align 16+2N 24
+
+    GLfloat sigmaSize;
+    GLfloat sigmaRange;
+    GLfloat threshold;
+    GLuint toneMapping;     //bool, but need to align 4 byte
+
 
     GLfloat mixTexture;
+    GLfloat mixBrurGlow;
+    
     GLint blurCallType;
 
 } uData;

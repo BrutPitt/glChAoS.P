@@ -214,6 +214,7 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     c["bilatInt"        ] = glow->getImgTuning()->getBlatComponent();
     c["bilatMix"        ] = glow->getImgTuning()->getMixBilateral() ;
     c["mixTexture"      ] = glow->getMixTexture();
+    c["mixBrurGlow"     ] = glow->getMixBrurGlow();
     c["glowThreshold"   ] = glow->getThreshold();
 
 #if !defined(GLCHAOSP_NO_FXAA)
@@ -568,10 +569,11 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         if(glow->isGlowOn()) glow->setGlowState(glow->glowType_Bilateral);
 #endif
 
-        glow->setSigma(     c.get_or("sigma"       , glow->getSigma()     ));
-        glow->setSigmaRadX( c.get_or("sigmaRadX"   , glow->getSigmaRadX() ));
-        glow->setMixTexture(c.get_or("mixTexture"  , glow->getMixTexture()));
-        glow->setThreshold(c.get_or("glowThreshold", glow->getThreshold()));
+        glow->setSigma(      c.get_or("sigma"       , glow->getSigma()     ));
+        glow->setSigmaRadX(  c.get_or("sigmaRadX"   , glow->getSigmaRadX() ));
+        glow->setMixTexture( c.get_or("mixTexture"  , glow->getMixTexture()));
+        glow->setMixBrurGlow(c.get_or("mixBrurGlow" , 0.0));
+        glow->setThreshold(  c.get_or("glowThreshold", glow->getThreshold()));
 
         glow->getImgTuning()->setTextComponent(c.get_or("renderInt", glow->getImgTuning()->getTextComponent()));
         glow->getImgTuning()->setBlurComponent(c.get_or("blurInt"  , glow->getImgTuning()->getBlurComponent()));
