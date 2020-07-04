@@ -30,6 +30,7 @@
 
 //#define GLAPP_IMGUI_VIEWPORT
 
+//#define GLCHAOSP_LIGHTVER_BLUR
 
 #ifdef __EMSCRIPTEN__
     #define DOT_TEXT_SHFT 1

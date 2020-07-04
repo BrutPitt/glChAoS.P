@@ -682,11 +682,13 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
     glBindTexture(GL_TEXTURE_2D,sourceTex);
     setUniform1i(LOCorigTexture, sourceTex);
 
-    #if !defined(GLCHAOSP_LIGHTVER)
+    #if !defined(GLCHAOSP_LIGHTVER_BLUR)
         glActiveTexture(GL_TEXTURE0+glowFBO.getTex(RB_PASS_1));
         glBindTexture(GL_TEXTURE_2D,  glowFBO.getTex(RB_PASS_1));
         setUniform1i(LOCpass1Texture, glowFBO.getTex(RB_PASS_1));
+    #endif
 
+    #if !defined(GLCHAOSP_LIGHTVER)
         #if !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
             glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &idxSubGlowType[subIndex]);
         #endif

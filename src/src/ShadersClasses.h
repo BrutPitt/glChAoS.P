@@ -679,7 +679,7 @@ public:
     
     radialBlurClass(renderBaseClass *ptrRE) {
         renderEngine = ptrRE;
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_LIGHTVER_BLUR)
         glowFBO.buildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());
 #else
         glowFBO.buildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());
@@ -688,7 +688,7 @@ public:
 
     void render(GLuint sourceTex, GLuint fbOut) {
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_LIGHTVER_BLUR)
         if(isGlowOn() && (getGlowState()==glowType_Blur || getGlowState()==glowType_Threshold)) {
             glowPass(sourceTex, glowFBO.getFB(RB_PASS_1), idxSubroutine_BlurCommonPass1);
             glowPass(sourceTex, fbOut, getGlowState()==glowType_Blur ? 

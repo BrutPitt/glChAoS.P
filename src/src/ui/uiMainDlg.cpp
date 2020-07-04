@@ -866,7 +866,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     //if(modCheckBox(b, wButt3, true)) glow->setGlowState(b^1);
 */
                     
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_LIGHTVER_BLUR)
                     {    
                         bool b = glow->isGlowOn();
                         if(ImGui::Checkbox(buildID(base, idA++, id), &b)) glow->setGlowOn(b);

@@ -565,7 +565,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
             }
         }
         if(theApp->startWithGlowOFF()) glow->setGlowOn(false);    
-#ifdef GLCHAOSP_LIGHTVER
+#ifdef GLCHAOSP_LIGHTVER_BLUR
         if(glow->isGlowOn()) glow->setGlowState(glow->glowType_Bilateral);
 #endif
 
