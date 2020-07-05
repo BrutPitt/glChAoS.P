@@ -131,10 +131,12 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 
     tfSettinsClass &cPit = getTFSettings();
     getUData().elapsedTime   = cPit.getUdata().elapsedTime;
-    getUData().lifeTime      = tfSettinsClass::getPIPposition() ? std::max(cPit.getLifeTimeCP(),cPit.getLifeTime()) :
+
+    getUData().lifeTime      = tfSettinsClass::getPIPposition() && cPit.cockPit() ? std::max(cPit.getLifeTimeCP(),cPit.getLifeTime()) :
             cpitView ? cPit.getLifeTimeCP() : cPit.getLifeTime();           // if PiP get max for both to sync view
-    getUData().lifeTimeAtten = tfSettinsClass::getPIPposition() ? std::max(cPit.getLifeTimeAttenCP(), cPit.getLifeTimeAtten()) :
+    getUData().lifeTimeAtten = tfSettinsClass::getPIPposition() && cPit.cockPit() ? std::max(cPit.getLifeTimeAttenCP(), cPit.getLifeTimeAtten()) :
             cpitView ? cPit.getLifeTimeAttenCP() : cPit.getLifeTimeAtten(); // if PiP get max for both to sync view
+
     getUData().smoothDistance= cPit.getSmoothDistance();
     getUData().vpReSize      = isFullScreenPiP ? 1.0 : cPit.getPIPzoom()*.5;
 
@@ -159,10 +161,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getUData().magnitudeInt = 0.0;
         getUData().invMagnitudeAtten = 1.0;
     }
-
-
-
-
 
 // Shadow pass
 /////////////////////////////////////////////
@@ -648,8 +646,10 @@ void BlurBaseClass::create()
 
 
         uniformBlocksClass::create(GLuint(sizeof(uBlurData)), (void *) &uData, getProgram(), "_blurData");
-    #if !defined(GLCHAOSP_LIGHTVER) 
+    #if !defined(GLCHAOSP_LIGHTVER_BLUR)
         LOCpass1Texture = getUniformLocation("pass1Texture");
+    #endif
+    #if !defined(GLCHAOSP_LIGHTVER)
         #if !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
             idxSubGlowType[idxSubroutine_ByPass            ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "byPass"                  );
             idxSubGlowType[idxSubroutine_BlurCommonPass1   ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass1"             );
@@ -667,25 +667,24 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
     bindPipeline();
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
 
-    //glInvalidateBufferData(fbo);
-    //glClear(GL_COLOR_BUFFER_BIT);	
-    
+    const GLuint texPass = subIndex != idxSubroutine_BlurCommonPass1 ? glowFBO.getTex(RB_PASS_1) : glowFBO.getTex(RB_PASS_2);
+
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, sourceTex);
-    glBindTextureUnit(1, glowFBO.getTex(RB_PASS_1));
+    glBindTextureUnit(1, texPass);
 
     glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIndex);
     updateData(subIndex);
 #else
     USE_PROGRAM
-    glActiveTexture(GL_TEXTURE0+sourceTex);
-    glBindTexture(GL_TEXTURE_2D,sourceTex);
-    setUniform1i(LOCorigTexture, sourceTex);
+    glActiveTexture(GL_TEXTURE0 + sourceTex);
+    glBindTexture(GL_TEXTURE_2D,  sourceTex);
+    setUniform1i(LOCorigTexture,  sourceTex);
 
     #if !defined(GLCHAOSP_LIGHTVER_BLUR)
-        glActiveTexture(GL_TEXTURE0+glowFBO.getTex(RB_PASS_1));
-        glBindTexture(GL_TEXTURE_2D,  glowFBO.getTex(RB_PASS_1));
-        setUniform1i(LOCpass1Texture, glowFBO.getTex(RB_PASS_1));
+        glActiveTexture(GL_TEXTURE0 + texPass);
+        glBindTexture(GL_TEXTURE_2D,  texPass);
+        setUniform1i(LOCpass1Texture, texPass);
     #endif
 
     #if !defined(GLCHAOSP_LIGHTVER)
@@ -705,7 +704,7 @@ void BlurBaseClass::updateData(GLuint subIndex)
     getUData().sigmaRange   = sigmaRange;
     getUData().sigmaSize    = sigmaSize;
     getUData().threshold    = threshold;
-    getUData().mixBrurGlow  = mixBrurGlow;
+    getUData().mixBrurGlow  = mixBrurGlow*mixBrurGlow*mixBrurGlow;
 
     getUData().toneMapping  = imageTuning->toneMapping;
     getUData().toneMapVals  = imageTuning->toneMapValsAG;
@@ -762,8 +761,6 @@ void colorMapTexturedClass::create()
 
 void colorMapTexturedClass::render(int tex)
 {
-
-    
     if(!flagUpdate) return;
 
     bindPipeline();

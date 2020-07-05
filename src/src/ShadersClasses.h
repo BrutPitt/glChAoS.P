@@ -691,7 +691,7 @@ public:
 #if !defined(GLCHAOSP_LIGHTVER_BLUR)
         if(isGlowOn() && (getGlowState()==glowType_Blur || getGlowState()==glowType_Threshold)) {
             glowPass(sourceTex, glowFBO.getFB(RB_PASS_1), idxSubroutine_BlurCommonPass1);
-            glowPass(sourceTex, fbOut, getGlowState()==glowType_Blur ? 
+            glowPass(sourceTex, fbOut, getGlowState()==glowType_Blur ?
                                                        idxSubroutine_BlurGaussPass2 : 
                                                        idxSubroutine_BlurThresholdPass2);
         } else

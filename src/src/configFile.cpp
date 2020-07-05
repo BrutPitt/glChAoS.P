@@ -259,6 +259,8 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
         c["cpMagnitudeCP"     ] = cPit.getCpMagnitude();
         c["cpMagnitudeAtten"  ] = cPit.getMagnitudeAtten();
         c["cpMagnitudeAttenCp"] = cPit.getCpMagnitudeAtten();
+        c["cpMagnitudeIntns"  ] = cPit.getMagnitudeInt();
+        c["cpMagnitudeIntnsCp"] = cPit.getCpMagnitudeInt();
         c["cpitSmoothDist"    ] = cPit.getSmoothDistance();
         c["cpitTailPos"       ] = cPit.getTailPosition();
         c["cpFixedDistance"   ] = cPit.fixedDistance();
@@ -629,6 +631,8 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         cPit.setCpMagnitude(     c.get_or("cpMagnitudeCP"     , cPitDef.getCpMagnitude()     ));
         cPit.setMagnitudeAtten(  c.get_or("cpMagnitudeAtten"  , cPitDef.getMagnitudeAtten()  ));
         cPit.setCpMagnitudeAtten(c.get_or("cpMagnitudeAttenCp", cPitDef.getCpMagnitudeAtten()));
+        cPit.setMagnitudeInt(    c.get_or("cpMagnitudeIntns"  , cPitDef.getMagnitudeInt()    ));
+        cPit.setCpMagnitudeInt(  c.get_or("cpMagnitudeIntnsCp", cPitDef.getCpMagnitudeInt()  ));
         cPit.setSmoothDistance(  c.get_or("cpitSmoothDist"    , cPitDef.getSmoothDistance()  ));
         cPit.setTailPosition(    c.get_or("cpitTailPos"       , cPitDef.getTailPosition()    ));
         cPit.fixedDistance(      c.get_or("cpFixedDistance"   , cPitDef.fixedDistance()      ));

@@ -190,9 +190,9 @@ GLuint particlesSystemClass::renderTF()
     const vec3 vecA(vec3(attractorsList.get()->getCurrent() ));
 
     const int buffSize = attractorsList.get()->getQueueSize()-1;
-    int idx = cPit.getTailPosition()*buffSize+.5;
+    const int idx = cPit.getTailPosition()*buffSize+.5;
 
-    const vec3 vecB(vec3(attractorsList.get()->getAt(idx<1 ? 1 : (idx>buffSize ? buffSize : idx))));
+    const vec3 vecB(vec3(attractorsList.get()->getAt(idx<1 || cPit.fixedDistance() ? 1 : (idx>buffSize ? buffSize : idx))));
 
     vec3 cpPOV((cPit.invertView() ? vecA : vecB));
     vec3 cpTGT((cPit.invertView() ? vecB : vecA));
@@ -204,15 +204,12 @@ GLuint particlesSystemClass::renderTF()
                          getTMat()->getPerspFar());
 
 
-    const float realPosH = cPit.getMovePositionTail()==0.0 ? -.001 : 0.0;
-    const vec4 dirVec = cPit.fixedDistance() ? normalize(cpPOV-cpTGT)*.3 : cpPOV-cpTGT;
-    const vec3 vecDirH = dirVec + dirVec*realPosH;
-    const vec3 vecDirT = dirVec + dirVec*cPit.getMovePositionTail();
+    const vec3 dirVec = cPit.fixedDistance() ? normalize(cpPOV-cpTGT) : cpPOV-cpTGT;
+    const vec3 vecDirT = dirVec * cPit.getMovePositionTail();
 
     mat4 m = translate(mat4(1.f), cpTGT);
     m = m * mat4_cast(cPit.getRotation());
     cpPOV = mat4(m) * vec4(vecDirT, 1.0);
-    cpTGT = mat4(m) * vec4(vecDirH, 1.0);
 
     cpTM->setView(cpPOV, cpTGT);
 

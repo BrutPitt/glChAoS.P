@@ -1439,7 +1439,7 @@ void comboWindowRes(const float width)
     ImGui::SameLine();
     ImGui::PushItemWidth(width-ImGui::GetCursorPosX()-DLG_BORDER_SIZE-buttSize);
 
-    const char *items[16] = { "", "1024x1024", "1280x720", "1280x1024", "1920x1080", "1920x1200", "2048x2048", "2560x1440", "3440x1440" };
+    const char *items[16] = { "", "1024x1024", "1280x640", "1280x720", "1280x1024", "1440x1024", "1920x1080", "1920x1200", "2048x2048", "2560x1280", "2560x1440", "3440x1440" };
     
     int w, h;
     const int fbHeight = theApp->GetHeight(), fbWidth = theApp->GetWidth();
@@ -1449,7 +1449,7 @@ void comboWindowRes(const float width)
     items[0]=s;
             
     static int i;
-    if (ImGui::Combo("##wSize", &i, items, 8)) {  
+    if (ImGui::Combo("##wSize", &i, items, 12)) {
         sscanf(items[i], "%dx%d", &w, &h);        
         //std::istringstream iss(items[i]); 
         //char x; iss >> w >> x >> h;
@@ -2019,7 +2019,7 @@ void cockpitDlgClass::view()
     if(!isVisible) return;
 
     const int posH = 225;
-    const int szH = 400+7*ImGui::GetFrameHeightWithSpacing();
+    const int szH = 400+12*ImGui::GetFrameHeightWithSpacing();
     const int posW = 0;
     const int szW = 250;
 /*
@@ -2298,8 +2298,7 @@ void cockpitDlgClass::view()
                     const float w6 = (w-gizmoDim-spaceX*2);
                     const float w3 = w6*.5;
 
-                    ImGui::TextDisabled(" fov angle");  ImGui::SameLine(w3+spaceX);
-                    ImGui::TextDisabled(" tail POV"); 
+                    ImGui::TextDisabled(" fov angle");
 
                     ImGui::PushItemWidth(w3-spaceX*.3333);
                     {
@@ -2308,18 +2307,22 @@ void cockpitDlgClass::view()
                     }
                         ImGui::SameLine();
                     {
-                        float f = cPit.getTailPosition();
-                        if(ImGui::DragFloat("##tailPos", &f, .001f, 0.0f, 1.0, "%.3f")) cPit.setTailPosition(f);
+                        bool b = cPit.fixedDistance();
+                        if(ImGui::Checkbox("fixedDist", &b)) cPit.fixedDistance(b);
                     }
                     ImGui::TextDisabled(" move POV");
+                    if(!cPit.fixedDistance()) {
+                        ImGui::SameLine(w3+spaceX);
+                        ImGui::TextDisabled(" tail POV");
+                    }
                     {
                         float f = cPit.getMovePositionTail();
                         if(ImGui::DragFloat("##TgtPOV", &f, .001f, -FLT_MAX, FLT_MAX, "%.3f")) cPit.setMovePositionTail(f);
                     }
+                    if(!cPit.fixedDistance())  {
                         ImGui::SameLine();
-                    {
-                        bool b = cPit.fixedDistance();
-                        if(ImGui::Checkbox("fixedDist", &b)) cPit.fixedDistance(b);
+                        float f = cPit.getTailPosition();
+                        if(ImGui::DragFloat("##tailPos", &f, .001f, 0.0f, 1.0, "%.3f")) cPit.setTailPosition(f);
                     }
                     ImGui::PopItemWidth();
 
@@ -2947,7 +2950,9 @@ void mainImGuiDlgClass::view()
 
     ImGui::SetNextWindowSize(ImVec2(wndSizeX, ImGui::GetFrameHeightWithSpacing()*numItems), ImGuiCond_Always);
     ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-190-wndSizeX, posH), ImGuiCond_FirstUseEver);
-
+#ifdef GLCHAOSP_LIGHTVER
+    ImGui::SetNextWindowCollapsed(isCollapsed, ImGuiCond_FirstUseEver);
+#endif
 
     if(ImGui::Begin(getTitle(),  NULL ,ImGuiWindowFlags_NoResize)) {
 
@@ -3058,7 +3063,6 @@ void mainImGuiDlgClass::postRenderImGui()
     if(visible()) {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-
 #ifdef GLAPP_IMGUI_VIEWPORT
     // Update and Render additional Platform Windows
         if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -3091,15 +3095,17 @@ void mainImGuiDlgClass::renderImGui()
         fontChanged = false;
     }
 */
-    if(visible()) {
-
+    auto imguiNewFrame = []() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
 #ifdef __EMSCRIPTEN__
         if(theApp->isTabletMode()) theApp->getEmsDevice().imGuiUpdateTouch();
 #endif
         ImGui::NewFrame();
+    };
 
+    if(visible()) {
+        imguiNewFrame();
         aboutDlg.view();
         ifsDlgParam.view(attractorsList.get()->getIFSParam());
         ifsDlgPoint.view(attractorsList.get()->getIFSPoint());
@@ -3121,5 +3127,4 @@ void mainImGuiDlgClass::renderImGui()
 
         ImGui::Render();
     }
-
 }
