@@ -312,6 +312,12 @@ public:
     ifsDlgClass& getIFSDlgParam() { return ifsDlgParam; }
     ifsDlgClass& getIFSDlgPoint() { return ifsDlgPoint; }
 
+    void startMinimized() {
+        attractorDlg.visible(false);
+        particlesDlg.visible(false);
+        isCollapsed = true;
+    }
+
 
 #ifdef GLCHAOSP_LIGHTVER
     bool getInvertSettings() { return invertSettings; }
@@ -331,8 +337,7 @@ private:
 
     bool isSelectableScrolled = false;
 
-
-
+    bool isCollapsed = false;
 
     ImFont *mainFont = nullptr, *iconFont = nullptr;
     //ImFont *testFont = nullptr;

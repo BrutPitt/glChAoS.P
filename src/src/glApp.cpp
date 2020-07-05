@@ -186,7 +186,6 @@ void glfwWindowSizeCallback(GLFWwindow* window, int width, int height)
 }
 
 #if !defined (__EMSCRIPTEN__)
-
 bool isDoubleClick(int button, int action, double x, double y, double ms)
 {
     static auto before = std::chrono::system_clock::now();
@@ -334,8 +333,6 @@ void mainGLApp::getScreenShot(GLuint tex, bool is32bit)
 }
 
 
-
-GLFWwindow *secondary;
 /////////////////////////////////////////////////
 // glfw utils
 void mainGLApp::glfwInit()
@@ -593,7 +590,7 @@ void mainGLApp::mainLoop()
 int main(int argc, char **argv)
 {
 //Initialize class e self pointer
-    theApp = new mainGLApp;          
+    theApp = new mainGLApp;
 
 #ifdef GLCHAOSP_LIGHTVER
     if(argc>1 && argc!=8) {
@@ -621,6 +618,9 @@ int main(int argc, char **argv)
         // 8
             theApp->useLightGUI((atoi(argv[8])&1) ? true : false);
             theApp->useFixedCanvas((atoi(argv[8])&2) ? true : false);
+            if((atoi(argv[8])&4)) { // start minimized
+                theDlg.startMinimized();
+            }
 /*        // 9
             if(atoi(argv[9])==1) {
                 theApp->setEmitterEngineType(enumEmitterEngine::emitterEngine_transformFeedback);
