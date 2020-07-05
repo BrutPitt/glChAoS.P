@@ -312,14 +312,13 @@ vec2 scale (vec2 p, float s) {
 ////////////////////////////////////////////////////////////////////////////
 LAYOUT_INDEX(idxBYPASS) SUBROUTINE(_radialPass) vec4 byPass()
 {
-    return qualitySetting(min(texture(origTexture,gl_FragCoord.xy*invScreenSize) * texControls.y, 1.0f));
+    return qualitySetting(min(texelFetch(origTexture,ivec2(gl_FragCoord.xy), 0) * texControls.y, 1.0f));
 }
 
 void main ()
 {
-#if defined(GL_ES)
-    outColor = blurCallType==0 ? byPass() : bilateralSmooth();
-#elif defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+#if defined(GL_ES) || defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+    //outColor = blurCallType==0 ? byPass() : bilateralSmooth();
     switch(blurCallType) {
         default:
         case idxBYPASS          : outColor = byPass();                   break;
