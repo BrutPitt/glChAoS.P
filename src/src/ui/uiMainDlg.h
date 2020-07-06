@@ -45,9 +45,13 @@ public:
 
     void rePosWndByMode(int x, int y);
 
+    void collapse(bool b) { isCollapsed = b; }
+    bool collapse() { return isCollapsed; }
+
 
 protected:
     bool isVisible;
+    bool isCollapsed = false;
     std::string wndTitle;
 
 };
@@ -282,6 +286,8 @@ public:
 
     void switchMode(int x, int y);
 
+    enum webRes { fullRestriction, minus1024, minus1280, minus1440, minus1600, noRestriction };
+
 /*
     void setTableAlterbateColor1(ImVec4 &c) { tableAlternateColor1 = c; }
     ImVec4 &getTableAlterbateColor1() { return tableAlternateColor1; }
@@ -312,10 +318,37 @@ public:
     ifsDlgClass& getIFSDlgParam() { return ifsDlgParam; }
     ifsDlgClass& getIFSDlgPoint() { return ifsDlgPoint; }
 
-    void startMinimized() {
-        attractorDlg.visible(false);
-        particlesDlg.visible(false);
-        isCollapsed = true;
+    void startMinimized(enum webRes res=noRestriction) {
+        webResStatus = res;
+        switch(res) {
+            case fullRestriction :
+                attractorDlg.visible(false);
+                particlesDlg.visible(false);
+                collapse(true);
+                break;
+            case minus1024 :
+                attractorDlg.collapse(true);
+                particlesDlg.collapse(true);
+                collapse(true);
+                break;
+            case minus1280 :
+                attractorDlg.collapse(true);
+                particlesDlg.collapse(true);
+                collapse(true);
+                break;
+            case minus1440 :
+                attractorDlg.collapse(false);
+                particlesDlg.collapse(true);
+                collapse(false);
+                break;
+            case minus1600 :
+                attractorDlg.collapse(false);
+                particlesDlg.collapse(false);
+                collapse(false);
+                break;
+           default:
+               break; // is already OK
+        }
     }
 
 
@@ -336,8 +369,7 @@ private:
     float fontSize = 13.f, fontZoom = 1.f;
 
     bool isSelectableScrolled = false;
-
-    bool isCollapsed = false;
+    enum webRes webResStatus = noRestriction;
 
     ImFont *mainFont = nullptr, *iconFont = nullptr;
     //ImFont *testFont = nullptr;

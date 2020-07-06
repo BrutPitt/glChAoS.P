@@ -1205,9 +1205,14 @@ void particlesDlgClass::view()
 
     ImGui::SetNextWindowSize(ImVec2(wSZ, hSZ), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+
     const float szMin = 270.f;
     ImGui::SetNextWindowSizeConstraints(ImVec2(szMin, 0), ImVec2(FLT_MAX, FLT_MAX));
-        
+    
+#ifdef GLCHAOSP_LIGHTVER
+    ImGui::SetNextWindowCollapsed(isCollapsed, ImGuiCond_FirstUseEver);
+#endif
+
     const char *particlesWndName = getTitle();
     if(ImGui::Begin(particlesWndName, &isVisible)) {
 
@@ -2948,11 +2953,14 @@ void mainImGuiDlgClass::view()
 #endif
 
 
-    ImGui::SetNextWindowSize(ImVec2(wndSizeX, ImGui::GetFrameHeightWithSpacing()*numItems), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-190-wndSizeX, posH), ImGuiCond_FirstUseEver);
 #ifdef GLCHAOSP_LIGHTVER
     ImGui::SetNextWindowCollapsed(isCollapsed, ImGuiCond_FirstUseEver);
+    if(theApp->GetWidth()<1150)
+        ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-wndSizeX, 225), ImGuiCond_FirstUseEver);
+    else
 #endif
+        ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-190-wndSizeX, posH), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(wndSizeX, ImGui::GetFrameHeightWithSpacing()*numItems), ImGuiCond_Always);
 
     if(ImGui::Begin(getTitle(),  NULL ,ImGuiWindowFlags_NoResize)) {
 

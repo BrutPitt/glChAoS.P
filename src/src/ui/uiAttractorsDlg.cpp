@@ -335,7 +335,13 @@ void attractorDlgClass::view()
     ImGui::SetNextWindowSize(ImVec2(szX, szY), ImGuiCond_FirstUseEver);
     {
         int w,h; glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
-        ImGui::SetNextWindowPos(ImVec2(w-szX, h-szY), ImGuiCond_FirstUseEver);
+#ifdef GLCHAOSP_LIGHTVER
+        ImGui::SetNextWindowCollapsed(isCollapsed, ImGuiCond_FirstUseEver);
+        if(isCollapsed) {
+            ImGui::SetNextWindowPos(ImVec2(270, 0), ImGuiCond_FirstUseEver);
+        } else
+#endif
+            ImGui::SetNextWindowPos(ImVec2(w-szX, h-szY), ImGuiCond_FirstUseEver);
     }
 #ifdef GLCHAOSP_TEST_RANDOM_DISTRIBUTION
     if(ImGui::Begin("PRNG functions", &isVisible)) {

@@ -591,11 +591,17 @@ int main(int argc, char **argv)
 {
 //Initialize class e self pointer
     theApp = new mainGLApp;
-
 #ifdef GLCHAOSP_LIGHTVER
     if(argc>1 && argc!=8) {
         int w = atoi(argv[1]);
         int h = atoi(argv[2]);
+        if(w<=1024)        theDlg.startMinimized(mainImGuiDlgClass::webRes::minus1024);
+        else { if(w<=1280) theDlg.startMinimized(mainImGuiDlgClass::webRes::minus1280);
+               else {
+                   if(w<1600)  theDlg.startMinimized(mainImGuiDlgClass::webRes::minus1440);
+                   else        theDlg.startMinimized(mainImGuiDlgClass::webRes::noRestriction);
+               }
+        }
         {// 3
             int sz = atoi(argv[3]);
             theApp->setMaxAllocatedBuffer((sz<0 ? 10 : (sz>50) ? 50 : sz) * 1000 * 1000); 
@@ -619,7 +625,7 @@ int main(int argc, char **argv)
             theApp->useLightGUI((atoi(argv[8])&1) ? true : false);
             theApp->useFixedCanvas((atoi(argv[8])&2) ? true : false);
             if((atoi(argv[8])&4)) { // start minimized
-                theDlg.startMinimized();
+                theDlg.startMinimized(mainImGuiDlgClass::webRes::fullRestriction);
             }
 /*        // 9
             if(atoi(argv[9])==1) {

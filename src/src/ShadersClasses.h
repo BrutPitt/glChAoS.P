@@ -302,7 +302,7 @@ struct uTFData {
 
 public:
 
-    enum pip { noPIP, lTop, rTop, lBottom, rBottom };
+    enum pip { noPIP, lTop, rTop, lBottom, rBottom, splitView };
 
     uTFData& getUdata() { return uData; }
 
