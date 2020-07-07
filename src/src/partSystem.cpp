@@ -180,10 +180,13 @@ GLuint particlesSystemClass::renderSingle()
 
 GLuint particlesSystemClass::renderTF()
 {
-    const int w = getWidth(), h = getHeight();
-    glViewport(0,0, w, h);
-
     tfSettinsClass &cPit = getParticleRenderPtr()->getTFSettings();
+
+    const int w = getWidth(), h = getHeight();
+    if(cPit.cockPit() && cPit.getPIPposition() == cPit.pip::splitView) {
+        const float zoom = cPit.getPIPzoom();
+           cPit.setViewportSize(ivec4(0, float(h)*(1.f-zoom)*.5, float(w)*zoom, float(h)*zoom));
+    } else cPit.setViewportSize(ivec4(0,0, w, h));
 
     getEmitter()->preRenderEvents();
 
@@ -199,7 +202,7 @@ GLuint particlesSystemClass::renderTF()
 
     transformsClass *cpTM = getCockPitTMat();
 
-    cpTM->setPerspective(tfSettinsClass::getPerspAngle(), float(w) / float(h),
+    cpTM->setPerspective(tfSettinsClass::getPerspAngle(), float(cPit.getPIPposition() == cPit.pip::splitView ? w>>1 : w) / float(h),
                          tfSettinsClass::getPerspNear(),
                          getTMat()->getPerspFar());
 
@@ -222,18 +225,18 @@ GLuint particlesSystemClass::renderTF()
     cpTM->applyTransforms();
 
     //Render TF full screen view
-    GLuint texRendered = renderParticles(true, !cPit.invertPIP());
+    GLuint texRendered = renderParticles(true, cPit.cockPit() && !cPit.invertPIP());
     texRendered = renderGlowEffect(texRendered);
 
     //Render PiP view
     setFlagUpdate();
-    if(cPit.getPIPposition() != cPit.pip::noPIP) {
+    if(cPit.cockPit() && cPit.getPIPposition() != cPit.pip::noPIP) {
         cPit.setViewport(w,h);
 
         texRendered = renderParticles(false, cPit.invertPIP());
         texRendered = renderGlowEffect(texRendered);
-        glViewport(0,0, w, h);
     }
+    glViewport(0,0, w, h);
 
 #if !defined(GLCHAOSP_NO_FXAA)
     texRendered = renderFXAA(texRendered);

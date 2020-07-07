@@ -101,6 +101,10 @@ GLint glWindow::onRender()
 {
     particlesSystem->renderPalette();
 
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glViewport(0,0, particlesSystem->getWidth(), particlesSystem->getHeight());
+    glClearBufferfv(GL_COLOR,  0, value_ptr(particlesSystem->getParticleRenderPtr()->backgroundColor()));
+
 #if !defined(GLCHAOSP_LIGHTVER)
 
     particlesSystem->renderAxes();
@@ -130,7 +134,6 @@ GLint glWindow::onRender()
     getParticlesSystem()->getTMat()->applyTransforms();
     GLuint texRendered = particlesSystem->render();
 #endif
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0); // bind both FRAMEBUFFERS to default
 
     particlesSystem->clearFlagUpdate();
     return texRendered;
@@ -145,7 +148,7 @@ void glWindow::onIdle()
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onReshape(GLint w, GLint h)
 {
-    glViewport(0,0,w,h);
+    //glViewport(0,0,w,h);
 
     theApp->SetWidth(w); theApp->SetHeight(h);
     particlesSystem->getTMat()->getTrackball().viewportSize(w, h);

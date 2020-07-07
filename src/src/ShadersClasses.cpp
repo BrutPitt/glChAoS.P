@@ -86,7 +86,7 @@ void shaderPointClass::initShader()
 //  particlesBase 
 //
 ////////////////////////////////////////////////////////////////////////////////
-GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool isFullScreenPiP, bool cpitView) 
+GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool isFullScreenPiP, bool cpitView)
 {
     setFlagUpdate();
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
@@ -112,9 +112,11 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     
     getUPlanes().buildInvMV_forPlanes(this);    // checkPlanes and eventually build invMat
     
+    tfSettinsClass &cPit = getTFSettings();
+
     if(checkFlagUpdate()) {
+        //getUData().scrnRes = vec2((isTFRender && cPit.getPIPposition() == cPit.pip::splitView) ? getRenderFBO().getSizeX()<<1 : getRenderFBO().getSizeX(), (isTFRender && cPit.getPIPposition() == cPit.pip::splitView) ? getRenderFBO().getSizeY()<<1 : getRenderFBO().getSizeY());
         getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
-        //getUData().scrnRes = vec2(vp.w, vp.h);
         getUData().invScrnRes = 1.f/getUData().scrnRes;
         getUData().ySizeRatio = theApp->isParticlesSizeConstant() ? 1.0 : float(getUData().scrnRes.y/1024.0);
         getUData().ptSizeRatio = 1.0/(length(getUData().scrnRes) / getUData().scrnRes.x);
@@ -129,7 +131,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     float distAtt = getUData().pointDistAtten;      // FIXME: use external setting so don't save and restore below
     if(isTFRender) getUData().pointDistAtten = 0.f; // no distance attenuation on cpitView
 
-    tfSettinsClass &cPit = getTFSettings();
     getUData().elapsedTime   = cPit.getUdata().elapsedTime;
 
     getUData().lifeTime      = tfSettinsClass::getPIPposition() && cPit.cockPit() ? std::max(cPit.getLifeTimeCP(),cPit.getLifeTime()) :
@@ -138,7 +139,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
             cpitView ? cPit.getLifeTimeAttenCP() : cPit.getLifeTimeAtten(); // if PiP get max for both to sync view
 
     getUData().smoothDistance= cPit.getSmoothDistance();
-    getUData().vpReSize      = isFullScreenPiP ? 1.0 : cPit.getPIPzoom()*.5;
+    getUData().vpReSize      = isFullScreenPiP || cPit.getPIPposition() == cPit.pip::splitView ? 1.0 : cPit.getPIPzoom()*.5;
 
     getUData().zNear = currentTMat->getPerspNear();
     getUData().zFar  = currentTMat->getPerspFar();
@@ -184,9 +185,10 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
             setLightDir(normalize(getLightDir()) * (dist*(theApp->useDetailedShadows() ? 1.5f : 1.5f /* 2/2.5*/) + dist*.1f));
         }
         //if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
-        ivec4 vp;
-        if(isTFRender) glGetIntegerv(GL_VIEWPORT, (GLint *) value_ptr(vp));      // partial reverted: https://github.com/BrutPitt/glChAoS.P/commit/4bcfc6dd577255ac9460fcc656bcf6796e917c46#
-        else vp = {0, 0, int(getUData().scrnRes.x), int(getUData().scrnRes.y) };
+
+        //ivec4 vp;
+        //if(isTFRender) glGetIntegerv(GL_VIEWPORT, (GLint *) value_ptr(vp));      // partial reverted: https://github.com/BrutPitt/glChAoS.P/commit/4bcfc6dd577255ac9460fcc656bcf6796e917c46#
+        //else vp = {0, 0, int(getUData().scrnRes.x), int(getUData().scrnRes.y) };
 
         glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
 
@@ -205,7 +207,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         emitter->renderEvents();
 
         getShadow()->releaseRender();
-        glViewport(vp.x,vp.y, vp.z, vp.w);
+        //glViewport(vp.x,vp.y, vp.z, vp.w);
 
         //FIXME: POV.z+Dolly.z (shadow) ==> look UP
         currentTMat->setPOV(tmpPov);
@@ -220,6 +222,11 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     GLuint returnedTex = getRenderFBO().getTex(fbIdx);
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, getRenderFBO().getFB(fbIdx));
+
+    if(isTFRender)
+        glViewport(cPit.getViewportSize().x, cPit.getViewportSize().y, cPit.getViewportSize().z, cPit.getViewportSize().w);
+    else
+        glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
 
     // Clear Depth buffer
     if(depthBuffActive) {
@@ -236,6 +243,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         glEnable(GL_BLEND);
         glBlendFunc(getSrcBlend(), getDstBlend());
     }
+
 
 // Normal Render
 /////////////////////////////////////////////
@@ -317,6 +325,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     // FIXME: use external setting so don't save and restore below ==> look UP
     if(isTFRender) getUData().pointDistAtten = distAtt;
 
+    //glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
 
     return returnedTex;
 }
@@ -1205,7 +1214,7 @@ void shadowClass::releaseRender()
 tfSettinsClass::tfCommonsStruct tfSettinsClass::tfCommons;
 
 void tfSettinsClass::setViewport(int w, int h) {
-    float szX = float(w)*getPIPzoom()*.5+.5, szY = float(h)*getPIPzoom()*.5+.5;
+    float szX = float(w)*getPIPzoom()+.5, szY = float(h)*getPIPzoom()+.5;
     w++; h++;
     switch(getPIPposition()) {
         case pip::lTop:
@@ -1218,13 +1227,18 @@ void tfSettinsClass::setViewport(int w, int h) {
             setViewportSize(ivec4(w-szX,h-szY, szX, szY));
             break;
         case pip::rBottom:
-            setViewportSize(ivec4(w-szX,0 , szX, szY));
+            setViewportSize(ivec4(w-szX, 0, szX, szY));
             break;
-        default:
+        case pip::splitView:
+            {
+                const float zoom = 1.f-getPIPzoom();
+                setViewportSize(ivec4(float(w)*getPIPzoom(), float(h)*getPIPzoom()*.5, float(w)*zoom, float(h)*zoom));
+            }
+            break;
         case pip::noPIP:
+        default:
             setViewportSize(ivec4(0,0, w, h));
             break;
     }
-    glViewport(getViewportSize().x, getViewportSize().y, getViewportSize().z, getViewportSize().w);
 }
 

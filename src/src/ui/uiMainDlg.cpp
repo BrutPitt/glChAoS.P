@@ -1531,18 +1531,6 @@ void progSettingDlgClass::view()
 
         }
 
-/*
-        ImGui::NewLine();
-
-        ImGui::Text(" Glow effect override");
-
-        ImGui::AlignTextToFramePadding();
-        bool b = bool(theApp->getVSync());
-        if(ImGui::Checkbox("Start always off", &b)) {
-            theApp->setVSync(b ? 1 : 0);
-            glfwSwapInterval(theApp->getVSync());
-        }
-*/
         ImGui::NewLine();
 
         ImGui::Text(" GUI apparence / Fonts");
@@ -1576,39 +1564,6 @@ void progSettingDlgClass::view()
             }
         }
         ImGui::PopItemWidth();
-
-
-/*
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextDisabled("Thick:");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(wButt*.5 -ImGui::GetCursorPosX() - border);
-        {
-            
-            if(ImGui::DragFloat("##raster", &theDlg.RasterizerMultiply,.01, .1, 2.0,"%.2f")) {
-                theDlg.fontChanged = true;
-            }
-                          
-            
-        }
-        ImGui::PopItemWidth();
-        ImGui::SameLine(wButt*.5 + border); 
-        ImGui::TextDisabled("Spacing:"); 
-        ImGui::SameLine(); 
-        ImGui::PushItemWidth(wButt -ImGui::GetCursorPosX());
-        {
-            float f = theDlg.getFontZoom();
-            if(ImGui::DragFloat2("##spacing", &f,.01, .3, 3.0,"%.2f")) {
-                theDlg.setFontZoom(f);
-                ImGui::GetIO().FontGlobalScale=f;
-            }
-        }
-        ImGui::PopItemWidth();
-
-        ImGui::PushFont(theDlg.testFont);
-        ImGui::Text("ABCDEFG abcdefg 0123456789");
-        ImGui::PopFont();
-*/
 
         ImGui::NewLine();
 
@@ -2262,10 +2217,13 @@ void cockpitDlgClass::view()
                         if(ImGui::RadioButton("##rTop", pos == cPit.pip::rTop)) { cPit.setPIPposition(cPit.pip::rTop); }
                         ImGui::SameLine();
                         a = ImGui::GetCursorPosX();
-                        {
-                            bool b = cPit.invertPIP();
-                            if(ImGui::Checkbox(" Invert PIP", &b)) cPit.invertPIP(b);
+
+                        if(ImGui::RadioButton(" SplitView ", pos == cPit.pip::splitView)) { cPit.setPIPposition(cPit.pip::splitView); }
+                        if(pos == cPit.pip::splitView) {
+                            ImGui::SameLine();
+                            if(ImGui::Button(" halfSplit ")) cPit.setPIPzoom(.5);
                         }
+
 
                         ImGui::SetCursorPosX(ImGui::GetCursorPosX()+size);
                         if(ImGui::RadioButton("##noPIP", pos == cPit.pip::noPIP)) { cPit.setPIPposition(cPit.pip::noPIP); } 
@@ -2273,8 +2231,8 @@ void cockpitDlgClass::view()
                         ImGui::SetCursorPosX(a);
                         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
                         {
-                            float f = cPit.getPIPzoom();
-                            if(ImGui::SliderFloat("##zoomPIP", &f, .25, 2.0,"size PiP %.3f")) cPit.setPIPzoom(f);
+                            float f = cPit.getPIPzoom()*100.f;
+                            if(ImGui::SliderFloat("##zoomPIP", &f, 25.0f, 100.f,"size PiP %.1f%%")) cPit.setPIPzoom(f/100.f);
                         }
                         ImGui::PopItemWidth();
 
@@ -2282,6 +2240,12 @@ void cockpitDlgClass::view()
                         ImGui::SameLine(); 
                         ImGui::SetCursorPosX(b+size);
                         if(ImGui::RadioButton("##rBottom", pos == cPit.pip::rBottom)) { cPit.setPIPposition(cPit.pip::rBottom); } 
+                        ImGui::SameLine();
+                        a = ImGui::GetCursorPosX();
+                        {
+                            bool b = cPit.invertPIP();
+                            if(ImGui::Checkbox(" Invert PIP", &b)) cPit.invertPIP(b);
+                        }
 
                     }
                     ImGui::EndChild();
@@ -2353,22 +2317,6 @@ void cockpitDlgClass::view()
             }
         }
 
-/*
-        {
-            float f = cPit.getPerspNear();
-            if(ImGui::DragFloat("near", &f, .001f, .001f, FLT_MAX, "%.3f")) cPit.setPerspNear(f);
-        }
-        {
-            bool b = cPit.pipTransparentBckgrnd();
-            if(ImGui::Checkbox("TranspBack", &b)) cPit.pipTransparentBckgrnd(b);
-        }
-        ImGui::SameLine();
-        {
-            vec3 v(cPit.getPanDollyPos());
-            if(ImGui::DragFloat3("Pan/Dolly",value_ptr(v),.01,0.0,0.0)) cPit.setPanDollyPos(v);
-
-        }
-*/
     }
     ImGui::End();
 }
@@ -2713,8 +2661,6 @@ void aboutDlgClass::view()
     ImGui::End();
 
 }
-
-
 
 #define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX          0x9047
 #define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX    0x9048
@@ -3087,22 +3033,6 @@ void mainImGuiDlgClass::postRenderImGui()
 void mainImGuiDlgClass::renderImGui()
 {
 
-/*
-    if(fontChanged) {
-        //delete testFont;
-        fontCFG.RasterizerMultiply = RasterizerMultiply;
-        fontCFG.FontDataOwnedByAtlas=false;
-        //    theDlg.testFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", theDlg.getFontSize(), &theDlg.fontCFG);
-
-        //testFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", getFontSize(), &fontCFG);
-        //theDlg.testFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("Fonts/Cousine-Regular.ttf", theDlg.getFontSize(), &theDlg.fontCFG);
-        theDlg.mainFont->ConfigData->RasterizerMultiply = RasterizerMultiply;
-        ImGui_ImplOpenGL3_DestroyFontsTexture();
-        ImGui_ImplOpenGL3_CreateFontsTexture();
-        //ImGui::GetIO().Fonts->Fonts[0];
-        fontChanged = false;
-    }
-*/
     auto imguiNewFrame = []() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();

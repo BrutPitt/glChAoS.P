@@ -80,9 +80,8 @@ public:
 
     /////////////////////////////////////////////
     GLuint render() {
-        return attractorsList.get()->dtType() && tfSettinsClass::tfMode() && tfSettinsClass::cockPit() ?
-                renderTF() :
-                renderSingle();
+        //return attractorsList.get()->dtType() && tfSettinsClass::tfMode() ? renderTF() : renderSingle();
+        return theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback ? renderTF() : renderSingle();
     }
     /////////////////////////////////////////////
     void renderPalette() {      // ColorMaps: rebuilds texture only if settings are changed

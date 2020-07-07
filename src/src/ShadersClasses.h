@@ -399,6 +399,8 @@ public:
     //void setMaxEmissionFrame(int i)  {  maxEmissionFrame =  i; }    //getEmittedParticles
     //static int getMaxEmissionFrame() { return maxEmissionFrame; }
 
+    ivec4 &getViewportSize() { return viewportSize; }
+    void setViewportSize(const ivec4 &v) { viewportSize = v; }
 
 private:
 
@@ -406,35 +408,32 @@ private:
         bool isTFMode = false;      // TransformFeedback Mode
         bool isCockPit = false;
         int pipPosition = noPIP;
-        float perspAngle = 65.f;
+        float perspAngle = 60.f;
         bool invertPip = false;
-        ivec4 viewportSize = ivec4(0, 0, 100, 100);
         float pipZoom = .5; // 1.0 -> 1/4 Window
     } static tfCommons;
 
+    ivec4 viewportSize = ivec4(0, 0, 100, 100);
     float smoothDistance = .250;
     float lifeTime = 75.0;
     float lifeTimeAtten = .3;
     float lifeTimeCP = 75.0;
     float lifeTimeAttenCP = .3;
-    float magnitude = 2.0;
-    float magnitudeInt = .2;
+    float magnitude = 1.5;
+    float magnitudeInt = .25;
     float magnitudeAtten = .15;
     float movePositionTail = 0;
     bool isInvertView = false;
     float tailPosition = .25;
     float  emitterPointSize = 1;
     float cpPointSize = 7.f;
-    float cpMagnitude = 3.0;
-    float cpMagnitudeInt = .1;
+    float cpMagnitude = 1.0;
+    float cpMagnitudeInt = .2;
     float cpMagnitudeAtten = .25;
     bool cpFixDistance = true;
     quat qRot = quat(1.0f,0.0f, 0.0f, 0.0f);
     int slowMotionDpS = 100; //tfSettings DotPerSec
     int slowMotionFSDpS = 5000; //FullScreen DotPerSec
-
-    static ivec4 &getViewportSize() { return tfCommons.viewportSize; }
-    static void setViewportSize(const ivec4 &v) { tfCommons.viewportSize = v; }
 
     static constexpr float perspNear = .001f;
 
