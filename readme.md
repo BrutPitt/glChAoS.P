@@ -1,4 +1,4 @@
-<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.5.0</a></h1>
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.5.3</a></h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**wglChAoS.P**](https://michelemorrone.eu/glchaosp): open**gl** / **w**eb**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
 A real time 3D strange attractors scout... and hypercomplex fractals
@@ -10,9 +10,9 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 
 ## All available releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
 
-### Desktop - v.1.5.0
+### Desktop - v.1.5.3
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X** 
-### WebGL - v.1.5.0
+### WebGL - v.1.5.3
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebG 2** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
   - You can select **Advanced Mode** check box (*default*) or deselect it (**Standard Mode**) for low resources devices (mobiles/tablet/smartphones)
   - You can also to explore any single attractor, interactively, staring directly from web-page, using **Explore** button near/below any attractor formula: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
@@ -25,17 +25,22 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 <p>&nbsp;<br></p>
 
 
-### ver.1.5.0 feature: TransformFeedback **multiDot emitter**
+### ver.1.5.3 feature: TransformFeedback **multiDot emitter**
 Now all dp/dt attractors (yellow tag) have an additional new emitter type to visualize them in a progressive way and/or with multiDot (spray) effect.\
 Is also possible to travel, in first person (cockpit view), within the particles, following the evolution of the attractors.
 
-| Simulating a comet's journey in Lorenz attractor | Voyage in Multi-Chua II attractor |
-| :---: | :---: |
-| [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/LorenzComet.jpg)](https://youtu.be/9RjkGQbzFkA)| [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/MultiChuaComet.jpg)](https://youtu.be/Yh99pMxFLoU) |
+<p align="center"><a href="https://www.michelemorrone.eu/glchaosp/dtAttractors.html#Lorenz"> 
+<img src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/lorenz1.gif" style="width: 100%;"></a>
+</p>
+
+**Lorenz Attractor - click on image to "explore" in WebGL (select "cockpit" form Attractors tools window for a subjective view)*
+
+<p>&nbsp;<br></p>
+
 
 <img align="right" src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/cockpitSettings.jpg"/>
 
-New menu is available to adjust these settings:
+**New menu is available to adjust these settings:**
 
 
 **1)** Panoramic/CockPit dots/s: different emitter speed for any view\
@@ -56,8 +61,14 @@ New menu is available to adjust these settings:
 **G)** Rotate the cam around TagretView, or better: around attractor head (last emitted dot), use reset to reposition the cam\
 **H)** Move forward the TagretView position
 
-<p>&nbsp;<br>&nbsp;<br>&nbsp;<br></p>
+<p>&nbsp;<br></p>
 
+#### Youtube Video
+| Simulating a comet's journey in Lorenz attractor | Voyage in Multi-Chua II attractor |
+| :---: | :---: |
+| [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/LorenzComet.jpg)](https://youtu.be/9RjkGQbzFkA)| [![](https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/MultiChuaComet.jpg)](https://youtu.be/Yh99pMxFLoU) |
+
+<p>&nbsp;<br>&nbsp;<br>&nbsp;<br></p>
 
 
 ### ver.1.4.2 feature: 11 unpublished attractor types: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
