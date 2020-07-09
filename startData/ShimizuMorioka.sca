@@ -28,7 +28,7 @@
 		"cpitOn":         false,
 		"cpitFOVangle":   65.0,
 		"cpitPiPsize":    0.5,
-		"cpitPiPpos":     5,
+		"cpitPiPpos":     0,
 		"cpitPiPinvert":  false
 	},
 	"RenderMode0": {
@@ -129,9 +129,9 @@
 		"cpitSmoothDist":      0.25,
 		"cpitTailPos":         0.138,
 		"cpFixedDistance":     true,
-		"cpitMovPosTail":      0.554,
+		"cpitMovPosTail":      0.411,
 		"cpitInvertView":      false,
-		"cpitRotation":        [ 0.13379508, -0.12577213, -0.0052693365, 0.98298323 ],
+		"cpitRotation":        [ 0.13598551, -0.064641766, -0.026012693, 0.98826081 ],
 		"Palette":             {
 			"Type":    "Aranblue",
 			"Name":    "Aranblue",
