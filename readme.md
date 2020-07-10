@@ -29,11 +29,12 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 Now all dp/dt attractors (yellow tag) have an additional new emitter type to visualize them in a progressive way and/or with multiDot (spray) effect.\
 Is also possible to travel, in first person (cockpit view), within the particles, following the evolution of the attractors.
 
+
 <p align="center"><a href="https://www.michelemorrone.eu/glchaosp/dtAttractors.html#Lorenz"> 
-<img src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/lorenz1.gif" style="width: 100%;"></a>
+<img src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/lorenz1.gif" style="width: 1024px;"></a>
 </p>
 
-**Lorenz Attractor - click on image to "explore" in WebGL (select "cockpit" form Attractors tools window for a subjective view)*
+***Lorenz Attractor** - click on image to "explore" it in WebGL ("cockpit" form Attractors tools window for subjective view)*
 
 <p>&nbsp;<br></p>
 
@@ -421,6 +422,9 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
 
     - tools/[**imGuIZMO.quat**](https://github.com/BrutPitt/imGuIZMO.quat) → ImGui widget: visual 3D objects manipulator 
     https://github.com/BrutPitt/imGuIZMO.quat
+
+    - tools/[**fastPRNG**](https://github.com/BrutPitt/fastPRNG) → 32/64 bit pseudo-random generator, **xoshiro**/**xoroshiro**/**xorshift** and other algorithms 
+        https://github.com/BrutPitt/fastPRNG
 
 - Third party tools 
     - libs/imGui → Dear ImGui
