@@ -101,9 +101,7 @@ GLint glWindow::onRender()
 {
     particlesSystem->renderPalette();
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glViewport(0,0, particlesSystem->getWidth(), particlesSystem->getHeight());
-    glClearBufferfv(GL_COLOR,  0, value_ptr(particlesSystem->getParticleRenderPtr()->backgroundColor()));
+    particlesSystem->getParticleRenderPtr()->clearFB(0);
 
 #if !defined(GLCHAOSP_LIGHTVER)
 

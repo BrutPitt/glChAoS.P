@@ -34,7 +34,8 @@ Is also possible to travel, in first person (cockpit view), within the particles
 <img src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/lorenz1.gif" style="width: 1024px;"></a>
 </p>
 
-***Lorenz Attractor** - click on image to "explore" it in WebGL ("cockpit" form Attractors tools window for subjective view)*
+***Lorenz Attractor** - click on image to "explore" it in WebGL*
+&nbsp; &nbsp; &nbsp; &nbsp;*use "**v**" key or "**cockpit**" button (from **Attractors** tools window) to switch to subjective view (on right)*
 
 <p>&nbsp;<br></p>
 

@@ -577,8 +577,7 @@ public:
     void setRenderMode(int which);
     int getRenderMode() { return whichRenderMode; }
 
-
-    mmFBO &getRenderFBO() { return renderFBO; }; 
+    mmFBO &getRenderFBO() { return renderFBO; };
     //mmFBO &getMSAAFBO() { return msaaFBO; };
     int getWidth()  { return getRenderFBO().getSizeX(); }
     int getHeight() { return getRenderFBO().getSizeY(); }
@@ -1087,6 +1086,13 @@ public:
     delete fxaaFilter; 
 #endif
     }
+
+    void clearFB(GLuint fbID) {
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbID);
+        glViewport(0,0, getWidth(), getHeight());
+        glClearBufferfv(GL_COLOR,  0, value_ptr(backgroundColor()));
+    }
+
 
     void setCommonData() {
 #ifdef GLAPP_REQUIRE_OGL45

@@ -236,12 +236,13 @@ GLuint particlesSystemClass::renderTF()
         texRendered = renderParticles(false, cPit.invertPIP());
         texRendered = renderGlowEffect(texRendered);
     }
-    glViewport(0,0, w, h);
-
 #if !defined(GLCHAOSP_NO_FXAA)
-    texRendered = renderFXAA(texRendered);
+    //FIXME: currently disabled FXAA on splitView
+    if(cPit.cockPit() && cPit.getPIPposition() != cPit.pip::splitView) {
+        glViewport(0,0, w, h);
+        texRendered = renderFXAA(texRendered);
+    }
 #endif
-
     getEmitter()->postRenderEvents();
 
     return texRendered;

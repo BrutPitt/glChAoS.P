@@ -184,12 +184,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
             const float dist = currentTMat->getOverallDistance()<FLT_EPSILON ?  FLT_EPSILON : currentTMat->getOverallDistance();
             setLightDir(normalize(getLightDir()) * (dist*(theApp->useDetailedShadows() ? 1.5f : 1.5f /* 2/2.5*/) + dist*.1f));
         }
-        //if(shadowDetail>1) glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
-
-        //ivec4 vp;
-        //if(isTFRender) glGetIntegerv(GL_VIEWPORT, (GLint *) value_ptr(vp));      // partial reverted: https://github.com/BrutPitt/glChAoS.P/commit/4bcfc6dd577255ac9460fcc656bcf6796e917c46#
-        //else vp = {0, 0, int(getUData().scrnRes.x), int(getUData().scrnRes.y) };
-
         glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
 
         getShadow()->bindRender();
@@ -207,7 +201,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         emitter->renderEvents();
 
         getShadow()->releaseRender();
-        //glViewport(vp.x,vp.y, vp.z, vp.w);
 
         //FIXME: POV.z+Dolly.z (shadow) ==> look UP
         currentTMat->setPOV(tmpPov);
@@ -832,10 +825,12 @@ GLuint fxaaClass::render(GLuint texIn, bool useFB)
     bindPipeline();
 
 #if !defined(GLCHAOSP_LIGHTVER)
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,  useFB || renderEngine->getMotionBlur()->Active() ? fbo.getFB(0) : 0);
+    const GLuint fbID = useFB || renderEngine->getMotionBlur()->Active() ? fbo.getFB(0) : 0;
 #else
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,  0);
+    const GLuint fbID = 0;
 #endif
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,  fbID);
 
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit(0, texIn);
