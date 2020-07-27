@@ -81,6 +81,22 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/appDefines.h
         ${SRC}/attractorsBase.cpp
         ${SRC}/attractorsBase.h
+        ${SRC}/attractorsDLA3D.cpp
+        ${SRC}/attractorsDLA3D.h
+        ${SRC}/attractorsFractalsIIM.cpp
+        ${SRC}/attractorsFractalsIIM.h
+        ${SRC}/attractorsDiffEq.cpp
+        ${SRC}/attractorsDiffEq.h
+        ${SRC}/attractorsMagnetic.cpp
+        ${SRC}/attractorsMagnetic.h
+        ${SRC}/attractorsPolynomial.cpp
+        ${SRC}/attractorsPolynomial.h
+        ${SRC}/attractorsTrigonom.cpp
+        ${SRC}/attractorsTrigonom.h
+        ${SRC}/attractors2DTransf.cpp
+        ${SRC}/attractors2DTransf.h
+        ${SRC}/attractorsRampe.cpp
+        ${SRC}/attractorsRampe.h
         ${SRC}/attractorsFiles.cpp
         ${SRC}/attractorsStartVals.cpp
         ${SRC}/configFile.cpp
