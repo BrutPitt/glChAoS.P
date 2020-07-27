@@ -53,11 +53,11 @@ public:
     }
 
     /////////////////////////////////////////////
-    GLuint renderGlowEffect(GLuint texRendered) {
+    GLuint renderGlowEffect(GLuint texRendered, bool useFB=false) {
 #if !defined(GLCHAOSP_LIGHTVER)
         particlesBaseClass *particles = getParticleRenderPtr();
 
-        const GLuint fbo = (getMotionBlur()->Active() || particles->getFXAA()->isOn()) ? particles->getGlowRender()->getFBO().getFB(1) : 0;
+        const GLuint fbo = (useFB || getMotionBlur()->Active() || particles->getFXAA()->isOn()) ? particles->getGlowRender()->getFBO().getFB(1) : 0;
         particles->getGlowRender()->render(texRendered, fbo);
         return particles->getGlowRender()->getFBO().getTex(1);  // used only if FXAA and/or Motionblur
 #else
@@ -80,6 +80,8 @@ public:
 
     /////////////////////////////////////////////
     GLuint render() {
+        glViewport(0,0, getWidth(), getHeight());
+
         //return attractorsList.get()->dtType() && tfSettinsClass::tfMode() ? renderTF() : renderSingle();
         return theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback ? renderTF() : renderSingle();
     }

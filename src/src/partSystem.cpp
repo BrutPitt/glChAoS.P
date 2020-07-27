@@ -140,8 +140,6 @@ void particlesSystemClass::renderAxes()
 
 GLuint particlesSystemClass::renderSingle()
 {
-    glViewport(0,0, getWidth(), getHeight());
-
     GLuint texRendered;
 
     emitter->preRenderEvents();
@@ -177,16 +175,18 @@ GLuint particlesSystemClass::renderSingle()
     return texRendered;
 }
 
+void blitFrameBuffer(const GLuint srcFB, const GLuint dstFB, const ivec4 &srcRect, const ivec4 &dstRect, const GLuint filter=GL_LINEAR);
+
 
 GLuint particlesSystemClass::renderTF()
 {
-    tfSettinsClass &cPit = getParticleRenderPtr()->getTFSettings();
+    particlesBaseClass *particles = getParticleRenderPtr();
+    tfSettinsClass &cPit = particles->getTFSettings();
 
     const int w = getWidth(), h = getHeight();
-    if(cPit.cockPit() && cPit.getPIPposition() == cPit.pip::splitView) {
-        const float zoom = cPit.getPIPzoom();
-           cPit.setViewportSize(ivec4(0, float(h)*(1.f-zoom)*.5, float(w)*zoom, float(h)*zoom));
-    } else cPit.setViewportSize(ivec4(0,0, w, h));
+
+    const bool isDualView = cPit.cockPit() && cPit.getPIPposition() != cPit.pip::noPIP;
+    const bool isSplitView = cPit.cockPit() && cPit.getPIPposition() == cPit.pip::splitView;
 
     getEmitter()->preRenderEvents();
 
@@ -224,25 +224,39 @@ GLuint particlesSystemClass::renderTF()
     cpTM->getTrackball().setPosition(vec3(0.f));
     cpTM->applyTransforms();
 
+    setFlagUpdate();
+    
     //Render TF full screen view
     GLuint texRendered = renderParticles(true, cPit.cockPit() && !cPit.invertPIP());
-    texRendered = renderGlowEffect(texRendered);
+    texRendered = renderGlowEffect(texRendered, isSplitView);
+#if !defined(GLCHAOSP_NO_FXAA)
+    texRendered = renderFXAA(texRendered, isSplitView);
+    GLuint srcFB = particles->getFXAA()->isOn() ? particles->getFXAA()->getFBO().getFB(0) : particles->getGlowRender()->getFBO().getFB(1);
+#else
+    GLuint srcFB = particles->getGlowRender()->getFBO().getFB(1);
+#endif
+
+    auto blitFB = [&](const ivec4 &vp) { blitFrameBuffer(srcFB, 0, ivec4(0, 0, w, h), vp);  };
+
+    if(isSplitView) {
+        const float zoom = cPit.getPIPzoom();
+        const float startY = float(h)*(1.f-zoom)*.5;
+        blitFB( ivec4(0, startY, float(w)*zoom+.5, float(h)-startY) );
+    }
 
     //Render PiP view
-    setFlagUpdate();
-    if(cPit.cockPit() && cPit.getPIPposition() != cPit.pip::noPIP) {
+    if(isDualView) {
         cPit.setViewport(w,h);
 
-        texRendered = renderParticles(false, cPit.invertPIP());
-        texRendered = renderGlowEffect(texRendered);
-    }
+        GLuint littleTex = renderParticles(false, cPit.invertPIP());
+        littleTex = renderGlowEffect(littleTex, true);
 #if !defined(GLCHAOSP_NO_FXAA)
-    //FIXME: currently disabled FXAA on splitView
-    if(cPit.cockPit() && cPit.getPIPposition() != cPit.pip::splitView) {
-        glViewport(0,0, w, h);
-        texRendered = renderFXAA(texRendered);
-    }
+        littleTex = renderFXAA(littleTex, true);
 #endif
+
+        blitFB(cPit.getViewportSize());
+    }
+
     getEmitter()->postRenderEvents();
 
     return texRendered;

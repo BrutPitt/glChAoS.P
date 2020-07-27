@@ -20,12 +20,29 @@
 RandomTexture rndTexture;
 HLSTexture hlsTexture;
 
+void blitFrameBuffer(const GLuint srcFB, const GLuint dstFB, const ivec4 &srcRect, const ivec4 &dstRect, const GLuint filter=GL_LINEAR)
+{
+    #ifdef GLAPP_REQUIRE_OGL45
+        glBlitNamedFramebuffer(srcFB, dstFB,
+                               srcRect.x, srcRect.y, srcRect.z, srcRect.w,
+                               dstRect.x, dstRect.y, dstRect.z, dstRect.w,
+                               GL_COLOR_BUFFER_BIT, filter );
+    #else
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, srcFB);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dstFB);
+
+        glBlitFramebuffer(srcRect.x, srcRect.y, srcRect.z, srcRect.w,
+                          dstRect.x, dstRect.y, dstRect.z, dstRect.w,
+                          GL_COLOR_BUFFER_BIT, filter );
+    #endif
+
+}
+
 // 
 ////////////////////////////////////////////////////////////////////////////
 void glWindow::onInit()
 {
 
-    glViewport(0,0,theApp->GetWidth(), theApp->GetHeight());
     vao = new vaoClass;
     
     //rndTexture.buildTex(1024);
@@ -43,8 +60,7 @@ void glWindow::onInit()
     particlesSystem->shaderPointClass::getUData().pointspriteMinSize = retVal[0];
 #endif
 
-
-    vg::vGizmo3D &vgizmo = theWnd->getParticlesSystem()->getTMat()->getTrackball();
+    vg::vGizmo3D &vgizmo = particlesSystem->getTMat()->getTrackball();
 
     particlesSystem->getTMat()->setPerspective(30.f, float(theApp->GetWidth())/float(theApp->GetHeight()), 0.f, 100.f);
     particlesSystem->getTMat()->setView(attractorsList.get()->getPOV(), attractorsList.get()->getTGT());
@@ -101,7 +117,8 @@ GLint glWindow::onRender()
 {
     particlesSystem->renderPalette();
 
-    particlesSystem->getParticleRenderPtr()->clearFB(0);
+    if(theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback && tfSettinsClass::cockPit() && tfSettinsClass::getPIPposition() == tfSettinsClass::pip::splitView)
+        particlesSystem->getParticleRenderPtr()->clearFB(0);
 
 #if !defined(GLCHAOSP_LIGHTVER)
 
@@ -111,28 +128,16 @@ GLint glWindow::onRender()
     GLuint texRendered = particlesSystem->render();
 
     //  Motion Blur
-    if(particlesSystem->getMotionBlur()->Active()) {
+    if(particlesSystem->getMotionBlur()->Active())
+        blitFrameBuffer(particlesSystem->getMotionBlur()->render(texRendered), 0,
+                        ivec4(0,0,particlesSystem->getWidth(), particlesSystem->getHeight()),
+                        ivec4(0,0,theApp->GetWidth(), theApp->GetHeight()), GL_NEAREST);
 
-    #ifdef GLAPP_REQUIRE_OGL45
-        glBlitNamedFramebuffer(particlesSystem->getMotionBlur()->render(texRendered),
-                               0,
-                               0,0,particlesSystem->getWidth(), particlesSystem->getHeight(),
-                               0,0,theApp->GetWidth(), theApp->GetHeight(),
-                               GL_COLOR_BUFFER_BIT, GL_NEAREST );
-    #else
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, particlesSystem->getMotionBlur()->render(texRendered));
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-        glBlitFramebuffer(0,0,particlesSystem->getWidth(), particlesSystem->getHeight(),
-                          0,0,theApp->GetWidth(), theApp->GetHeight(),
-                          GL_COLOR_BUFFER_BIT, GL_NEAREST );
-    #endif
-    }
 #else
     getParticlesSystem()->getTMat()->applyTransforms();
     GLuint texRendered = particlesSystem->render();
 #endif
-
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     particlesSystem->clearFlagUpdate();
     return texRendered;
 }

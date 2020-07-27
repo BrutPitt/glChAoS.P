@@ -19,6 +19,7 @@
 #include <transforms.h>
 #endif
 
+#include "emitter.h"
 #include "palettes.h"
 
 #define SHADER_PATH "Shaders/"
@@ -402,6 +403,8 @@ public:
     ivec4 &getViewportSize() { return viewportSize; }
     void setViewportSize(const ivec4 &v) { viewportSize = v; }
 
+    vec4 &getPipBkgrndColor() { return pipBkgrndColor; }
+    void setPipBkgrndColor(const vec4 &v) { pipBkgrndColor = v; }
 private:
 
     struct tfCommonsStruct {
@@ -431,9 +434,10 @@ private:
     float cpMagnitudeInt = .2;
     float cpMagnitudeAtten = .25;
     bool cpFixDistance = true;
-    quat qRot = quat(1.0f,0.0f, 0.0f, 0.0f);
+    quat qRot = quat(1.0f, 0.0f, 0.0f, 0.0f);
     int slowMotionDpS = 100; //tfSettings DotPerSec
     int slowMotionFSDpS = 5000; //FullScreen DotPerSec
+    vec4 pipBkgrndColor = vec4(.003f, .003f, .007f, 1.f);
 
     static constexpr float perspNear = .001f;
 
@@ -481,7 +485,7 @@ public:
 
     void create();
 
-    void bindRender(particlesBaseClass *particle, GLuint fbIdx);
+    void bindRender(particlesBaseClass *particle, GLuint fbIdx, const vec4 &bkgColor);
     void render();
     void releaseRender();
 
@@ -516,7 +520,7 @@ public:
 
     void create();
 
-    void bindRender(particlesBaseClass *particle, GLuint fbIdx);
+    void bindRender(particlesBaseClass *particle, GLuint fbIdx, const vec4 &bkgColor);
     void render();
     void releaseRender();
 
@@ -1166,7 +1170,7 @@ public:
 
     uParticlesData &getUData() { return uData; }
 
-    GLuint render(GLuint fbOut, emitterBaseClass *em, bool eraseBkg = true, bool cpitView = false);
+    GLuint render(GLuint fbOut, emitterBaseClass *em, bool isFullScreen = true, bool cpitView = false);
 
     GLuint getDstBlend() { return dstBlendAttrib; }
     GLuint getSrcBlend() { return srcBlendAttrib; }

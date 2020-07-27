@@ -206,6 +206,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         currentTMat->setPOV(tmpPov);
         currentTMat->getTrackball().setDollyPosition(tmpDolly);
         currentTMat->applyTransforms();
+        glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
     }
 #endif
 
@@ -216,11 +217,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, getRenderFBO().getFB(fbIdx));
 
-    if(isTFRender)
-        glViewport(cPit.getViewportSize().x, cPit.getViewportSize().y, cPit.getViewportSize().z, cPit.getViewportSize().w);
-    else
-        glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
-
     // Clear Depth buffer
     if(depthBuffActive) {
         glEnable(GL_DEPTH_TEST);
@@ -230,7 +226,8 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     glClearBufferfv(GL_DEPTH , 0, &f);
 
     // clear Color buffer
-    if(!showAxes()) glClearBufferfv(GL_COLOR,  0, value_ptr(backgroundColor()));
+    vec4 bkgColor(!isFullScreenPiP ? cPit.getPipBkgrndColor() : backgroundColor());
+    if(!showAxes()) glClearBufferfv(GL_COLOR,  0, value_ptr(bkgColor));
 
     if(blendActive || showAxes()) {
         glEnable(GL_BLEND);
@@ -289,7 +286,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 /////////////////////////////////////////////
         if(useAO()) {
             currentTMat->updateBufferData();
-            getAO()->bindRender(this, fbIdx);
+            getAO()->bindRender(this, fbIdx, bkgColor);
             getAO()->render();
             getAO()->releaseRender();
             //returnedTex = getAO()->getFBO().getTex(0);
@@ -299,7 +296,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 /////////////////////////////////////////////
 
         currentTMat->updateBufferData();
-        getPostRendering()->bindRender(this, fbIdx);
+        getPostRendering()->bindRender(this, fbIdx, bkgColor);
         getPostRendering()->render();
         getPostRendering()->releaseRender();
 
@@ -843,7 +840,7 @@ GLuint fxaaClass::render(GLuint texIn, bool useFB)
 #endif
 
     if(renderEngine->checkFlagUpdate()) {
-        setUniform2f(_invScrnSize, 1.f/fbo.getSizeX(), 1.f/fbo.getSizeY());    
+        setUniform2f(_invScrnSize, 1.f/fbo.getSizeX(), 1.f/fbo.getSizeY());
         updateSettings();
     }
 
@@ -909,7 +906,7 @@ void postRenderingClass::create() {
 
 }
 
-void postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx)
+void postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx, const vec4 &bkgColor)
 {
     particle->updateBufferData();
     mmFBO &renderFBO = particle->getRenderFBO();
@@ -918,8 +915,8 @@ void postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx)
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
 
-    const vec4 bkg(particle->backgroundColor());
-    glClearBufferfv(GL_COLOR,  0, value_ptr(bkg));
+    //const vec4 bkg(particle->backgroundColor());
+    glClearBufferfv(GL_COLOR,  0, value_ptr(bkgColor));
    
 
 #ifdef GLAPP_REQUIRE_OGL45
@@ -1091,7 +1088,7 @@ void ambientOcclusionClass::create() {
     //setUniform3fv(getUniformLocation("ssaoSamples"), kernelSize, (const GLfloat*)ssaoKernel.data());
 }
 
-void ambientOcclusionClass::bindRender(particlesBaseClass *particle, GLuint fbIdx)
+void ambientOcclusionClass::bindRender(particlesBaseClass *particle, GLuint fbIdx, const vec4 &bkgColor)
 {
     particle->updateBufferData();
     mmFBO &renderFBO = particle->getRenderFBO();
@@ -1100,8 +1097,8 @@ void ambientOcclusionClass::bindRender(particlesBaseClass *particle, GLuint fbId
 
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
 
-    const vec4 bkg(particle->backgroundColor());
-    glClearBufferfv(GL_COLOR,  0, value_ptr(bkg));
+    //const vec4 bkg(particle->backgroundColor());
+    glClearBufferfv(GL_COLOR,  0, value_ptr(bkgColor));
 
 #ifdef GLAPP_REQUIRE_OGL45
     glBindTextureUnit( 6, noiseTexture);
@@ -1213,21 +1210,22 @@ void tfSettinsClass::setViewport(int w, int h) {
     w++; h++;
     switch(getPIPposition()) {
         case pip::lTop:
-            setViewportSize(ivec4(0, h-szY, szX, szY));
+            setViewportSize(ivec4(0, h-szY, szX, h));
             break;
         case pip::lBottom:
-            setViewportSize(ivec4(0,  0, szX, szY));
+            setViewportSize(ivec4(0, 0, szX, szY));
             break;
         case pip::rTop:
-            setViewportSize(ivec4(w-szX,h-szY, szX, szY));
+            setViewportSize(ivec4(w-szX, h-szY, w, h));
             break;
         case pip::rBottom:
-            setViewportSize(ivec4(w-szX, 0, szX, szY));
+            setViewportSize(ivec4(w-szX, 0, w, szY));
             break;
         case pip::splitView:
             {
-                const float zoom = 1.f-getPIPzoom();
-                setViewportSize(ivec4(float(w)*getPIPzoom(), float(h)*getPIPzoom()*.5, float(w)*zoom, float(h)*zoom));
+                const float zoom = getPIPzoom();
+                const float startY = float(h)*zoom*.5;
+                setViewportSize(ivec4(float(w)*zoom, startY, float(w), float(h)-startY));
             }
             break;
         case pip::noPIP:
