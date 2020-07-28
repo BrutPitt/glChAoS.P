@@ -47,6 +47,8 @@ class AttractorsClass;
 class emitterBaseClass;
 class transformedEmitterClass;
 
+//void drawMinMaxButtons(float wDn, float border);
+
 //  Attractor base class
 ////////////////////////////////////////////////////////////////////////////
 class AttractorBase
@@ -100,8 +102,11 @@ public:
     virtual ifsBaseClass *getIFSParam() { return nullptr; }
     virtual ifsBaseClass *getIFSPoint() { return nullptr; }
 
+    virtual inline float colorFunc(const vec4 &v, const vec4 &vp) { return distance((vec3)v, (vec3)vp); }
+
     //thread Step with shared GPU memory
     void Step(float *&ptr, vec4 &v, vec4 &vp);
+    void StepAsync(float *&ptr, vec4 &v, vec4 &vp);
     //single step
     virtual void Step();
     //buffered Step
@@ -200,10 +205,12 @@ protected:
     float inputVMin = 0.0, inputVMax = 0.0;
 private:
 
+    friend void drawMinMaxButtons();
 };
 
+//--------------------------------------------------------------------------
 //  Attractors class with scalar K coeff
-////////////////////////////////////////////////////////////////////////////
+//--------------------------------------------------------------------------
 class attractorScalarK : public AttractorBase
 {
 public:
@@ -245,34 +252,9 @@ protected:
 
 };
 
-class attractorDtType : public attractorScalarK
-{
-protected:
-
-    attractorDtType() {
-        kMin = -5.0; kMax = 5.0; vMin = 0.0; vMax = 0.0;
-        m_POV = vec3( 0.f, 0, 7.f);
-        setDTType();
-    }
-
-    virtual void additionalDataCtrls();
-
-    virtual void saveAdditionalData(Config &cfg);
-    virtual void loadAdditionalData(Config &cfg);
-
-    float getDtStepInc() { return dtStepInc; }
-    void setDtStepInc(float f) { dtStepInc = f; }
-
-    // dTime step 
-    float dtStepInc = 0.001f;
-
-
-};
-
-
-
+//--------------------------------------------------------------------------
 //  Attractors class with vector K coeff
-////////////////////////////////////////////////////////////////////////////
+//--------------------------------------------------------------------------
 class attractorVectorK : public AttractorBase
 {
 public:
@@ -319,396 +301,102 @@ protected:
 
 };
 
-class fractalIIMBase : public attractorScalarK
+
+//--------------------------------------------------------------------------
+//  Volumetric Fractals
+//--------------------------------------------------------------------------
+class volumetricFractals : public attractorScalarK
 {
 public:
-    bool ifsActive() { return ifsParam.active() || ifsPoint.active(); }
-    ifsBaseClass *getIFSParam() { return &ifsParam; }
-    ifsBaseClass *getIFSPoint() { return &ifsPoint; }
-
-    vec4 getIFSvec4(ifsBaseClass &ifs) {
-        if(ifs.getCurrentTransform()<0) return vec4(ifs.getInitValue()); // no active transforms: neutral value
-        else {
-            ifsDataStruct *ifsStruct = ifs.getTransfStruct(ifs.getCurrentTransform());
-            return ifsStruct->variationFunc(ifsStruct->variations) * ifsStruct->variationFactor;
-        }
-    }
-    static fastXS64 fRnd64;
-
-protected:
-    fractalIIMBase() {
-        vMin = 0.f; vMax = 0.f; kMin = 0.f; kMax = 0.f;
+    volumetricFractals() {
+        vMin = -1.5; vMax = 1.5; kMin = -1.0; kMax = 1.0;
         m_POV = vec3( 0.f, 0, 7.f);
-        setFractalType();
     }
 
-    inline void refreshRandoms(vec4 &v) {
-            depth = 0;
-            v = vVal[0] + (vMin == vMax ? vec4(vMin) :
-                   vec4(fRnd64.xoroshiro128p_Range(vMin, vMax),
-                        fRnd64.xoroshiro128p_Range(vMin, vMax),
-                        fRnd64.xoroshiro128p_Range(vMin, vMax),
-                        fRnd64.xoroshiro128p_Range(vMin, vMax)));
-
-            kRnd = kMin == kMax ? vec4(kMin) :
-                   vec4(fRnd64.xoroshiro128p_Range(kMin, kMax),
-                        fRnd64.xoroshiro128p_Range(kMin, kMax),
-                        fRnd64.xoroshiro128p_Range(kMin, kMax),
-                        fRnd64.xoroshiro128p_Range(kMin, kMax));
-    }
-
-    inline void preStep(vec4 &v) { if(depth++>maxDepth) refreshRandoms(v); }
-
-    //  Specific attractor values
-    void saveAdditionalData(Config &cfg);
-    void loadAdditionalData(Config &cfg);
-
+    virtual inline float colorFunc(const vec4 &v, const vec4 &vp) { return outColor; }
     virtual void additionalDataCtrls();
 
-    vec4 kRnd = vec4(0.f);
-    vec4 vIter;
-    
-    int maxDepth = 50;
-    int degreeN = 2;
-    int skipTop = 10;
+protected:
+    int maxIter = 256;
+    int skipTop = 12;
+    float upperLimit = 64.f;
+    float outColor = 0;
+    vec3 sMin = vec3(-1.f), sMax = vec3(1.0);
+    bool skipConvergent = true;
 
-    int depth = 0;
-
-    ifsBaseClass ifsPoint = ifsBaseClass(1.f), ifsParam = ifsBaseClass(0.f);
-private:
 };
 
 
-class fractalIIM_Nth : public fractalIIMBase
+class fractalBedouin : public volumetricFractals
 {
 public:
-    //  Specific attractor values
-    virtual void additionalDataCtrls();
-protected:
-
-};
-
-
-class juliaBulb_IIM : public fractalIIMBase
-{    
-public:
-    juliaBulb_IIM() { stepFn = (stepPtrFn) &juliaBulb_IIM::Step; }
+    fractalBedouin() {
+        stepFn = (stepPtrFn) &fractalBedouin::Step;
+    }
 
 protected:
     void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
-class juliaBulb4th_IIM : public fractalIIM_Nth
-{    
-public:
-    juliaBulb4th_IIM() { stepFn = (stepPtrFn) &juliaBulb4th_IIM::Step; }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-class fractalIIM_4D : public fractalIIMBase
+class volQuatJulia : public volumetricFractals
 {
 public:
-    //void preStep(vec4 &v, vec4 &vp) { last4D = RANDOM(vMin, vMax); fractalIIMBase::preStep(v,vp); }
+    volQuatJulia() {
+        stepFn = (stepPtrFn) &volQuatJulia::Step;
+    }
+
     int getPtSize() { return attPt4D; }
 
-    virtual void initStep() {
-        attractorScalarK::initStep();
-    }
-
-protected:
-
-};
-
-
-class BicomplexBase : public fractalIIM_4D
-{
-public:
-    typedef void (BicomplexBase::*magneticPtrFn)(const vec4 &, int);
-    void startData();
-
-    inline void radiciBicomplex(const vec4 &pt, vec4 &vp)
-    {
-        //static fastXS64_mt fff;
-        //fff.jump_xoroshiro128p();
-        const uint32_t rnd = fRnd64.xoroshiro128p();
-        const float sign1 = (rnd&2) ? 1.f : -1.f, sign2 = (rnd&1) ? 1.f : -1.f;
-        const vec4 c = ifsParam.active() ? kRnd+getIFSvec4(ifsParam) : kRnd; // IFS param transforms
-        const vec4 p(pt - ((vec4 &)*kVal.data()+c));
-
-        const std::complex<float> z1(p.x, p.y), z2(-p.w, p.z);
-        const std::complex<float> w1 = sign1 * sqrt(z1 - z2), w2 = sign2 *sqrt(z1 + z2);
-        vp = vec4(w1.real()+w2.real(), w1.imag()+w2.imag(), w2.imag()-w1.imag(), w1.real()-w2.real())*.5f;
-        if(ifsPoint.active()) vp *= getIFSvec4(ifsPoint); // IFS point transforms
-    };
-
-    inline void mainFunc(vec4 &v, const vec4 &vMod, vec4 &vp) {
-        while(depth++<skipTop) {
-            radiciBicomplex(vMod,vp);
-            v = vp;
-        }
-        preStep(v);
-        radiciBicomplex(vMod,vp);
-    }
-
-};
-
-/////////////////////////////////////////////////
-class BicomplexJ_IIM : public BicomplexBase 
-{    
-public:
-    BicomplexJ_IIM() { stepFn = (stepPtrFn) &BicomplexJ_IIM::Step; }
-
-protected:
-    //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v, last4D), vp); } //remove
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, v, vp); }
-};
-
-/////////////////////////////////////////////////
-class BicomplexJMod0_IIM : public BicomplexBase
-{
-public:
-    BicomplexJMod0_IIM() { stepFn = (stepPtrFn) &BicomplexJMod0_IIM::Step; }
-
-protected:
-    //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v, dim4D), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4((vec3)v, vVal[0].w), vp); }
-};
-
-/////////////////////////////////////////////////
-class BicomplexJMod1_IIM : public BicomplexBase
-{
-public:
-    BicomplexJMod1_IIM() { stepFn = (stepPtrFn) &BicomplexJMod1_IIM::Step; }
-
-protected:
-    //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, vVal[0].z, last4D), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(v.x, v.y, vVal[0].z, v.w), vp); }
-};
-/////////////////////////////////////////////////
-class BicomplexJMod2_IIM : public BicomplexBase
-{
-public:
-    BicomplexJMod2_IIM() { stepFn = (stepPtrFn) &BicomplexJMod2_IIM::Step; }
-
-protected:
-    //void Step(vec4 &v, vec4 &vp) { preStep(v,vp); radiciBicomplex(vec4(last4D, v.x, v.z, v.x), vp); }
-    //void Step(vec4 &v, vec4 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.y, v.z, last4D, v.x), vp); }
-    //void Step(vec4 &v, vec4 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.x, v.y, v.y, v.y), vp); }
-
-    //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.z, v.y), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(v.x, v.y, v.z, v.y), vp); }
-};
-
-/////////////////////////////////////////////////
-class BicomplexJMod3_IIM : public BicomplexBase
-{
-public:
-    BicomplexJMod3_IIM() { stepFn = (stepPtrFn) &BicomplexJMod3_IIM::Step; }
-
-protected:
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(vVal[0].x, v.y, v.z, v.w), vp); }
-};
-/////////////////////////////////////////////////
-class BicomplexJMod4_IIM : public BicomplexBase
-{
-public:
-    BicomplexJMod4_IIM() { stepFn = (stepPtrFn) &BicomplexJMod4_IIM::Step; }
-
-protected:
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(v.x, v.y, v.x, v.w), vp); }
-};
-/////////////////////////////////////////////////
-class BicomplexJMod5_IIM : public BicomplexBase
-{
-public:
-    BicomplexJMod5_IIM() { stepFn = (stepPtrFn) &BicomplexJMod5_IIM::Step; }
-
-protected:
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4( v.y, v.x, v.w, v.z), vp); }
-};
-/////////////////////////////////////////////////
-class BicomplexJMod6_IIM : public BicomplexBase
-{
-public:
-    BicomplexJMod6_IIM() { stepFn = (stepPtrFn) &BicomplexJMod6_IIM::Step; }
-
-protected:
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(vVal[0].x, vVal[0].y, v.z, v.w), vp); }
-};
-/////////////////////////////////////////////////
-class BicomplexJMod7_IIM : public BicomplexBase
-{
-public:
-    BicomplexJMod7_IIM() { stepFn = (stepPtrFn) &BicomplexJMod7_IIM::Step; }
-
-protected:
-    //void Step(vec4 &v, vec4 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, v.x), vp); }
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4( v.x, v.x, v.z, vVal[0].w), vp); }
-    //void Step(vec4 &v, vec4 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, last4D), vp); }
-};
-
-/////////////////////////////////////////////////
-class BicomplexJExplorer : public BicomplexBase
-{    
-public:
-    BicomplexJExplorer() { 
-        stepFn = (stepPtrFn) &BicomplexJExplorer::Step; 
-    }
-
-    void saveAdditionalData(Config &cfg);
-    void loadAdditionalData(Config &cfg);
-
-    void additionalDataCtrls();
-    void initStep() {
-        //fractalIIMBase::initStep();
-        resetQueue();
-        Insert(vVal[0]);
-        //stabilize(STABILIZE_DIM);
-
-        a1[0] = a2[0] = a3[0] = a4[0] = &vVal[0].x;
-        a1[1] = a2[1] = a3[1] = a4[1] = &vVal[0].y;
-        a1[2] = a2[2] = a3[2] = a4[2] = &vVal[0].z;
-        a1[3] = a2[3] = a3[3] = a4[3] = &vVal[0].w;
-        a1[4] = a2[4] = a3[4] = a4[4] = &vt.x;
-        a1[5] = a2[5] = a3[5] = a4[5] = &vt.y;
-        a1[6] = a2[6] = a3[6] = a4[6] = &vt.z;
-        a1[7] = a2[7] = a3[7] = a4[7] = &vt.w;
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp) {
-        while(depth++<skipTop) {
-            vt = v;
-            radiciBicomplex(vec4( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]), vp);
-            v = vp;
-        }
-        preStep(v);
-        vt = v;
-        radiciBicomplex(vec4( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]), vp);
-    }
-private:
-    float *a1[8], *a2[8], *a3[8], *a4[8];
-    int idx0 = 4, idx1 = 5, idx2 = 6, idx3 = 7 ;
-    const char str[8][4] { "s.X", "s.Y", "s.Z", "s.W", "i.X", "i.Y", "i.Z", "i.W" }; 
-    vec4 vt;
-
-};
-
-/////////////////////////////////////////////////
-class quatJulia_IIM : public fractalIIM_4D
-{    
-public:
-    quatJulia_IIM() { stepFn = (stepPtrFn) &quatJulia_IIM::Step; }
-
 protected:
     void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
+//--------------------------------------------------------------------------
+//  IIM Fractals
+//--------------------------------------------------------------------------
+#include "attractorsFractalsIIM.h"
 
-class glynnJB_IIM : public fractalIIMBase
-{    
-public:
-    glynnJB_IIM() { stepFn = (stepPtrFn) &glynnJB_IIM::Step;  }
+//--------------------------------------------------------------------------
+//  Poynomial classes
+//--------------------------------------------------------------------------
+#include "attractorsPolynomial.h"
 
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
+//--------------------------------------------------------------------------
+//  Trigonometric class
+//--------------------------------------------------------------------------
+#include "attractorsTrigonom.h"
+
+//--------------------------------------------------------------------------
+//  2D attractors transformed in 3D/4D
+//--------------------------------------------------------------------------
+#include "attractors2DTransf.h"
+
+//--------------------------------------------------------------------------
+//  Rampe class
+//--------------------------------------------------------------------------
+#include "attractorsRampe.h"
+
+//--------------------------------------------------------------------------
+//  DLA3D class
+//--------------------------------------------------------------------------
+#include "attractorsDLA3D.h"
+
+//--------------------------------------------------------------------------
+//  dp/dt class
+//--------------------------------------------------------------------------
+#include "attractorsDiffEq.h"
+
+//--------------------------------------------------------------------------
+//  Magnetic class
+//--------------------------------------------------------------------------
+#include "attractorsMagnetic.h"
 
 
 //--------------------------------------------------------------------------
-//  Vector K Coeff Attractors
+//  IFS class
 //--------------------------------------------------------------------------
-
-//  Polinomial base class
-////////////////////////////////////////////////////////////////////////////
-class PowerN3D : public attractorVectorK
-{
-public:
-
-    PowerN3D() {
-        
-        stepFn = (stepPtrFn) &PowerN3D::Step;    
-
-        tmpOrder = order = 2;
-        vMin = 0.0; vMax = 0.0; kMin = -1.25; kMax = 1.25;
-        m_POV = vec3( 0.f, 0, 7.f);
-        
-        resetData();
-    }
-
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-
-    void searchAttractor()  { searchLyapunov(); }
-
-    void initStep() {
-        resetQueue();
-        resetData();
-
-        if(nCoeff!=kVal.size()) assert("mismatch loaded size!!");
-
-        Insert(vVal[0]);
-        stabilize(STABILIZE_DIM);
-    }
-
-    //  Personal vals
-    ///////////////////////////////////////
-    void saveAdditionalData(Config &cfg);
-    void loadAdditionalData(Config &cfg);
-
-    void additionalDataCtrls();
-
-    //  SetOrder
-    ///////////////////////////////////////
-    void setOrder(const int n)
-    { 
-        tmpOrder = order = n;
-        resetData();
-
-        kVal.resize(nCoeff);
-
-        newRandomValues();
-
-        resetQueue();
-        Insert(vVal[0]);
-
-        searchAttractor();
-    }
-
-
-    void newRandomValues()
-    {
-        for(int i=0; i<nCoeff; i++)
-            kVal[i] = vec4(RANDOM(kMin,kMax),RANDOM(kMin,kMax),RANDOM(kMin,kMax),0.f);
-
-        vVal[0] = vec4(RANDOM(vMin,vMax),RANDOM(vMin,vMax),RANDOM(vMin,vMax),0.f);
-    }
-
-private:
-
-    int getNumCoeff(int o) { return (o+1) * (o+2) * (o+3) / 6; }
-    int getNumCoeff() { return getNumCoeff(order); }
-
-    void resetData() {
-        nCoeff = getNumCoeff();
-
-        elv.resize(order+1);
-        cf.resize(nCoeff);
-    }
-
-    vector<vec3> elv;
-    vector<float> cf;
-    int nCoeff;
-    int order, tmpOrder;
-};
-
-
 class tetrahedronGaussMap : public attractorVectorK
 {
 public:
@@ -723,934 +411,7 @@ protected:
     void startData();
 };
 
-//  Polinomial base class
-////////////////////////////////////////////////////////////////////////////
-class PolynomialBase : public attractorVectorK
-{
-public:
-    PolynomialBase() {
-        vMin = 0.0; vMax = 0.0; kMin = -1.0; kMax = 1.0;
-        m_POV = vec3( 0.f, 0, 7.f);
-    }
-protected:
-    virtual void searchAttractor()  { searchLyapunov(); }
-};
 
-/////////////////////////////////////////////////
-class PolynomialA : public PolynomialBase
-{
-public:
-    PolynomialA() { stepFn = (stepPtrFn) &PolynomialA::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-/*
-    void newRandomValues ()
-    {
-            float val=.23+(float)rand()/(float)RAND_MAX*.1f;
-            //float val=1.55f+(float)rand()/(float)RAND_MAX*.2f;
-
-            int j=rand()%3;
-
-            kVal[j]=val;
-            kVal[(j+1)%3]=(float)rand()/(float)RAND_MAX*2.f;
-            kVal[(j+2)%3]=3.f-kVal[j]-kVal[(j+1)%3];
-    }*/
-};
-
-/////////////////////////////////////////////////
-class PolynomialB : public PolynomialBase
-{
-public:
-    PolynomialB() { stepFn = (stepPtrFn) &PolynomialB::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-/////////////////////////////////////////////////
-class PolynomialC : public PolynomialBase
-{
-public:
-    PolynomialC() { stepFn = (stepPtrFn) &PolynomialC::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-/////////////////////////////////////////////////
-class PolynomialABS : public PolynomialBase
-{
-public:
-    PolynomialABS() { stepFn = (stepPtrFn) &PolynomialABS::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-/////////////////////////////////////////////////
-class PolynomialPow : public PolynomialBase
-{
-public:
-    PolynomialPow() { stepFn = (stepPtrFn) &PolynomialPow::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-/////////////////////////////////////////////////
-class PolynomialSin : public PolynomialBase
-{
-public:
-    PolynomialSin() { stepFn = (stepPtrFn) &PolynomialSin::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-//  Rampe base class
-////////////////////////////////////////////////////////////////////////////
-class RampeBase : public attractorVectorK
-{
-public:
-    RampeBase() {
-        vMin = 0.0; vMax = 0.0; kMin = -1.0; kMax = 1.0;
-        m_POV = vec3( 0.f, 0, 10.f);
-    }
-protected:
-    void searchAttractor()  { searchLyapunov(); }
-};
-
-#define RAMPE(A)\
-class Rampe##A : public RampeBase {\
-public:\
-    Rampe##A() { stepFn = (stepPtrFn) &Rampe##A::Step; }\
-protected:\
-    void Step(vec4 &v, vec4 &vp);\
-    void startData(); };
-
-RAMPE(01)
-RAMPE(02)
-RAMPE(03)
-RAMPE(03A)
-RAMPE(04)
-RAMPE(05)
-RAMPE(06)
-RAMPE(07)
-RAMPE(08)
-RAMPE(09)
-RAMPE(10)
-
-#undef RAMPE
-
-
-//--------------------------------------------------------------------------
-//  Scalar K Coeff Attractors
-//--------------------------------------------------------------------------
-
-//  KingsDream base class
-////////////////////////////////////////////////////////////////////////////
-class KingsDream : public attractorScalarK
-{
-public:
-    KingsDream() { 
-        stepFn = (stepPtrFn) &KingsDream::Step;
-        vMin = -0.5; vMax = 0.5; kMin = -2.0; kMax = 2.0;
-        m_POV = vec3( 0.f, 0, 10.f);
-    }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-    void searchAttractor()  { searchLyapunov(); }
-};
-
-//  Pickover base class
-////////////////////////////////////////////////////////////////////////////
-class Pickover : public attractorScalarK
-{
-public:
-
-    Pickover() {
-        stepFn = (stepPtrFn) &Pickover::Step;
-
-        vMin = -1.0; vMax = 1.0; kMin = -3.0; kMax = 3.0;
-
-        m_POV = vec3( 0.f, 0, 7.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-    void searchAttractor()  { searchLyapunov(); }
-};
-
-//  SinCos base class
-////////////////////////////////////////////////////////////////////////////
-class SinCos : public attractorScalarK
-{
-public:
-
-    SinCos() {
-        stepFn = (stepPtrFn) &SinCos::Step;
-
-        kMin = -T_PI;
-        kMax =  T_PI;
-        vMin = -1.0; vMax = 1.0;
-
-        m_POV = vec3( 0.f, 0, 12.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-    void searchAttractor()  { searchLyapunov(); }
-};
-
-//  Mira3D
-////////////////////////////////////////////////////////////////////////////
-class Mira3D : public attractorScalarK
-{
-public:
-
-    Mira3D() {
-        stepFn = (stepPtrFn) &Mira3D::Step;
-
-        vMin = -10.0; vMax = 10.0; kMin = -1.0; kMax = 1.0;
-
-        m_POV = vec3( 0.f, 0, 12.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-    void searchAttractor()  { searchLyapunov(); }
-};
-//  Mira4D
-////////////////////////////////////////////////////////////////////////////
-class Mira4D : public attractorScalarK
-{
-public:
-
-    Mira4D() {
-        stepFn = (stepPtrFn) &Mira4D::Step;
-        vMin = -10.0; vMax = 10.0; kMin = -1.0; kMax = 1.0;
-
-        m_POV = vec3( 0.f, 0, 50.f);
-    }
-
-    int getPtSize() { return attPt4D; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-    void searchAttractor()  { searchLyapunov(); }
-};
-
-//  PopCorn 4D BaseClasses
-////////////////////////////////////////////////////////////////////////////
-class PopCorn4DType : public attractorScalarK
-{
-public:
-    
-    PopCorn4DType() {
-        vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
-        m_POV = vec3( 0.f, 0, 12.f);
-    }
-
-    int getPtSize() { return attPt4D; }
-protected:
-    virtual void startData();
-    //virtual void additionalDataCtrls();
-};
-class PopCorn4Dset : public PopCorn4DType
-{
-public:
-    void Step(vec4 &v, vec4 &vp);
-
-protected:
-    double (*pfX)(double), (*pfY)(double), (*pfZ)(double), (*pfW)(double);
-};
-
-//  PopCorn 4D
-////////////////////////////////////////////////////////////////////////////
-class PopCorn4D : public PopCorn4Dset
-{
-public:
-    PopCorn4D() { stepFn = (stepPtrFn) &PopCorn4Dset::Step; 
-                  pfX = pfY = pfZ = pfW = sin; }
-};
-////////////////////////////////////////////////////////////////////////////
-class PopCorn4Dscss : public PopCorn4Dset
-{
-public:
-    PopCorn4Dscss() { stepFn = (stepPtrFn) &PopCorn4Dset::Step; 
-                      pfX = pfZ = pfW = sin;  pfY = cos; }
-};
-////////////////////////////////////////////////////////////////////////////
-class PopCorn4Dscsc : public PopCorn4Dset
-{
-public:
-    PopCorn4Dscsc() { stepFn = (stepPtrFn) &PopCorn4Dset::Step; 
-                      pfX = pfZ = sin;  pfY = pfW = cos; }
-};
-////////////////////////////////////////////////////////////////////////////
-class PopCorn4Dsscc : public PopCorn4Dset
-{
-public:
-    PopCorn4Dsscc() { stepFn = (stepPtrFn) &PopCorn4Dset::Step; 
-                      pfX = pfY = sin;  pfZ = pfW = cos; }
-};
-
-class PopCorn4Dsimple : public PopCorn4DType
-{
-public:
-    PopCorn4Dsimple() { stepFn = (stepPtrFn) &PopCorn4Dsimple::Step;
-                      pfX = pfY = pfZ = pfW = sin; }
-    void Step(vec4 &v, vec4 &vp);
-
-protected:
-    double (*pfX)(double), (*pfY)(double), (*pfZ)(double), (*pfW)(double);
-};
-
-////////////////////////////////////////////////////////////////////////////
-class PopCorn4Drnd : public PopCorn4DType
-{
-public:
-    void startData();
-    PopCorn4Drnd() { stepFn = (stepPtrFn) &PopCorn4DType::Step; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-};
-
-//  PopCorn 3D
-////////////////////////////////////////////////////////////////////////////
-class PopCorn3D : public attractorScalarK
-{
-public:
-
-    PopCorn3D() {
-        stepFn = (stepPtrFn) &PopCorn3D::Step;
-        vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
-
-        m_POV = vec3( 0.f, 0, 12.f);
-    }
-
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-//  Martin 4D
-////////////////////////////////////////////////////////////////////////////
-class Martin4DBase : public attractorScalarK
-{
-public:
-    Martin4DBase() {
-        vMin = .0; vMax = .5; kMin = 2.7; kMax = 3.0;
-
-        m_POV = vec3( 0.f, 0, 50.f);
-    }
-
-    int getPtSize() { return attPt4D; }
-
-    void Step(vec4 &v, vec4 &vp);
-protected:
-    double (*pfX)(double), (*pfZ)(double);
-    void startData();
-};
-
-class Martin4D : public Martin4DBase
-{
-public:
-    Martin4D() { stepFn = (stepPtrFn) &Martin4DBase::Step;  pfX = pfZ = sin; }
-};
-class Martin4Dsc : public Martin4DBase
-{
-public:
-    Martin4Dsc() { stepFn = (stepPtrFn) &Martin4DBase::Step;  pfX = sin; pfZ = cos; }
-};
-class Martin4Dcc : public Martin4DBase
-{
-public:
-    Martin4Dcc() { stepFn = (stepPtrFn) &Martin4DBase::Step;  pfX = pfZ = cos; }
-};
-
-//  Symmetric Icons
-////////////////////////////////////////////////////////////////////////////
-class SymmetricIcons4D : public attractorScalarK
-{
-public:
-
-    SymmetricIcons4D() {
-        stepFn = (stepPtrFn) &SymmetricIcons4D::Step;
-        vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
-
-        m_POV = vec3( 0.f, 0, 12.f);
-    }
-
-    int getPtSize() { return attPt4D; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-};
-
-
-//  Hopalong 4D
-////////////////////////////////////////////////////////////////////////////
-class Hopalong4D : public attractorScalarK
-{
-public:
-
-    Hopalong4D() {
-        stepFn = (stepPtrFn) &Hopalong4D::Step;
-
-        vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
-        m_POV = vec3( 0.f, 0, 50.f);
-    }
-
-    int getPtSize() { return attPt4D; }
-protected:
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-    //void searchAttractor()  { searchLyapunov(); }
-};
-
-#if !defined(GLAPP_DISABLE_DLA)
-
-using tPrec = VG_T_TYPE;
-
-//#define GLAPP_USE_BOOST_LIBRARY
-
-// number of dimensions (must be 2 or 3)
-#define DLA_DIM 3
-
-#define DLA_USE_FAST_RANDOM
-#ifdef DLA_USE_FAST_RANDOM
-    #define DLA_RANDOM_NORM fastPrng64.xorShift_VNI<float>()
-    #define DLA_RANDOM_01   fastPrng64.xorShift_UNI<float>()
-#else
-    #define DLA_RANDOM_NORM stdRandom(-1.f, 1.f)
-    #define DLA_RANDOM_01   stdRandom( 0.f, 1.f)
-#endif
-
-// boost is used for its spatial index
-
-#ifdef GLAPP_USE_BOOST_LIBRARY
-    #include <boost/function_output_iterator.hpp>
-    #include <boost/geometry/geometry.hpp>
-
-    using BoostPoint = boost::geometry::model::point<float, DLA_DIM, boost::geometry::cs::cartesian>;
-    using boostIndexValue = std::pair<BoostPoint, uint32_t>;
-    using boostIndex = boost::geometry::index::rtree<boostIndexValue, boost::geometry::index::linear<4>>;
-
-    #define parentPOINT(PARENT) m_Points[PARENT]
-    #define thisPOINT m_Points
-#else
-    #include <nanoflann/nanoflann.hpp>
-
-    #define parentPOINT(PARENT) m_Points.pts[PARENT]
-    #define thisPOINT m_Points.pts
-
-
-TEMPLATE_TYPENAME_T struct pointCloud
-{
-    
-    std::vector<vec3> pts;
-    
-    // Must return the number of data points
-    inline size_t kdtree_get_point_count() const { return pts.size(); }
-    
-    // Returns the dim'th component of the idx'th point in the class:
-    // Since this is inlined and the "dim" argument is typically an immediate value, the
-    //  "if/else's" are actually solved at compile time.
-    inline tPrec kdtree_get_pt(const size_t idx, const size_t dim) const
-    { return pts[idx][dim]; }
-    
-    // Optional bounding-box computation: return false to default to a standard bbox computation loop.
-    //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
-    //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds)
-    template <class BBOX>
-    bool kdtree_get_bbox(BBOX& /* bb */) const { return false; }
-    
-};
-
-using tPointCloud =  pointCloud<tPrec>;
-
-using tKDTreeDistanceFunc = nanoflann::L2_Simple_Adaptor<tPrec, tPointCloud>;
-using tKDTree = nanoflann::KDTreeSingleIndexDynamicAdaptor<tKDTreeDistanceFunc, tPointCloud, 3>;
-#endif
-
-//  DLA3D base class
-////////////////////////////////////////////////////////////////////////////
-// Adaptation and optimization from original project of Michael Fogleman
-// https://github.com/fogleman/dlaf
-//
-// Original Parameters   ==>    substitution
-// -------------------------------------------------------------------------
-// ParticleSpacing       ==>    kVal[0]
-// AttractionDistance    ==>    kVal[1]
-// MinMoveDistance       ==>    kVal[2]
-//
-// Description from author
-// -------------------------------------------------------------------------
-// ParticleSpacing     The distance between particles when they become joined together.
-// AttractionDistance  How close together particles must be in order to join together.
-// MinMoveDistance     The minimum distance that a particle will move in an iteration during its random walk.
-// Stubbornness        How many join attempts must occur before a particle will allow another particle to join to it.
-// Stickiness          The probability that a particle will allow another particle to join to it.
-class dla3D : public attractorScalarK {
-public:
-    dla3D() {
-        stepFn = (stepPtrFn) &dla3D::Step;
-
-        vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
-
-        m_POV = vec3( 0.f, 0, 12.f);
-        inputKMin = 0.0001, inputKMax = 10000.0;
-        setDLAType();
-    }
-#if !defined(GLAPP_USE_BOOST_LIBRARY)
-    ~dla3D() { delete m_Index; }
-#endif
-
-    void buildIndex();
-
-    inline void addLoadedPoint(const vec3 &p) {
-        thisPOINT.push_back(p);
-        boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
-    }
-
-
-    void resetIndexData() {
-        if(thisPOINT.size()) thisPOINT.clear();
-#ifdef GLAPP_USE_BOOST_LIBRARY
-        if(m_Index.size()) m_Index.clear();
-#else             
-        delete m_Index;
-        m_Index = new tKDTree(DLA_DIM, m_Points, nanoflann::KDTreeSingleIndexAdaptorParams(10 /* max leaf */) );
-#endif        
-        m_JoinAttempts.clear();
-        boundingRadius = 0.f;
-    }
-protected:
-    void initStep() {
-        resetIndexData();
-        resetQueue();
-        Insert(vec4(0.f));
-        Add(vec3(0.0));
-        //addedPoints.clear();
-        //startThreads(4);
-    }
-
-    void additionalDataCtrls();
-    void saveAdditionalData(Config &cfg);
-    void loadAdditionalData(Config &cfg);
-
-#ifdef GLAPP_USE_BOOST_LIBRARY
-    // Add adds a new particle with the specified parent particle
-    void Add(const vec3 &p) {
-        const uint32_t id = m_Points.size();
-        m_Index.insert(std::make_pair(BoostPoint(p.x, p.y, p.z), id));
-        m_Points.push_back(p);
-        m_JoinAttempts.push_back(0);
-        boundingRadius = max(boundingRadius, length(p) + kVal[1]);
-    }
-    // Nearest returns the index of the particle nearest the specified point
-    uint32_t Nearest(const vec3 &point) const {
-        uint32_t result = -1;
-        m_Index.query(
-            boost::geometry::index::nearest(BoostPoint(point.x,point.y,point.z), 1),
-            boost::make_function_output_iterator([&result](const auto &value) {
-                result = value.second;
-            }));
-        return result;
-    }
-#else
-/*
-// Multipoints
-    std::vector<vec3> tmp;
-    void Add(const vec3 &p) {
-        //my_kd_tree_t index(3 , m_Points, KDTreeSingleIndexAdaptorParams(10 max leaf ) );
-        //static uint32_t count = 0;
-        //const int nPT = 16;
-
-        size_t id = m_Points.pts.size();
-        m_Points.pts.push_back(p);        
-        m_JoinAttempts.push_back(0);
-
-        static int count =0;
-        static int next = 1;
-        static int limit = 1024;
-        static int block = 0xff;
-        if(next<limit) {
-            if(!(id%next)) { m_Index->addPoints(id-count, id); count = 0; next = (1+(id>>4)); }
-            else count++;
-            //m_Index->addPoints(id, id);
-        } else {
-            if(!(id&block)) { 
-                m_Index->addPoints(id-count, id); count = 0; int blk = 512 / (1+(id>>16)); next = blk<1 ? 1 : blk; 
-            }
-            else count++;
-        } 
-        //m_Index->addPoints(id,id);
-        
-        boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
-    }
-*/
-    void Add(const vec3 &p) {
-        size_t id = m_Points.pts.size();
-        m_Points.pts.push_back(p);        
-        m_JoinAttempts.push_back(0);
-
-        m_Index->addPoints(id, id);
-        boundingRadius = std::max(boundingRadius, length(p) + kVal[1]);
-    }
-
-    uint32_t Nearest(const vec3 &point) const {
-        size_t ret_index;
-        tPrec out_dist_sqr = kVal[1]*.5;
-        nanoflann::KNNResultSet<tPrec> resultSet(1);
-        resultSet.init(&ret_index, &out_dist_sqr );
-        m_Index->findNeighbors(resultSet, (const tPrec *) &point, nanoflann::SearchParams(1, boundingRadius /*kVal[1]*/));
-        return ret_index;
-    }
-
-#endif
-        //std::cout << id << "," << p.x << "," << p.y << "," << p.z << std::endl;
-
-    // PlaceParticle computes the final placement of the particle.
-    vec3 PlaceParticle(const vec3 &p, const uint32_t parent) const {
-        return lerp(parentPOINT(parent), p, kVal[0]);
-    }
-
-    // RandomStartingPosition returns a random point to start a new particle
-    vec3 RandomStartingPosition() const {
-        return normalizedRandomVector() * boundingRadius;
-    }
-
-    // ShouldReset returns true if the particle has gone too far away and
-    // should be reset to a new random starting position
-    bool ShouldReset(const vec3 &p) const {
-        return length(p) > boundingRadius * 2;
-    }
-
-    // ShouldJoin returns true if the point should attach to the specified
-    // parent particle. This is only called when the point is already within
-    // the required attraction distance.
-    bool ShouldJoin(const vec3 &p, const uint32_t parent) {
-        return (m_JoinAttempts[parent]++ < m_Stubbornness) ? false : DLA_RANDOM_01 <= m_Stickiness;
-    }
-/*
-    // MotionVector returns a vector specifying the direction that the
-    // particle should move for one iteration. The distance that it will move
-    // is determined by the algorithm.
-    vec3 MotionVector(const vec3 &p) const {
-        return RandomInUnitSphere();
-    }
-
-    vec3 RandomInUnitSphere() const {
-        vec3 p;
-        do {
-            p = vec3(DLA_RANDOM_NORM, DLA_RANDOM_NORM, DLA_RANDOM_NORM);
-        } while(length(p) >= 1.f);
-        return p;
-    } 
-*/
-    vec3 normalizedRandomVector() const { return normalize(vec3(DLA_RANDOM_NORM, DLA_RANDOM_NORM, DLA_RANDOM_NORM)); }
-
-
-    // AddParticle diffuses one new particle and adds it to the model
-    vec3 &AddParticle_() {
-        // compute particle starting location
-        vec3 p = RandomStartingPosition();
-
-        // do the random walk
-        while (true) {
-            // get distance to nearest other particle
-            const uint32_t parent = Nearest(p);
-            const tPrec d = distance(p, parentPOINT(parent));
-
-            // check if close enough to join
-            if (d < kVal[1]) {
-                if (!ShouldJoin(p, parent)) {
-                    // push particle away a bit
-                    //p = lerp(parentPOINT(parent), p, kVal[1]+kVal[2]);
-                    p = lerp(parentPOINT(parent), p, kVal[1]);
-                    continue;
-                } 
-                // adjust particle pos in relation to its parent and add the point
-                Add(PlaceParticle(p, parent));
-                return thisPOINT.back();
-            }
-
-            // move randomly
-            p += normalizedRandomVector() * DLA_RANDOM_01 * std::max(kVal[2], d - kVal[1]);
-
-            // check if particle is too far away, reset if so
-            if (ShouldReset(p)) p = RandomStartingPosition();
-        }
-    }
-
-    vec3 &AddParticle() {
-        vec3 p = RandomStartingPosition();
-
-        uint32_t parent;
-        tPrec d;
-        const tPrec val1 = kVal[1], val2 = kVal[2];
-        do {
-            parent = Nearest(p);
-            d = distance(p, parentPOINT(parent)); // get distance to nearest other particle
-
-            if (ShouldReset(p)) p = RandomStartingPosition(); // check if particle is too far away, reset if so
-            else                p += normalizedRandomVector() * DLA_RANDOM_01 * std::max(val2, d - val1); // move randomly
-
-        } while (d > val1); // repeat until is close enough to join
-
-        while(!ShouldJoin(p, parent)) { p = lerp(parentPOINT(parent), p, val1+val2); } // push particle away a bit
-
-        Add(PlaceParticle(p, parent)); // adjust particle pos in relation to its parent and add the point
-        return thisPOINT.back();
-    }
-
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-
-private:
-#if !defined(DLA_USE_FAST_RANDOM)
-    tPrec stdRandom(tPrec lo, tPrec hi) const {
-        static thread_local std::mt19937 gen(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-        std::uniform_real_distribution<tPrec> dist(lo, hi); return dist(gen);
-    }
-#endif
-    vec3 lerp(const vec3 &a, const vec3 &b, tPrec d) const {
-        return a + normalize(b-a) * d;
-    }
-
-    //The probability that a particle will allow another particle to join to it.
-    tPrec m_Stickiness = 1.0;
-    // m_Stubbornness defines how many interactions must occur before a
-    // particle will allow another particle to join to it.
-    int m_Stubbornness = 0;
-
-    // m_BoundingRadius defines the radius of the bounding sphere that bounds
-    // all of the particles
-    tPrec boundingRadius = 0;
-
-    // m_JoinAttempts tracks how many times other particles have attempted to
-    // join with each finalized particle
-    std::vector<uint32_t> m_JoinAttempts;
-
-#ifdef GLAPP_USE_BOOST_LIBRARY
-    // m_Index is the spatial index used to accelerate nearest neighbor queries
-    boostIndex m_Index;
-    // m_Points stores the final particle positions
-    std::vector<vec3> m_Points;
-#else
-    tPointCloud m_Points;
-    tKDTree *m_Index = nullptr;
-#endif
-};
-#endif
-
-//--------------------------------------------------------------------------
-//  d(x,y,z)/dt Attractors
-//--------------------------------------------------------------------------
-#define DT(A)\
-class A : public attractorDtType {\
-    public:\
-        A() { stepFn = (stepPtrFn) &A::Step; }\
-    protected:\
-        void Step(vec4 &v, vec4 &vp);\
-        void startData();\
-};
-
-DT(Aizawa         )
-DT(Arneodo        )
-DT(Bouali         )
-DT(BrukeShaw      )
-DT(ChenCelikovsky )
-DT(ChenLee        )
-DT(Coullet        )
-DT(Dadras         )
-DT(DequanLi       )
-DT(FourWing       )
-DT(FourWing2      )
-DT(FourWing3      )
-DT(GenesioTesi    )
-DT(GloboToroid    )
-DT(Halvorsen      )
-DT(Hadley         )
-DT(LiuChen        )
-DT(Lorenz         )
-DT(MultiChuaII    )
-DT(NewtonLeipnik  )
-DT(NoseHoover     )
-DT(QiChen         )
-DT(Sakarya        )
-DT(RayleighBenard )
-DT(Robinson       )
-DT(Rossler        )
-DT(Rucklidge      )
-DT(ShimizuMorioka )
-DT(SprottLinzB    )
-DT(SprottLinzF    )
-DT(Tamari         )
-DT(Thomas         )
-DT(TSUCS          )
-DT(YuWang         )
-DT(ZhouChen       )
-
-#undef DT
-
-//  Magnetic base class
-////////////////////////////////////////////////////////////////////////////
-class Magnetic : public attractorVectorK
-{
-public:
-
-    typedef  const vec3 (Magnetic::*magneticPtrFn)(const vec3 &, int);
-    Magnetic() 
-    {
-        stepFn = (stepPtrFn) &Magnetic::Step;
-        kMax = 5.0; kMin = -5.0; vMax = 1.0; vMin = -1.0;
-
-        m_POV = vec3( 0.f, 0.f, 3.f);
-    }
-
-    //  innerSteps functions
-    ///////////////////////////////////////
-    const vec3 straight(const vec3 &vx, int i);
-    const vec3 rightShift(const vec3 &vx, int i);
-    const vec3 leftShift(const vec3 &vx, int i);
-    const vec3 fullPermutated(const vec3 &vx, int i);
-    const vec3 tryed(const vec3 &vx, int i);
-
-protected:
-    void initStep() {
-        resetQueue();
-        Insert(vec4(0.f));
-        tmpElements = vVal.size();
-        stabilize(STABILIZE_DIM);
-    }
-
-    void Step(vec4 &v, vec4 &vp);
-    void startData();
-
-    //  Additional save vals
-    ///////////////////////////////////////
-    void saveAdditionalData(Config &cfg);
-    void loadAdditionalData(Config &cfg);
-
-    //  Additional Controls
-    ///////////////////////////////////////
-    void additionalDataCtrls();
-    int additionalDataDlg();
-
-    void setElements(const int n)
-    { 
-        newItemsEnd = true;
-        //clear();
-        vVal.resize(n); kVal.resize(n); 
-
-        newRandomValues();
-
-        newItemsEnd = false;
-    }
-
-    void setElementsA(const int n)
-    { 
-        newItemsEnd = true;
-        const int nMagnets = vVal.size();
-
-        const float _kUP =  kMax/nMagnets;
-        const float _kDW =  kMin/nMagnets;
-
-        const float _dUP =  vMax;
-        const float _dDW =  vMin;
-
-        int elements=nMagnets;
-        while(n > elements) {
-            vVal.push_back(vec4(RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP), 0.f));
-            kVal.push_back(vec4(RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP), 0.f)); 
-            elements++;
-        }
-        while(n < elements) {
-            vVal.pop_back();
-            kVal.pop_back(); 
-            elements--;
-        }
-        //ResizeVectors(); 
-        resetQueue(); 
-        newItemsEnd = false;
-    }
-
-    int getElements() { return vVal.size(); }
-
-
-    void newRandomValues() 
-    {
-        for(int j =0; j++<100;) {
-            initParams();
-
-            for(int i=0; i++<100;) AttractorBase::Step();
-
-            vec4 v0 = getCurrent();
-            vec4 v1 = getPrevious();
-
-            //if(fabs(v0.x-v1.x)<.01 && fabs(v0.y-v1.y)<.01 && fabs(v0.z-v1.z)<.01) 
-            if(fabs(v0.x-v1.x)>.01 || fabs(v0.y-v1.y)>.01 || fabs(v0.z-v1.z)>.01) break;
-        }
-    }
-    
-    void searchAttractor()  { searchLyapunov(); }
-
-    //thread *th[4];
-    //vec3 vth[4],vcurr;
-
-    magneticPtrFn increment;
-    bool newItemsEnd = false;
-
-    int tmpElements, nElements;
-
-
-    void initParams() {
-
-        const int nMagnets = vVal.size();
-
-        const float _kUP =  kMax/nMagnets;
-        const float _kDW =  kMin/nMagnets;
-
-        const float _dUP =  vMax;
-        const float _dDW =  vMin;
-
-        for(auto &i : vVal) i = vec4(RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP), RANDOM(_dDW,_dUP), 0.f);
-        for(auto &i : kVal) i = vec4(RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP), RANDOM(_kDW,_kUP), 0.f);
-
-        initStep();
-    }
-};
-//  Magnetic LeftShift
-///////////////////////////////////////
-class MagneticLeft : public Magnetic {
-public:
-    MagneticLeft() { increment = &Magnetic::leftShift; }
-};
-//  Magnetic RightShift
-///////////////////////////////////////
-class MagneticRight : public Magnetic {
-public:
-    MagneticRight() { increment = &Magnetic::rightShift; }
-};
-//  Magnetic Full permuted
-///////////////////////////////////////
-class MagneticFull : public Magnetic {
-public:
-    MagneticFull() { increment = &Magnetic::fullPermutated; }
-};
-//  Magnetic Full permuted
-///////////////////////////////////////
-class MagneticStraight : public Magnetic {
-public:
-    MagneticStraight() { increment = &Magnetic::straight; }
-};
 
 //#define GLCHAOSP_TEST_RANDOM_DISTRIBUTION
 #ifdef GLCHAOSP_TEST_RANDOM_DISTRIBUTION
@@ -1751,6 +512,7 @@ private:
 #define DLA3D_COLOR    vec4(0.00f, 0.70f, 0.00f, 1.00f)
 #define DT_COLOR       vec4(1.00f, 1.00f, 0.00f, 1.00f)
 #define FRACTAL_COLOR  vec4(1.00f, 0.50f, 0.00f, 1.00f)
+#define VOLFRAC_COLOR  vec4(0.50f, 0.00f, 1.00f, 1.00f)
 #define IFS_COLOR      vec4(1.00f, 1.00f, 1.00f, 1.00f)
 
 class AttractorsClass 
@@ -1883,6 +645,9 @@ public:
         PB(quatJulia_IIM      , u8"\uf0da", FRACTAL_COLOR , "quatJulia"          )
         PB(BicomplexJExplorer , u8"\uf0da", FRACTAL_COLOR , "biComplexJExplorer" )
         PB(glynnJB_IIM        , u8"\uf0da", FRACTAL_COLOR , "Glynn JuliaBulb"    )
+
+        PB(fractalBedouin     , u8"\uf0da", VOLFRAC_COLOR , "Bedouin"            )
+        PB(volQuatJulia       , u8"\uf0da", VOLFRAC_COLOR , "quatJulia"          )
 
         PB(tetrahedronGaussMap, u8"\uf0da", IFS_COLOR     , "tetrahedronGaussMap")
 //        PB(Hopalong        , "Hopalong"         )

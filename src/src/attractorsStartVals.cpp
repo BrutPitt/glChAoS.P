@@ -455,30 +455,6 @@ void SymmetricIcons4D::startData()
     Insert(vVal[0]);
 }
 
-
-
-#if !defined(GLAPP_DISABLE_DLA)
-// https://github.com/BrutPitt/DLAf-optimized
-void dla3D::startData()
-{
-    //staring point: Center
-    vVal.push_back(vec4(0.f));
-
-    // m_ParticleSpacing defines the distance between particles that are
-    // joined together
-    kVal.push_back( 1.0/100.0); // kVal[0] -> m_ParticleSpacing;    
-
-    // m_AttractionDistance defines how close together particles must be in
-    // order to join together
-    kVal.push_back( 3.0/100.0); // kVal[1] -> m_AttractionDistance;
-
-    // m_MinMoveDistance defines the minimum distance that a particle will move
-    // during its random walk
-    kVal.push_back( 1.0/100.0); // kVal[2] -> m_MinMoveDistance;
-
-}
-#endif
-
 void ChenCelikovsky::startData()
 {
     vVal.push_back(vec4(1.f, 1.0f, 1.f, 0.f));
@@ -884,6 +860,29 @@ void Dadras::startData()
     kVal.push_back(1.7f);
     kVal.push_back(2.f);
     kVal.push_back(9.f);
+
+    Insert(vVal[0]);
+}
+
+void fractalBedouin::startData()
+{
+    vVal.push_back(vec4(.1f, -.17f, .7f, 0.f));
+
+    kVal.push_back(.1f);
+    kVal.push_back(-.17f);
+    kVal.push_back(.7f);
+
+    Insert(vVal[0]);
+}
+
+void volQuatJulia::startData()
+{
+    vVal.push_back(vec4(0.f));
+
+    kVal.push_back(-.2f);
+    kVal.push_back(.8f);
+    kVal.push_back(0.f);
+    kVal.push_back(0.f);
 
     Insert(vVal[0]);
 }
