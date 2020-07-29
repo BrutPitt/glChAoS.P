@@ -418,6 +418,7 @@ void mainGLApp::loadQuikViewSelection(int idx)
     theDlg.getParticlesDlgClass().resetTreeParticlesFlags();
     loadAttractor(s.c_str());
     setLastFile(s);
+    attractorsList.checkCorrectEmitter();
     attractorsList.getThreadStep()->restartEmitter();
     attractorsList.get()->initStep();
     attractorsList.getThreadStep()->startThread();
