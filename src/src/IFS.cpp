@@ -19,6 +19,7 @@ const char *tranformsText = \
 "Sphere\0"\
 "Polar3D\0"\
 ;
+    
 
 std::vector<std::function<vec4(const vec4 &)>> variationFuncsArray = {
     &variationFuncsClass::linear,

@@ -554,7 +554,7 @@ void mainGLApp::mainLoop()
         glfwPollEvents();
         //glfwGetFramebufferSize(getGLFWWnd(), &width, &height);
 
-        if (!glfwGetWindowAttrib(getGLFWWnd(), GLFW_ICONIFIED)) 
+        if (!glfwGetWindowAttrib(getGLFWWnd(), GLFW_ICONIFIED))
             getTimer().tick();
 #if !defined(GLCHAOSP_LIGHTVER)
             theWnd->onIdle();
