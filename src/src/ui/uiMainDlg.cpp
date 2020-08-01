@@ -2232,7 +2232,7 @@ void cockpitDlgClass::view()
                         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
                         {
                             float f = cPit.getPIPzoom()*100.f;
-                            if(ImGui::SliderFloat("##zoomPIP", &f, 25.0f, 100.f,"size PiP %.1f%%")) cPit.setPIPzoom(f/100.f);
+                            if(ImGui::SliderFloat("##zoomPIP", &f, 25.0f, 75.f,"size PiP %.1f%%")) cPit.setPIPzoom(f/100.f);
                         }
                         ImGui::PopItemWidth();
 
@@ -2244,7 +2244,12 @@ void cockpitDlgClass::view()
                         a = ImGui::GetCursorPosX();
                         {
                             bool b = cPit.invertPIP();
-                            if(ImGui::Checkbox(" Invert PIP", &b)) cPit.invertPIP(b);
+                            if(ImGui::Checkbox(" InvertPIP ", &b)) cPit.invertPIP(b);
+                        }
+                        ImGui::SameLine();
+                        {
+                            vec3 v(cPit.getPipBkgrndColor());
+                            if(ImGui::ColorEdit3(" bkgColor", value_ptr(v), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float)) cPit.setPipBkgrndColor(vec4(v));
                         }
 
                     }
