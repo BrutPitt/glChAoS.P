@@ -20,6 +20,43 @@ void popColorButton();
 
 bool colCheckButton(bool b, const char *s, const float sz=0);
 
+void drawMinMaxButtons()
+{
+    const float wDn = ImGui::GetContentRegionAvail().x;
+
+    ImGui::PushItemWidth((wDn-DLG_BORDER_SIZE*3)*.5+.5); //wDn*.5-border
+    ImGui::SetCursorPosX(DLG_BORDER_SIZE);
+    ImGui::DragFloatRange2("##vR", &attractorsList.get()->vMin, &attractorsList.get()->vMax,
+                                    0.0025f, -10.0f, 10.0f,
+                                    "Min: %.4f", "Max: %.4f");
+    ImGui::SameLine();
+    float min = attractorsList.get()->getKMin(), max = attractorsList.get()->getKMax();
+    if(ImGui::DragFloatRange2("##kR", &min, &max, 0.0025f, -10.0f, 10.0f, "Min: %.4f", "Max: %.4f")) {
+        if(attractorsList.get()->fractalType()) {
+            if(min != attractorsList.get()->getKMin())
+                attractorsList.get()->kMin = attractorsList.get()->kMax = min;
+            else
+                attractorsList.get()->kMin = attractorsList.get()->kMax = max;
+        } else {
+            attractorsList.get()->kMin = min;
+            attractorsList.get()->kMax = max;
+        }
+    }
+
+    ImGui::PopItemWidth();
+}
+
+void drawGenerateButton()
+{
+    const float wDn = ImGui::GetContentRegionAvail().x;
+    const int buttW = wDn*.2;
+
+    ImGui::SetCursorPosX(wDn-DLG_BORDER_SIZE-buttW);
+    if(ImGui::Button(ICON_FA_RANDOM " Generate",ImVec2(buttW,0)))  attractorsList.generateNewRandom();
+}
+
+
+
 int AttractorBase::additionalDataDlg()
 {
     int retVal = 0;
@@ -61,14 +98,39 @@ inline void headerAdditionalDataCtrls(int numControls = 1)
     ImGui::SameLine();
 
     ImGui::PushItemWidth(wButt);
-    ImGui::SetCursorPosX(INDENT(border));     
+    //ImGui::SetCursorPosX(INDENT(border));
     ImGui::AlignTextToFramePadding();
 
     ImGui::SetCursorPosX(DLG_BORDER_SIZE);        
 }
 
+void fractalIIMBase::drawDepthSkipButtons()
+{
+    ImGui::NewLine();
+
+    headerAdditionalDataCtrls(2);
+
+    {
+        int i = maxDepth;
+        if(ImGui::DragInt("##dpt", &i, 1, skipTop, 35000, "Depth: %03d")) {
+            if(i<skipTop) skipTop = i-1;
+            maxDepth = i;
+        }
+    }
+
+    ImGui::SameLine();
+    {
+        int i = skipTop;
+        if(ImGui::DragInt("##skp", &i, .25, 0, maxDepth, "Skip: %03d")) skipTop = i>=maxDepth ? maxDepth-1 : i;
+    }
+    ImGui::SameLine();
+    ImGui::PopItemWidth();
+}
+
 void fractalIIMBase::additionalDataCtrls()
 {
+    drawMinMaxButtons();
+    ImGui::AlignTextToFramePadding();  ImGui::NewLine();
 
 #ifdef SHOW_BETA_FEATURES
     ImGui::SameLine(ImGui::GetContentRegionAvail().x*.5 + ImGui::GetStyle().FramePadding.x);
@@ -90,36 +152,23 @@ void fractalIIMBase::additionalDataCtrls()
     theDlg.getIFSDlgParam().visible(ifsActive() && ifsParam.dlgActive());
     theDlg.getIFSDlgPoint().visible(ifsActive() && ifsPoint.dlgActive());
 #endif
-    
-    ImGui::NewLine();
-
-    headerAdditionalDataCtrls(2);
-
-    {
-        int i = maxDepth;
-        if(ImGui::DragInt("##dpt", &i, 1, skipTop, 35000, "Depth: %03d")) {
-            if(i<skipTop) skipTop = i-1;
-            maxDepth = i;
-        }
-    }
-    
-    ImGui::SameLine();
-    {
-        int i = skipTop;
-        if(ImGui::DragInt("##skp", &i, .25, 0, maxDepth, "Skip: %03d")) skipTop = i>=maxDepth ? maxDepth-1 : i;
-    }
-    ImGui::SameLine();
-    ImGui::PopItemWidth();
+    drawDepthSkipButtons();
 
 }
 
 void AttractorBase::additionalDataCtrls() 
 {
+    drawMinMaxButtons();
+    drawGenerateButton();
+
     ImGui::NewLine();
 }
 
 void fractalIIM_Nth::additionalDataCtrls()
 {
+    drawMinMaxButtons();
+    ImGui::AlignTextToFramePadding();  ImGui::NewLine();
+
 
     //ImGui::NewLine();
 
@@ -137,12 +186,13 @@ void fractalIIM_Nth::additionalDataCtrls()
     }
     ImGui::PopItemWidth();
 
-    fractalIIMBase::additionalDataCtrls();
+    drawDepthSkipButtons();
 }
 
 void BicomplexJExplorer::additionalDataCtrls()
 {
-
+    drawMinMaxButtons();
+    ImGui::AlignTextToFramePadding();  ImGui::NewLine();
 
     headerAdditionalDataCtrls(4);
     ImGui::SameLine(DLG_BORDER_SIZE);
@@ -153,8 +203,7 @@ void BicomplexJExplorer::additionalDataCtrls()
     ImGui::DragInt("##indici3", &idx3, .02, 0, 7, str[idx3]); 
     ImGui::PopItemWidth();
 
-    fractalIIMBase::additionalDataCtrls();
-
+    drawDepthSkipButtons();
 }
 
 #define GLCHAOSP_FEATURE_WIP
@@ -222,10 +271,50 @@ void PopCorn4DType::additionalDataCtrls()
 
 }
 */
+
+void volumetricFractals::additionalDataCtrls()
+{
+
+    const float halfW = ImGui::GetContentRegionAvail().x*.5 - ImGui::GetStyle().ItemSpacing.x;
+
+    ImGui::PushItemWidth(halfW);
+    ImGui::DragFloat3("minVol", value_ptr(sMin), .01f);
+    ImGui::SameLine();
+    ImGui::DragFloat3("maxVol", value_ptr(sMax), .01f);
+    ImGui::PopItemWidth();
+
+    //ImGui::AlignTextToFramePadding();   ImGui::NewLine();
+
+    ImGui::Checkbox(" skip conv", &skipConvergent);
+
+
+    ImGui::NewLine();
+
+    headerAdditionalDataCtrls(2);
+
+    {
+        int i = maxIter;
+        if(ImGui::DragInt("##itr", &i, 1, skipTop, 35000, "Iter: %03d")) {
+            if(i<skipTop) skipTop = i-1;
+            maxIter = i;
+        }
+    }
+
+    ImGui::SameLine();
+    {
+        int i = skipTop;
+        if(ImGui::DragInt("##skp", &i, .25, 0, maxIter, "Skip: %03d")) skipTop = i>=maxIter ? maxIter-1 : i;
+    }
+    ImGui::SameLine();
+    ImGui::PopItemWidth();
+
+}
+
 void attractorDtType::additionalDataCtrls()
 {
-        
-    //ImGui::NewLine();
+    ImGui::AlignTextToFramePadding(); ImGui::NewLine();
+    ImGui::AlignTextToFramePadding(); ImGui::NewLine();
+
     ImGui::SameLine();
     ImGui::SetCursorPosY(ImGui::GetCursorPosY()-ImGui::GetFrameHeightWithSpacing()); //repos previous line
     particlesSystemClass *pSys = theWnd->getParticlesSystem();
@@ -245,6 +334,9 @@ void attractorDtType::additionalDataCtrls()
 
 void PowerN3D::additionalDataCtrls()
 {
+    drawMinMaxButtons();
+    drawGenerateButton();
+
     ImGui::NewLine();
     headerAdditionalDataCtrls();        
 
@@ -264,6 +356,9 @@ void PowerN3D::additionalDataCtrls()
 #if !defined(GLAPP_DISABLE_DLA)
 void dla3D::additionalDataCtrls()
 {
+    ImGui::AlignTextToFramePadding(); ImGui::NewLine();
+    ImGui::AlignTextToFramePadding(); ImGui::NewLine();
+    
     ImGui::NewLine();
     headerAdditionalDataCtrls(2);
         
@@ -278,6 +373,9 @@ void dla3D::additionalDataCtrls()
 
 void Magnetic::additionalDataCtrls()
 {
+    drawMinMaxButtons();
+    drawGenerateButton();
+
     ImGui::NewLine();
     headerAdditionalDataCtrls();
         
@@ -376,14 +474,12 @@ void attractorDlgClass::view()
 #else
             ImGui::BeginChild("List");
 #endif
-            
                 ImGuiStyle& style = ImGui::GetStyle();
                 ImGui::PushStyleColor(ImGuiCol_Header       ,style.Colors[ImGuiCol_PlotHistogram       ]); 
                 ImGui::PushStyleColor(ImGuiCol_HeaderHovered,style.Colors[ImGuiCol_PlotHistogramHovered]); 
                 ImGui::PushStyleColor(ImGuiCol_HeaderActive ,style.Colors[ImGuiCol_CheckMark           ]); 
 
-                
-                const int idx = attractorsList.getSelection();                
+                const int idx = attractorsList.getSelection();
                 if(!theDlg.selectableScrolled()) { ImGui::SetScrollY(idx * (ImGui::GetFontSize()+style.FramePadding.y)); theDlg.selectableScrolled(true); }
                 
                 char s[16];
@@ -396,7 +492,6 @@ void attractorDlgClass::view()
                     ImGui::SameLine(); ImGui::TextColored((const ImVec4 &)attractorsList.getColorGraphChar(i), attractorsList.getGraphChar(i).c_str());
                     ImGui::SameLine(); ImGui::SetCursorPosX(ImGui::GetCursorPosX()+3); ImGui::Text(attractorsList.getDisplayName(i).c_str());
                 }
-                
 
                 ImGui::PopStyleColor();
                 ImGui::PopStyleColor();
@@ -444,63 +539,26 @@ void attractorDlgClass::view()
                 
                 ImGui::Columns(2);               
                 
-                
-                //ImGui::Separator();
-                //ImGui::Text("X"); ImGui::NextColumn(); ImGui::Text("Y"); ImGui::NextColumn(); ImGui::Text("Z"); ImGui::NextColumn();
-                //ImGui::Text("Ka"); ImGui::NextColumn(); ImGui::Text("Kb"); ImGui::NextColumn(); ImGui::Text("Kc"); ImGui::NextColumn();
-
-                //ImGuiWindow* w = ImGui::GetCurrentWindow();
-                //float sz = w->InnerRect.GetSize().x/2;
                 fillAttractorData();
 
-                
                 ImGui::Columns(1);
                 ImGui::Separator();
             ImGui::EndChild();
             ImGui::BeginChild("buttons"); {
                 const float wDn = ImGui::GetContentRegionAvail().x;
                 const int buttW = wDn*.2;
+/*
                 if(!attractorsList.get()->dtType() && !attractorsList.get()->dlaType()) {
-                    ImGui::PushItemWidth((wDn-border*3)*.5+.5); //wDn*.5-border
-                    ImGui::SetCursorPosX(border);
-                    ImGui::DragFloatRange2("##vR", &attractorsList.get()->vMin, &attractorsList.get()->vMax, 
-                                                    0.0025f, -10.0f, 10.0f, 
-                                                    "Min: %.4f", "Max: %.4f");
-                    ImGui::SameLine();
-                    float min = attractorsList.get()->kMin, max = attractorsList.get()->kMax;
-                    if(ImGui::DragFloatRange2("##kR", &min, &max, 0.0025f, -10.0f, 10.0f, "Min: %.4f", "Max: %.4f")) {
-                        if(attractorsList.get()->fractalType()) {
-                            if(min != attractorsList.get()->kMin) 
-                                attractorsList.get()->kMin = attractorsList.get()->kMax = min;
-                            else 
-                                attractorsList.get()->kMin = attractorsList.get()->kMax = max;
-                        } else {
-                            attractorsList.get()->kMin = min;
-                            attractorsList.get()->kMax = max;
-                        }
-                    }
-
-                    ImGui::PopItemWidth();
+                    drawMinMaxButtons();
                     if(!attractorsList.get()->fractalType()) {
-
-                        ImGui::SetCursorPosX(wDn-border-buttW);
-                        if(ImGui::Button(ICON_FA_RANDOM " Generate",ImVec2(buttW,0)))  attractorsList.generateNewRandom();
+                        drawGenerateButton();
                     } else { ImGui::AlignTextToFramePadding();  ImGui::NewLine(); }
                 } else {
                     ImGui::AlignTextToFramePadding(); ImGui::NewLine();
 
                     ImGui::AlignTextToFramePadding(); ImGui::NewLine();
-/*
-#ifdef GLCHAOSP_LIGHTVER
-                    ImGui::AlignTextToFramePadding(); ImGui::NewLine();
-#else
-                    ImGui::SetCursorPosX(border);
-                    static bool b;
-                    if(colCheckButton(b, ICON_FA_RANDOM " Explorer", buttW)) { b^=1; }
-#endif
-*/
                 }
-
+*/
                 attractorsList.get()->additionalDataCtrls();
                 ImGui::SameLine();
 
