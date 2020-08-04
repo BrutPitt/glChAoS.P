@@ -329,33 +329,22 @@ void AttractorBase::searchLyapunov()
 
 
 ////////////////////////////////////////////////////////////////////////////
-void fractalBedouin::Step(vec4 &v, vec4 &vp)
+void volBedouin::Step(vec4 &v, vec4 &vp)
 {
 
     int i;
     do {
         i = 0;
-        vec4 p0(fastPrng64.xoshiro256p_Range(sMin.x,sMax.x),
-                fastPrng64.xoshiro256p_Range(sMin.y,sMax.y),
-                fastPrng64.xoshiro256p_Range(sMin.z,sMax.z), 0.f);
-        v = vec4(0.f);
-        //v = p0;
+        vec4 p0(random3Dpoint());
 
+        v = vec4(0.f);
 
         for(float val = 0.f; i<maxIter && val<upperLimit; i++) {
 
-            vp.x = v.x*v.x + 2.f*v.y*v.z + sin(p0.x);
-            vp.y = v.z*v.z + 2.f*v.x*v.y + sin(p0.y);
-            vp.z = v.y*v.y + 2.f*v.x*v.z + sin(p0.z);
-
-
-/*
             vp.x = v.x*v.x - v.y*v.y - v.z*v.z + sin(p0.x);
             vp.y = 2.f*v.x*v.z + sin(p0.y);
             vp.z = 2.f*v.x*v.y + sin(p0.z);
 
-
-*/
             val = dot(vec3(vp), vec3(vp));
 
             v = vp;
@@ -368,6 +357,35 @@ void fractalBedouin::Step(vec4 &v, vec4 &vp)
     outColor = float(i) / float(maxIter);
 }
 
+void volSinRealMandel::Step(vec4 &v, vec4 &vp)
+{
+
+    int i;
+    do {
+        i = 0;
+        vec4 p0(random3Dpoint());
+        v = vec4(0.f);
+
+        for(float val = 0.f; i<maxIter && val<upperLimit; i++) {
+
+            vp.x = v.x*v.x + 2.f*v.y*v.z + sin(p0.x);
+            vp.y = v.z*v.z + 2.f*v.x*v.y + sin(p0.y);
+            vp.z = v.y*v.y + 2.f*v.x*v.z + sin(p0.z);
+
+
+            val = dot(vec3(vp), vec3(vp));
+
+            v = vp;
+        }
+        vp = p0;
+    } while(i<kMax || (skipConvergent && i>=maxIter));
+
+
+
+    outColor = float(i) / float(maxIter);
+}
+
+
 void volQuatJulia::Step(vec4 &v, vec4 &vp)
 {
 
@@ -375,14 +393,10 @@ void volQuatJulia::Step(vec4 &v, vec4 &vp)
     int i;
     do {
         i = 0;
-        vec4 p0(fastPrng64.xoshiro256p_Range(sMin.x,sMax.x),
-                fastPrng64.xoshiro256p_Range(sMin.y,sMax.y),
-                fastPrng64.xoshiro256p_Range(sMin.z,sMax.z), 0.f);
-        //v = vec4(0.f);
+        vec4 p0(random3Dpoint());
         v = p0;
 
         for(float val = 0.f; i<maxIter && val<upperLimit; i++) {
-
             vp.x = v.x*v.x - v.y*v.y - v.z*v.z - v.w*v.w;
             vp.y = 2.f*v.x*v.y;
             vp.z = 2.f*v.x*v.z;

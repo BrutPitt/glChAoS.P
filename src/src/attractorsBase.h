@@ -316,6 +316,12 @@ public:
     virtual inline float colorFunc(const vec4 &v, const vec4 &vp) { return outColor; }
     virtual void additionalDataCtrls();
 
+    inline const vec4 random3Dpoint() {
+        return vec4(fastPrng64.xoshiro256p_Range(sMin.x,sMax.x),
+                    fastPrng64.xoshiro256p_Range(sMin.y,sMax.y),
+                    fastPrng64.xoshiro256p_Range(sMin.z,sMax.z), 0.f);
+    }
+
 protected:
     int maxIter = 256;
     int skipTop = 12;
@@ -327,12 +333,20 @@ protected:
 };
 
 
-class fractalBedouin : public volumetricFractals
+class volBedouin : public volumetricFractals
 {
 public:
-    fractalBedouin() {
-        stepFn = (stepPtrFn) &fractalBedouin::Step;
-    }
+    volBedouin() { stepFn = (stepPtrFn) &volBedouin::Step;  }
+
+protected:
+    void Step(vec4 &v, vec4 &vp);
+    void startData();
+};
+
+class volSinRealMandel : public volumetricFractals
+{
+public:
+    volSinRealMandel() { stepFn = (stepPtrFn) &volSinRealMandel::Step;  }
 
 protected:
     void Step(vec4 &v, vec4 &vp);
@@ -342,9 +356,7 @@ protected:
 class volQuatJulia : public volumetricFractals
 {
 public:
-    volQuatJulia() {
-        stepFn = (stepPtrFn) &volQuatJulia::Step;
-    }
+    volQuatJulia() {stepFn = (stepPtrFn) &volQuatJulia::Step; }
 
     int getPtSize() { return attPt4D; }
 
@@ -646,7 +658,8 @@ public:
         PB(BicomplexJExplorer , u8"\uf0da", FRACTAL_COLOR , "biComplexJExplorer" )
         PB(glynnJB_IIM        , u8"\uf0da", FRACTAL_COLOR , "Glynn JuliaBulb"    )
 
-        PB(fractalBedouin     , u8"\uf0da", VOLFRAC_COLOR , "Bedouin"            )
+        PB(volBedouin         , u8"\uf0da", VOLFRAC_COLOR , "Bedouin"            )
+        PB(volSinRealMandel   , u8"\uf0da", VOLFRAC_COLOR , "SinRealMandel"      )
         PB(volQuatJulia       , u8"\uf0da", VOLFRAC_COLOR , "quatJulia"          )
 
         PB(tetrahedronGaussMap, u8"\uf0da", IFS_COLOR     , "tetrahedronGaussMap")
