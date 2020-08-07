@@ -329,34 +329,26 @@ void AttractorBase::searchLyapunov()
 
 
 ////////////////////////////////////////////////////////////////////////////
-void volBedouin::Step(vec4 &v, vec4 &vp)
-{
 
+void volumetricFractals::Step(vec4 &v, vec4 &vp)
+{
     int i;
     do {
         i = 0;
         vec4 p0(random3Dpoint());
-
-        v = vec4(0.f);
+        v = p0;// vec4(0.f);
 
         for(float val = 0.f; i<maxIter && val<upperLimit; i++) {
-
-            vp.x = v.x*v.x - v.y*v.y - v.z*v.z + sin(p0.x);
-            vp.y = 2.f*v.x*v.z + sin(p0.y);
-            vp.z = 2.f*v.x*v.y + sin(p0.z);
-
-            val = dot(vec3(vp), vec3(vp));
-
-            v = vp;
+            val = innerStep(v, vp, p0);
         }
         vp = p0;
-    } while(i<kMax || (skipConvergent && i>=maxIter));
-
-
+    } while(i<plotRange.x || i>plotRange.y);
+    //while(i<skipTop || (whatPlot == skipConvergent && i>=maxIter) || (whatPlot == skipDivergent && i<(maxIter-150)));
 
     outColor = float(i) / float(maxIter);
 }
 
+/*
 void volSinRealMandel::Step(vec4 &v, vec4 &vp)
 {
 
@@ -368,9 +360,6 @@ void volSinRealMandel::Step(vec4 &v, vec4 &vp)
 
         for(float val = 0.f; i<maxIter && val<upperLimit; i++) {
 
-            vp.x = v.x*v.x + 2.f*v.y*v.z + sin(p0.x);
-            vp.y = v.z*v.z + 2.f*v.x*v.y + sin(p0.y);
-            vp.z = v.y*v.y + 2.f*v.x*v.z + sin(p0.z);
 
 
             val = dot(vec3(vp), vec3(vp));
@@ -380,8 +369,6 @@ void volSinRealMandel::Step(vec4 &v, vec4 &vp)
         vp = p0;
     } while(i<kMax || (skipConvergent && i>=maxIter));
 
-
-
     outColor = float(i) / float(maxIter);
 }
 
@@ -389,7 +376,6 @@ void volSinRealMandel::Step(vec4 &v, vec4 &vp)
 void volQuatJulia::Step(vec4 &v, vec4 &vp)
 {
 
-    vec4 c(kVal[0], kVal[1], kVal[2], kVal[3]);
     int i;
     do {
         i = 0;
@@ -413,7 +399,7 @@ void volQuatJulia::Step(vec4 &v, vec4 &vp)
 
     outColor = float(i) / float(maxIter);
 }
-
+*/
 
 
 

@@ -885,6 +885,15 @@ void volSinRealMandel::startData()
 
     Insert(vVal[0]);
 }
+void volRealMandel::startData()
+{
+    vVal.push_back(vec4(.1f, -.17f, .7f, 0.f));
+    kVal.push_back(.1f);
+    kVal.push_back(-.17f);
+    kVal.push_back(.7f);
+
+    Insert(vVal[0]);
+}
 
 void volQuatJulia::startData()
 {

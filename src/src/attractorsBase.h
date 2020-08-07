@@ -307,10 +307,12 @@ protected:
 //--------------------------------------------------------------------------
 class volumetricFractals : public attractorScalarK
 {
+//enum dotPlot { all, skipConvergent, skipDivergent };
 public:
     volumetricFractals() {
         vMin = -1.5; vMax = 1.5; kMin = -1.0; kMax = 1.0;
         m_POV = vec3( 0.f, 0, 7.f);
+        stepFn = (stepPtrFn) &volumetricFractals::Step;
     }
 
     virtual inline float colorFunc(const vec4 &v, const vec4 &vp) { return outColor; }
@@ -322,47 +324,83 @@ public:
                     fastPrng64.xoshiro256p_Range(sMin.z,sMax.z), 0.f);
     }
 
+    virtual float innerStep(vec4 &v, vec4 &vp, const vec4 &c) = 0;
+
 protected:
+    void Step(vec4 &v, vec4 &vp);
+
     int maxIter = 256;
-    int skipTop = 12;
     float upperLimit = 64.f;
     float outColor = 0;
-    vec3 sMin = vec3(-1.f), sMax = vec3(1.0);
-    bool skipConvergent = true;
+    vec3 sMin = vec3(-1.5f), sMax = vec3(1.5);
+    ivec2 plotRange = ivec2(12, 256);
 
 };
-
 
 class volBedouin : public volumetricFractals
 {
 public:
-    volBedouin() { stepFn = (stepPtrFn) &volBedouin::Step;  }
+    inline float innerStep(vec4 &v, vec4 &vp, const vec4 &p0) {
+        vp.x = v.x*v.x - v.y*v.y - v.z*v.z + sin(p0.x);
+        vp.y = 2.f*v.x*v.z + sin(p0.y);
+        vp.z = 2.f*v.x*v.y + sin(p0.z);
+        v = vp;
+        return dot(vec3(vp), vec3(vp));
+    }
 
 protected:
-    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
+
+class volRealMandel : public volumetricFractals
+{
+public:
+    inline float innerStep(vec4 &v, vec4 &vp, const vec4 &p0) {
+        vp.x = v.x*v.x - v.y*v.y - v.z*v.z + p0.x;
+        vp.y = 2.f*v.x*v.y + p0.y;
+        vp.z = 2.f*v.x*v.z + p0.z;
+        v = vp;
+        return dot(vec3(vp), vec3(vp));
+    }
+
+protected:
+    void startData();
+};
+
 
 class volSinRealMandel : public volumetricFractals
 {
 public:
-    volSinRealMandel() { stepFn = (stepPtrFn) &volSinRealMandel::Step;  }
+    inline float innerStep(vec4 &v, vec4 &vp, const vec4 &p0) {
+        vp.x = v.x*v.x + 2.f*v.y*v.z + sin(p0.x);
+        vp.y = v.z*v.z + 2.f*v.x*v.y + sin(p0.y);
+        vp.z = v.y*v.y + 2.f*v.x*v.z + sin(p0.z);
+        v = vp;
+        return dot(vec3(vp), vec3(vp));
+    }
 
 protected:
-    void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
 class volQuatJulia : public volumetricFractals
 {
 public:
-    volQuatJulia() {stepFn = (stepPtrFn) &volQuatJulia::Step; }
+    inline float innerStep(vec4 &v, vec4 &vp, const vec4 &p0) {
+        vp.x = v.x*v.x - v.y*v.y - v.z*v.z - v.w*v.w;
+        vp.y = 2.f*v.x*v.y;
+        vp.z = 2.f*v.x*v.z;
+        vp.w = 2.f*v.x*v.w;
+        v = vp + *((vec4 *)kVal.data());
+        return dot(v, v);
+    }
 
     int getPtSize() { return attPt4D; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp);
     void startData();
+private:
+
 };
 
 //--------------------------------------------------------------------------
@@ -659,6 +697,7 @@ public:
         PB(glynnJB_IIM        , u8"\uf0da", FRACTAL_COLOR , "Glynn JuliaBulb"    )
 
         PB(volBedouin         , u8"\uf0da", VOLFRAC_COLOR , "Bedouin"            )
+        PB(volRealMandel      , u8"\uf0da", VOLFRAC_COLOR , "RealMandel"         )
         PB(volSinRealMandel   , u8"\uf0da", VOLFRAC_COLOR , "SinRealMandel"      )
         PB(volQuatJulia       , u8"\uf0da", VOLFRAC_COLOR , "quatJulia"          )
 

@@ -278,14 +278,17 @@ void volumetricFractals::additionalDataCtrls()
     const float halfW = ImGui::GetContentRegionAvail().x*.5 - ImGui::GetStyle().ItemSpacing.x;
 
     ImGui::PushItemWidth(halfW);
-    ImGui::DragFloat3("minVol", value_ptr(sMin), .01f);
+    ImGui::DragFloat3("##minVol", value_ptr(sMin), .01f);
     ImGui::SameLine();
-    ImGui::DragFloat3("maxVol", value_ptr(sMax), .01f);
-    ImGui::PopItemWidth();
+    ImGui::DragFloat3("##maxVol", value_ptr(sMax), .01f);
 
     //ImGui::AlignTextToFramePadding();   ImGui::NewLine();
 
-    ImGui::Checkbox(" skip conv", &skipConvergent);
+    ImGui::DragIntRange2("##range", &plotRange.x, &plotRange.y, .2, 0, maxIter);
+    //ImGui::Combo("skip dots", (int *) &whatPlot, "plot all dots\0" "skip convergents\0" "skip divergents\0");
+
+    //ImGui::Checkbox(" skip conv", &skipConvergent);
+    ImGui::PopItemWidth();
 
 
     ImGui::NewLine();
@@ -294,20 +297,14 @@ void volumetricFractals::additionalDataCtrls()
 
     {
         int i = maxIter;
-        if(ImGui::DragInt("##itr", &i, 1, skipTop, 35000, "Iter: %03d")) {
-            if(i<skipTop) skipTop = i-1;
+        if(ImGui::DragInt("##itr", &i, 1, plotRange.x, 35000, "Iter: %03d")) {
+            if(i<plotRange.x) plotRange.x = i-1;
             maxIter = i;
         }
     }
 
     ImGui::SameLine();
-    {
-        int i = skipTop;
-        if(ImGui::DragInt("##skp", &i, .25, 0, maxIter, "Skip: %03d")) skipTop = i>=maxIter ? maxIter-1 : i;
-    }
-    ImGui::SameLine();
     ImGui::PopItemWidth();
-
 }
 
 void attractorDtType::additionalDataCtrls()
