@@ -516,6 +516,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\attractors2DTransf.cpp" />
+    <ClCompile Include="..\..\src\attractorsDiffEq.cpp" />
+    <ClCompile Include="..\..\src\attractorsDLA3D.cpp" />
+    <ClCompile Include="..\..\src\attractorsFractalsIIM.cpp" />
+    <ClCompile Include="..\..\src\attractorsMagnetic.cpp" />
+    <ClCompile Include="..\..\src\attractorsPolynomial.cpp" />
+    <ClCompile Include="..\..\src\attractorsRampe.cpp" />
+    <ClCompile Include="..\..\src\attractorsTrigonom.cpp" />
     <ClCompile Include="..\..\src\emitter.cpp" />
     <ClCompile Include="..\..\src\emsTouch.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -532,7 +540,7 @@
     <ClCompile Include="..\..\src\IFS.cpp" />
     <ClCompile Include="..\..\src\libs\lodePNG\lodepng.cpp" />
     <ClCompile Include="..\..\src\partSystem.cpp" />
-    <ClCompile Include="..\..\src\tools\fastRandom.cpp" />
+    <ClCompile Include="..\..\src\tools\fastPRNG.cpp" />
     <ClCompile Include="..\..\src\tools\glslProgramObject.cpp" />
     <ClCompile Include="..\..\src\tools\glslShaderObject.cpp" />
     <ClCompile Include="..\..\src\attractorsBase.cpp" />
@@ -560,6 +568,14 @@
     <ClCompile Include="..\..\src\ui\uiSettings.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\attractors2DTransf.h" />
+    <ClInclude Include="..\..\src\attractorsDiffEq.h" />
+    <ClInclude Include="..\..\src\attractorsDLA3D.h" />
+    <ClInclude Include="..\..\src\attractorsFractalsIIM.h" />
+    <ClInclude Include="..\..\src\attractorsMagnetic.h" />
+    <ClInclude Include="..\..\src\attractorsPolynomial.h" />
+    <ClInclude Include="..\..\src\attractorsRampe.h" />
+    <ClInclude Include="..\..\src\attractorsTrigonom.h" />
     <ClInclude Include="..\..\src\emitter.h" />
     <ClInclude Include="..\..\src\emsTouch.h" />
     <ClInclude Include="..\..\src\IFS.h" />
@@ -567,7 +583,7 @@
     <ClInclude Include="..\..\src\libs\nanoflann\nanoflann.hpp" />
     <ClInclude Include="..\..\src\libs\tinyPLY\tinyply.h" />
     <ClInclude Include="..\..\src\partSystem.h" />
-    <ClInclude Include="..\..\src\tools\fastRandom.h" />
+    <ClInclude Include="..\..\src\tools\fastPRNG.h" />
     <ClInclude Include="..\..\src\tools\glslProgramObject.h" />
     <ClInclude Include="..\..\src\tools\glslShaderObject.h" />
     <ClInclude Include="..\..\src\tools\imguiControls.h" />

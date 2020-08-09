@@ -125,9 +125,6 @@
     <ClCompile Include="..\..\src\tools\imguiControls.cpp">
       <Filter>Tools\imguiTools</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\tools\fastRandom.cpp">
-      <Filter>Tools</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\emsTouch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -141,6 +138,33 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\IFS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\tools\fastPRNG.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\attractors2DTransf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\attractorsDiffEq.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\attractorsDLA3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\attractorsFractalsIIM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\attractorsMagnetic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\attractorsPolynomial.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\attractorsRampe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\attractorsTrigonom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -238,7 +262,7 @@
     <ClInclude Include="..\..\src\tools\imguiControls.h">
       <Filter>Tools\imguiTools</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\tools\fastRandom.h">
+    <ClInclude Include="..\..\src\tools\fastPRNG.h">
       <Filter>Tools</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\emsTouch.h">
@@ -272,6 +296,30 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\IFS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\attractors2DTransf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\attractorsDiffEq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\attractorsDLA3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\attractorsFractalsIIM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\attractorsMagnetic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\attractorsPolynomial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\attractorsRampe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\attractorsTrigonom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
