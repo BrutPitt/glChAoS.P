@@ -39,9 +39,9 @@ void juliaBulb_IIM::Step(vec4 &v, vec4 &vp)
         radiciEq(tmpV, (rnd&1) ? 1.f : -1.f, (rnd&2) ? 1.f : -1.f);
     };
 
+    preStep(v);
     while(depth++<skipTop) { mainFunc(v,vp); v = vp; } // skip first "skipTop" points
 
-    preStep(v);
     mainFunc(v,vp);
 
 }
@@ -68,9 +68,9 @@ void juliaBulb4th_IIM::Step(vec4 &v, vec4 &vp)
         radiciEq((vec3)v-((vec3 &)*kVal.data()+(vec3)c), fRnd64.xorShift() % degreeN, fRnd64.xorShift() % degreeN);
     };
 
+    preStep(v);
     while(depth++<skipTop) { mainFunc(v,vp); v = vp; } // skip first "skipTop" points
 
-    preStep(v);
     mainFunc(v,vp);
 
 }
@@ -96,9 +96,9 @@ void quatJulia_IIM::Step(vec4 &v, vec4 &vp)
         radiciEq(tmpV, (fRnd64.xoroshiro128xx()&1) ? 1.f : -1.f);
     };
 
+    preStep(v);
     while(depth++<skipTop) { mainFunc(v,vp); v = vp; } // skip first "skipTop" points
 
-    preStep(v);
     mainFunc(v,vp);
 }
 

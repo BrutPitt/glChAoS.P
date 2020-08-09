@@ -139,14 +139,18 @@ public:
         if(ifsPoint.active()) vp *= getIFSvec4(ifsPoint); // IFS point transforms
     };
 
-    inline void mainFunc(vec4 &v, const vec4 &vMod, vec4 &vp) {
+    void Step(vec4 &v, vec4 &vp) { vec4 pt = getVec(v); mainFunc(pt, vp); }
+    inline void mainFunc(vec4 &v, vec4 &vp) {
+        preStep(v);
         while(depth++<skipTop) {
-            radiciBicomplex(vMod,vp);
+            radiciBicomplex(getVec(v), vp);
             v = vp;
         }
-        preStep(v);
-        radiciBicomplex(vMod,vp);
+        radiciBicomplex(getVec(v),vp);
     }
+
+    virtual vec4 getVec(const vec4 &v) { return v; }
+
 
 };
 
@@ -158,7 +162,6 @@ public:
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v, last4D), vp); } //remove
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, v, vp); }
 };
 
 /////////////////////////////////////////////////
@@ -169,7 +172,7 @@ public:
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v, dim4D), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4((vec3)v, vVal[0].w), vp); }
+    vec4 getVec(const vec4 &v) { return vec4((vec3)v, vVal[0].w); }
 };
 
 /////////////////////////////////////////////////
@@ -180,7 +183,7 @@ public:
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, vVal[0].z, last4D), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(v.x, v.y, vVal[0].z, v.w), vp); }
+    vec4 getVec(const vec4 &v) { return vec4(v.x, v.y, vVal[0].z, v.w); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod2_IIM : public BicomplexBase
@@ -194,7 +197,7 @@ protected:
     //void Step(vec4 &v, vec4 &vp) { preStep(v,vp); radiciBicomplex(vec4(v.x, v.y, v.y, v.y), vp); }
 
     //void Step(vec4 &v, vec4 &vp) { preStep(v); radiciBicomplex(vec4(v.x, v.y, v.z, v.y), vp); } remove
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(v.x, v.y, v.z, v.y), vp); }
+    vec4 getVec(const vec4 &v) { return vec4(v.x, v.y, v.z, v.y); }
 };
 
 /////////////////////////////////////////////////
@@ -204,7 +207,7 @@ public:
     BicomplexJMod3_IIM() { stepFn = (stepPtrFn) &BicomplexJMod3_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(vVal[0].x, v.y, v.z, v.w), vp); }
+    vec4 getVec(const vec4 &v) { return vec4(vVal[0].x, v.y, v.z, v.w); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod4_IIM : public BicomplexBase
@@ -213,7 +216,7 @@ public:
     BicomplexJMod4_IIM() { stepFn = (stepPtrFn) &BicomplexJMod4_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(v.x, v.y, v.x, v.w), vp); }
+    vec4 getVec(const vec4 &v) { return vec4(v.x, v.y, v.x, v.w); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod5_IIM : public BicomplexBase
@@ -222,7 +225,7 @@ public:
     BicomplexJMod5_IIM() { stepFn = (stepPtrFn) &BicomplexJMod5_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4( v.y, v.x, v.w, v.z), vp); }
+    vec4 getVec(const vec4 &v) { return vec4( v.y, v.x, v.w, v.z); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod6_IIM : public BicomplexBase
@@ -231,7 +234,7 @@ public:
     BicomplexJMod6_IIM() { stepFn = (stepPtrFn) &BicomplexJMod6_IIM::Step; }
 
 protected:
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4(vVal[0].x, vVal[0].y, v.z, v.w), vp); }
+    vec4 getVec(const vec4 &v) { return vec4(vVal[0].x, vVal[0].y, v.z, v.w); }
 };
 /////////////////////////////////////////////////
 class BicomplexJMod7_IIM : public BicomplexBase
@@ -241,7 +244,7 @@ public:
 
 protected:
     //void Step(vec4 &v, vec4 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, v.x), vp); }
-    void Step(vec4 &v, vec4 &vp) { mainFunc(v, vec4( v.x, v.x, v.z, vVal[0].w), vp); }
+    vec4 getVec(const vec4 &v) { return vec4( v.x, v.x, v.z, vVal[0].w); }
     //void Step(vec4 &v, vec4 &vp) { radiciBicomplex(vec4( v.x, v.x, v.z, last4D), vp); }
 };
 
@@ -275,15 +278,16 @@ public:
 
 protected:
     void Step(vec4 &v, vec4 &vp) {
+        preStep(v);
         while(depth++<skipTop) {
             vt = v;
-            radiciBicomplex(vec4( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]), vp);
+            radiciBicomplex(getVec(v), vp);
             v = vp;
         }
-        preStep(v);
         vt = v;
-        radiciBicomplex(vec4( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]), vp);
+        radiciBicomplex(getVec(v), vp);
     }
+    vec4 getVec(const vec4 &v) { return vec4( *a1[idx0], *a2[idx1], *a3[idx2], *a4[idx3]); }
 private:
     float *a1[8], *a2[8], *a3[8], *a4[8];
     int idx0 = 4, idx1 = 5, idx2 = 6, idx3 = 7 ;
