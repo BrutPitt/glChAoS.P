@@ -9,6 +9,9 @@ RealTime 3D Strange Attractors scout on GPU <br/> It also explores other chaotic
 
 To view all "chaotic-objects" currently inserted in current release, follow the link: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)  
 **now any single object can be explored interactively via WebGL/WebAssembly directly from site.*
+<a href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank"><img align="right" width="100" height="100" src="https://michelemorrone.eu/glchaosp/img/jetbrains.svg"/></a>
+<p>&nbsp;<br></p>
+<p align="right"><b><a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">JetBrains</a></b> supports <b>glChAoS.P</b> &#x22C5; <b>wglChAoS.P</b><br><i>many thanks to <b>JetBrains</b> for donating <a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">o.s.license</a> for all their excellent products</i></p>
 <p>&nbsp;<br></p>
 
 
@@ -22,9 +25,6 @@ To view all "chaotic-objects" currently inserted in current release, follow the 
   - You can also to explore any single attractor, interactively, staring directly from web-page, using **Explore** button near/below any attractor formula: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
 
 **WebGL release is a more limited/lightened version, but frequently updated/rebuilt with last commits*
-<a href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank"><img align="right" width="100" height="100" src="https://michelemorrone.eu/glchaosp/img/jetbrains.svg"/></a>
-<p>&nbsp;<br></p>
-<p align="right"><b><a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">JetBrains</a></b> supports <b>glChAoS.P</b> &#x22C5; <b>wglChAoS.P</b><br><i>many thanks to <b>JetBrains</b> for donating <a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">o.s.license</a> for all their excellent products</i></p>
 
 <p>&nbsp;<br></p>
 <p>&nbsp;<br></p>
