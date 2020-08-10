@@ -34,7 +34,7 @@ To view all "chaotic-objects" currently inserted in current release, follow the 
 <p>&nbsp;<br></p>
 <p>&nbsp;<br></p>
 
-## Last features from ver.1.5.3
+## Latest features from ver.1.5.3
 <h3 align="center">  TransformFeedback → multiDot particles emitter </h3>
 Now all dp/dt attractors (yellow tag) have an additional new emitter type to visualize them in a progressive way and/or with multiDot (spray) effect.\
 Is also possible to travel, in first person (cockpit view), within the particles, following the evolution of the attractors.
