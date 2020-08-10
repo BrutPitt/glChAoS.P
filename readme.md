@@ -1,6 +1,7 @@
 <h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.5.3</a></h1>
 
 [**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**wglChAoS.P**](https://michelemorrone.eu/glchaosp): open**gl** / **w**eb**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles
+
 A real time 3D strange attractors scout... and hypercomplex fractals
 
 To view all Attractors / Fractals currently inserted in this version, follow the link: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
@@ -35,6 +36,7 @@ Is also possible to travel, in first person (cockpit view), within the particles
 </p>
 
 ***Lorenz Attractor** - click on image to "explore" it in WebGL*
+
 &nbsp; &nbsp; &nbsp; &nbsp;*use "**v**" key or "**cockpit**" button (from **Attractors** tools window) to switch to subjective view (on right)*
 
 <p>&nbsp;<br></p>
