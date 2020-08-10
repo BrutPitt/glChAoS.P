@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-RealTime 3D Strange Attractors scout on GPU <br/> It also explores other chaotic-objects like some hypercomplex fractals (via IIM algorithm) and DLA3D  
+<b>RealTime 3D Strange Attractors scout on GPU</b> <br/>The program also explores other chaotic-objects like hypercomplex fractals (IIM algorithm) and DLA3D  
 </p>
 
 <a href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank"><img align="right" width="100" height="100" src="https://michelemorrone.eu/glchaosp/img/jetbrains.svg"/></a>
@@ -18,7 +18,7 @@ RealTime 3D Strange Attractors scout on GPU <br/> It also explores other chaotic
 ## All available releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
 
 ### Desktop - v.1.5.3
-- **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **OS X** 
+- **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **Mac OS** 
 ### WebGL - v.1.5.3
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebG 2** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
   - You can select **Advanced Mode** check box (*default*) or deselect it (**Standard Mode**) for low resources devices (mobiles/tablet/smartphones)
@@ -438,7 +438,7 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
 
 - Third party tools 
     - libs/**imGui** → Dear ImGui
-    [https://github.com/ocornut/imgui](https://github.com/ocornut/imgui)
+    [https://github.com/ocornut/imgui](https://github.com/ocornut/imgui)  
     **glChAoS.P uses **docking** release of **ImGui** (need \>= 1.75)*
 
     - libs/**configuru** → Configuru, an experimental JSON config library for C++
@@ -464,7 +464,7 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
     [https://github.com/tronkko/dirent](https://github.com/tronkko/dirent)
 
     - libs/**glfw** → A multi-platform library for OpenGL, OpenGL ES, Vulkan, window and input
-    [https://github.com/glfw/glfw](https://github.com/glfw/glfw)
+    [https://github.com/glfw/glfw](https://github.com/glfw/glfw)  
     *(need version \>= 3.3, recommended enclosed pre-built)*
 
     - libs/nanoflann -> header-only library for KD-Trees of datasets point clouds [https://github.com/jlblancoc/nanoflann](https://github.com/jlblancoc/nanoflann) (need only for DLA3D, in alternative you can use **Boost Library** compiling with `GLAPP_USE_BOOST_LIBRARY` define)
@@ -480,7 +480,8 @@ Below there are some used components, which differ from **MIT** / **BSD 2-Clause
 colorMaps/jjg\_step.json → J.J. Green palettes (creative commons noncommercial license)
 [http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html](http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html)  
 **Conversion from gpf format to json 256 variations.*  
-(these are optional separate files to load and to have more color maps)
+
+**optional separate files to load and to have more color maps*
 
 **Alternative Library**
 
