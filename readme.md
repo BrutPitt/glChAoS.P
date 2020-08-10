@@ -1,14 +1,12 @@
 <h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.5.3</a>  </h1>
 
 <p align="center" style="font-size:1.2em;"> 
-<a href="https://michelemorrone.eu/glchaosp"><b>glChAoS.P</b></a> / <a href="https://michelemorrone.eu/glchaosp"><b>wglChAoS.P</b></a>: &nbsp;&nbsp; open<b style="color: red;">gl</b> / <b style="color: red;">w</b>eb<b style="color: red;">gl</b> &#x22C5; <b style="color: red;">Ch</b>aotic <b style="color: red;">A</b>ttractors <b style="color: red;">o</b>f <b style="color: red;">S</b>light (<b style="color: red;">dot</b>) <b style="color: red;">P</b>articles<br/></p>
+<a href="https://michelemorrone.eu/glchaosp"><b>glChAoS.P</b></a> / <a href="https://michelemorrone.eu/glchaosp"><b>wglChAoS.P</b></a>  &#x22C5; open<b style="color: red;">gl</b> / <b style="color: red;">w</b>eb<b style="color: red;">gl</b> &#x22C5; <b style="color: red;">Ch</b>aotic <b style="color: red;">A</b>ttractors <b style="color: red;">o</b>f <b style="color: red;">S</b>light (<b style="color: red;">dot</b>) <b style="color: red;">P</b>articles<br/></p>
 <p align="center">
 RealTime 3D Strange Attractors scout on GPU <br/> It also explores other chaotic-objects like some hypercomplex fractals (via IIM algorithm) and DLA3D  
 </p>
-<p>&nbsp;<br></p>
 
-To view all "chaotic-objects" currently inserted in current release, follow the link: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)  
-**now any single object can be explored interactively via WebGL/WebAssembly directly from site.*
+
 <a href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank"><img align="right" width="100" height="100" src="https://michelemorrone.eu/glchaosp/img/jetbrains.svg"/></a>
 <p>&nbsp;<br></p>
 <p align="right"><b><a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">JetBrains</a></b> supports <b>glChAoS.P</b> &#x22C5; <b>wglChAoS.P</b><br><i>many thanks to <b>JetBrains</b> for donating <a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">o.s.license</a> for all their excellent products</i></p>
@@ -23,8 +21,11 @@ To view all "chaotic-objects" currently inserted in current release, follow the 
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebG 2** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
   - You can select **Advanced Mode** check box (*default*) or deselect it (**Standard Mode**) for low resources devices (mobiles/tablet/smartphones)
   - You can also to explore any single attractor, interactively, staring directly from web-page, using **Explore** button near/below any attractor formula: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
+  - WebGL release is a more limited/lightened version, but frequently updated/rebuilt with last commits
 
-**WebGL release is a more limited/lightened version, but frequently updated/rebuilt with last commits*
+<p>&nbsp;<br></p>
+To view all "chaotic-objects" currently inserted in current release, follow the link: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)<br/>
+**any single object can be explored interactively via WebGL/WebAssembly directly from site.*
 
 <p>&nbsp;<br></p>
 <p>&nbsp;<br></p>
