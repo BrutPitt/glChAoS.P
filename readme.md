@@ -1,10 +1,12 @@
-<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.5.3</a></h1>
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.5.3</a>  </h1>
 
-[**glChAoS.P**](https://michelemorrone.eu/glchaosp) / [**wglChAoS.P**](https://michelemorrone.eu/glchaosp): open**gl** / **w**eb**gl** **Ch**aotic **A**ttractors **o**f **S**light (**dot**) **P**articles<br/>
-A real time 3D strange attractors scout... and hypercomplex fractals
+<p align="center" style="font-size:1.2em;"> 
+<a href="https://michelemorrone.eu/glchaosp">glChAoS.P</a> / <a href="https://michelemorrone.eu/glchaosp">wglChAoS.P</a>: &nbsp;&nbsp; open<b style="color: red;">gl</b> / <b style="color: red;">w</b>eb<b style="color: red;">gl</b> &#x22C5; <b style="color: red;">Ch</b>aotic <b style="color: red;">A</b>ttractors <b style="color: red;">o</b>f <b style="color: red;">S</b>light (<b style="color: red;">dot</b>) <b style="color: red;">P</b>articles<br/></p>
+<p align="center">
+RealTime 3D Strange Attractors scout on GPU - it also explores other "chaotic" objects like some hypercomplex fractals (via IIM algorithm) and DLA3D  
+</p>
 
-To view all Attractors / Fractals currently inserted in this version, follow the link: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
-
+To view all Attractors / Fractals currently inserted in this version, follow the link: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)  
 **now any single attractor is also explorable interactively via WebGL/WebAssembly directly from site.*
 
 
@@ -83,8 +85,7 @@ An absolutely personal and original "transformations" in 3D/4D of famous 2D attr
 | ![sShot_20191113_22737](https://user-images.githubusercontent.com/16171743/69289055-a0299d00-0bfb-11ea-98ac-f18e4a62eed6.jpg) | ![sShot_20191113_2269](https://user-images.githubusercontent.com/16171743/69289104-c8b19700-0bfb-11ea-929b-28770887dc46.jpg) | ![sShot_20191113_22333](https://user-images.githubusercontent.com/16171743/69289313-65743480-0bfc-11ea-98d8-ed7f203eb623.jpg) |
 
 
-Full descriptions, math formulas and code in the relative webpage: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)
-
+Full descriptions, math formulas and code in the relative webpage: [ **PopCorn, Mira, Hopalong and**... ](https://www.michelemorrone.eu/glchaosp/PopCorn_and.html)  
 **now any single attractor is also explorable interactively via WebGL/WebAssembly directly from site.*
 
 
@@ -428,33 +429,33 @@ Structure and description of 3rd parts libraries/tools/palettes, and related cop
         https://github.com/BrutPitt/fastPRNG
 
 - Third party tools 
-    - libs/imGui → Dear ImGui
+    - libs/**imGui** → Dear ImGui
     [https://github.com/ocornut/imgui](https://github.com/ocornut/imgui)
     **glChAoS.P uses **docking** release of **ImGui** (need \>= 1.75)*
 
-    - libs/configuru → Configuru, an experimental JSON config library for C++
+    - libs/**configuru** → Configuru, an experimental JSON config library for C++
     [https://github.com/emilk/Configuru](https://github.com/emilk/Configuru)
 
-    - libs/tinyPLY → C++11 ply 3d mesh format importer & exporter 
+    - libs/**tinyPLY** → C++11 ply 3d mesh format importer & exporter 
     [https://github.com/ddiakopoulos/tinyply](https://github.com/ddiakopoulos/tinyply)
 
-    - libs/lodePNG → LodePNG a PNG saver
+    - libs/**lodePNG** → LodePNG a PNG saver
     [https://github.com/lvandeve/lodepng](https://github.com/lvandeve/lodepng)
 
-    - libs/tinyFileDialog → file dialogs ( cross-platform C C++ )
+    - libs/**tinyFileDialog** → file dialogs ( cross-platform C C++ )
     [https://github.com/native-toolkit/tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
 
-    - libs/IconFontAwesome → IconFontCppHeaders / Font Icon Toolkit
+    - libs/**IconFontAwesome** → IconFontCppHeaders / Font Icon Toolkit
     [https://github.com/juliettef/IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders)
     [https://github.com/FortAwesome/Font-Awesome](https://github.com/FortAwesome/Font-Awesome)
 
-    - libs/glad → GL/GLES/EGL/GLX/WGL Loader-Generator
+    - libs/**glad** → GL/GLES/EGL/GLX/WGL Loader-Generator
     [https://github.com/Dav1dde/glad](https://github.com/Dav1dde/glad)
 
-    - libs/dirent → "dirent" Unix/Linux filesystem interface port for Windows
+    - libs/**dirent** → "dirent" Unix/Linux filesystem interface port for Windows
     [https://github.com/tronkko/dirent](https://github.com/tronkko/dirent)
 
-    - libs/glfw → A multi-platform library for OpenGL, OpenGL ES, Vulkan, window and input
+    - libs/**glfw** → A multi-platform library for OpenGL, OpenGL ES, Vulkan, window and input
     [https://github.com/glfw/glfw](https://github.com/glfw/glfw)
     *(need version \>= 3.3, recommended enclosed pre-built)*
 
@@ -469,8 +470,8 @@ Below there are some used components, which differ from **MIT** / **BSD 2-Clause
 
 - colorMaps/jjg\_gradient.json
 colorMaps/jjg\_step.json → J.J. Green palettes (creative commons noncommercial license)
-[http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html](http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html)
-Conversion from gpf format to json 256 variations.
+[http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html](http://soliton.vm.bytemark.co.uk/pub/cpt-city/jjg/ccolo/index.html)  
+**Conversion from gpf format to json 256 variations.*  
 (these are optional separate files to load and to have more color maps)
 
 **Alternative Library**
