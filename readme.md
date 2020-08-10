@@ -1,13 +1,15 @@
 <h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.5.3</a>  </h1>
 
 <p align="center" style="font-size:1.2em;"> 
-<a href="https://michelemorrone.eu/glchaosp">glChAoS.P</a> / <a href="https://michelemorrone.eu/glchaosp">wglChAoS.P</a>: &nbsp;&nbsp; open<b style="color: red;">gl</b> / <b style="color: red;">w</b>eb<b style="color: red;">gl</b> &#x22C5; <b style="color: red;">Ch</b>aotic <b style="color: red;">A</b>ttractors <b style="color: red;">o</b>f <b style="color: red;">S</b>light (<b style="color: red;">dot</b>) <b style="color: red;">P</b>articles<br/></p>
+<a href="https://michelemorrone.eu/glchaosp"><b>glChAoS.P</b></a> / <a href="https://michelemorrone.eu/glchaosp"><b>wglChAoS.P</b></a>: &nbsp;&nbsp; open<b style="color: red;">gl</b> / <b style="color: red;">w</b>eb<b style="color: red;">gl</b> &#x22C5; <b style="color: red;">Ch</b>aotic <b style="color: red;">A</b>ttractors <b style="color: red;">o</b>f <b style="color: red;">S</b>light (<b style="color: red;">dot</b>) <b style="color: red;">P</b>articles<br/></p>
 <p align="center">
-RealTime 3D Strange Attractors scout on GPU - it also explores other "chaotic" objects like some hypercomplex fractals (via IIM algorithm) and DLA3D  
+RealTime 3D Strange Attractors scout on GPU <br/> It also explores other chaotic-objects like some hypercomplex fractals (via IIM algorithm) and DLA3D  
 </p>
+<p>&nbsp;<br></p>
 
-To view all Attractors / Fractals currently inserted in this version, follow the link: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)  
-**now any single attractor is also explorable interactively via WebGL/WebAssembly directly from site.*
+To view all "chaotic-objects" currently inserted in current release, follow the link: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)  
+**now any single object can be explored interactively via WebGL/WebAssembly directly from site.*
+<p>&nbsp;<br></p>
 
 
 ## All available releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
@@ -25,9 +27,11 @@ To view all Attractors / Fractals currently inserted in this version, follow the
 <p align="right"><b><a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">JetBrains</a></b> supports <b>glChAoS.P</b> &#x22C5; <b>wglChAoS.P</b><br><i>many thanks to <b>JetBrains</b> for donating <a  href="https://www.jetbrains.com/?from=glChAoS.P" target="_blank">o.s.license</a> for all their excellent products</i></p>
 
 <p>&nbsp;<br></p>
+<p>&nbsp;<br></p>
+<p>&nbsp;<br></p>
 
-
-### ver.1.5.3 feature: TransformFeedback **multiDot emitter**
+## Last features from ver.1.5.3
+<h3 align="center">  TransformFeedback → multiDot particles emitter </h3>
 Now all dp/dt attractors (yellow tag) have an additional new emitter type to visualize them in a progressive way and/or with multiDot (spray) effect.\
 Is also possible to travel, in first person (cockpit view), within the particles, following the evolution of the attractors.
 
