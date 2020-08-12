@@ -103,72 +103,83 @@ void AttractorBase::StepAsync(float *&ptr, vec4 &v, vec4 &vp)
 {
 
 
-
-    (this->*stepFn)(v,vp);
-
     std::unique_lock<std::mutex> guard(mut);
 
-    *(ptr++) = vp.x;
-    *(ptr++) = vp.y;
-    *(ptr++) = vp.z;
+    *((vec3 *)ptr) = *((vec3 *)&vp);
 
-    *(ptr++) = colorFunc(v, vp);
+    *(ptr+3) = colorFunc(v, vp);
+    ptr+=4;
 
-    v = vp;
+    //v = vp;
 
 }
 void AttractorBase::Step(float *&ptr, vec4 &v, vec4 &vp)
 {
-/*
-    auto f = [&]() {
-        StepAsync(ptr, v, vp);
-    };
-
-    //std::async(std::launch::async, (void (AttractorBase::*)(float *&, vec4 &, vec4 &v))&AttractorBase::StepAsync, this, ptr, v, vp);
-    //std::async(std::launch::async, func, ptr, v, vp);
-
-    //std::async([&] { f(); });
-    //f();
-
-    std::vector<std::thread> threadsVec;
-
-    for(int i=0; i<16; i++)
-        threadsVec.push_back(std::thread(f));
-
-    for(auto &th: threadsVec) {
-        if (th.joinable())
-            th.join();
-    }
-*/
 
     (this->*stepFn)(v,vp);
 
-    *(ptr++) = vp.x;
-    *(ptr++) = vp.y;
-    *(ptr++) = vp.z;
-
-    *(ptr++) = colorFunc(v, vp);
+    *((vec3 *)ptr) = *((vec3 *)&vp);
+    *(ptr+3) = colorFunc(v, vp);
+    ptr+=4;
 
     v = vp;
-
 }
 
 uint32_t AttractorBase::Step(float *ptr, uint32_t numElements)
 {
-    vec4 v = getCurrent(), vp;
+/*
+    auto f = [&]() {
+        vec4 v = getCurrent(), vp;
+        (this->*stepFn)(v,vp);
+        StepAsync(ptr, v, vp);
+
+    };
+
+    static timerClass t;
+
+    t.start();
+    uint32_t computetdElems = 0;
+#pragma omp parallel for
+    for(int32_t elems = numElements; elems>0; elems--) {
+        f();
+        computetdElems++;
+        if(!(computetdElems&0x3F) && t.elapsed()>0.1f) elems = 0;
+    }
+
+    //Insert(vec4(vp));
+    return computetdElems;
+*/
+     vec4 v = getCurrent(), vp;
 
     static timerClass t;
 
     uint32_t elems = numElements;
     t.start();
     while(elems--) {
-        Step(ptr, v, vp); 
+        Step(ptr, v, vp);
         if(!(elems&0x3F) && t.elapsed()>0.1f) break;
     }
 
     Insert(vec4(vp));
     return numElements-elems-1;
+
 }
+
+/*
+ vec4 v = getCurrent(), vp;
+
+    static timerClass t;
+
+    uint32_t elems = numElements;
+    t.start();
+    while(elems--) {
+        Step(ptr, v, vp);
+        if(!(elems&0x3F) && t.elapsed()>0.1f) break;
+    }
+
+    Insert(vec4(vp));
+    return numElements-elems-1;
+ */
 
 /*
 // 4Dim version to test
@@ -329,17 +340,16 @@ void AttractorBase::searchLyapunov()
 
 
 ////////////////////////////////////////////////////////////////////////////
-
 void volumetricFractals::Step(vec4 &v, vec4 &vp)
 {
     int i;
     do {
         i = 0;
         vec4 p0(random3Dpoint());
-        v = p0;// vec4(0.f);
+        vec4 vx = p0;// vec4(0.f);
 
         for(float val = 0.f; i<maxIter && val<upperLimit; i++) {
-            val = innerStep(v, vp, p0);
+            val = innerStep(vx, vp, p0);
         }
         vp = p0;
     } while(i<plotRange.x || i>plotRange.y);
@@ -347,61 +357,6 @@ void volumetricFractals::Step(vec4 &v, vec4 &vp)
 
     outColor = float(i) / float(maxIter);
 }
-
-/*
-void volSinRealMandel::Step(vec4 &v, vec4 &vp)
-{
-
-    int i;
-    do {
-        i = 0;
-        vec4 p0(random3Dpoint());
-        v = vec4(0.f);
-
-        for(float val = 0.f; i<maxIter && val<upperLimit; i++) {
-
-
-
-            val = dot(vec3(vp), vec3(vp));
-
-            v = vp;
-        }
-        vp = p0;
-    } while(i<kMax || (skipConvergent && i>=maxIter));
-
-    outColor = float(i) / float(maxIter);
-}
-
-
-void volQuatJulia::Step(vec4 &v, vec4 &vp)
-{
-
-    int i;
-    do {
-        i = 0;
-        vec4 p0(random3Dpoint());
-        v = p0;
-
-        for(float val = 0.f; i<maxIter && val<upperLimit; i++) {
-            vp.x = v.x*v.x - v.y*v.y - v.z*v.z - v.w*v.w;
-            vp.y = 2.f*v.x*v.y;
-            vp.z = 2.f*v.x*v.z;
-            vp.w = 2.f*v.x*v.w;
-
-            val = dot(vp, vp);
-
-            v = vp + c;
-        }
-        vp = p0;
-    } while(i<kMax || (skipConvergent && i>=maxIter));
-
-
-
-    outColor = float(i) / float(maxIter);
-}
-*/
-
-
 
 
 //  Attractors Thread helper class

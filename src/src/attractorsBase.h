@@ -169,6 +169,26 @@ public:
     float getInputVMax() { return inputVMax; }
 
     vector<vec4> vVal;
+
+// QuadRays
+// http://www.grunch.net/synergetics/quadintro.html
+    vec3 quad2xyz(const vec4 &quad) {
+        const float r2 = 0.7071067811865475244; //1.f/sqrt(2.f);
+        return vec3(r2 * (quad.x - quad.y - quad.z + quad.w),
+                    r2 * (quad.x - quad.y + quad.z - quad.w),
+                    r2 * (quad.x + quad.y - quad.z - quad.w));
+    }
+    vec4 xyz2quad(const vec3 p) {
+        const float r2 = 0.7071067811865475244; //1.f/sqrt(2.f);
+        vec4 quad(r2 * (p.x>=0 ? p.x :   0 + p.y>=0 ? p.y :   0 + p.z>=0 ? p.z :   0),
+                  r2 * (p.x>=0 ?   0 :-p.x + p.y>=0 ?   0 :-p.y + p.z>=0 ? p.z :   0),
+                  r2 * (p.x>=0 ?   0 :-p.x + p.y>=0 ? p.y :   0 + p.z>=0 ?   0 :-p.z),
+                  r2 * (p.x>=0 ? p.x :   0 + p.y>=0 ?   0 :-p.y + p.z>=0 ?   0 :-p.z));
+        const float minVal = std::min(quad.x, std::min(quad.y, std::min(quad.z, quad.w)));
+        for(int i=3; i>=0; i--) quad[i]-=minVal;
+        return quad;
+    }
+
 protected:
     enum aType { genericTpo, dtTpo, dlaTpo, fractalTpo };
     void searchLyapunov();

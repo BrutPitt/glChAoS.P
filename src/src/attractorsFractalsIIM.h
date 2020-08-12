@@ -112,7 +112,6 @@ public:
     virtual void initStep() {
         attractorScalarK::initStep();
     }
-
 protected:
 
 };
@@ -317,4 +316,3 @@ protected:
     void Step(vec4 &v, vec4 &vp);
     void startData();
 };
-

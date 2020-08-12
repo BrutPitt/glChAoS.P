@@ -102,9 +102,6 @@ void quatJulia_IIM::Step(vec4 &v, vec4 &vp)
     mainFunc(v,vp);
 }
 
-
-
-
 // stochastic adaptation of P.Nylander's Mathematica formula of quaternion Julia set
 // http://bugman123.com/Hypercomplex/index.html
 ////////////////////////////////////////////////////////////////////////////

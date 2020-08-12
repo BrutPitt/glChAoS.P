@@ -226,7 +226,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     glClearBufferfv(GL_DEPTH , 0, &f);
 
     // clear Color buffer
-    vec4 bkgColor(!isFullScreenPiP ? cPit.getPipBkgrndColor() : backgroundColor());
+    vec4 bkgColor((!isFullScreenPiP && cPit.getPIPposition()!=cPit.pip::splitView) ? cPit.getPipBkgrndColor() : backgroundColor());
     if(!showAxes()) glClearBufferfv(GL_COLOR,  0, value_ptr(bkgColor));
 
     if(blendActive || showAxes()) {
