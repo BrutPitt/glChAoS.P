@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.3 Win32 - www.glfw.org
+// GLFW 3.4 Win32 - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -39,8 +39,8 @@
 #endif
 
 // This is a workaround for the fact that glfw3.h needs to export APIENTRY (for
-// example to allow applications to correctly declare a GL_ARB_debug_output
-// callback) but windows.h assumes no one will define APIENTRY before it does
+// example to allow applications to correctly declare a GL_KHR_debug callback)
+// but windows.h assumes no one will define APIENTRY before it does
 #undef APIENTRY
 
 // GLFW on Windows is Unicode only and does not work in MBCS mode
@@ -163,9 +163,6 @@ typedef enum
 #endif /*DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2*/
 
 // HACK: Define versionhelpers.h functions manually as MinGW lacks the header
-#define IsWindowsXPOrGreater()                                 \
-    _glfwIsWindowsVersionOrGreaterWin32(HIBYTE(_WIN32_WINNT_WINXP),   \
-                                        LOBYTE(_WIN32_WINNT_WINXP), 0)
 #define IsWindowsVistaOrGreater()                                     \
     _glfwIsWindowsVersionOrGreaterWin32(HIBYTE(_WIN32_WINNT_VISTA),   \
                                         LOBYTE(_WIN32_WINNT_VISTA), 0)
@@ -282,8 +279,6 @@ typedef VkBool32 (APIENTRY *PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)(
 
 #include "win32_joystick.h"
 #include "wgl_context.h"
-#include "egl_context.h"
-#include "osmesa_context.h"
 
 #if !defined(_GLFW_WNDCLASSNAME)
  #define _GLFW_WNDCLASSNAME L"GLFW30"
@@ -292,9 +287,6 @@ typedef VkBool32 (APIENTRY *PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)(
 #define _glfw_dlopen(name) LoadLibraryA(name)
 #define _glfw_dlclose(handle) FreeLibrary((HMODULE) handle)
 #define _glfw_dlsym(handle, name) GetProcAddress((HMODULE) handle, name)
-
-#define _GLFW_EGL_NATIVE_WINDOW  ((EGLNativeWindowType) window->win32.handle)
-#define _GLFW_EGL_NATIVE_DISPLAY EGL_DEFAULT_DISPLAY
 
 #define _GLFW_PLATFORM_WINDOW_STATE         _GLFWwindowWin32  win32
 #define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE _GLFWlibraryWin32 win32
@@ -320,6 +312,7 @@ typedef struct _GLFWwindowWin32
     // Whether to enable framebuffer transparency on DWM
     GLFWbool            transparent;
     GLFWbool            scaleToMonitor;
+    GLFWbool            keymenu;
 
     // Cached size used to filter out duplicate events
     int                 width, height;
@@ -337,7 +330,6 @@ typedef struct _GLFWlibraryWin32
 {
     HWND                helperWindowHandle;
     HDEVNOTIFY          deviceNotificationHandle;
-    DWORD               foregroundLockTimeout;
     int                 acquiredMonitorCount;
     char*               clipboardString;
     short int           keycodes[512];

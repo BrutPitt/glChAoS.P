@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.3 Linux - www.glfw.org
+// GLFW 3.4 Linux - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2014 Jonas Ådahl <jadahl@gmail.com>
 //
@@ -32,6 +32,7 @@
 #define _GLFW_PLATFORM_LIBRARY_JOYSTICK_STATE _GLFWlibraryLinux  linjs
 
 #define _GLFW_PLATFORM_MAPPING_NAME "Linux"
+#define GLFW_BUILD_LINUX_MAPPINGS
 
 // Linux-specific joystick data
 //
@@ -55,8 +56,5 @@ typedef struct _GLFWlibraryLinux
     GLFWbool                dropped;
 } _GLFWlibraryLinux;
 
-
-GLFWbool _glfwInitJoysticksLinux(void);
-void _glfwTerminateJoysticksLinux(void);
 void _glfwDetectJoystickConnectionLinux(void);
 

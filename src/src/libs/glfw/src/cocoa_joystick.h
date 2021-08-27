@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.3 Cocoa - www.glfw.org
+// GLFW 3.4 Cocoa - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2006-2017 Camilla Löwy <elmindreda@glfw.org>
 //
@@ -33,6 +33,7 @@
 #define _GLFW_PLATFORM_LIBRARY_JOYSTICK_STATE struct { int dummyJoystick; }
 
 #define _GLFW_PLATFORM_MAPPING_NAME "Mac OS X"
+#define GLFW_BUILD_COCOA_MAPPINGS
 
 // Cocoa-specific per-joystick data
 //
@@ -43,8 +44,4 @@ typedef struct _GLFWjoystickNS
     CFMutableArrayRef   buttons;
     CFMutableArrayRef   hats;
 } _GLFWjoystickNS;
-
-
-void _glfwInitJoysticksNS(void);
-void _glfwTerminateJoysticksNS(void);
 

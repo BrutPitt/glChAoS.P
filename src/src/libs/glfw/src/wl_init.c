@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.3 Wayland - www.glfw.org
+// GLFW 3.4 Wayland - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2014 Jonas Ådahl <jadahl@gmail.com>
 //
@@ -38,7 +38,23 @@
 #include <sys/mman.h>
 #include <sys/timerfd.h>
 #include <unistd.h>
-#include <wayland-client.h>
+#include <time.h>
+
+#include "wayland-client-protocol.h"
+#include "wayland-xdg-shell-client-protocol.h"
+#include "wayland-xdg-decoration-client-protocol.h"
+#include "wayland-viewporter-client-protocol.h"
+#include "wayland-relative-pointer-unstable-v1-client-protocol.h"
+#include "wayland-pointer-constraints-unstable-v1-client-protocol.h"
+#include "wayland-idle-inhibit-unstable-v1-client-protocol.h"
+
+#include "wayland-client-protocol-code.h"
+#include "wayland-xdg-shell-client-protocol-code.h"
+#include "wayland-xdg-decoration-client-protocol-code.h"
+#include "wayland-viewporter-client-protocol-code.h"
+#include "wayland-relative-pointer-unstable-v1-client-protocol-code.h"
+#include "wayland-pointer-constraints-unstable-v1-client-protocol-code.h"
+#include "wayland-idle-inhibit-unstable-v1-client-protocol-code.h"
 
 
 static inline int min(int n1, int n2)
@@ -102,6 +118,7 @@ static void pointerHandleEnter(void* data,
 
     window->wl.decorations.focus = focus;
     _glfw.wl.serial = serial;
+    _glfw.wl.pointerEnterSerial = serial;
     _glfw.wl.pointerFocus = window;
 
     window->wl.hovered = GLFW_TRUE;
@@ -161,7 +178,7 @@ static void setCursor(_GLFWwindow* window, const char* name)
     buffer = wl_cursor_image_get_buffer(image);
     if (!buffer)
         return;
-    wl_pointer_set_cursor(_glfw.wl.pointer, _glfw.wl.serial,
+    wl_pointer_set_cursor(_glfw.wl.pointer, _glfw.wl.pointerEnterSerial,
                           surface,
                           image->hotspot_x / scale,
                           image->hotspot_y / scale);
@@ -241,9 +258,7 @@ static void pointerHandleButton(void* data,
 {
     _GLFWwindow* window = _glfw.wl.pointerFocus;
     int glfwButton;
-
-    // Both xdg-shell and wl_shell use the same values.
-    uint32_t edges = WL_SHELL_SURFACE_RESIZE_NONE;
+    uint32_t edges = XDG_TOPLEVEL_RESIZE_EDGE_NONE;
 
     if (!window)
         return;
@@ -255,46 +270,39 @@ static void pointerHandleButton(void* data,
                 break;
             case topDecoration:
                 if (window->wl.cursorPosY < _GLFW_DECORATION_WIDTH)
-                    edges = WL_SHELL_SURFACE_RESIZE_TOP;
+                    edges = XDG_TOPLEVEL_RESIZE_EDGE_TOP;
                 else
                 {
-                    if (window->wl.xdg.toplevel)
-                        xdg_toplevel_move(window->wl.xdg.toplevel, _glfw.wl.seat, serial);
-                    else
-                        wl_shell_surface_move(window->wl.shellSurface, _glfw.wl.seat, serial);
+                    xdg_toplevel_move(window->wl.xdg.toplevel, _glfw.wl.seat, serial);
                 }
                 break;
             case leftDecoration:
                 if (window->wl.cursorPosY < _GLFW_DECORATION_WIDTH)
-                    edges = WL_SHELL_SURFACE_RESIZE_TOP_LEFT;
+                    edges = XDG_TOPLEVEL_RESIZE_EDGE_TOP_LEFT;
                 else
-                    edges = WL_SHELL_SURFACE_RESIZE_LEFT;
+                    edges = XDG_TOPLEVEL_RESIZE_EDGE_LEFT;
                 break;
             case rightDecoration:
                 if (window->wl.cursorPosY < _GLFW_DECORATION_WIDTH)
-                    edges = WL_SHELL_SURFACE_RESIZE_TOP_RIGHT;
+                    edges = XDG_TOPLEVEL_RESIZE_EDGE_TOP_RIGHT;
                 else
-                    edges = WL_SHELL_SURFACE_RESIZE_RIGHT;
+                    edges = XDG_TOPLEVEL_RESIZE_EDGE_RIGHT;
                 break;
             case bottomDecoration:
                 if (window->wl.cursorPosX < _GLFW_DECORATION_WIDTH)
-                    edges = WL_SHELL_SURFACE_RESIZE_BOTTOM_LEFT;
+                    edges = XDG_TOPLEVEL_RESIZE_EDGE_BOTTOM_LEFT;
                 else if (window->wl.cursorPosX > window->wl.width + _GLFW_DECORATION_WIDTH)
-                    edges = WL_SHELL_SURFACE_RESIZE_BOTTOM_RIGHT;
+                    edges = XDG_TOPLEVEL_RESIZE_EDGE_BOTTOM_RIGHT;
                 else
-                    edges = WL_SHELL_SURFACE_RESIZE_BOTTOM;
+                    edges = XDG_TOPLEVEL_RESIZE_EDGE_BOTTOM;
                 break;
             default:
                 assert(0);
         }
-        if (edges != WL_SHELL_SURFACE_RESIZE_NONE)
+        if (edges != XDG_TOPLEVEL_RESIZE_EDGE_NONE)
         {
-            if (window->wl.xdg.toplevel)
-                xdg_toplevel_resize(window->wl.xdg.toplevel, _glfw.wl.seat,
-                                    serial, edges);
-            else
-                wl_shell_surface_resize(window->wl.shellSurface, _glfw.wl.seat,
-                                        serial, edges);
+            xdg_toplevel_resize(window->wl.xdg.toplevel, _glfw.wl.seat,
+                                serial, edges);
         }
     }
     else if (button == BTN_RIGHT)
@@ -558,7 +566,7 @@ static GLFWbool inputChar(_GLFWwindow* window, uint32_t key)
         }
     }
 
-    return xkb_keymap_key_repeats(_glfw.wl.xkb.keymap, syms[0]);
+    return xkb_keymap_key_repeats(_glfw.wl.xkb.keymap, code);
 }
 
 static void keyboardHandleKey(void* data,
@@ -809,11 +817,6 @@ static void registryHandleGlobal(void* data,
         _glfw.wl.shm =
             wl_registry_bind(registry, name, &wl_shm_interface, 1);
     }
-    else if (strcmp(interface, "wl_shell") == 0)
-    {
-        _glfw.wl.shell =
-            wl_registry_bind(registry, name, &wl_shell_interface, 1);
-    }
     else if (strcmp(interface, "wl_output") == 0)
     {
         _glfwAddOutputWayland(name, version);
@@ -1050,6 +1053,73 @@ int _glfwPlatformInit(void)
     long cursorSizeLong;
     int cursorSize;
 
+    _glfw.wl.client.handle = _glfw_dlopen("libwayland-client.so.0");
+    if (!_glfw.wl.client.handle)
+    {
+        _glfwInputError(GLFW_PLATFORM_ERROR,
+                        "Wayland: Failed to open libwayland-client");
+        return GLFW_FALSE;
+    }
+
+    _glfw.wl.client.display_flush = (PFN_wl_display_flush)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_display_flush");
+    _glfw.wl.client.display_cancel_read = (PFN_wl_display_cancel_read)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_display_cancel_read");
+    _glfw.wl.client.display_dispatch_pending = (PFN_wl_display_dispatch_pending)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_display_dispatch_pending");
+    _glfw.wl.client.display_read_events = (PFN_wl_display_read_events)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_display_read_events");
+    _glfw.wl.client.display_connect = (PFN_wl_display_connect)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_display_connect");
+    _glfw.wl.client.display_disconnect = (PFN_wl_display_disconnect)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_display_disconnect");
+    _glfw.wl.client.display_roundtrip = (PFN_wl_display_roundtrip)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_display_roundtrip");
+    _glfw.wl.client.display_get_fd = (PFN_wl_display_get_fd)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_display_get_fd");
+    _glfw.wl.client.display_prepare_read = (PFN_wl_display_prepare_read)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_display_prepare_read");
+    _glfw.wl.client.proxy_marshal = (PFN_wl_proxy_marshal)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_proxy_marshal");
+    _glfw.wl.client.proxy_add_listener = (PFN_wl_proxy_add_listener)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_proxy_add_listener");
+    _glfw.wl.client.proxy_destroy = (PFN_wl_proxy_destroy)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_proxy_destroy");
+    _glfw.wl.client.proxy_marshal_constructor = (PFN_wl_proxy_marshal_constructor)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_proxy_marshal_constructor");
+    _glfw.wl.client.proxy_marshal_constructor_versioned = (PFN_wl_proxy_marshal_constructor_versioned)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_proxy_marshal_constructor_versioned");
+    _glfw.wl.client.proxy_get_user_data = (PFN_wl_proxy_get_user_data)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_proxy_get_user_data");
+    _glfw.wl.client.proxy_set_user_data = (PFN_wl_proxy_set_user_data)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_proxy_set_user_data");
+    _glfw.wl.client.proxy_get_version = (PFN_wl_proxy_get_version)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_proxy_get_version");
+    _glfw.wl.client.proxy_marshal_flags = (PFN_wl_proxy_marshal_flags)
+        _glfw_dlsym(_glfw.wl.client.handle, "wl_proxy_marshal_flags");
+
+    if (!_glfw.wl.client.display_flush ||
+        !_glfw.wl.client.display_cancel_read ||
+        !_glfw.wl.client.display_dispatch_pending ||
+        !_glfw.wl.client.display_read_events ||
+        !_glfw.wl.client.display_connect ||
+        !_glfw.wl.client.display_disconnect ||
+        !_glfw.wl.client.display_roundtrip ||
+        !_glfw.wl.client.display_get_fd ||
+        !_glfw.wl.client.display_prepare_read ||
+        !_glfw.wl.client.proxy_marshal ||
+        !_glfw.wl.client.proxy_add_listener ||
+        !_glfw.wl.client.proxy_destroy ||
+        !_glfw.wl.client.proxy_marshal_constructor ||
+        !_glfw.wl.client.proxy_marshal_constructor_versioned ||
+        !_glfw.wl.client.proxy_get_user_data ||
+        !_glfw.wl.client.proxy_set_user_data)
+    {
+        _glfwInputError(GLFW_PLATFORM_ERROR,
+                        "Wayland: Failed to load libwayland-client entry point");
+        return GLFW_FALSE;
+    }
+
     _glfw.wl.cursor.handle = _glfw_dlopen("libwayland-cursor.so.0");
     if (!_glfw.wl.cursor.handle)
     {
@@ -1157,16 +1227,18 @@ int _glfwPlatformInit(void)
     // Sync so we got all initial output events
     wl_display_roundtrip(_glfw.wl.display);
 
-#ifdef __linux__
-    if (!_glfwInitJoysticksLinux())
-        return GLFW_FALSE;
-#endif
-
     _glfwInitTimerPOSIX();
 
     _glfw.wl.timerfd = -1;
     if (_glfw.wl.seatVersion >= 4)
         _glfw.wl.timerfd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC);
+
+    if (!_glfw.wl.wmBase)
+    {
+        _glfwInputError(GLFW_PLATFORM_ERROR,
+                        "Wayland: Failed to find xdg-shell in your compositor");
+        return GLFW_FALSE;
+    }
 
     if (_glfw.wl.pointer && _glfw.wl.shm)
     {
@@ -1202,7 +1274,7 @@ int _glfwPlatformInit(void)
             wl_data_device_manager_get_data_device(_glfw.wl.dataDeviceManager,
                                                    _glfw.wl.seat);
         wl_data_device_add_listener(_glfw.wl.dataDevice, &dataDeviceListener, NULL);
-        _glfw.wl.clipboardString = malloc(4096);
+        _glfw.wl.clipboardString = _glfw_calloc(4096, 1);
         if (!_glfw.wl.clipboardString)
         {
             _glfwInputError(GLFW_PLATFORM_ERROR,
@@ -1217,9 +1289,6 @@ int _glfwPlatformInit(void)
 
 void _glfwPlatformTerminate(void)
 {
-#ifdef __linux__
-    _glfwTerminateJoysticksLinux();
-#endif
     _glfwTerminateEGL();
     if (_glfw.wl.egl.handle)
     {
@@ -1261,8 +1330,6 @@ void _glfwPlatformTerminate(void)
         wl_compositor_destroy(_glfw.wl.compositor);
     if (_glfw.wl.shm)
         wl_shm_destroy(_glfw.wl.shm);
-    if (_glfw.wl.shell)
-        wl_shell_destroy(_glfw.wl.shell);
     if (_glfw.wl.viewporter)
         wp_viewporter_destroy(_glfw.wl.viewporter);
     if (_glfw.wl.decorationManager)
@@ -1303,18 +1370,16 @@ void _glfwPlatformTerminate(void)
         close(_glfw.wl.cursorTimerfd);
 
     if (_glfw.wl.clipboardString)
-        free(_glfw.wl.clipboardString);
+        _glfw_free(_glfw.wl.clipboardString);
     if (_glfw.wl.clipboardSendString)
-        free(_glfw.wl.clipboardSendString);
+        _glfw_free(_glfw.wl.clipboardSendString);
 }
 
 const char* _glfwPlatformGetVersionString(void)
 {
     return _GLFW_VERSION_NUMBER " Wayland EGL OSMesa"
-#if defined(_POSIX_TIMERS) && defined(_POSIX_MONOTONIC_CLOCK)
-        " clock_gettime"
-#else
-        " gettimeofday"
+#if defined(_POSIX_MONOTONIC_CLOCK)
+        " monotonic"
 #endif
         " evdev"
 #if defined(_GLFW_BUILD_DLL)

@@ -1,5 +1,5 @@
 //========================================================================
-// GLFW 3.3 X11 - www.glfw.org
+// GLFW 3.4 X11 - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
 // Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
@@ -406,8 +406,8 @@ static char** parseUriList(char* text, int* count)
 
         (*count)++;
 
-        char* path = calloc(strlen(line) + 1, 1);
-        paths = realloc(paths, *count * sizeof(char*));
+        char* path = _glfw_calloc(strlen(line) + 1, 1);
+        paths = _glfw_realloc(paths, *count * sizeof(char*));
         paths[*count - 1] = path;
 
         while (*line)
@@ -463,7 +463,6 @@ static size_t encodeUTF8(char* s, unsigned int ch)
 // Decode a Unicode code point from a UTF-8 stream
 // Based on cutef8 by Jeff Bezanson (Public Domain)
 //
-#if defined(X_HAVE_UTF8_STRING)
 static unsigned int decodeUTF8(const char** s)
 {
     unsigned int ch = 0, count = 0;
@@ -483,7 +482,6 @@ static unsigned int decodeUTF8(const char** s)
     assert(count <= 6);
     return ch - offsets[count - 1];
 }
-#endif /*X_HAVE_UTF8_STRING*/
 
 // Convert the specified Latin-1 string to UTF-8
 //
@@ -495,7 +493,7 @@ static char* convertLatin1toUTF8(const char* source)
     for (sp = source;  *sp;  sp++)
         size += (*sp & 0x80) ? 2 : 1;
 
-    char* target = calloc(size, 1);
+    char* target = _glfw_calloc(size, 1);
     char* tp = target;
 
     for (sp = source;  *sp;  sp++)
@@ -588,6 +586,14 @@ static void enableCursor(_GLFWwindow* window)
                               _glfw.x11.restoreCursorPosX,
                               _glfw.x11.restoreCursorPosY);
     updateCursorImage(window);
+}
+
+// Clear its handle when the input context has been destroyed
+//
+static void inputContextDestroyCallback(XIC ic, XPointer clientData, XPointer callData)
+{
+    _GLFWwindow* window = (_GLFWwindow*) clientData;
+    window->x11.ic = NULL;
 }
 
 // Create the X11 window (and its colormap)
@@ -768,27 +774,10 @@ static GLFWbool createNativeWindow(_GLFWwindow* window,
                         PropModeReplace, (unsigned char*) &version, 1);
     }
 
-    _glfwPlatformSetWindowTitle(window, wndconfig->title);
-
     if (_glfw.x11.im)
-    {
-        window->x11.ic = XCreateIC(_glfw.x11.im,
-                                   XNInputStyle,
-                                   XIMPreeditNothing | XIMStatusNothing,
-                                   XNClientWindow,
-                                   window->x11.handle,
-                                   XNFocusWindow,
-                                   window->x11.handle,
-                                   NULL);
-    }
+        _glfwCreateInputContextX11(window);
 
-    if (window->x11.ic)
-    {
-        unsigned long filter = 0;
-        if (XGetICValues(window->x11.ic, XNFilterEvents, &filter, NULL) == NULL)
-            XSelectInput(_glfw.x11.display, window->x11.handle, wa.event_mask | filter);
-    }
-
+    _glfwPlatformSetWindowTitle(window, wndconfig->title);
     _glfwPlatformGetWindowPos(window, &window->x11.xpos, &window->x11.ypos);
     _glfwPlatformGetWindowSize(window, &window->x11.width, &window->x11.height);
 
@@ -935,12 +924,12 @@ static void handleSelectionClear(XEvent* event)
 {
     if (event->xselectionclear.selection == _glfw.x11.PRIMARY)
     {
-        free(_glfw.x11.primarySelectionString);
+        _glfw_free(_glfw.x11.primarySelectionString);
         _glfw.x11.primarySelectionString = NULL;
     }
     else
     {
-        free(_glfw.x11.clipboardString);
+        _glfw_free(_glfw.x11.clipboardString);
         _glfw.x11.clipboardString = NULL;
     }
 }
@@ -979,7 +968,7 @@ static const char* getSelectionString(Atom selection)
         return *selectionString;
     }
 
-    free(*selectionString);
+    _glfw_free(*selectionString);
     *selectionString = NULL;
 
     for (size_t i = 0;  i < targetCount;  i++)
@@ -1058,7 +1047,7 @@ static const char* getSelectionString(Atom selection)
                 if (itemCount)
                 {
                     size += itemCount;
-                    string = realloc(string, size);
+                    string = _glfw_realloc(string, size);
                     string[size - itemCount - 1] = '\0';
                     strcat(string, data);
                 }
@@ -1068,7 +1057,7 @@ static const char* getSelectionString(Atom selection)
                     if (targets[i] == XA_STRING)
                     {
                         *selectionString = convertLatin1toUTF8(string);
-                        free(string);
+                        _glfw_free(string);
                     }
                     else
                         *selectionString = string;
@@ -1173,8 +1162,7 @@ static void processEvent(XEvent *event)
     if (event->type == KeyPress || event->type == KeyRelease)
         keycode = event->xkey.keycode;
 
-    if (_glfw.x11.im)
-        filtered = XFilterEvent(event, None);
+    filtered = XFilterEvent(event, None);
 
     if (_glfw.x11.randr.available)
     {
@@ -1295,7 +1283,6 @@ static void processEvent(XEvent *event)
                 {
                     int count;
                     Status status;
-#if defined(X_HAVE_UTF8_STRING)
                     char buffer[100];
                     char* chars = buffer;
 
@@ -1306,7 +1293,7 @@ static void processEvent(XEvent *event)
 
                     if (status == XBufferOverflow)
                     {
-                        chars = calloc(count + 1, 1);
+                        chars = _glfw_calloc(count + 1, 1);
                         count = Xutf8LookupString(window->x11.ic,
                                                   &event->xkey,
                                                   chars, count,
@@ -1320,36 +1307,9 @@ static void processEvent(XEvent *event)
                         while (c - chars < count)
                             _glfwInputChar(window, decodeUTF8(&c), mods, plain);
                     }
-#else /*X_HAVE_UTF8_STRING*/
-                    wchar_t buffer[16];
-                    wchar_t* chars = buffer;
-
-                    count = XwcLookupString(window->x11.ic,
-                                            &event->xkey,
-                                            buffer,
-                                            sizeof(buffer) / sizeof(wchar_t),
-                                            NULL,
-                                            &status);
-
-                    if (status == XBufferOverflow)
-                    {
-                        chars = calloc(count, sizeof(wchar_t));
-                        count = XwcLookupString(window->x11.ic,
-                                                &event->xkey,
-                                                chars, count,
-                                                NULL, &status);
-                    }
-
-                    if (status == XLookupChars || status == XLookupBoth)
-                    {
-                        int i;
-                        for (i = 0;  i < count;  i++)
-                            _glfwInputChar(window, chars[i], mods, plain);
-                    }
-#endif /*X_HAVE_UTF8_STRING*/
 
                     if (chars != buffer)
-                        free(chars);
+                        _glfw_free(chars);
                 }
             }
             else
@@ -1764,8 +1724,8 @@ static void processEvent(XEvent *event)
                     _glfwInputDrop(window, count, (const char**) paths);
 
                     for (i = 0;  i < count;  i++)
-                        free(paths[i]);
-                    free(paths);
+                        _glfw_free(paths[i]);
+                    _glfw_free(paths);
                 }
 
                 if (data)
@@ -1973,6 +1933,38 @@ void _glfwPushSelectionToManagerX11(void)
     }
 }
 
+void _glfwCreateInputContextX11(_GLFWwindow* window)
+{
+    XIMCallback callback;
+    callback.callback = (XIMProc) inputContextDestroyCallback;
+    callback.client_data = (XPointer) window;
+
+    window->x11.ic = XCreateIC(_glfw.x11.im,
+                               XNInputStyle,
+                               XIMPreeditNothing | XIMStatusNothing,
+                               XNClientWindow,
+                               window->x11.handle,
+                               XNFocusWindow,
+                               window->x11.handle,
+                               XNDestroyCallback,
+                               &callback,
+                               NULL);
+
+    if (window->x11.ic)
+    {
+        XWindowAttributes attribs;
+        XGetWindowAttributes(_glfw.x11.display, window->x11.handle, &attribs);
+
+        unsigned long filter = 0;
+        if (XGetICValues(window->x11.ic, XNFilterEvents, &filter, NULL) == NULL)
+        {
+            XSelectInput(_glfw.x11.display,
+                         window->x11.handle,
+                         attribs.your_event_mask | filter);
+        }
+    }
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //////                       GLFW platform API                      //////
@@ -2084,21 +2076,14 @@ void _glfwPlatformDestroyWindow(_GLFWwindow* window)
 
 void _glfwPlatformSetWindowTitle(_GLFWwindow* window, const char* title)
 {
-#if defined(X_HAVE_UTF8_STRING)
-    Xutf8SetWMProperties(_glfw.x11.display,
-                         window->x11.handle,
-                         title, title,
-                         NULL, 0,
-                         NULL, NULL, NULL);
-#else
-    // This may be a slightly better fallback than using XStoreName and
-    // XSetIconName, which always store their arguments using STRING
-    XmbSetWMProperties(_glfw.x11.display,
-                       window->x11.handle,
-                       title, title,
-                       NULL, 0,
-                       NULL, NULL, NULL);
-#endif
+    if (_glfw.x11.xlib.utf8)
+    {
+        Xutf8SetWMProperties(_glfw.x11.display,
+                             window->x11.handle,
+                             title, title,
+                             NULL, 0,
+                             NULL, NULL, NULL);
+    }
 
     XChangeProperty(_glfw.x11.display,  window->x11.handle,
                     _glfw.x11.NET_WM_NAME, _glfw.x11.UTF8_STRING, 8,
@@ -2123,7 +2108,7 @@ void _glfwPlatformSetWindowIcon(_GLFWwindow* window,
         for (i = 0;  i < count;  i++)
             longCount += 2 + images[i].width * images[i].height;
 
-        long* icon = calloc(longCount, sizeof(long));
+        long* icon = _glfw_calloc(longCount, sizeof(long));
         long* target = icon;
 
         for (i = 0;  i < count;  i++)
@@ -2147,7 +2132,7 @@ void _glfwPlatformSetWindowIcon(_GLFWwindow* window,
                         (unsigned char*) icon,
                         longCount);
 
-        free(icon);
+        _glfw_free(icon);
     }
     else
     {
@@ -2500,7 +2485,11 @@ void _glfwPlatformSetWindowMonitor(_GLFWwindow* window,
     }
 
     if (window->monitor)
+    {
+        _glfwPlatformSetWindowDecorated(window, window->decorated);
+        _glfwPlatformSetWindowFloating(window, window->floating);
         releaseMonitor(window);
+    }
 
     _glfwInputWindowMonitor(window, monitor);
     updateNormalHints(window, width, height);
@@ -2682,14 +2671,14 @@ void _glfwPlatformSetWindowFloating(_GLFWwindow* window, GLFWbool enabled)
                     break;
             }
 
-            if (i < count)
-                return;
-
-            XChangeProperty(_glfw.x11.display, window->x11.handle,
-                            _glfw.x11.NET_WM_STATE, XA_ATOM, 32,
-                            PropModeAppend,
-                            (unsigned char*) &_glfw.x11.NET_WM_STATE_ABOVE,
-                            1);
+            if (i == count)
+            {
+                XChangeProperty(_glfw.x11.display, window->x11.handle,
+                                _glfw.x11.NET_WM_STATE, XA_ATOM, 32,
+                                PropModeAppend,
+                                (unsigned char*) &_glfw.x11.NET_WM_STATE_ABOVE,
+                                1);
+            }
         }
         else if (states)
         {
@@ -2699,15 +2688,15 @@ void _glfwPlatformSetWindowFloating(_GLFWwindow* window, GLFWbool enabled)
                     break;
             }
 
-            if (i == count)
-                return;
+            if (i < count)
+            {
+                states[i] = states[count - 1];
+                count--;
 
-            states[i] = states[count - 1];
-            count--;
-
-            XChangeProperty(_glfw.x11.display, window->x11.handle,
-                            _glfw.x11.NET_WM_STATE, XA_ATOM, 32,
-                            PropModeReplace, (unsigned char*) states, count);
+                XChangeProperty(_glfw.x11.display, window->x11.handle,
+                                _glfw.x11.NET_WM_STATE, XA_ATOM, 32,
+                                PropModeReplace, (unsigned char*) states, count);
+            }
         }
 
         if (states)
@@ -2715,6 +2704,25 @@ void _glfwPlatformSetWindowFloating(_GLFWwindow* window, GLFWbool enabled)
     }
 
     XFlush(_glfw.x11.display);
+}
+
+void _glfwPlatformSetWindowMousePassthrough(_GLFWwindow* window, GLFWbool enabled)
+{
+    if (!_glfw.x11.xshape.available)
+        return;
+
+    if (enabled)
+    {
+        Region region = XCreateRegion();
+        XShapeCombineRegion(_glfw.x11.display, window->x11.handle,
+                            ShapeInput, 0, 0, region, ShapeSet);
+        XDestroyRegion(region);
+    }
+    else
+    {
+        XShapeCombineMask(_glfw.x11.display, window->x11.handle,
+                          ShapeInput, 0, 0, None, ShapeSet);
+    }
 }
 
 float _glfwPlatformGetWindowOpacity(_GLFWwindow* window)
@@ -2772,11 +2780,12 @@ void _glfwPlatformPollEvents(void)
     _GLFWwindow* window;
 
 #if defined(__linux__)
-    _glfwDetectJoystickConnectionLinux();
+    if (_glfw.joysticksInitialized)
+        _glfwDetectJoystickConnectionLinux();
 #endif
     XPending(_glfw.x11.display);
 
-    while (XQLength(_glfw.x11.display))
+    while (QLength(_glfw.x11.display))
     {
         XEvent event;
         XNextEvent(_glfw.x11.display, &event);
@@ -2882,7 +2891,7 @@ const char* _glfwPlatformGetScancodeName(int scancode)
     if (scancode < 0 || scancode > 0xff ||
         _glfw.x11.keycodes[scancode] == GLFW_KEY_UNKNOWN)
     {
-        _glfwInputError(GLFW_INVALID_VALUE, "Invalid scancode");
+        _glfwInputError(GLFW_INVALID_VALUE, "Invalid scancode %i", scancode);
         return NULL;
     }
 
@@ -2922,29 +2931,97 @@ int _glfwPlatformCreateCursor(_GLFWcursor* cursor,
 
 int _glfwPlatformCreateStandardCursor(_GLFWcursor* cursor, int shape)
 {
-    int native = 0;
+    if (_glfw.x11.xcursor.handle)
+    {
+        char* theme = XcursorGetTheme(_glfw.x11.display);
+        if (theme)
+        {
+            const int size = XcursorGetDefaultSize(_glfw.x11.display);
+            const char* name = NULL;
 
-    if (shape == GLFW_ARROW_CURSOR)
-        native = XC_left_ptr;
-    else if (shape == GLFW_IBEAM_CURSOR)
-        native = XC_xterm;
-    else if (shape == GLFW_CROSSHAIR_CURSOR)
-        native = XC_crosshair;
-    else if (shape == GLFW_HAND_CURSOR)
-        native = XC_hand2;
-    else if (shape == GLFW_HRESIZE_CURSOR)
-        native = XC_sb_h_double_arrow;
-    else if (shape == GLFW_VRESIZE_CURSOR)
-        native = XC_sb_v_double_arrow;
-    else
-        return GLFW_FALSE;
+            switch (shape)
+            {
+                case GLFW_ARROW_CURSOR:
+                    name = "default";
+                    break;
+                case GLFW_IBEAM_CURSOR:
+                    name = "text";
+                    break;
+                case GLFW_CROSSHAIR_CURSOR:
+                    name = "crosshair";
+                    break;
+                case GLFW_POINTING_HAND_CURSOR:
+                    name = "pointer";
+                    break;
+                case GLFW_RESIZE_EW_CURSOR:
+                    name = "ew-resize";
+                    break;
+                case GLFW_RESIZE_NS_CURSOR:
+                    name = "ns-resize";
+                    break;
+                case GLFW_RESIZE_NWSE_CURSOR:
+                    name = "nwse-resize";
+                    break;
+                case GLFW_RESIZE_NESW_CURSOR:
+                    name = "nesw-resize";
+                    break;
+                case GLFW_RESIZE_ALL_CURSOR:
+                    name = "all-scroll";
+                    break;
+                case GLFW_NOT_ALLOWED_CURSOR:
+                    name = "not-allowed";
+                    break;
+            }
 
-    cursor->x11.handle = XCreateFontCursor(_glfw.x11.display, native);
+            XcursorImage* image = XcursorLibraryLoadImage(name, theme, size);
+            if (image)
+            {
+                cursor->x11.handle = XcursorImageLoadCursor(_glfw.x11.display, image);
+                XcursorImageDestroy(image);
+            }
+        }
+    }
+
     if (!cursor->x11.handle)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
-                        "X11: Failed to create standard cursor");
-        return GLFW_FALSE;
+        unsigned int native = 0;
+
+        switch (shape)
+        {
+            case GLFW_ARROW_CURSOR:
+                native = XC_left_ptr;
+                break;
+            case GLFW_IBEAM_CURSOR:
+                native = XC_xterm;
+                break;
+            case GLFW_CROSSHAIR_CURSOR:
+                native = XC_crosshair;
+                break;
+            case GLFW_POINTING_HAND_CURSOR:
+                native = XC_hand2;
+                break;
+            case GLFW_RESIZE_EW_CURSOR:
+                native = XC_sb_h_double_arrow;
+                break;
+            case GLFW_RESIZE_NS_CURSOR:
+                native = XC_sb_v_double_arrow;
+                break;
+            case GLFW_RESIZE_ALL_CURSOR:
+                native = XC_fleur;
+                break;
+            default:
+                _glfwInputError(GLFW_CURSOR_UNAVAILABLE,
+                                "X11: Standard cursor shape unavailable");
+                return GLFW_FALSE;
+        }
+
+        cursor->x11.handle = XCreateFontCursor(_glfw.x11.display, native);
+        if (!cursor->x11.handle)
+        {
+            _glfwInputError(GLFW_PLATFORM_ERROR,
+                            "X11: Failed to create standard cursor");
+            return GLFW_FALSE;
+        }
     }
 
     return GLFW_TRUE;
@@ -2968,7 +3045,7 @@ void _glfwPlatformSetCursor(_GLFWwindow* window, _GLFWcursor* cursor)
 void _glfwPlatformSetClipboardString(const char* string)
 {
     char* copy = _glfw_strdup(string);
-    free(_glfw.x11.clipboardString);
+    _glfw_free(_glfw.x11.clipboardString);
     _glfw.x11.clipboardString = copy;
 
     XSetSelectionOwner(_glfw.x11.display,
@@ -2987,6 +3064,55 @@ void _glfwPlatformSetClipboardString(const char* string)
 const char* _glfwPlatformGetClipboardString(void)
 {
     return getSelectionString(_glfw.x11.CLIPBOARD);
+}
+
+EGLenum _glfwPlatformGetEGLPlatform(EGLint** attribs)
+{
+    if (_glfw.egl.ANGLE_platform_angle)
+    {
+        int type = 0;
+
+        if (_glfw.egl.ANGLE_platform_angle_opengl)
+        {
+            if (_glfw.hints.init.angleType == GLFW_ANGLE_PLATFORM_TYPE_OPENGL)
+                type = EGL_PLATFORM_ANGLE_TYPE_OPENGL_ANGLE;
+        }
+
+        if (_glfw.egl.ANGLE_platform_angle_vulkan)
+        {
+            if (_glfw.hints.init.angleType == GLFW_ANGLE_PLATFORM_TYPE_VULKAN)
+                type = EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE;
+        }
+
+        if (type)
+        {
+            *attribs = _glfw_calloc(5, sizeof(EGLint));
+            (*attribs)[0] = EGL_PLATFORM_ANGLE_TYPE_ANGLE;
+            (*attribs)[1] = type;
+            (*attribs)[2] = EGL_PLATFORM_ANGLE_NATIVE_PLATFORM_TYPE_ANGLE;
+            (*attribs)[3] = EGL_PLATFORM_X11_EXT;
+            (*attribs)[4] = EGL_NONE;
+            return EGL_PLATFORM_ANGLE_ANGLE;
+        }
+    }
+
+    if (_glfw.egl.EXT_platform_base && _glfw.egl.EXT_platform_x11)
+        return EGL_PLATFORM_X11_EXT;
+
+    return 0;
+}
+
+EGLNativeDisplayType _glfwPlatformGetEGLNativeDisplay(void)
+{
+    return _glfw.x11.display;
+}
+
+EGLNativeWindowType _glfwPlatformGetEGLNativeWindow(_GLFWwindow* window)
+{
+    if (_glfw.egl.platform)
+        return &window->x11.handle;
+    else
+        return (EGLNativeWindowType) window->x11.handle;
 }
 
 void _glfwPlatformGetRequiredInstanceExtensions(char** extensions)
@@ -3160,7 +3286,7 @@ GLFWAPI void glfwSetX11SelectionString(const char* string)
 {
     _GLFW_REQUIRE_INIT();
 
-    free(_glfw.x11.primarySelectionString);
+    _glfw_free(_glfw.x11.primarySelectionString);
     _glfw.x11.primarySelectionString = _glfw_strdup(string);
 
     XSetSelectionOwner(_glfw.x11.display,
