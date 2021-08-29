@@ -52,7 +52,7 @@ bool hslTuning(const char* label, float *selVal, int barType, float stepSize, co
     //Proportional drag value (like DragFloat)
     //value_changed = DragBehavior(bb, id, selVal, .005f, -1.f, 1.f, 3, 1);
     const float min=-1.f, max = 1.f;
-    value_changed = DragBehavior(id, ImGuiDataType_Float, selVal, stepSize, (void *)&min, (void *)&max, "%3f", 1, ImGuiDragFlags_None);
+    value_changed = DragBehavior(id, ImGuiDataType_Float, selVal, stepSize, (void *)&min, (void *)&max, "%3f", ImGuiSliderFlags_None);
 #else
     // ONE <-> ONE value (like slider)
     if (IsItemActive())
@@ -152,6 +152,97 @@ bool paletteButton(const char* label, int numCol, float *buff, const ImVec2 &siz
 
 //////////////////////////////////////////////////////////////////
 bool DragFloatEx(const char* label, float *v, float v_speed, float v_min, float v_max, const char* format, float power, const ImVec2 &alignment)
+//bool ImGui::DragScalar(const char* label, ImGuiDataType data_type, void* p_data, float v_speed, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags)
+{
+    ImGuiDataType data_type = ImGuiDataType_Float;
+    const void* p_min = &v_min;
+    const void* p_max = &v_max;
+    void* p_data = v;
+    ImGuiSliderFlags flags = ImGuiSliderFlags_None;
+
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    const float w = CalcItemWidth();
+
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+    const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+
+    const bool temp_input_allowed = (flags & ImGuiSliderFlags_NoInput) == 0;
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id, &frame_bb, temp_input_allowed ? ImGuiItemFlags_Inputable : 0))
+        return false;
+
+    // Default format string when passing NULL
+    if (format == NULL)
+        format = DataTypeGetInfo(data_type)->PrintFmt;
+
+    // Tabbing or CTRL-clicking on Drag turns it into an InputText
+    const bool hovered = ItemHoverable(frame_bb, id);
+    bool temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
+    if (!temp_input_is_active)
+    {
+        const bool focus_requested = temp_input_allowed && (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_Focused) != 0;
+        const bool clicked = (hovered && g.IO.MouseClicked[0]);
+        const bool double_clicked = (hovered && g.IO.MouseDoubleClicked[0]);
+        if (focus_requested || clicked || double_clicked || g.NavActivateId == id || g.NavActivateInputId == id)
+        {
+            SetActiveID(id, window);
+            SetFocusID(id, window);
+            FocusWindow(window);
+            g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
+            if (temp_input_allowed)
+                if (focus_requested || (clicked && g.IO.KeyCtrl) || double_clicked || g.NavActivateInputId == id)
+                    temp_input_is_active = true;
+        }
+
+        // Experimental: simple click (without moving) turns Drag into an InputText
+        if (g.IO.ConfigDragClickToInputText && temp_input_allowed && !temp_input_is_active)
+            if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * 0.5f))
+            {
+                g.NavActivateId = g.NavActivateInputId = id;
+                g.NavActivateFlags = ImGuiActivateFlags_PreferInput;
+                temp_input_is_active = true;
+            }
+    }
+
+    if (temp_input_is_active)
+    {
+        // Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
+        const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0 && (p_min == NULL || p_max == NULL || DataTypeCompare(data_type, p_min, p_max) < 0);
+        return TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : NULL, is_clamp_input ? p_max : NULL);
+    }
+
+    // Draw frame
+    const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
+    RenderNavHighlight(frame_bb, id);
+    RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
+
+    // Drag behavior
+    const bool value_changed = DragBehavior(id, data_type, p_data, v_speed, p_min, p_max, format, flags);
+    if (value_changed)
+        MarkItemEdited(id);
+
+    // Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
+    char value_buf[64];
+    const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
+    if (g.LogEnabled)
+        LogSetNextTextDecoration("{", "}");
+    RenderTextClipped(frame_bb.Min, frame_bb.Max, value_buf, value_buf_end, NULL, alignment);
+
+    if (label_size.x > 0.0f)
+        RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
+    return value_changed;
+}
+
+bool DragFloatEx_(const char* label, float *v, float v_speed, float v_min, float v_max, const char* format, float power, const ImVec2 &alignment)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
@@ -172,6 +263,12 @@ bool DragFloatEx(const char* label, float *v, float v_speed, float v_min, float 
     if (!ItemAdd(total_bb, id, &frame_bb))
         return false;
 
+    
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id, &frame_bb, ImGuiItemFlags_Inputable))
+        return false;
+
+
     // Default format string when passing NULL
     if (format == NULL) format = "%.3f";
 
@@ -181,39 +278,38 @@ bool DragFloatEx(const char* label, float *v, float v_speed, float v_min, float 
     bool temp_input_start = false;
     if (!temp_input_is_active)
     {
-        const bool focus_requested = FocusableItemRegister(window, id);
+        const bool focus_requested = (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_Focused) != 0;
+        
         const bool clicked = (hovered && g.IO.MouseClicked[0]);
         const bool double_clicked = (hovered && g.IO.MouseDoubleClicked[0]);
-        if (focus_requested || clicked || double_clicked || g.NavActivateId == id || g.NavInputId == id)
+        if (focus_requested || clicked || double_clicked || g.NavActivateId == id /*|| g.NavInputId == id */)
         {
             SetActiveID(id, window);
             SetFocusID(id, window);
             FocusWindow(window);
             g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
-            if (focus_requested || (clicked && g.IO.KeyCtrl) || double_clicked || g.NavInputId == id)
-            {
-                temp_input_start = true;
-                FocusableItemUnregister(window);
-            }
+                if (focus_requested || (clicked && g.IO.KeyCtrl) || double_clicked || g.NavActivateInputId == id)
+                    temp_input_is_active = true;
         }
     }
-    if (temp_input_is_active || temp_input_start)
+
+    if (temp_input_is_active)
         return TempInputScalar(frame_bb, id, label, ImGuiDataType_Float, v, format);
 
-
-    // Drag behavior
-    const bool value_changed = DragBehavior(id, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, power, ImGuiDragFlags_None);
-    if (value_changed)
-        MarkItemEdited(id);
-
     // Draw frame
-    const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : g.HoveredId == id ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
+    const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
     RenderNavHighlight(frame_bb, id);
     RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
 
+    // Drag behavior
+    const bool value_changed = DragBehavior(id, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, ImGuiSliderFlags_None);
+    if (value_changed)
+        MarkItemEdited(id);
+
     // Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
     char value_buf[64];
-    const char* value_buf_end = value_buf + ImFormatString(value_buf, IM_ARRAYSIZE(value_buf), format, *v);
+    const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), ImGuiDataType_Float, v, format);
+    //const char* value_buf_end = value_buf + ImFormatString(value_buf, IM_ARRAYSIZE(value_buf), format, *v);
     RenderTextClipped(frame_bb.Min, frame_bb.Max, value_buf, value_buf_end, NULL, alignment);
 
     if (label_size.x > 0.0f)
