@@ -317,3 +317,20 @@
     "   CTRL+PrtSc     : Screenshot with prompt filename (w/o GUI)\n"\
     "   ALT|SUPER+PrtSc: Capture screen with GUI\n"\
 
+#define GLAPP_HELP_LOWRES1\
+    "glChAoS.P is running with low resources: your WebGL engine have MaxCombinedTextureImageUnits <= 32\n\n"\
+    "In this condition are disabled AmbientOcclusion and Shadows\n\n"\
+    "If you are running it on a mobile devices this can be normal: use the lowres version (wglChAoSP_lowres.html) to disable this inital warning.\n\n"\
+    "If you are in Windows with a good/discrete GPU/APU, this can be a problem of A.N.G.L.E. (OpenGL -> DirectX translator) used from your browser (again sets this limit to 32: before was 48)\n\n"\
+    "You can disable ANGLE and to use directly native OpenGL calls, to do it:\n\n"\
+
+#define GLAPP_HELP_LOWRES2\
+    "Firefox:\n"\
+    "    1) Using \"about:config\" in the url bar\n"\
+    "    2) Search for \"angle\" and set \"webgl.disable-angle\" -> true\n\n"\
+    "Chrome and Chromium based browsers (Opera/Edge/Vivaldi/etc.):\n"\
+    "    1) Using \"chrome:flags\" in the url bar\n"\
+    "    2) Search for \"angle\" and chose \"OpenGL\" from combobox\n"\
+
+#define GLAPP_HELP_LOWRES3\
+    "For more information visit the site: \"glchaosp.com\" and go to in wglChAoS.P section"
