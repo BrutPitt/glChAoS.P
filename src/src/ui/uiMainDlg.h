@@ -238,6 +238,15 @@ public:
 private:
 };
 
+class lotexDlgClass  : public baseDlgClass
+{
+public:
+    lotexDlgClass() : baseDlgClass(" LOW Resources", true) {}
+
+    void view();
+
+private:
+};
 
 class cockpitDlgClass  : public baseDlgClass
 {
@@ -376,6 +385,7 @@ private:
     ImFontConfig fontCFG;
 
 aboutDlgClass aboutDlg;
+lotexDlgClass lotexDlg;
 attractorDlgClass attractorDlg;
 ifsDlgClass ifsDlgParam = ifsDlgClass("IFS fractal variations") , ifsDlgPoint = ifsDlgClass("IFS points variations");
 particlesDlgClass particlesDlg;
