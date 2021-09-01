@@ -453,7 +453,7 @@ void attractorDlgClass::view()
         const float szReg = .25f;
     #endif
 
-        if(firstTime) { ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionWidth()*szReg); firstTime = false; }
+        if(firstTime) { ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x*szReg); firstTime = false; }
 #else
         const float szReg = 1.f;
 #endif
