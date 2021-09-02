@@ -376,10 +376,11 @@ void mainGLApp::glfwInit()
                       "#define LAYOUT_INDEX(X)\n"
                       "#define LAYOUT_LOCATION(X)\n"
                       "#define SUBROUTINE(X)\n"
-#ifdef GLCHAOSP_LIGHTVER_EXPERIMENTAL
-                      "#define GLCHAOSP_LIGHTVER_EXPERIMENTAL\n"
-#endif
                       "#define CONST\n";
+#ifdef GLCHAOSP_LIGHTVER_EXPERIMENTAL
+       if(theApp->checkMaxCombTexImgUnits()) glslDefines+= "#define GLCHAOSP_LIGHTVER_EXPERIMENTAL\n";
+#endif
+
         glfwWindowHint(GLFW_SAMPLES,0);
 #endif
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -509,6 +510,10 @@ void mainGLApp::onInit(int w, int h)
 #endif
 
     glfwInit();
+
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxCombTexImgUnits);
+
+    
 #ifdef __EMSCRIPTEN__
     //initVR();
 #endif
@@ -541,7 +546,8 @@ void newFrame()
     theApp->getMainDlg().renderImGui();
     theWnd->onRender();
     theApp->getMainDlg().postRenderImGui();
-
+    glfwMakeContextCurrent(theApp->getGLFWWnd());
+    
     glfwSwapBuffers(theApp->getGLFWWnd());
 #endif
 
@@ -552,7 +558,7 @@ void mainGLApp::mainLoop()
     while (!glfwWindowShouldClose(getGLFWWnd()) && !appNeedRestart) {
         
         glfwPollEvents();
-        //glfwGetFramebufferSize(getGLFWWnd(), &width, &height);
+        glfwGetFramebufferSize(getGLFWWnd(), &width, &height);
 
         if (!glfwGetWindowAttrib(getGLFWWnd(), GLFW_ICONIFIED))
             getTimer().tick();
@@ -608,8 +614,8 @@ int main(int argc, char **argv)
         }
         // 4
     #if defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-            if(atoi(argv[4])==1) theApp->setLowPrecision();
-            else                 theApp->setHighPrecision();
+            if(atoi(argv[4])==1 || !theApp->checkMaxCombTexImgUnits()) theApp->setLowPrecision();
+            else                                                       theApp->setHighPrecision();
     #else
             theApp->setLowPrecision();
     #endif

@@ -262,10 +262,12 @@ public:
 
         //glTexStorage2D(GL_TEXTURE_2D, 7, GL_R32F, w, h);
         //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RED, GL_FLOAT, buffer);
-#if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
+#if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
 #else
-        glTexImage2D(GL_TEXTURE_2D, 0, theApp->getTexInternalPrecision(), w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
+        theApp->checkMaxCombTexImgUnits() ?
+        glTexImage2D(GL_TEXTURE_2D, 0, theApp->getTexInternalPrecision(), w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer()) :
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
 #endif
 
         CHECK_GL_ERROR();

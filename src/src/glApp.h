@@ -336,6 +336,8 @@ public:
 
     timerClass& getTimer() { return timer; }
 
+    int getMaxCombTexImgUnits() { return maxCombTexImgUnits; }
+    bool checkMaxCombTexImgUnits() { return (maxCombTexImgUnits>32); }
 
 protected:
 
@@ -354,8 +356,9 @@ protected:
 
     std::vector<std::string> listQuickView;
     int idxListQuickView = 0;
-    
-    
+
+    int maxCombTexImgUnits = 0;
+
 private:
 // imGui Dlg
 /////////////////////////////////////////////////

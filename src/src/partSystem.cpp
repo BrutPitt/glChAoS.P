@@ -20,7 +20,7 @@ void particlesSystemClass::buildEmitter(enumEmitterEngine ee)
                     (emitterBaseClass*) new transformedEmitterClass;
 
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-    renderBaseClass::create();
+    if(theApp->checkMaxCombTexImgUnits()) renderBaseClass::create();
 #endif
 
     emitter->buildEmitter(); // post build for WebGL texture ID outRange

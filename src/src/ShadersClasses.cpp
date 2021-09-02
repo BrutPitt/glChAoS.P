@@ -167,46 +167,46 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
 
-
-
     const vec3 light(getLightDir()*lightReduction);
     const vec3 lightTGT(currentTMat->getTGT());
+    if(theApp->checkMaxCombTexImgUnits()) {
 
-    if(computeShadow && !blendActive ) {
-        //FIXME: POV.z+Dolly.z (shadow) and Light Distance
-        const vec3 tmpPov = currentTMat->getPOV();
-        const float tmpDolly = currentTMat->getTrackball().getDollyPosition().z;
-        currentTMat->setPOV(vec3(vec2(currentTMat->getPOV()), currentTMat->getOverallDistance()));
-        currentTMat->getTrackball().setDollyPosition(0.f);
-        currentTMat->applyTransforms();
+        if(computeShadow && !blendActive ) {
+            //FIXME: POV.z+Dolly.z (shadow) and Light Distance
+            const vec3 tmpPov = currentTMat->getPOV();
+            const float tmpDolly = currentTMat->getTrackball().getDollyPosition().z;
+            currentTMat->setPOV(vec3(vec2(currentTMat->getPOV()), currentTMat->getOverallDistance()));
+            currentTMat->getTrackball().setDollyPosition(0.f);
+            currentTMat->applyTransforms();
 
-        if(autoLightDist() ) {
-            const float dist = currentTMat->getOverallDistance()<FLT_EPSILON ?  FLT_EPSILON : currentTMat->getOverallDistance();
-            setLightDir(normalize(getLightDir()) * (dist*(theApp->useDetailedShadows() ? 1.5f : 1.5f /* 2/2.5*/) + dist*.1f));
+            if(autoLightDist() ) {
+                const float dist = currentTMat->getOverallDistance()<FLT_EPSILON ?  FLT_EPSILON : currentTMat->getOverallDistance();
+                setLightDir(normalize(getLightDir()) * (dist*(theApp->useDetailedShadows() ? 1.5f : 1.5f /* 2/2.5*/) + dist*.1f));
+            }
+            glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
+
+            getShadow()->bindRender();
+
+            currentTMat->setLightView(light,lightTGT);
+            mat4 m(1.f);
+
+            currentTMat->tM.mvLightM = currentTMat->tM.mvLightM*currentTMat->tM.mMatrix;
+
+            currentTMat->updateBufferData();
+            getPlanesUBlock().updateBufferData();
+            updateBufferData();
+
+            // render shadow
+            emitter->renderEvents();
+
+            getShadow()->releaseRender();
+
+            //FIXME: POV.z+Dolly.z (shadow) ==> look UP
+            currentTMat->setPOV(tmpPov);
+            currentTMat->getTrackball().setDollyPosition(tmpDolly);
+            currentTMat->applyTransforms();
+            glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
         }
-        glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
-
-        getShadow()->bindRender();
-
-        currentTMat->setLightView(light,lightTGT);
-        mat4 m(1.f);
-
-        currentTMat->tM.mvLightM = currentTMat->tM.mvLightM*currentTMat->tM.mMatrix;
-
-        currentTMat->updateBufferData();
-        getPlanesUBlock().updateBufferData();
-        updateBufferData();
-
-        // render shadow
-        emitter->renderEvents();
-
-        getShadow()->releaseRender();
-
-        //FIXME: POV.z+Dolly.z (shadow) ==> look UP
-        currentTMat->setPOV(tmpPov);
-        currentTMat->getTrackball().setDollyPosition(tmpDolly);
-        currentTMat->applyTransforms();
-        glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
     }
 #endif
 
@@ -268,42 +268,42 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 
 // AO & Shadows process
 /////////////////////////////////////////////
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-    if(!blendActive && isAO_RD_SHDW)  {
+#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+    if(theApp->checkMaxCombTexImgUnits()) {
+        if(!blendActive && isAO_RD_SHDW)  {
 
-        if(!cpitView) {
-            currentTMat->setLightView(light,lightTGT);
-            mat4 m(1.f);
+            if(!cpitView) {
+                currentTMat->setLightView(light,lightTGT);
+                mat4 m(1.f);
 
-            m = translate(m,vec3(vec2(0.f), currentTMat->getOverallDistance()));
-            currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * m;
-            //currentTMat->tM.mvLightM = (currentTMat->tM.mvLightM * currentTMat->tM.mMatrix) ;
-            currentTMat->tM.mvpLightM = currentTMat->tM.pMatrix * currentTMat->tM.mvLightM;
-            getUData().halfTanFOV = tanf(currentTMat->getPerspAngleRad()*.5f);
-        }
+                m = translate(m,vec3(vec2(0.f), currentTMat->getOverallDistance()));
+                currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * m;
+                //currentTMat->tM.mvLightM = (currentTMat->tM.mvLightM * currentTMat->tM.mMatrix) ;
+                currentTMat->tM.mvpLightM = currentTMat->tM.pMatrix * currentTMat->tM.mvLightM;
+                getUData().halfTanFOV = tanf(currentTMat->getPerspAngleRad()*.5f);
+            }
 
 // AO frag
 /////////////////////////////////////////////
-        if(useAO()) {
-            currentTMat->updateBufferData();
-            getAO()->bindRender(this, fbIdx, bkgColor);
-            getAO()->render();
-            getAO()->releaseRender();
-            //returnedTex = getAO()->getFBO().getTex(0);
-        }
+            if(useAO()) {
+                currentTMat->updateBufferData();
+                getAO()->bindRender(this, fbIdx, bkgColor);
+                getAO()->render();
+                getAO()->releaseRender();
+                //returnedTex = getAO()->getFBO().getTex(0);
+            }
 
 // PostRendering frag
 /////////////////////////////////////////////
 
-        currentTMat->updateBufferData();
-        getPostRendering()->bindRender(this, fbIdx, bkgColor);
-        getPostRendering()->render();
-        getPostRendering()->releaseRender();
+            currentTMat->updateBufferData();
+            getPostRendering()->bindRender(this, fbIdx, bkgColor);
+            getPostRendering()->render();
+            getPostRendering()->releaseRender();
 
-        returnedTex = getPostRendering()->getFBO().getTex(0);
+            returnedTex = getPostRendering()->getFBO().getTex(0);
+        }
     }
-
-
 #endif
 
     //restore GL state
@@ -558,10 +558,12 @@ renderBaseClass::renderBaseClass()
     mergedRendering = new mergedRenderingClass(this);
 #endif
 
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-    ambientOcclusion = new ambientOcclusionClass(this);
-    shadow  = new shadowClass(this);
-    postRendering = new postRenderingClass(this);
+#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+    if(theApp->checkMaxCombTexImgUnits()) {
+        ambientOcclusion = new ambientOcclusionClass(this);
+        shadow  = new shadowClass(this);
+        postRendering = new postRenderingClass(this);
+    }
 #endif
 }
 
@@ -570,7 +572,7 @@ void renderBaseClass::buildFBO()
 #if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
     GLuint precision = GL_RGBA16F;
 #else
-    GLuint precision = theApp->getFBOInternalPrecision();
+    GLuint precision = theApp->checkMaxCombTexImgUnits() ? theApp->getFBOInternalPrecision() : GL_RGBA16F;
 #endif
     renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(),  precision); 
     renderFBO.attachMultiFB(1);
@@ -597,10 +599,12 @@ renderBaseClass::~renderBaseClass()
      delete axes;
 #endif
 
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
-     delete ambientOcclusion;
-     delete shadow;
-     delete postRendering; 
+#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+    if(theApp->checkMaxCombTexImgUnits()) {
+        delete ambientOcclusion;
+        delete shadow;
+        delete postRendering;
+    }
 #endif
 }
 
