@@ -115,3 +115,21 @@ void Hopalong4D::Step(vec4 &v, vec4 &vp)
     vp.z = v.w - func(v.z, kVal[4], kVal[5]);
     vp.w = kVal[3] - v.z;
 }
+
+void Kaneko3D::Step(vec4 &v, vec4 &vp)
+{
+    const int iter = 1000;
+    static int count = iter;
+    static float z = kVal[2];
+
+    if(--count <= 0) {
+        count = iter;
+        z = fastPrng64.xorShift_Range(kVal[1], kVal[2]);
+        v = vec4(0.f);
+    }
+
+
+    vp.x = kVal[0] * v.x + (1 - kVal[0]) * (1 - v.z * v.y * v.y);
+    vp.y = v.x;
+    vp.z = z; //
+}

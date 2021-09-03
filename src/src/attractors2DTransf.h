@@ -218,3 +218,22 @@ protected:
     void startData();
     //void searchAttractor()  { searchLyapunov(); }
 };
+
+//  Mira3D
+////////////////////////////////////////////////////////////////////////////
+class Kaneko3D : public attractorScalarK
+{
+public:
+
+    Kaneko3D() {
+        stepFn = (stepPtrFn) &Kaneko3D::Step;
+
+        vMin = -10.0; vMax = 10.0; kMin = -1.0; kMax = 1.0;
+
+        m_POV = vec3( 0.f, 0, 12.f);
+    }
+
+protected:
+    void Step(vec4 &v, vec4 &vp);
+    void startData();
+};

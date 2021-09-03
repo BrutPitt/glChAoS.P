@@ -991,3 +991,15 @@ void glynnJB_IIM::startData()
 
     Insert(vVal[0]);
 }
+
+
+void Kaneko3D::startData()
+{
+    vVal.push_back(vec4(0.0f));
+
+    kVal.push_back( .3f);
+    kVal.push_back( 1.0f);
+    kVal.push_back( 2.04f);
+
+    Insert(vVal[0]);
+}

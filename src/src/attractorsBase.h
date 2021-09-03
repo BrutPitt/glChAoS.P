@@ -184,7 +184,7 @@ public:
                   r2 * (p.x>=0 ?   0 :-p.x + p.y>=0 ?   0 :-p.y + p.z>=0 ? p.z :   0),
                   r2 * (p.x>=0 ?   0 :-p.x + p.y>=0 ? p.y :   0 + p.z>=0 ?   0 :-p.z),
                   r2 * (p.x>=0 ? p.x :   0 + p.y>=0 ?   0 :-p.y + p.z>=0 ?   0 :-p.z));
-        const float minVal = std::min(quad.x, std::min(quad.y, std::min(quad.z, quad.w)));
+        const float minVal = std::min<float>(quad.x, std::min<float>(quad.y, std::min<float>(quad.z, quad.w)));
         for(int i=3; i>=0; i--) quad[i]-=minVal;
         return quad;
     }
@@ -660,6 +660,7 @@ public:
         PB(PopCorn4Dscsc      , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D scsc"     )
         PB(PopCorn4Dsscc      , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D sscc"     )
         PB(PopCorn4Dsimple    , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D simple"   )
+        PB(Kaneko3D           , u8"\uf0da", PORTED3D_COLOR, "Koneko3D"           )
 
 //        PB(PopCorn4Drnd       , u8"\uf006" " PopCorn4D rnd"     )
 //        PB(SymmetricIcons4D   , u8"\uf006" " SymmetricIcons4D"   )
