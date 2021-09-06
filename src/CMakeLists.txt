@@ -49,6 +49,7 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/libs/imgui/imconfig.h
         ${SRC}/libs/imgui/imgui.cpp
         ${SRC}/libs/imgui/imgui_widgets.cpp
+        ${SRC}/libs/imgui/imgui_tables.cpp
         ${SRC}/libs/imgui/imgui.h
         ${SRC}/libs/imgui/imgui_draw.cpp
         ${SRC}/libs/imgui/imgui_impl_glfw.cpp
@@ -158,7 +159,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 # emcc compiler options
     add_definitions(${LIGHTVER_EXPERIMENTAL} -DGLAPP_NO_GLSL_PIPELINE -DVGM_USES_TEMPLATE -DIMGUI_IMPL_OPENGL_ES3 -DGLCHAOSP_LIGHTVER -DGLCHAOSP_USE_LOWPRECISION -DGLFW_INCLUDE_NONE -DGLM_ENABLE_EXPERIMENTAL)
     add_definitions(-DGLAPP_NO_OGL_DSA -DGLFW_INCLUDE_ES3)
-    add_compile_options(-Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value -Wdelete-non-virtual-dtor -fpermissive)
+    add_compile_options(-Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value -Wdelete-non-virtual-dtor -Wno-unused-command-line-argument -fpermissive)
 
 # BUILD TYPE: [Debug|RelWithDebInfo|Release|MinSizeRel]    
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -291,6 +292,7 @@ else()
     else()
     # both MinGW and Linux
         target_link_directories(${PROJECT_NAME} PRIVATE ${SRC}/libs/glfw/buildLinux/lib)
+        target_link_directories(${PROJECT_NAME} PRIVATE ${SRC}/libs/glfw/buildLinux/lib64)
     endif(WIN32)
 endif(APPLE)
 
