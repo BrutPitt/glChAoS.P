@@ -167,6 +167,9 @@
     <ClCompile Include="..\..\src\attractorsTrigonom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\libs\imgui\imgui_tables.cpp">
+      <Filter>3th party Libs\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\glApp.h">
@@ -321,6 +324,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\attractorsTrigonom.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libs\imgui\imgui_impl_opengl3_loader.h">
+      <Filter>3th party Libs\ImGui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
