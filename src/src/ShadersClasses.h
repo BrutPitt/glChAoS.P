@@ -625,6 +625,8 @@ public:
     int getBlendArrayElements() { return blendArray.size(); }
     std::vector<GLuint> &getBlendArray() { return blendArray; }
     std::vector<const char *> &getBlendArrayStrings() { return blendingStrings; }
+    std::vector<GLuint> &getBlendEqFunc() { return blendEqFunc; }
+    std::vector<const char *> &getBlendEqStrings() { return blendEqStrings; }
 
     vec4 &getClippingPlane(int i) { return clippingPlane[i]; }
     void setClippingPlane(const vec4 &v, int i) { clippingPlane[i] = v; }
@@ -666,7 +668,9 @@ protected:
 
     std::vector<GLuint> blendArray;
     std::vector<const char *> blendingStrings;
-    
+    std::vector<GLuint> blendEqFunc;
+    std::vector<const char *> blendEqStrings;
+
 
 private:
 };
@@ -1174,9 +1178,17 @@ public:
 
     GLuint getDstBlend() { return dstBlendAttrib; }
     GLuint getSrcBlend() { return srcBlendAttrib; }
+    GLuint getDstBlendA() { return dstBlendAttribA; }
+    GLuint getSrcBlendA() { return srcBlendAttribA; }
+    GLuint getBlendEqRGB() { return blendEqRGB; }
+    GLuint getBlendEqAlpha() { return blendEqAlpha; }
 
     void setDstBlend(GLuint v) {  dstBlendAttrib = v; }
     void setSrcBlend(GLuint v) {  srcBlendAttrib = v; }
+    void setDstBlendA(GLuint v) {  dstBlendAttribA = v; }
+    void setSrcBlendA(GLuint v) {  srcBlendAttribA = v; }
+    void setBlendEqRGB(GLuint v)   { blendEqRGB   = v; }
+    void setBlendEqAlpha(GLuint v) { blendEqAlpha = v; }
 
     void setSize(float sz) { ptSize=sz;}
     float getSize() { return ptSize; }
@@ -1233,9 +1245,19 @@ public:
 #endif
     void dstBlendIdx(int i) { dstIdxBlendAttrib = i; }
     int  dstBlendIdx() { return dstIdxBlendAttrib; }
+    void dstBlendIdxA(int i) { dstIdxBlendAttribA = i; }
+    int  dstBlendIdxA() { return dstIdxBlendAttribA; }
+    int rgbEqIdx() { return rgbIdxEq; }
+    void rgbEqIdx(int i) { rgbIdxEq = i; }
 
     void srcBlendIdx(int i) { srcIdxBlendAttrib = i; }
     int  srcBlendIdx() { return srcIdxBlendAttrib; }
+    void srcBlendIdxA(int i) { srcIdxBlendAttribA = i; }
+    int  srcBlendIdxA() { return srcIdxBlendAttribA; }
+
+    int aEqIdx() { return aIdxEq; }
+    void aEqIdx(int i) { aIdxEq = i; }
+
 
     void setHermiteVals(const vec4 &v) { dotTex.setHermiteVals(v); }
     vec4& getHermiteVals() { return dotTex.getHermiteVals(); }
@@ -1313,8 +1335,12 @@ public:
 protected:
     uniformBlocksClass planesUBlock;
 
-    GLuint dstBlendAttrib, srcBlendAttrib;
-    int dstIdxBlendAttrib, srcIdxBlendAttrib;
+    GLuint dstBlendAttrib = GL_ONE, srcBlendAttrib;
+    GLuint dstBlendAttribA, srcBlendAttribA;
+    GLuint blendEqRGB = GL_FUNC_ADD, blendEqAlpha = GL_FUNC_ADD;
+    int dstIdxBlendAttrib = 0, srcIdxBlendAttrib = 0;
+    int dstIdxBlendAttribA = 0, srcIdxBlendAttribA = 0;
+    int rgbIdxEq = 0, aIdxEq = 0;
 
     ColorMapSettingsClass *colorMap;
 

@@ -269,12 +269,23 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 const float nextPos = ImGui::GetContentRegionAvail().x*.5;
                 ImGui::TextDisabled(" Blending Src"); 
                 ImGui::SameLine(ImGui::GetFrameHeightWithSpacing()+nextPos);     ImGui::TextDisabled(" Blending Dst");
-        
-                //////////Linea 2//////////
+#ifdef BLEND_EQ_SEPARATE
+                ImGui::PushItemWidth(wButt5);
+                {
+                    int idx = particles->rgbEqIdx();
+                    if(ImGui::Combo(buildID(base, idA++, id), &idx, particles->getBlendEqStrings().data(), particles->getBlendEqFunc().size())) {
+                        particles->setBlendEqRGB(particles->getBlendEqFunc()[idx]);
+                        particles->rgbEqIdx(idx);
+                    }
+                }
+                ImGui::PopItemWidth();
+#else
+                ImGui::SetCursorPosX(posA);
                 vec4 bkgColor(particles->backgroundColor());
-                if(ImGui::ColorEdit4(buildID(base, idA++, id),value_ptr(bkgColor),ImGuiColorEditFlags_NoInputs)) particles->backgroundColor(bkgColor); 
-
+                if(ImGui::ColorEdit4(buildID(base, idA++, id),value_ptr(bkgColor),ImGuiColorEditFlags_NoInputs)) particles->backgroundColor(bkgColor);
+#endif
                 ImGui::SameLine();
+                //////////Linea 2//////////
                 ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*.5);
                     {
                         int idx = particles->srcBlendIdx();
@@ -292,16 +303,52 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                         }
                     }
                 ImGui::PopItemWidth();
-        
+#ifdef BLEND_EQ_SEPARATE
+                ImGui::PushItemWidth(wButt5);
+                {
+                    int idx = particles->aEqIdx();
+                    if(ImGui::Combo(buildID(base, idA++, id), &idx, particles->getBlendEqStrings().data(), particles->getBlendEqFunc().size())) {
+                        particles->setBlendEqAlpha(particles->getBlendEqFunc()[idx]);
+                        particles->aEqIdx(idx);
+                    }
+                }
+                ImGui::PopItemWidth(); ImGui::SameLine();
+                ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*.5);
+                    {
+                        int idx = particles->srcBlendIdxA();
+                        if(ImGui::Combo(buildID(base, idA++, id), &idx, particles->getBlendArrayStrings().data(), particles->getBlendArrayElements())) {
+                            particles->setSrcBlendA(particles->getBlendArray()[idx]);
+                            particles->srcBlendIdxA(idx);
+                        }
+                    }
+                    ImGui::SameLine();
+                    {
+                        int idx = particles->dstBlendIdxA();
+                        if(ImGui::Combo(buildID(base, idA++, id), &idx, particles->getBlendArrayStrings().data(), particles->getBlendArrayElements())) {
+                            particles->setDstBlendA(particles->getBlendArray()[idx]);
+                            particles->dstBlendIdxA(idx);
+                        }
+                    }
+                ImGui::PopItemWidth();
+#endif
                 //////////Linea 3//////////        
                 //ImGui::SetCursorPosX(INDENT(posA));
                 //ImGui::TextDisabled("PointSize"); //ImGui::SameLine(posB3);
                 //////////Linea 4//////////       
 
                 {
-                    const float sz = wButt3-(ImGui::GetFrameHeightWithSpacing()+border)*.3333;
-                    char txt[32];
+#ifdef BLEND_EQ_SEPARATE
                     ImGui::SetCursorPosX(posA);
+                    vec4 bkgColor(particles->backgroundColor());
+                    if(ImGui::ColorEdit4(buildID(base, idA++, id),value_ptr(bkgColor),ImGuiColorEditFlags_NoInputs)) particles->backgroundColor(bkgColor);
+                    const float sz = wButt3-(ImGui::GetFrameHeightWithSpacing())*.666;
+                    ImGui::SameLine();
+#else
+                    const float sz = wButt3-(ImGui::GetFrameHeightWithSpacing())*.333;
+#endif
+                    char txt[32];
+
+
                     {
                         bool b = particles->getBlendState();
                         sprintf(txt, b ? "Blend " ICON_FA_CHECK_SQUARE_O "%s" : "Blend " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
@@ -317,15 +364,17 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     ImGui::SameLine();
                     {
                         bool b = particles->getLightState();
-                        sprintf(txt, b ? "Light " ICON_FA_CHECK_SQUARE_O "%s" : "Light " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id)); 
+                        sprintf(txt, b ? "Light " ICON_FA_CHECK_SQUARE_O "%s" : "Light " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
                         if(colCheckButton(b , txt, sz)) particles->setLightState(b^1);
                     }
                     ImGui::SameLine();
                     {
                         bool b = theDlg.particleEditDlg.visible();
-                        sprintf(txt, b ? ICON_FA_CIRCLE "%s" : ICON_FA_CIRCLE "%s", buildID(base, idA++, id)); 
+                        sprintf(txt, ICON_FA_CIRCLE "%s", buildID(base, idA++, id));
                         if(colCheckButton(b , txt, ImGui::GetFrameHeightWithSpacing())) theDlg.particleEditDlg.visible(b^1);
                     }
+
+
                 }
 
                 ImGui::PushItemWidth(wButt3);
@@ -2893,7 +2942,7 @@ void clippingDlgClass::view()
                 ///////////////////////////////////////////
                 names[7] = 'A' + i;
                 imguiGizmo::resizeSolidOf(1.5f);
-                imguiGizmo::setDirectionColor(ImGui::ColorConvertU32ToFloat4(0xff000000 + 0xff << (i<<3) ), ImGui::ColorConvertU32ToFloat4(0x809f9f9f));
+                imguiGizmo::setDirectionColor(ImGui::ColorConvertU32ToFloat4(0xff000000 + (0xff << (i<<3)) ), ImGui::ColorConvertU32ToFloat4(0x809f9f9f));
                 isChanged |= ImGui::gizmo3D(names, pt, w, imguiGizmo::modeDirPlane);
                 imguiGizmo::restoreSolidSize();
                 imguiGizmo::restoreDirectionColor();

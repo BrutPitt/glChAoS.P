@@ -23,10 +23,9 @@
 
 
 //#define GLCHAOSP_NO_USES_GLSL_SUBS
-
+// #define BLEND_EQ_SEPARATE
 
 //#define APP_DEBUG_GUI_INTERFACE
-
 
 //#define GLAPP_IMGUI_VIEWPORT
 

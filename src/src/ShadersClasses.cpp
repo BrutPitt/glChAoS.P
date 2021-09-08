@@ -52,8 +52,12 @@ shaderPointClass::shaderPointClass()
 
     srcBlendAttrib = GL_SRC_ALPHA;
     dstBlendAttrib = GL_ONE;
-    srcIdxBlendAttrib = 6;
-    dstIdxBlendAttrib = 1;
+    srcBlendAttribA = GL_SRC_ALPHA;
+    dstBlendAttribA = GL_ONE;
+    srcIdxBlendAttrib  = 6;
+    dstIdxBlendAttrib  = 1;
+    srcIdxBlendAttribA = 6;
+    dstIdxBlendAttribA = 1;
 
 
     setAlphaAtten(0.0);
@@ -230,8 +234,14 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     if(!showAxes()) glClearBufferfv(GL_COLOR,  0, value_ptr(bkgColor));
 
     if(blendActive || showAxes()) {
-        glEnable(GL_BLEND);
+#ifdef BLEND_EQ_SEPARATE
+        glBlendEquationSeparate(getBlendEqRGB(), getBlendEqAlpha());
+        glBlendFuncSeparate(getSrcBlend(), getDstBlend(), getSrcBlendA(), getDstBlendA());
+#else
+        glBlendEquation(getBlendEqRGB());
         glBlendFunc(getSrcBlend(), getDstBlend());
+#endif
+        glEnable(GL_BLEND);
     }
 
 
@@ -508,27 +518,35 @@ renderBaseClass::renderBaseClass()
 {
 
 #define PB(ID,NAME) blendArray.push_back(ID); blendingStrings.push_back(NAME);
-    PB(GL_ZERO                     ,"Zero"                    )
-    PB(GL_ONE                      ,"One"                     )
-    PB(GL_SRC_COLOR                ,"Src_Color"               )
-    PB(GL_ONE_MINUS_SRC_COLOR      ,"One_Minus_Src_Color"     )
-    PB(GL_DST_COLOR                ,"Dst_Color"               )
-    PB(GL_ONE_MINUS_DST_COLOR      ,"One_Minus_Dst_Color "    )
-    PB(GL_SRC_ALPHA                ,"Src_Alpha"               )
-    PB(GL_ONE_MINUS_SRC_ALPHA      ,"One_Minus_Src_Alpha"     )
-    PB(GL_DST_ALPHA                ,"Dst_Alpha"               )
-    PB(GL_ONE_MINUS_DST_ALPHA      ,"One_Minus_Dst_Alpha"     )
-    PB(GL_CONSTANT_COLOR           ,"Constant_Color	"         )
-    PB(GL_ONE_MINUS_CONSTANT_COLOR ,"One_Minus_Constant_Color")
-    PB(GL_CONSTANT_ALPHA           ,"Constant_Alpha"          )
-    PB(GL_ONE_MINUS_CONSTANT_ALPHA ,"One_Minus_Constant_Alpha")
-    PB(GL_SRC_ALPHA_SATURATE       ,"Src_Alpha_Saturate"      )
+    PB(GL_ZERO                    ,"Zero"                 )
+    PB(GL_ONE                     ,"One"                  )
+    PB(GL_SRC_COLOR               ,"SrcColor"             )
+    PB(GL_ONE_MINUS_SRC_COLOR     ,"OneMinusSrcColor"     )
+    PB(GL_DST_COLOR               ,"DstColor"             )
+    PB(GL_ONE_MINUS_DST_COLOR     ,"OneMinusDstColor "    )
+    PB(GL_SRC_ALPHA               ,"SrcAlpha"             )
+    PB(GL_ONE_MINUS_SRC_ALPHA     ,"OneMinusSrcAlpha"     )
+    PB(GL_DST_ALPHA               ,"DstAlpha"             )
+    PB(GL_ONE_MINUS_DST_ALPHA     ,"OneMinusDstAlpha"     )
+    PB(GL_CONSTANT_COLOR          ,"ConstantColor	"      )
+    PB(GL_ONE_MINUS_CONSTANT_COLOR,"OneMinusConstantColor")
+    PB(GL_CONSTANT_ALPHA          ,"ConstantAlpha"        )
+    PB(GL_ONE_MINUS_CONSTANT_ALPHA,"OneMinusConstantAlpha")
+    PB(GL_SRC_ALPHA_SATURATE      ,"SrcAlphaSaturate"     )
 #if !defined(GLCHAOSP_LIGHTVER)
-    PB(GL_SRC1_COLOR               ,"Src1_Color"              )
-    PB(GL_ONE_MINUS_SRC1_COLOR     ,"One_Minus_Src1_Color"    )
-    PB(GL_SRC1_ALPHA               ,"Src1_Alpha"              )
-    PB(GL_ONE_MINUS_SRC1_ALPHA     ,"One_Minus_Src1_Alpha"    )
+    PB(GL_SRC1_COLOR              ,"Src1Color"            )
+    PB(GL_ONE_MINUS_SRC1_COLOR    ,"OneMinusSrc1Color"    )
+    PB(GL_SRC1_ALPHA              ,"Src1Alpha"            )
+    PB(GL_ONE_MINUS_SRC1_ALPHA    ,"OneMinusSrc1Alpha"    )
 #endif
+#undef PB
+
+#define PB(ID,NAME) blendEqFunc.push_back(ID); blendEqStrings.push_back(NAME);
+    PB(GL_FUNC_ADD             , "Add" )
+    PB(GL_FUNC_SUBTRACT        , "Sub" )
+    PB(GL_FUNC_REVERSE_SUBTRACT, "RSub")
+    PB(GL_MIN                  , "Min" )
+    PB(GL_MAX                  , "Max" )
 #undef PB
 
     {
