@@ -127,7 +127,8 @@ void AttractorBase::Step(float *&ptr, vec4 &v, vec4 &vp)
 
 uint32_t AttractorBase::Step(float *ptr, uint32_t numElements)
 {
-/*
+
+#ifdef MULTITHREAD_VOL_FRACTALS // works only if "1 Thread" is selected -> Settings menu
     auto f = [&]() {
         vec4 v = getCurrent(), vp;
         (this->*stepFn)(v,vp);
@@ -148,7 +149,7 @@ uint32_t AttractorBase::Step(float *ptr, uint32_t numElements)
 
     //Insert(vec4(vp));
     return computetdElems;
-*/
+#else
      vec4 v = getCurrent(), vp;
 
     static timerClass t;
@@ -162,7 +163,7 @@ uint32_t AttractorBase::Step(float *ptr, uint32_t numElements)
 
     Insert(vec4(vp));
     return numElements-elems-1;
-
+#endif
 }
 
 /*
