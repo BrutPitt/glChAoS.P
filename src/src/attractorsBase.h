@@ -349,11 +349,11 @@ public:
 protected:
     void Step(vec4 &v, vec4 &vp);
 
-    int maxIter = 256;
+    int maxIter = 64;
     float upperLimit = 64.f;
     float outColor = 0;
     vec3 sMin = vec3(-1.5f), sMax = vec3(1.5);
-    ivec2 plotRange = ivec2(12, 256);
+    ivec2 plotRange = ivec2(12, 63);
 
 };
 
@@ -700,6 +700,7 @@ public:
         PB(Thomas             , u8"\uf0da", DT_COLOR      , "Thomas"             )
         PB(TSUCS              , u8"\uf0da", DT_COLOR      , "TSUCS1 / TSUCS2"    )
         PB(YuWang             , u8"\uf0da", DT_COLOR      , "Yu-Wang"            )
+        PB(WangSunCang        , u8"\uf0da", DT_COLOR      , "WangSunCang"        )
         PB(ZhouChen           , u8"\uf0da", DT_COLOR      , "Zhou-Chen"          )
 //        PB(Robinson           , u8"\uf192" " Robinson"          )
         PB(juliaBulb_IIM      , u8"\uf0da", FRACTAL_COLOR , "JuliaBulb"          )

@@ -1003,3 +1003,21 @@ void Kaneko3D::startData()
 
     Insert(vVal[0]);
 }
+
+void WangSunCang::startData()
+{
+    vVal.push_back(vec4(0.0f));
+
+    kVal.push_back(-4.1f);
+    kVal.push_back( 1.2f);
+    kVal.push_back(13.45f);
+    kVal.push_back( 2.76f);
+    kVal.push_back( 0.6f);
+    kVal.push_back(13.13f);
+    kVal.push_back( 1.8f);
+
+    kVal.push_back( 0.161f); // b
+    kVal.push_back( 3.5031f); // c
+
+    Insert(vVal[0]);
+}

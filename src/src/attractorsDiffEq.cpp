@@ -260,6 +260,25 @@ void Dadras::Step(vec4 &v, vec4 &vp)
     vp.y = v.y + dtStepInc*(kVal[2]*v.y - v.x*v.z + v.z);
     vp.z = v.z + dtStepInc*(kVal[3]*v.x*v.y - kVal[4]*v.z);
 }
+////////////////////////////////////////////////////////////////////////////
+void WangSunCang::Step(vec4 &v, vec4 &vp)
+{ //https://www.researchgate.net/publication/267989602_A_3-D_spherical_chaotic_attractor
+
+    auto b = [&]() -> float {
+        //const float a =kVal[1]*kVal[5];
+        //return (kVal[6]*(a*a) / (32.f*kVal[2]*kVal[2]*kVal[4]*kVal[4])) / sqrt(abs((kVal[2]*kVal[4])/(kVal[0]*kVal[3])));
+        return kVal[7];
+    };
+
+    auto c = [&]() -> float {
+        //return (1.f/kVal[1]) * (((kVal[1]*kVal[1]*kVal[5]*kVal[5]) / 4.f*kVal[2]*kVal[4]) - (f1()/kVal[6])*(kVal[2]*kVal[3]+kVal[0]*kVal[4]));
+        return kVal[8];
+    };
+
+    vp.x = v.x + dtStepInc*(kVal[0]*v.x - kVal[1]*v.y + kVal[2]*v.z);
+    vp.y = v.y + dtStepInc*(-kVal[6]*v.x*v.z + b());
+    vp.z = v.z + dtStepInc*(kVal[3]*v.x*v.y + kVal[4]*v.y*v.z + kVal[5]*v.z + c());
+}
 
 
 ////////////////////////////////////////////////////////////////////////////
