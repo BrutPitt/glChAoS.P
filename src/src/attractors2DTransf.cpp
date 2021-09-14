@@ -116,6 +116,37 @@ void Hopalong4D::Step(vec4 &v, vec4 &vp)
     vp.w = kVal[3] - v.z;
 }
 
+////////////////////////////////////////////////////////////////////////////
+void Hopalong3D::initStep() {
+    const float gap = abs(kVal[2]-kVal[3]);
+    const float buffSize = float(theWnd->getParticlesSystem()->getEmitter()->getSizeCircularBuffer());
+    stepZ =  gap*float(iter)/buffSize;
+
+    zVal = min(kVal[2], kVal[3]);
+
+    attractorScalarK::initStep();
+}
+
+void Hopalong3D::Step(vec4 &v, vec4 &vp)
+{
+    static int count = iter;
+
+    if(--count <= 0) {
+        count = iter;
+        zVal+= stepZ;
+        v = vVal[0];
+    }
+
+    auto func = [&](const float f, const float k) {
+        return (f>0 ? 1 : -1) * sqrt(abs(zVal*f-k));
+    };
+
+    vp.x = v.y - func(v.x, kVal[1]);
+    vp.y = kVal[0] - v.x;
+    vp.z = zVal;
+}
+
+
 void Kaneko3D::Step(vec4 &v, vec4 &vp)
 {
     const int iter = 1000;
@@ -125,7 +156,7 @@ void Kaneko3D::Step(vec4 &v, vec4 &vp)
     if(--count <= 0) {
         count = iter;
         z = fastPrng64.xorShift_Range(kVal[1], kVal[2]);
-        v = vec4(0.f);
+        v = vVal[0];
     }
 
 

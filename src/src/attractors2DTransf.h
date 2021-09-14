@@ -219,7 +219,30 @@ protected:
     //void searchAttractor()  { searchLyapunov(); }
 };
 
-//  Mira3D
+class Hopalong3D : public attractorScalarK
+{
+public:
+
+    Hopalong3D() {
+        stepFn = (stepPtrFn) &Hopalong3D::Step;
+
+        vMin = -1.0; vMax = 1.0; kMin = -1.0; kMax = 1.0;
+        m_POV = vec3( 0.f, 0, 50.f);
+    }
+
+    virtual void initStep();
+
+
+    int getPtSize() { return attPt4D; }
+protected:
+    void Step(vec4 &v, vec4 &vp);
+    void startData();
+    float zVal, stepZ;
+    const int iter = 100000;
+    //void searchAttractor()  { searchLyapunov(); }
+};
+
+//  Kaneko3D
 ////////////////////////////////////////////////////////////////////////////
 class Kaneko3D : public attractorScalarK
 {
@@ -237,3 +260,4 @@ protected:
     void Step(vec4 &v, vec4 &vp);
     void startData();
 };
+

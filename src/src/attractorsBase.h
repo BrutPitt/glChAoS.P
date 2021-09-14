@@ -648,6 +648,7 @@ public:
         PB(KingsDream         , u8"\uf0da", PICKOVER_COLOR, "King's Dream"       )
         PB(Pickover           , u8"\uf0da", PICKOVER_COLOR, "Pickover"           )
         PB(SinCos             , u8"\uf0da", PICKOVER_COLOR, "Sin Cos"            )
+        PB(Hopalong3D         , u8"\uf0da", PORTED3D_COLOR, "Hopalong3D"         )
         PB(Hopalong4D         , u8"\uf0da", PORTED3D_COLOR, "Hopalong4D"         )
         PB(Martin4D           , u8"\uf0da", PORTED3D_COLOR, "Martin4D ss"        )
         PB(Martin4Dsc         , u8"\uf0da", PORTED3D_COLOR, "Martin4D sc"        )

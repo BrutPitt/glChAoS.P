@@ -398,6 +398,18 @@ void Hopalong4D::startData()
     Insert(vVal[0]);
 }
 
+void Hopalong3D::startData()
+{
+    vVal.push_back(vec4(0.5f, 0.5f, 0.5f, 0.f));
+
+    kVal.push_back( 0.5);
+    kVal.push_back(-.3);
+    kVal.push_back( .1);
+    kVal.push_back( 1.5);
+
+    Insert(vVal[0]);
+}
+
 void Mira3D::startData()
 {
     vVal.push_back(vec4(0.f, 12.f, 0.0f, 0.f));
