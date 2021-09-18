@@ -32,7 +32,7 @@
 		"clPlActive":     [ 0, 0, 1, 0 ],
 		"clPlColActive":  [ 1318926964, 1318926964, 0, 1318926964 ],
 		"clPlThick":      0.005,
-		"clPlSpace":      1
+		"clPlSpace":      0
 	},
 	"RenderMode0": {
 		"backgroundColor":     [ 0.0, 0.0, 0.0, 0.0 ],

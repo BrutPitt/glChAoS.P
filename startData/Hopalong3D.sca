@@ -6,23 +6,23 @@
 		"vMax":   1.0,
 		"vMin":   -1.0,
 		"vData4": [ 0.5, 0.5, 0.5, 0.0 ],
-		"kData4": [ 1.508, 0.0, -20.0, 20.0 ]
+		"kData4": [ 1.508, 0.0, 0.0, 20.0 ]
 	},
 	"Render":      {
-		"RenderMode":     0,
+		"RenderMode":     1,
 		"motionBlur":     false,
 		"blurIntensity":  0.5,
 		"mixingVal":      0.279,
-		"circBuff":       24100000,
-		"rstrtCircBuff":  false,
+		"circBuff":       10800000,
+		"rstrtCircBuff":  true,
 		"stopCircBuff":   true,
 		"camPOV":         [ 0.0, 0.0, 50.0 ],
 		"camTGT":         [ 0.0, 0.0, 0.0 ],
-		"camPerspective": [ 30.0, 0.507, 1150.5 ],
-		"camDolly":       [ 0.0, 0.0, -75.999359 ],
-		"camPan":         [ 5.44, 1.8399991, 0.0 ],
-		"camRotCent":     [ -0.33, 0.54, -0.61 ],
-		"camRot":         [ 0.54840493, 0.022944318, 0.079584226, -0.83912027 ]
+		"camPerspective": [ 30.0, 0.507, 300.0 ],
+		"camDolly":       [ 0.0, 0.0, -31.350883 ],
+		"camPan":         [ -0.33, 0.54, 0.0 ],
+		"camRotCent":     [ -0.33, 0.54, -10.65 ],
+		"camRot":         [ 0.41542661, -0.35818416, -0.57112318, -0.62076646 ]
 	},
 	"RenderMode0": {
 		"backgroundColor":     [ 0.0, 0.0, 0.0, 0.0 ],
@@ -926,7 +926,7 @@
 		"lightModel":          2,
 		"ggxRoughness":        1.0,
 		"ggxFresnel":          0.643,
-		"lightDir":            [ 100.01888, 21.606796, 196.28458 ],
+		"lightDir":            [ 58.81308, 12.705227, 115.41919 ],
 		"lightColor":          [ 1.0, 1.0, 1.0 ],
 		"glowOn":              false,
 		"glowSelect":          3,
