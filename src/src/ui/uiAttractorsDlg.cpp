@@ -207,7 +207,7 @@ void BicomplexJExplorer::additionalDataCtrls()
 }
 
 #define GLCHAOSP_FEATURE_WIP
-void ftTools()
+void tfTools()
 {
     const float halfW = (ImGui::GetContentRegionAvail().x)*.5-ImGui::GetStyle().ItemSpacing.x;
     bool b = tfSettinsClass::tfMode();
@@ -264,13 +264,6 @@ void ftTools()
         ImGui::NewLine();
     }
 }
-/*
-void PopCorn4DType::additionalDataCtrls()
-{
-    ftTools();
-
-}
-*/
 
 void volumetricFractals::additionalDataCtrls()
 {
@@ -316,7 +309,9 @@ void attractorDtType::additionalDataCtrls()
     ImGui::SetCursorPosY(ImGui::GetCursorPosY()-ImGui::GetFrameHeightWithSpacing()); //repos previous line
     particlesSystemClass *pSys = theWnd->getParticlesSystem();
 
-    ftTools();
+#if !defined(GLCHAOSP_NO_TF)
+    tfTools();
+#endif
 
     ImGui::NewLine();
     headerAdditionalDataCtrls();
@@ -418,7 +413,7 @@ void attractorDlgClass::view()
         
     const float border = DLG_BORDER_SIZE;
     //const float oldWindowPadding = style.WindowPadding.x;
-#ifdef GLCHAOSP_LIGHTVER
+#if defined(GLCHAOSP_LIGHTVER) || defined(GLAPP_USES_ES3)
 #if !defined(GLCHAOSP_TEST_RANDOM_DISTRIBUTION)
     const int szX = 520, szY = 200;
 #else
@@ -430,7 +425,7 @@ void attractorDlgClass::view()
     ImGui::SetNextWindowSize(ImVec2(szX, szY), ImGuiCond_FirstUseEver);
     {
         int w,h; glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
-#ifdef GLCHAOSP_LIGHTVER
+#if defined(GLCHAOSP_LIGHTVER) || defined(GLAPP_USES_ES3)
         ImGui::SetNextWindowCollapsed(isCollapsed, ImGuiCond_FirstUseEver);
         if(isCollapsed) {
             ImGui::SetNextWindowPos(ImVec2(270, 0), ImGuiCond_FirstUseEver);
@@ -461,7 +456,7 @@ void attractorDlgClass::view()
         // left
         ImGui::BeginGroup(); 
             const float wGrp = ImGui::GetContentRegionAvail().x;
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_WEBGL)
     const int sizeLeft = (ImGui::GetFrameHeightWithSpacing()*3+border*6);
 #else
     const int sizeLeft = ImGui::GetFrameHeightWithSpacing()+border;
@@ -498,7 +493,7 @@ void attractorDlgClass::view()
 
             ImGui::BeginChild("load_save",ImVec2(wGrp,0)); {
                
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_WEBGL)
                 const float butt = wGrp * .5 - 1;
                 //ImGui::PushItemWidth(w);
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY()+border);

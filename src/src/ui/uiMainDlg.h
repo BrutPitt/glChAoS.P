@@ -361,7 +361,7 @@ public:
     }
 
 
-#ifdef GLCHAOSP_LIGHTVER
+#if defined(GLCHAOSP_NO_BB)
     bool getInvertSettings() { return invertSettings; }
     void setInvertSettings(bool b) { invertSettings = b; }
 #endif
@@ -399,16 +399,17 @@ clippingDlgClass clippingDlg;
 cockpitDlgClass cockpitDlg;
 dataDlgClass dataDlg;
 #if !defined(GLCHAOSP_LIGHTVER)
-progSettingDlgClass progSettingDlg;
-friend class progSettingDlgClass;
-#else
+    progSettingDlgClass progSettingDlg;
+    friend class progSettingDlgClass;
+#endif
+#if defined(GLCHAOSP_NO_BB)
     bool invertSettings = false;
 #endif
 private:
 
 friend void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 friend void setGUIStyle();
-friend void ftTools();
+friend void tfTools();
 friend class particlesDlgClass;
 friend class viewSettingDlgClass;
 friend class attractorDtType;
