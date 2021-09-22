@@ -117,22 +117,13 @@ void Hopalong4D::Step(vec4 &v, vec4 &vp)
 }
 
 ////////////////////////////////////////////////////////////////////////////
-void Hopalong3D::initStep() {
-    const float gap = abs(kVal[2]-kVal[3]);
-    const float buffSize = float(theWnd->getParticlesSystem()->getEmitter()->getSizeCircularBuffer());
-    stepZ =  gap*float(iter)/buffSize;
-
-    zVal = min(kVal[2], kVal[3]);
-
-    attractorScalarK::initStep();
-}
 
 void Hopalong3D::Step(vec4 &v, vec4 &vp)
 {
-    static int count = iter;
+    static int count = zIter;
 
     if(--count <= 0) {
-        count = iter;
+        count = zIter;
         zVal+= stepZ;
         v = vVal[0];
     }
@@ -149,18 +140,35 @@ void Hopalong3D::Step(vec4 &v, vec4 &vp)
 
 void Kaneko3D::Step(vec4 &v, vec4 &vp)
 {
-    const int iter = 1000;
-    static int count = iter;
-    static float z = kVal[2];
+    static int count = zIter;
 
     if(--count <= 0) {
-        count = iter;
-        z = fastPrng64.xorShift_Range(kVal[1], kVal[2]);
+        count = zIter;
+        zVal+= stepZ;
         v = vVal[0];
     }
 
-
     vp.x = kVal[0] * v.x + (1 - kVal[0]) * (1 - v.z * v.y * v.y);
     vp.y = v.x;
-    vp.z = z; //
+    vp.z = zVal; //
+}
+
+
+void Henon3D::Step(vec4 &v, vec4 &vp)
+{
+//xn+1 = xn * cos(a) - (yn - xn2) * sin(a)
+//yn+1 = xn * sin(a) - (yn - xn2) * cos(a)
+
+    static int count = zIter;
+
+    if(--count <= 0) {
+        count = zIter;
+        zVal= zVal+stepZ; //fastPrng64.xoshiro256p_Range(zMax, zMin); //
+        v = vVal[0] + vec4(zVal, zVal, 0, 0);
+    }
+
+
+    vp.x = v.x * cos(kVal[0]) - (v.y - v.x*v.x) * sin(kVal[0]);
+    vp.y = v.x * sin(kVal[0]) - (v.y - v.x*v.x) * cos(kVal[0]);
+    vp.z = zVal; //
 }

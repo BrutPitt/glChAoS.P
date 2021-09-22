@@ -219,7 +219,7 @@ protected:
     //void searchAttractor()  { searchLyapunov(); }
 };
 
-class Hopalong3D : public attractorScalarK
+class Hopalong3D : public attractorScalarIterateZ
 {
 public:
 
@@ -230,21 +230,18 @@ public:
         m_POV = vec3( 0.f, 0, 50.f);
     }
 
-    virtual void initStep();
-
+    void initStep() { zMin = kVal[2]; zMax = kVal[3]; zIter=100000; attractorScalarIterateZ::initStep(); }
 
     int getPtSize() { return attPt4D; }
 protected:
     void Step(vec4 &v, vec4 &vp);
     void startData();
-    float zVal, stepZ;
-    const int iter = 100000;
     //void searchAttractor()  { searchLyapunov(); }
 };
 
 //  Kaneko3D
 ////////////////////////////////////////////////////////////////////////////
-class Kaneko3D : public attractorScalarK
+class Kaneko3D : public attractorScalarIterateZ
 {
 public:
 
@@ -256,8 +253,30 @@ public:
         m_POV = vec3( 0.f, 0, 12.f);
     }
 
+    void initStep() { zMin = kVal[1]; zMax = kVal[2]; zIter=1000; attractorScalarIterateZ::initStep(); }
+
 protected:
     void Step(vec4 &v, vec4 &vp);
     void startData();
 };
 
+//  Henon3D
+////////////////////////////////////////////////////////////////////////////
+class Henon3D : public attractorScalarIterateZ
+{
+public:
+
+    Henon3D() {
+        stepFn = (stepPtrFn) &Henon3D::Step;
+
+        vMin = -10.0; vMax = 10.0; kMin = -1.0; kMax = 1.0;
+
+        m_POV = vec3( 0.f, 0, 12.f);
+    }
+
+    void initStep() { zMin = kVal[1]; zMax = kVal[2]; zIter=1000; attractorScalarIterateZ::initStep(); }
+
+protected:
+    void Step(vec4 &v, vec4 &vp);
+    void startData();
+};
