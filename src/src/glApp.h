@@ -39,6 +39,10 @@ enum enumEmitterType { emitter_singleThread_externalBuffer,    // webGL and APPL
 enum enumEmitterEngine { emitterEngine_staticParticles,
                          emitterEngine_transformFeedback };
 
+enum glslPrecision { low, medium, hight };
+
+
+
 
 #define GLAPP_PROG_NAME "glChAoS.P"
 
@@ -259,24 +263,46 @@ public:
     std::string &getRenderCfgPath() { return renderCfgPath; }
     void setRenderCfgPath(const char * const s) { renderCfgPath = s; }
 
-    void setPalInternalPrecision(GLenum e) { palInternalPrecision = e; }
-    GLenum getPalInternalPrecision() { return palInternalPrecision; }
-    void setTexInternalPrecision(GLenum e) { texInternalPrecision = e; }
-    GLenum getTexInternalPrecision() { return texInternalPrecision; }
-    void setFBOInternalPrecision(GLenum e) { fboInternalPrecision = e; }
-    GLenum getFBOInternalPrecision() { return fboInternalPrecision; }
+    void   setPalInternalPrecision(GLenum e) { palInternalPrecision = e; }
+    GLenum getPalInternalPrecision() { return  palInternalPrecision; }
+    void   setTexInternalPrecision(GLenum e) { texInternalPrecision = e; }
+    GLenum getTexInternalPrecision() { return  texInternalPrecision; }
+    void   setFBOInternalPrecision(GLenum e) { fboInternalPrecision = e; }
+    GLenum getFBOInternalPrecision() { return  fboInternalPrecision; }
+    void   setDBInterpolation(GLenum e)      { dbInterpolation = e; }
+    GLuint getDBInterpolation()      { return  dbInterpolation; }
+    void   setFBOInterpolation(GLenum e)     { fboInterpolation = e; }
+    GLuint getFBOInterpolation()     { return  fboInterpolation; }
+    void   setShaderFloatPrecision(glslPrecision e)     { shaderFloatPrecision = e; }
+    glslPrecision getShaderFloatPrecision()     { return  shaderFloatPrecision; }
+    void   setShaderIntPrecision(glslPrecision e)       { shaderIntPrecision = e; }
+    glslPrecision getShaderIntPrecision()       { return  shaderIntPrecision; }
+
+    int getMultisamplingIdx() { return multisamplingIdx; }
+    void setMultisamplingIdx(int v) { multisamplingIdx = v; }
+    int getMultisamplingValue() { return fbMultisampling[multisamplingIdx]; }
+
+    GLuint getClampToBorder() { return clampToBorder; }
 
     void setLowPrecision() {
         useLowPrecision(true);
-        theApp->setTexInternalPrecision(GL_R16F);
-        theApp->setPalInternalPrecision(GL_RGB16F);
-        theApp->setFBOInternalPrecision(GL_RGBA16F);
+        setTexInternalPrecision(GL_R16F);
+        setPalInternalPrecision(GL_RGB16F);
+        setFBOInternalPrecision(GL_RGBA16F);
+        setDBInterpolation(GL_NEAREST);
+        setFBOInterpolation(GL_LINEAR);
+        setShaderFloatPrecision(glslPrecision::low);
+        setShaderIntPrecision(glslPrecision::medium);
     }
     void setHighPrecision() {
         useLowPrecision(false);
-        theApp->setTexInternalPrecision(GL_R32F);
-        theApp->setPalInternalPrecision(GL_RGB32F);
-        theApp->setFBOInternalPrecision(GL_RGBA32F);
+        setTexInternalPrecision(GL_R32F);
+        setPalInternalPrecision(GL_RGB32F);
+        setFBOInternalPrecision(GL_RGBA32F);
+        setDBInterpolation(GL_NEAREST);
+        setFBOInterpolation(GL_LINEAR);
+        setShaderFloatPrecision(glslPrecision::hight);
+        setShaderIntPrecision(glslPrecision::hight);
     }
 
     // wgl command line settings
@@ -324,14 +350,24 @@ public:
     #ifdef GLAPP_REQUIRE_OGL45
         emitterType = type;
     #else
+#if !defined(GLCHAOSP_NO_MB)
         emitterType = type == emitter_separateThread_mappedBuffer ? emitter_separateThread_externalBuffer : type;
+#else
+        emitterType = emitter_singleThread_externalBuffer;
+#endif
     #endif
 #endif
     }
 
     int getEmitterType() { return emitterType; }
 
-    void setEmitterEngineType(int i) { emitterEngineType = i; }
+    void setEmitterEngineType(int i) {
+#if !defined(GLCHAOSP_NO_TF)
+        emitterEngineType = i;
+#else
+        emitterEngineType = emitterEngine_staticParticles;
+#endif
+    }
     int  getEmitterEngineType() { return emitterEngineType; }
 
     timerClass& getTimer() { return timer; }
@@ -380,7 +416,7 @@ private:
     bool isIdleRotation = true;
     bool isSlowGPU = false;
     bool appNeedRestart = false;
-#if defined(__APPLE__) || defined(GLCHAOSP_LIGHTVER)
+#if defined(__APPLE__) || defined(GLCHAOSP_LIGHTVER) || defined(GLAPP_USES_ES3)
     bool syncOGL = true;
 #else
     bool syncOGL = false;
@@ -393,22 +429,41 @@ private:
     int screenShotRequest;
     int vSync = 0;
     bool isFullScreen = false;
-#if defined(__EMSCRIPTEN__) || defined(GLCHAOSP_DISABLE_MACOS_MT)
+#if defined(__EMSCRIPTEN__) || defined(GLCHAOSP_NO_TH)
     int emitterType = emitter_singleThread_externalBuffer;
 #else
     int emitterType = emitter_separateThread_externalBuffer;
 #endif
+
+#if !defined(GL_CLAMP_TO_BORDER)
+    const GLuint clampToBorder = GL_CLAMP_TO_EDGE;
+#else
+    const GLuint clampToBorder = GL_CLAMP_TO_BORDER;
+#endif
+
+    int fbMultisampling[6] = { GLFW_DONT_CARE, 0, 2, 4, 8, 16 };
+
 
 #if !defined(GLCHAOSP_USE_LOWPRECISION)
     bool lowPrecision = false;
     GLenum fboInternalPrecision = GL_RGBA32F;
     GLenum palInternalPrecision = GL_RGB32F;
     GLenum texInternalPrecision = GL_R32F;
+    GLuint dbInterpolation      = GL_NEAREST;
+    GLuint fboInterpolation     = GL_LINEAR;
+    glslPrecision shaderFloatPrecision = glslPrecision::hight;
+    glslPrecision shaderIntPrecision   = glslPrecision::hight;
+    int multisamplingIdx = 3;
 #else
     bool lowPrecision = true;
     GLenum fboInternalPrecision = GL_RGBA16F;
     GLenum palInternalPrecision = GL_RGB16F;
     GLenum texInternalPrecision = GL_R16F;
+    GLuint dbInterpolation      = GL_NEAREST;
+    GLuint fboInterpolation     = GL_LINEAR;
+    glslPrecision shaderFloatPrecision = glslPrecision::low;
+    glslPrecision shaderIntPrecision = glslPrecision::medium;
+    int multisamplingIdx = 2;
 #endif
 
     std::string lastAttractor = std::string("");

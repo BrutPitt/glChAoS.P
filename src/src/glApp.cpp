@@ -340,10 +340,13 @@ void mainGLApp::glfwInit()
     glfwSetErrorCallback(glfwErrorCallback);
 
     if (!::glfwInit()) exit(EXIT_FAILURE);
-       
+
+    const std::string fPrecision(std::string("precision ") + std::string(shaderFloatPrecision == glslPrecision::low ? "lowp" : (shaderFloatPrecision == glslPrecision::medium ? "mediump" : "highp")) + " float;\n");
+    const std::string iPrecision(std::string("precision ") + std::string(shaderIntPrecision   == glslPrecision::low ? "lowp" : (shaderIntPrecision   == glslPrecision::medium ? "mediump" : "highp")) + " int;\n");
+
 #if !defined (__EMSCRIPTEN__)
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     #ifdef GLAPP_REQUIRE_OGL45
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
         glslVersion = "#version 450\n";
         glslDefines = "#define LAYOUT_BINDING(X) layout (binding = X)\n"
@@ -352,47 +355,72 @@ void mainGLApp::glfwInit()
                       "#define SUBROUTINE(X) subroutine(X)\n"
                       "#define CONST const\n";
     #else
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-        glslVersion = "#version 410\n";
-        glslDefines = "#define LAYOUT_BINDING(X)\n"
-                      "#define LAYOUT_LOCATION(X)\n"
-                      "#define LAYOUT_INDEX(X)\n"
-        #ifdef GLCHAOSP_NO_USES_GLSL_SUBS // troubles on MAC with multiple subroutines
-                      "#define GLCHAOSP_NO_USES_GLSL_SUBS\n"
-                      "#define SUBROUTINE(X)\n"
+        #ifdef GLAPP_USES_ES3
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+            glslVersion = "#version 300 es\n";
+            glslDefines = fPrecision + iPrecision;
+            glslDefines+= "#define LAYOUT_BINDING(X)\n"
+                          "#define LAYOUT_INDEX(X)\n"
+                          "#define LAYOUT_LOCATION(X)\n"
+                          "#define GLCHAOSP_NO_USES_GLSL_SUBS\n"
+                          "#define SUBROUTINE(X)\n"
+                          "#define CONST\n";
         #else
-                      "#define SUBROUTINE(X) subroutine(X)\n"
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+            glslVersion = "#version 410\n";
+            glslDefines = "#define LAYOUT_BINDING(X)\n"
+                          "#define LAYOUT_LOCATION(X)\n"
+                          "#define LAYOUT_INDEX(X)\n"
+            #ifdef GLCHAOSP_NO_USES_GLSL_SUBS // troubles on MAC with multiple subroutines
+                          "#define GLCHAOSP_NO_USES_GLSL_SUBS\n"
+                          "#define SUBROUTINE(X)\n"
+            #else
+                          "#define SUBROUTINE(X) subroutine(X)\n"
+            #endif
+                          "#define CONST\n";
         #endif
-                      "#define CONST\n";
     #endif
 #else
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
         glslVersion = "#version 300 es\n";
-//        if(useLowPrecision()) glslDefines = "precision mediump float;\n" "precision highp int;\n";
-//        else                  glslDefines = "precision highp float;\n"   "precision highp int;\n";
-        glslDefines = "precision highp float;\n"   "precision highp int;\n";
+        glslDefines = fPrecision + iPrecision;
         glslDefines+= "#define LAYOUT_BINDING(X)\n"
                       "#define LAYOUT_INDEX(X)\n"
                       "#define LAYOUT_LOCATION(X)\n"
                       "#define SUBROUTINE(X)\n"
                       "#define CONST\n";
-#ifdef GLCHAOSP_LIGHTVER_EXPERIMENTAL
-       if(theApp->checkMaxCombTexImgUnits()) glslDefines+= "#define GLCHAOSP_LIGHTVER_EXPERIMENTAL\n";
+#if !defined(GLCHAOSP_NO_AO_SHDW)
+       if(theApp->checkMaxCombTexImgUnits()) glslDefines+= "#define GLCHAOSP_NO_AO_SHDW\n";
 #endif
 
-        glfwWindowHint(GLFW_SAMPLES,0);
+
 #endif
+
+#ifdef GLCHAOSP_NO_AO_SHDW
+       glslDefines+= "#define GLCHAOSP_NO_AO_SHDW\n";
+#endif
+
+
+#if /*defined(GLAPP_USES_ES3) || */defined(__EMSCRIPTEN__)
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
+#else
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //GLFW_OPENGL_ANY_PROFILE
-    #ifdef NDEBUG
-        glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_CONTEXT_NO_ERROR);
-    #endif
+#endif
+#ifdef NDEBUG
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_CONTEXT_NO_ERROR);
+#endif
 
+    glfwWindowHint(GLFW_SAMPLES, 0); //glfwWindowHint(GLFW_SAMPLES, getMultisamplingValue());
     glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
-    glfwWindowHint(GLFW_DEPTH_BITS,0);
+    glfwWindowHint(GLFW_DEPTH_BITS, 32);
 
-    //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
 
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
@@ -419,7 +447,12 @@ void mainGLApp::glfwInit()
 
 #if !defined (__EMSCRIPTEN__)
     //Init OpenGL
-    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    #ifdef GLAPP_USES_ES3
+        gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress); //get OpenGL ES extensions
+    #else
+        gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);    //get OpenGL extensions
+    #endif
+
 #else
     bool b = emscripten_webgl_enable_extension(emscripten_webgl_get_current_context(),"EXT_color_buffer_float");
     if (!b) {
@@ -485,7 +518,14 @@ int mainGLApp::getModifier() {
 mainGLApp::mainGLApp() 
 {    
     // Allocation in main(...)
+#if !defined(GLCHAOSP_USE_LOWPRECISION)
+    setHighPrecision();
+#else
+    setLowPrecision();
+#endif
     mainGLApp::theMainApp = this;
+
+
     glEngineWnd = new glWindow; 
     screenShotRequest = false;
     getQuickViewDirList();
@@ -633,13 +673,6 @@ int main(int argc, char **argv)
             if((atoi(argv[8])&4)) { // start minimized
                 theDlg.startMinimized(mainImGuiDlgClass::webRes::fullRestriction);
             }
-/*        // 9
-            if(atoi(argv[9])==1) {
-                theApp->setEmitterEngineType(enumEmitterEngine::emitterEngine_transformFeedback);
-                attractorsList.tfMode(true);
-                attractorsList.getTFSettings().cockPit(true);
-            }
-*/
         // 9
             std::string s(argv[9]);
             theApp->setStartWithAttractorName(s.empty() ? "random" : s);
