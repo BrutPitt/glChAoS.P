@@ -15,18 +15,26 @@
 
 void particlesSystemClass::buildEmitter(enumEmitterEngine ee)
 {
-    emitter = ee == enumEmitterEngine::emitterEngine_staticParticles ?
-                    (emitterBaseClass*) new singleEmitterClass :
-                    (emitterBaseClass*) new transformedEmitterClass;
 
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-    if(theApp->checkMaxCombTexImgUnits()) renderBaseClass::create();
+#if !defined(GLCHAOSP_NO_TF)
+    if(ee == enumEmitterEngine::emitterEngine_staticParticles) {
+        emitter = (emitterBaseClass*) new singleEmitterClass;
+        renderEmitter = &particlesSystemClass::renderSingle;
+    } else {  // enumEmitterEngine::emitterEngine_transformFeedback
+        emitter = (emitterBaseClass*) new transformedEmitterClass;
+        renderEmitter = &particlesSystemClass::renderTF;
+    }
+#else
+    emitter = (emitterBaseClass*) new singleEmitterClass;
+    renderEmitter = &particlesSystemClass::renderSingle;
 #endif
+
+    renderBaseClass::create();
 
     emitter->buildEmitter(); // post build for WebGL texture ID outRange
 
 //start new thread (if aux thread enabled)
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_TH)
 //lock aux thread until initialization is complete
     std::lock_guard<std::mutex> l( attractorsList.getStepMutex() );
 #endif
@@ -49,9 +57,12 @@ void particlesSystemClass::changeEmitter(enumEmitterEngine ee)
     bool restart = emitter->restartCircBuff();
     deleteEmitter();
 
+#ifdef GLCHAOSP_NO_TF
+    ee = enumEmitterEngine::emitterEngine_staticParticles;
+#endif
     theApp->setEmitterEngineType(ee);
-
     buildEmitter(ee);
+
     emitter->setSizeCircularBuffer(circBuffer);
     emitter->stopFull(fStop);
     emitter->restartCircBuff(restart);
@@ -66,19 +77,25 @@ void particlesSystemClass::onReshape(int w, int h)
     getTMat()->setPerspective(float(w)/float(h));
 
     getRenderFBO().reSizeFBO(w, h);
+    shaderPointClass::getGlowRender()->getFBO().reSizeFBO(w, h);
+
+#if !defined(GLCHAOSP_NO_AO_SHDW)
     getPostRendering()->getFBO().reSizeFBO(w, h);
     getShadow()->resize(w, h);
     getAO()->getFBO().reSizeFBO(w, h);
-    shaderPointClass::getGlowRender()->getFBO().reSizeFBO(w, h);
+#endif
 #if !defined(GLCHAOSP_NO_FXAA)
     shaderPointClass::getFXAA()->getFBO().reSizeFBO(w, h);
 #endif
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
     shaderBillboardClass::getGlowRender()->getFBO().reSizeFBO(w, h);
     shaderBillboardClass::getFXAA()->getFBO().reSizeFBO(w, h);
-    getMotionBlur()->getFBO().reSizeFBO(w, h);
     getMergedRendering()->getFBO().reSizeFBO(w, h);
 #endif
+#if !defined(GLCHAOSP_NO_MB)
+     getMotionBlur()->getFBO().reSizeFBO(w, h);
+#endif
+
     setFlagUpdate();
 }
 
@@ -86,7 +103,7 @@ void particlesSystemClass::onReshape(int w, int h)
 void particlesSystemClass::renderAxes()
 {
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_AX)
 
     transformsClass *model = getTMat();
     transformsClass *axes = getAxes()->getTransforms();
@@ -144,7 +161,7 @@ GLuint particlesSystemClass::renderSingle()
 
     emitter->preRenderEvents();
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
     if(getRenderMode() != RENDER_USE_BOTH) {
         texRendered = renderParticles();
         texRendered = renderGlowEffect(texRendered);

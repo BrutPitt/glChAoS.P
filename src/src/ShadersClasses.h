@@ -13,7 +13,7 @@
 #pragma once
 //#define GLM_FORCE_SWIZZLE 
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_AX)
 #include "tools/oglAxes.h"
 #else
 #include <transforms.h>
@@ -281,8 +281,11 @@ private:
 };
 
 class radialBlurClass;
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_MB)
 class motionBlurClass;
+#endif
+
+#if !defined(GLCHAOSP_NO_BB)
 class mergedRenderingClass;
 #endif
 
@@ -492,7 +495,7 @@ public:
     mmFBO &getFBO() { return fbo; }
 
 #if !defined(GLAPP_REQUIRE_OGL45)
-    GLuint getLocPrevData() { return locPrevData; }
+    //GLuint getLocPrevData() { return locPrevData; }
 #endif
 
 private:
@@ -503,7 +506,7 @@ private:
     GLuint noiseTexture;
     const int kernelSize = 64;
 #if !defined(GLAPP_REQUIRE_OGL45)
-    GLuint locNoiseTexture, locPrevData, locKernelTexture, locZTex;
+    GLuint locNoiseTexture, locKernelTexture, locZTex; //locPrevData,
     GLuint bindIDX;
 #endif
     friend particlesBaseClass;
@@ -600,11 +603,19 @@ public:
     void showAxes(int b) { axesShow = b; }
     int showAxes() { return axesShow; }
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
     mergedRenderingClass *getMergedRendering() { return mergedRendering; }
-    motionBlurClass *getMotionBlur() { return motionBlur; }
-    oglAxes *getAxes() { return axes; }
+#endif
 
+#if !defined(GLCHAOSP_NO_MB)
+    motionBlurClass *getMotionBlur() { return motionBlur; }
+#endif
+
+#if !defined(GLCHAOSP_NO_AX)
+    oglAxes *getAxes() { return axes; }
+#endif
+
+#if !defined(GLCHAOSP_LIGHTVER)
     void viewObjON()  { idxViewOBJ = GLuint(particlesViewColor::packedRGB); }
     void viewObjOFF() { idxViewOBJ = GLuint(particlesViewColor::paletteIndex); }
     GLuint viewingObj() { return idxViewOBJ; }
@@ -637,12 +648,17 @@ public:
 protected:
     int whichRenderMode;    
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_MB)
     motionBlurClass *motionBlur = nullptr;
+#endif
+#if !defined(GLCHAOSP_NO_BB)
     mergedRenderingClass *mergedRendering = nullptr;
-
+#endif
+#if !defined(GLCHAOSP_NO_AX)
     oglAxes *axes;
+#endif
 
+#if !defined(GLCHAOSP_LIGHTVER)
     GLuint idxViewOBJ = 0;
     bool plyObjGetColor = true;
 #endif
@@ -776,7 +792,7 @@ private:
 
 #endif
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_MB)
 
 //
 //  motionBlur
@@ -842,8 +858,9 @@ private:
 #endif
     GLuint LOCblurIntensity;
 };
+#endif
 
-
+#if !defined(GLCHAOSP_NO_BB)
 //
 // mergedRendering
 //
@@ -1417,7 +1434,7 @@ private:
     void initShader();
 };
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
 //
 // Billboard
 //
@@ -1432,6 +1449,5 @@ public:
 private:
     void initShader();
 };
-
 #endif
 

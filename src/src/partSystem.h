@@ -14,7 +14,7 @@
 
 #include "emitter.h"
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
 class particlesSystemClass : public shaderPointClass, public shaderBillboardClass
 #else
 class particlesSystemClass : public shaderPointClass
@@ -30,7 +30,7 @@ public:
 
     /////////////////////////////////////////////
     particlesBaseClass *getParticleRenderPtr() {
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
         return getRenderMode() == RENDER_USE_BILLBOARD ?
                (particlesBaseClass *) shaderBillboardClass::getPtr() :
                (particlesBaseClass *) shaderPointClass::getPtr();
@@ -41,7 +41,7 @@ public:
 
     /////////////////////////////////////////////
     GLuint renderParticles(bool isFullScreenPiP = true, bool cpitView = false) {
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_AX)
         if(showAxes()) {
             getAxes()->getTransforms()->applyTransforms();
             getAxes()->renderOnFB(getRenderFBO().getFB(0));
@@ -54,7 +54,7 @@ public:
 
     /////////////////////////////////////////////
     GLuint renderGlowEffect(GLuint texRendered, bool useFB=false) {
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
         particlesBaseClass *particles = getParticleRenderPtr();
 
         const GLuint fbo = (useFB || getMotionBlur()->Active() || particles->getFXAA()->isOn()) ? particles->getGlowRender()->getFBO().getFB(1) : 0;
@@ -82,14 +82,13 @@ public:
     GLuint render() {
         glViewport(0,0, getWidth(), getHeight());
 
-        //return attractorsList.get()->dtType() && tfSettinsClass::tfMode() ? renderTF() : renderSingle();
-        return theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback ? renderTF() : renderSingle();
+        return (this->*renderEmitter)();
     }
     /////////////////////////////////////////////
     void renderPalette() {      // ColorMaps: rebuilds texture only if settings are changed
         shaderPointClass::getCMSettings()->render();
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
         shaderBillboardClass::getCMSettings()->render();
 #endif
     }
@@ -111,6 +110,9 @@ private:
     void deleteEmitter();
     
     //particlesBaseClass *currentRenderEngine;
+
+    typedef GLuint (particlesSystemClass::*renderPtrFn)();
+    renderPtrFn renderEmitter;
 
     friend class glWindow;
     emitterBaseClass* emitter;

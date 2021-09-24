@@ -96,7 +96,11 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     const GLsizei shadowDetail = theApp->useDetailedShadows() ? GLsizei(2) : GLsizei(1);
     const float lightReduction = theApp->useDetailedShadows() ? 1.f : 1.f /*1.f : .667f*/;
 
+#if !defined(GLCHAOSP_NO_TF)
     const bool isTFRender = attractorsList.get()->dtType() && tfSettinsClass::tfMode(); // transformFeedback Render
+#else
+    const bool isTFRender = false;
+#endif
     const bool computeShadow = useShadow() && !cpitView; // FIXME: cockPit Shadow: no shadow on tfSettings
     const bool blendActive = getBlendState() || showAxes();
     const bool isAO_SHDW = ( useAO() || computeShadow);
@@ -169,7 +173,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 
 // Shadow pass
 /////////////////////////////////////////////
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+#if !defined(GLCHAOSP_NO_AO_SHDW)
 
     const vec3 light(getLightDir()*lightReduction);
     const vec3 lightTGT(currentTMat->getTGT());
@@ -278,7 +282,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 
 // AO & Shadows process
 /////////////////////////////////////////////
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+#if !defined(GLCHAOSP_NO_AO_SHDW)
     if(theApp->checkMaxCombTexImgUnits()) {
         if(!blendActive && isAO_RD_SHDW)  {
 
@@ -330,7 +334,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     return returnedTex;
 }
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
 
 //
 //  Billboard
@@ -438,7 +442,10 @@ void mergedRenderingClass::create()
     LOCmixingVal =    getUniformLocation("mixingVal");       
 
 }
+#endif //GLCHAOSP_NO_BB
 
+
+#if !defined(GLCHAOSP_NO_MB)
 //
 //  motionBlur
 //
@@ -508,7 +515,7 @@ GLuint motionBlurClass::render(GLuint renderedTex)
     return mBlurFBO.getFB(rotationBuff);
 
 }
-#endif
+#endif // GLCHAOSP_NO_MB
 
 //
 // RenderBase
@@ -533,7 +540,7 @@ renderBaseClass::renderBaseClass()
     PB(GL_CONSTANT_ALPHA          ,"ConstantAlpha"        )
     PB(GL_ONE_MINUS_CONSTANT_ALPHA,"OneMinusConstantAlpha")
     PB(GL_SRC_ALPHA_SATURATE      ,"SrcAlphaSaturate"     )
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_LIGHTVER) && !defined(GLAPP_USES_ES3)
     PB(GL_SRC1_COLOR              ,"Src1Color"            )
     PB(GL_ONE_MINUS_SRC1_COLOR    ,"OneMinusSrc1Color"    )
     PB(GL_SRC1_ALPHA              ,"Src1Alpha"            )
@@ -561,22 +568,27 @@ renderBaseClass::renderBaseClass()
     }
     renderBaseClass::buildFBO();
 
-#if !defined(GLCHAOSP_LIGHTVER)
     //msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision(), true, 4);
 
+    std::string verS = theApp->get_glslVer() + theApp->get_glslDef();
+#if !defined(GLAPP_NO_GLSL_PIPELINE)
+    verS += "#define GLAPP_USE_PIPELINE\n";
+#endif
+
+#if !defined(GLCHAOSP_NO_AX)
     axes = new oglAxes;
+    axes->initShaders(verS.c_str(), verS.c_str());
+#endif
 
-    std::string s = theApp->get_glslVer();
-    #if !defined(GLAPP_NO_GLSL_PIPELINE)
-        s += "#define GLAPP_USE_PIPELINE\n";
-    #endif
-    axes->initShaders(s.c_str(), theApp->get_glslVer().c_str());
 
+#if !defined(GLCHAOSP_NO_MB)
     motionBlur = new motionBlurClass(this);
+#endif
+#if !defined(GLCHAOSP_NO_BB)
     mergedRendering = new mergedRenderingClass(this);
 #endif
 
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+#if !defined(GLCHAOSP_NO_AO_SHDW)
     if(theApp->checkMaxCombTexImgUnits()) {
         ambientOcclusion = new ambientOcclusionClass(this);
         shadow  = new shadowClass(this);
@@ -587,37 +599,38 @@ renderBaseClass::renderBaseClass()
 
 void renderBaseClass::buildFBO()
 {
-#if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-    GLuint precision = GL_RGBA16F;
-#else
-    GLuint precision = theApp->checkMaxCombTexImgUnits() ? theApp->getFBOInternalPrecision() : GL_RGBA16F;
-#endif
-    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(),  precision); 
+    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(),  theApp->getFBOInternalPrecision());
     renderFBO.attachMultiFB(1);
 
-#if defined(GLCHAOSP_LIGHTVER)
-    renderFBO.attachDB(mmFBO::depthTexture,GL_NEAREST,GL_CLAMP_TO_EDGE);  
-#else
-    renderFBO.attachDB(mmFBO::depthTexture,GL_LINEAR,GL_CLAMP_TO_BORDER);
-#endif
+    renderFBO.attachDB(mmFBO::depthTexture,theApp->getDBInterpolation(),theApp->getClampToBorder());
+
 }
 
 void renderBaseClass::create()
 {
-    ambientOcclusion->create();
-    shadow->create();
-    postRendering->create();
+#if !defined(GLCHAOSP_NO_AO_SHDW)
+    if(theApp->checkMaxCombTexImgUnits()) {
+        ambientOcclusion->create();
+        shadow->create();
+        postRendering->create();
+    }
+#endif
 }
 
 
 renderBaseClass::~renderBaseClass()
 {
-#if !defined(GLCHAOSP_LIGHTVER)
-     delete motionBlur; delete mergedRendering; 
+#if !defined(GLCHAOSP_NO_BB)
+    delete motionBlur;
+#endif
+#if !defined(GLCHAOSP_NO_BB)
+    delete mergedRendering;
+#endif
+#if !defined(GLCHAOSP_NO_AX)
      delete axes;
 #endif
 
-#if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+#if !defined(GLCHAOSP_NO_AO_SHDW)
     if(theApp->checkMaxCombTexImgUnits()) {
         delete ambientOcclusion;
         delete shadow;
@@ -628,7 +641,7 @@ renderBaseClass::~renderBaseClass()
 
 void renderBaseClass::setRenderMode(int which) 
 { 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
     if(which == RENDER_USE_BOTH && whichRenderMode!=RENDER_USE_BOTH) getMergedRendering()->Activate();
     else 
         if(which!=RENDER_USE_BOTH && whichRenderMode==RENDER_USE_BOTH) getMergedRendering()->Deactivate();
@@ -843,7 +856,7 @@ GLuint fxaaClass::render(GLuint texIn, bool useFB)
 {
     bindPipeline();
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_MB)
     const GLuint fbID = useFB || renderEngine->getMotionBlur()->Active() ? fbo.getFB(0) : 0;
 #else
     const GLuint fbID = 0;
@@ -908,8 +921,6 @@ void postRenderingClass::create() {
         locPrevData = getUniformLocation("prevData");
         locZTex = getUniformLocation("zTex");
         locTexBaseColor = getUniformLocation("texBaseColor");
-
-
 
         uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
         renderEngine->getTMat()->blockBinding(getProgram());
@@ -1038,9 +1049,10 @@ ambientOcclusionClass::ambientOcclusionClass(renderBaseClass *ptrRE) : renderEng
         vec3 noise(AO_RND_GEN_UNI(), AO_RND_GEN_UNI(), 0.0f); // rotate around z-axis (in tangent space)
         ssaoNoise.push_back(noise);
     }
+    const GLenum precision = theApp->getPalInternalPrecision();   //GL_RGB32F || GL_RGB16F
 #ifdef GLAPP_REQUIRE_OGL45
     glCreateTextures(GL_TEXTURE_2D, 1, &ssaoKernelTex);
-    glTextureStorage2D(ssaoKernelTex, 1, GL_RGB32F, kernelSize, 1);
+    glTextureStorage2D(ssaoKernelTex, 1, precision, kernelSize, 1);
     glTextureSubImage2D(ssaoKernelTex, 0, 0, 0, kernelSize, 1, GL_RGB, GL_FLOAT, ssaoKernel.data());
     glTextureParameteri(ssaoKernelTex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(ssaoKernelTex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -1048,15 +1060,13 @@ ambientOcclusionClass::ambientOcclusionClass(renderBaseClass *ptrRE) : renderEng
     glTextureParameteri(ssaoKernelTex, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     glCreateTextures(GL_TEXTURE_2D, 1, &noiseTexture);
-    glTextureStorage2D(noiseTexture, 1, GL_RGB32F, 4, 4);
+    glTextureStorage2D(noiseTexture, 1, precision, 4, 4);
     glTextureSubImage2D(noiseTexture, 0, 0, 0, 4, 4, GL_RGB, GL_FLOAT, ssaoNoise.data());
     glTextureParameteri(noiseTexture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(noiseTexture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTextureParameteri(noiseTexture, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTextureParameteri(noiseTexture, GL_TEXTURE_WRAP_T, GL_REPEAT);
 #else
-    //GLuint precision = theApp->useLowPrecision() ? GL_RGB16F : GL_RGB32F;
-    GLuint precision = theApp->useLowPrecision() ? GL_RGB16F : GL_RGB32F;
     glGenTextures(1, &ssaoKernelTex);
     glBindTexture(GL_TEXTURE_2D, ssaoKernelTex);
     glTexImage2D(GL_TEXTURE_2D, 0, precision, kernelSize, 1, 0, GL_RGB, GL_FLOAT, ssaoKernel.data());
@@ -1096,7 +1106,7 @@ void ambientOcclusionClass::create() {
 #if !defined(GLAPP_REQUIRE_OGL45)
     USE_PROGRAM
     locNoiseTexture = getUniformLocation("noise");
-    locPrevData = getUniformLocation("prevData");
+    //locPrevData = getUniformLocation("prevData");
     locZTex = getUniformLocation("zTex");
     locKernelTexture = getUniformLocation("ssaoSample");
     bindIDX = uniformBlocksClass::bindIndex(getProgram(), "_particlesData", uniformBlocksClass::bindIdx);
@@ -1126,7 +1136,7 @@ void ambientOcclusionClass::bindRender(particlesBaseClass *particle, GLuint fbId
     glBindTextureUnit( 6, noiseTexture);
     glBindTextureUnit( 7, ssaoKernelTex);
 
-    glBindTextureUnit( 5, renderFBO.getTex(fbIdx));
+    //glBindTextureUnit( 5, renderFBO.getTex(fbIdx)); //prevData
     glBindTextureUnit(10, renderFBO.getDepth(fbIdx));
 
 
@@ -1138,9 +1148,9 @@ void ambientOcclusionClass::bindRender(particlesBaseClass *particle, GLuint fbId
     glActiveTexture(GL_TEXTURE0 + ssaoKernelTex);
     glBindTexture(GL_TEXTURE_2D,  ssaoKernelTex);
 
-    glActiveTexture(GL_TEXTURE0 + renderFBO.getTex(fbIdx));
-    glBindTexture(GL_TEXTURE_2D,  renderFBO.getTex(fbIdx));
-    setUniform1i(locPrevData,     renderFBO.getTex(fbIdx));
+    //glActiveTexture(GL_TEXTURE0 + renderFBO.getTex(fbIdx));
+    //glBindTexture(GL_TEXTURE_2D,  renderFBO.getTex(fbIdx));
+    //setUniform1i(locPrevData,     renderFBO.getTex(fbIdx));
 
     glActiveTexture(GL_TEXTURE0 + renderFBO.getDepth(fbIdx));
     glBindTexture(GL_TEXTURE_2D,  renderFBO.getDepth(fbIdx));
@@ -1169,15 +1179,15 @@ void ambientOcclusionClass::releaseRender()
 ////////////////////////////////////////////////////////////////////////////////
 shadowClass::shadowClass(renderBaseClass *ptrRE) : renderEngine(ptrRE) 
 {
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_LIGHTVER) &&  !defined(GLAPP_USES_ES3)
     const int detail = theApp->useDetailedShadows() ? 2 : 1;
-    fbo.buildOnlyFBO(1, theApp->GetWidth()*detail, theApp->GetHeight()*detail, GL_RGBA32F); 
-    fbo.attachDB(mmFBO::depthTexture,GL_LINEAR,GL_CLAMP_TO_BORDER);
+    const int width = theApp->GetWidth()*detail, height = theApp->GetHeight()*detail;
 #else
-    fbo.buildOnlyFBO(1, theApp->GetWidth(), theApp->GetHeight(), GL_RGBA32F); 
-    fbo.attachDB(mmFBO::depthTexture,GL_NEAREST,GL_CLAMP_TO_EDGE);  
+    const int width = theApp->GetWidth(), height = theApp->GetHeight();
 #endif
-    //create();
+
+    fbo.buildOnlyFBO(1, width, height, GL_RGBA32F);
+    fbo.attachDB(mmFBO::depthTexture,theApp->getDBInterpolation(),theApp->getClampToBorder());
 }
 
 void shadowClass::create() {
