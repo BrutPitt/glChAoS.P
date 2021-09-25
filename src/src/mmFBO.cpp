@@ -10,10 +10,9 @@
 //  
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
-#include <stdlib.h>
 #include <stdio.h>
 
-#include "appDefines.h"
+#include "glApp.h"
 #include "mmFBO.h"
 
 
@@ -84,7 +83,7 @@ void mmFBO::initFB(GLuint fbuff, GLuint iText)
 {
 #ifdef GLAPP_REQUIRE_OGL45
     if(aaLevel>0) {
-        glTextureStorage2DMultisample(iText, aaLevel, glPrecision, m_sizeX, m_sizeY, GL_TRUE);
+        glTextureStorage2DMultisample(iText, aaLevel, theApp->getFBOInternalPrecision(), m_sizeX, m_sizeY, GL_TRUE);
         glNamedFramebufferTexture(fbuff, GL_COLOR_ATTACHMENT0, iText, 0); 
     }
     else {
@@ -108,10 +107,12 @@ void mmFBO::defineTexture(GLuint iTex, GLuint intFormat, GLuint format, GLuint t
     glTextureParameteri(iTex, GL_TEXTURE_MAG_FILTER, interp);
     glTextureParameteri(iTex, GL_TEXTURE_WRAP_S, clamp);
     glTextureParameteri(iTex, GL_TEXTURE_WRAP_T, clamp);
+#ifdef GL_CLAMP_TO_BORDER
     if(clamp == GL_CLAMP_TO_BORDER) {
         float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         glTextureParameterfv(iTex, GL_TEXTURE_BORDER_COLOR, borderColor);
     }
+#endif
 #else
     //glActiveTexture(GL_TEXTURE0+iTex);
     glBindTexture(GL_TEXTURE_2D, iTex);
@@ -121,7 +122,7 @@ void mmFBO::defineTexture(GLuint iTex, GLuint intFormat, GLuint format, GLuint t
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interp);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp);
-#if !defined(GLCHAOSP_LIGHTVER)
+#ifdef GL_CLAMP_TO_BORDER
     if(clamp == GL_CLAMP_TO_BORDER) {
         float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -195,7 +196,7 @@ void mmFBO::attachMultiFB(int num)
         glNamedFramebufferDrawBuffers(m_fb[countFB], num, drawBuffers);
 #else
             glBindFramebuffer(GL_FRAMEBUFFER, m_fb[countFB]);
-    #if !defined(GLCHAOSP_LIGHTVER)
+    #if !defined(GLCHAOSP_LIGHTVER) /*&& !defined(GLAPP_USES_ES3)*/
             glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i,i==0 ? m_tex[countFB] : multiDrawFB[(countFB*numMultiDraw)+(i-1)], 0);
     #else
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, i==0 ? m_tex[countFB] : multiDrawFB[(countFB*numMultiDraw)+(i-1)], 0);
@@ -255,7 +256,7 @@ void mmFBO::attachSecondaryBuffer(bool builtIN, secondaryBufferType bufferType, 
             glFramebufferRenderbuffer( GL_FRAMEBUFFER, attach, GL_RENDERBUFFER, m_rb[i]);
         } else {
             defineTexture(m_depth[i], intFormat, format, type, interpol, clamp);
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_LIGHTVER) /*&& !defined(GLAPP_USES_ES3)*/
             glFramebufferTexture(GL_FRAMEBUFFER, attach, m_depth[i], 0);
 #else
             glFramebufferTexture2D(GL_FRAMEBUFFER, attach, GL_TEXTURE_2D, m_depth[i], 0);
@@ -338,12 +339,13 @@ void mmFBO::CheckFramebufferStatus(GLenum status)
             printf("Framebuffer incomplete, missing attachment\n");
             fprintf(stderr, "Framebuffer incomplete, missing attachment");
             break;
-
-#if !defined(GLCHAOSP_LIGHTVER)
+#ifdef GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER
         case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
             printf("Framebuffer incomplete, missing draw buffer\n");
             fprintf(stderr, "Framebuffer incomplete, missing draw buffer");
             break;
+#endif
+#ifdef GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER
         case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
             printf("Framebuffer incomplete, missing read buffer\n");
             fprintf(stderr, "Framebuffer incomplete, missing read buffer");

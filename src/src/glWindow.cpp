@@ -30,11 +30,16 @@ void blitFrameBuffer(const GLuint srcFB, const GLuint dstFB, const ivec4 &srcRec
     #else
         glBindFramebuffer(GL_READ_FRAMEBUFFER, srcFB);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dstFB);
-
         glBlitFramebuffer(srcRect.x, srcRect.y, srcRect.z, srcRect.w,
                           dstRect.x, dstRect.y, dstRect.z, dstRect.w,
                           GL_COLOR_BUFFER_BIT, filter );
+        CHECK_GL_ERROR()
+        //glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+        //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        
     #endif
+        
+        //printf("src: %d dst: %d - sR: %d %d %d %d - dR: %d %d %d %d\n", srcFB, dstFB, srcRect.x, srcRect.y, srcRect.z, srcRect.w,                          dstRect.x, dstRect.y, dstRect.z, dstRect.w);
 
 }
 
@@ -50,7 +55,7 @@ void glWindow::onInit()
 
     particlesSystem = new particlesSystemClass;
 
-#if !defined(__EMSCRIPTEN__)
+#if !defined(__EMSCRIPTEN__) && !defined(GLAPP_USES_ES3)
 
     //pointsprite initialization
     glEnable( GL_PROGRAM_POINT_SIZE );
@@ -120,22 +125,21 @@ GLint glWindow::onRender()
     if(theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback && tfSettinsClass::cockPit() && tfSettinsClass::getPIPposition() == tfSettinsClass::pip::splitView)
         particlesSystem->getParticleRenderPtr()->clearFB(0);
 
-#if !defined(GLCHAOSP_LIGHTVER)
-
+#if !defined(GLCHAOSP_NO_AX)
     particlesSystem->renderAxes();
+#else
+    getParticlesSystem()->getTMat()->applyTransforms();
+#endif
 
     // main render event
     GLuint texRendered = particlesSystem->render();
 
+#if !defined(GLCHAOSP_NO_MB)
     //  Motion Blur
     if(particlesSystem->getMotionBlur()->Active())
         blitFrameBuffer(particlesSystem->getMotionBlur()->render(texRendered), 0,
                         ivec4(0,0,particlesSystem->getWidth(), particlesSystem->getHeight()),
                         ivec4(0,0,theApp->GetWidth(), theApp->GetHeight()), GL_NEAREST);
-
-#else
-    getParticlesSystem()->getTMat()->applyTransforms();
-    GLuint texRendered = particlesSystem->render();
 #endif
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     particlesSystem->clearFlagUpdate();

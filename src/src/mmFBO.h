@@ -56,7 +56,7 @@ private:
     void attachSecondaryBuffer(bool builtIN, secondaryBufferType type, 
                                GLuint interpol = GL_NEAREST, GLuint clamp = GL_CLAMP_TO_EDGE); //depthBuffer + Stencil
     void CheckFramebufferStatus(GLenum status);
-#ifdef GLCHAOSP_LIGHTVER
+#if defined(GLCHAOSP_LIGHTVER) /*|| defined(GLAPP_USES_ES3)*/
     void defineTexture(GLuint iTex, GLuint intFormat, GLuint format = GL_RGBA, GLuint type = GL_FLOAT, 
                        GLuint interp = GL_NEAREST, GLuint clamp = GL_CLAMP_TO_EDGE);
 #else
