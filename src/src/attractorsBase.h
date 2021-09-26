@@ -322,6 +322,18 @@ protected:
 };
 
 
+class attractorScalarIterateZ : public attractorScalarK
+{
+public:
+    virtual void initStep();
+
+protected:
+    float zVal, stepZ;
+    float zMin = -1.f, zMax = 1.f;
+    int zIter = 1000;
+
+};
+
 //--------------------------------------------------------------------------
 //  Volumetric Fractals
 //--------------------------------------------------------------------------
@@ -337,12 +349,21 @@ public:
 
     virtual inline float colorFunc(const vec4 &v, const vec4 &vp) { return outColor; }
     virtual void additionalDataCtrls();
+    virtual void initStep();
 
     inline const vec4 random3Dpoint() {
+        return vec4(fastPrng64.xorShift_Range(sMin.x,sMax.x),
+                    fastPrng64.xorShift_Range(sMin.y,sMax.y),
+                    fastPrng64.xorShift_Range(sMin.z,sMax.z), 0.f);
+/*
         return vec4(fastPrng64.xoshiro256p_Range(sMin.x,sMax.x),
                     fastPrng64.xoshiro256p_Range(sMin.y,sMax.y),
                     fastPrng64.xoshiro256p_Range(sMin.z,sMax.z), 0.f);
+*/
     }
+
+    const vec4 sequential3Dpoint();
+
 
     virtual float innerStep(vec4 &v, vec4 &vp, const vec4 &c) = 0;
 
@@ -352,7 +373,12 @@ protected:
     int maxIter = 64;
     float upperLimit = 64.f;
     float outColor = 0;
-    vec3 sMin = vec3(-1.5f), sMax = vec3(1.5);
+    vec3 sMin = vec3(-1.5f), sMax = vec3(1.5f);
+    double xP = sMin.x, yP = sMin.y, zP = sMin.z;
+    //float gapX = abs(sMax.x-sMin.x), gapY = abs(sMax.y-sMin.y), gapZ = abs(sMax.z-sMin.z);
+    double step;
+    int stepInc = 2;
+
     ivec2 plotRange = ivec2(12, 63);
 
 };
@@ -648,8 +674,10 @@ public:
         PB(KingsDream         , u8"\uf0da", PICKOVER_COLOR, "King's Dream"       )
         PB(Pickover           , u8"\uf0da", PICKOVER_COLOR, "Pickover"           )
         PB(SinCos             , u8"\uf0da", PICKOVER_COLOR, "Sin Cos"            )
+        PB(Henon3D            , u8"\uf0da", PORTED3D_COLOR, "Henon3D"            )
         PB(Hopalong3D         , u8"\uf0da", PORTED3D_COLOR, "Hopalong3D"         )
         PB(Hopalong4D         , u8"\uf0da", PORTED3D_COLOR, "Hopalong4D"         )
+        PB(Kaneko3D           , u8"\uf0da", PORTED3D_COLOR, "Koneko3D"           )
         PB(Martin4D           , u8"\uf0da", PORTED3D_COLOR, "Martin4D ss"        )
         PB(Martin4Dsc         , u8"\uf0da", PORTED3D_COLOR, "Martin4D sc"        )
         PB(Martin4Dcc         , u8"\uf0da", PORTED3D_COLOR, "Martin4D cc"        )
@@ -661,7 +689,6 @@ public:
         PB(PopCorn4Dscsc      , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D scsc"     )
         PB(PopCorn4Dsscc      , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D sscc"     )
         PB(PopCorn4Dsimple    , u8"\uf0da", PORTED3D_COLOR, "PopCorn4D simple"   )
-        PB(Kaneko3D           , u8"\uf0da", PORTED3D_COLOR, "Koneko3D"           )
 
 //        PB(PopCorn4Drnd       , u8"\uf006" " PopCorn4D rnd"     )
 //        PB(SymmetricIcons4D   , u8"\uf006" " SymmetricIcons4D"   )

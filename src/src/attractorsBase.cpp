@@ -340,7 +340,50 @@ void AttractorBase::searchLyapunov()
 }
 
 
+void attractorScalarIterateZ::initStep()
+{
+    const float gap = abs(zMax-zMin);
+    const float buffSize = float(theWnd->getParticlesSystem()->getEmitter()->getSizeCircularBuffer());
+    stepZ =  gap*float(zIter)/buffSize;
+
+    zVal = min(zMin, zMax);
+
+    attractorScalarK::initStep();
+}
+
+
+void volumetricFractals::initStep()
+{
+    stepInc = 2;
+    xP = min(sMin.x,sMax.x); yP = min(sMin.y,sMax.y); zP = min(sMin.z,sMax.z);
+    //xP = (sMin.x+sMax.x)*.5f; yP = (sMin.y+sMax.y)*.5f; zP = (sMin.z+sMax.z)*.5f;
+    const float gapX = abs(sMax.x-sMin.x), gapY = abs(sMax.y-sMin.y), gapZ = abs(sMax.z-sMin.z);
+    const float buffSize = float(theWnd->getParticlesSystem()->getEmitter()->getSizeCircularBuffer());
+    step = cbrt(cbrt(gapX*gapY*gapZ)/buffSize);
+
+    attractorScalarK::initStep();
+
+}
+
 ////////////////////////////////////////////////////////////////////////////
+const vec4 volumetricFractals::sequential3Dpoint()
+{
+
+    if(stepInc>4) return random3Dpoint();
+    if((xP+=step)>sMax.x) {       xP = sMin.x;
+        if((yP+=step)>sMax.y) {   yP = sMin.y;
+            if((zP+=step)>sMax.z) {
+                sMin.x += step/float(stepInc);
+                sMin.y += step/float(stepInc);
+                sMin.z += step/float(stepInc);
+                stepInc<<=1;
+                zP = sMin.z;
+            }
+        }
+    }
+    return vec4(xP, yP, zP, 0.f);
+}
+
 void volumetricFractals::Step(vec4 &v, vec4 &vp)
 {
     int i;
@@ -364,7 +407,7 @@ void volumetricFractals::Step(vec4 &v, vec4 &vp)
 ////////////////////////////////////////////////////////////////////////////
 void threadStepClass::newThread()
 {
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_TH)
     if(getEmitter()->useThread()) {
         attractorsList.queryStartThread();  //endlessLoop = true
         emitter->setEmitterOff();
@@ -383,7 +426,7 @@ void threadStepClass::startThread(bool stratOn)
 
 void threadStepClass::deleteThread()
 {
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_TH)
     if(getEmitter()->useThread() && getThread() && (getThread()->get_id() != std::thread::id())) {
         attractorsList.queryStopThread();
         stopThread();
@@ -395,7 +438,7 @@ void threadStepClass::deleteThread()
 }
 
 void threadStepClass::stopThread() {
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_TH)
     if(getEmitter()->useThread()) {
         emitter->setEmitterOff();
         while(emitter->isLoopRunning()) {
@@ -407,7 +450,7 @@ void threadStepClass::stopThread() {
 }
 
 void threadStepClass::notify() {
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_TH)
     if(getEmitter()->useThread()) attractorsList.stepCondVar.notify_one();
 #endif
 }
@@ -433,7 +476,7 @@ void AttractorsClass::newSelection(int i) {
 #else
     theApp->loadAttractor(getFileName().c_str());
 #endif
-#ifdef GLCHAOSP_LIGHTVER
+#ifdef GLCHAOSP_NO_BB
     theApp->setLastFile(getFileName()); //to reload invert settings
 #endif
     checkCorrectEmitter();
@@ -445,6 +488,7 @@ void AttractorsClass::newSelection(int i) {
 
 void AttractorsClass::checkCorrectEmitter()
 {
+#if !defined(GLCHAOSP_NO_TF)
     if(get()->dtType()) {
         if(tfSettinsClass::tfMode() && theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_staticParticles)
             theWnd->getParticlesSystem()->changeEmitter(enumEmitterEngine::emitterEngine_transformFeedback);
@@ -455,6 +499,10 @@ void AttractorsClass::checkCorrectEmitter()
         if(theApp->getEmitterEngineType()!=enumEmitterEngine::emitterEngine_staticParticles)
             theWnd->getParticlesSystem()->changeEmitter(enumEmitterEngine::emitterEngine_staticParticles);
     }
+#else
+    if(theApp->getEmitterEngineType()!=enumEmitterEngine::emitterEngine_staticParticles)
+        theWnd->getParticlesSystem()->changeEmitter(enumEmitterEngine::emitterEngine_staticParticles);
+#endif
 
 }
 void AttractorsClass::selection(int i) {
