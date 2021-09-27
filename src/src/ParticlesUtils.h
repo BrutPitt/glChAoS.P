@@ -259,16 +259,9 @@ public:
     #else
         if(!generated)  glGenTextures(1, &texID);   // Generate OpenGL texture IDs
         glBindTexture(GL_TEXTURE_2D, texID);        // Bind Our Texture
-
         //glTexStorage2D(GL_TEXTURE_2D, 7, GL_R32F, w, h);
         //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RED, GL_FLOAT, buffer);
-#if defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
-#else
-        theApp->checkMaxCombTexImgUnits() ?
-        glTexImage2D(GL_TEXTURE_2D, 0, theApp->getTexInternalPrecision(), w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer()) :
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
-#endif
+        glTexImage2D(GL_TEXTURE_2D, 0, theApp->getTexInternalPrecision(), w, h, 0, GL_RED, GL_FLOAT, gMap.getBuffer());
 
         CHECK_GL_ERROR();
         glGenerateMipmap(GL_TEXTURE_2D);
