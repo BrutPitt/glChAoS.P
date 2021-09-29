@@ -12,36 +12,77 @@
 //------------------------------------------------------------------------------
 #pragma once
 
-#define GLCHAOSP_VERSION "1.5.1"
+#define GLCHAOSP_VERSION "1.6.0 WiP"
 
 #define APP_USE_FBO
 
 //#define __APPLE__
 #ifdef __APPLE__
-    //#define GLCHAOSP_DISABLE_MACOS_MT
+    //#define GLCHAOSP_NO_TH
 #endif
 
+//#define GLCHAOSP_NO_USES_GLSL_SUBS //if enabled don't use OpenGL Subroutines (like in WebGL): ONLY for OGL 4.1
+//#define GLAPP_REQUIRE_OGL45 -> defined in Solution/CMakeFile.txt -> remove to compile for OGL 4.1 compliance (MacOS)
 
-//#define GLCHAOSP_NO_USES_GLSL_SUBS
-// #define BLEND_EQ_SEPARATE
-
-//#define APP_DEBUG_GUI_INTERFACE
-
-//#define GLAPP_IMGUI_VIEWPORT
+//#define BLEND_EQ_SEPARATE    //enable for more accurate Blending
+//#define GLAPP_IMGUI_VIEWPORT //enable for multiViewports GUI
 
 //#define GLCHAOSP_LIGHTVER_BLUR
+//#define APP_DEBUG_GUI_INTERFACE
+
 
 #ifdef __EMSCRIPTEN__
     #define DOT_TEXT_SHFT 1
 #else
     #define DOT_TEXT_SHFT 2
 #endif
+    //#define GLCHAOSP_NO_TF       // disable TransformFeedback -> TF is slowmotion/cockpit effects for dp/dt attractors
+    //#define GLCHAOSP_NO_TF_QUERY // disable TransformFeedback's glQuery --> need to disable in WebGL
+    //#define GLCHAOSP_NO_AO_SHDW  // disable AmbientOcclusion and Shadows
+    //#define GLCHAOSP_NO_FXAA     // disable FXAA filter
+    //#define GLCHAOSP_NO_AX       // disable AXes/CenterOfRotation manipulation/modification
+    //#define GLCHAOSP_NO_TH       // disable Thread creation
 
+    //#define GLCHAOSP_LIGHTVER_EXPERIMENTAL
+
+#ifdef GLAPP_USES_ES3
+    //#define GLCHAOSP_NO_FXAA     // disable FXAA filter .. FixMe!!!!
+    //#define GLCHAOSP_NO_MB       // disable Motion Blur
+    // #define GLCHAOSP_NO_AX
+    // #define GLCHAOSP_NO_BB       // disable BillBoard use only pointsprite (no billboard with Geometry shader)
+#endif
+
+
+#ifdef GLCHAOSP_WEBGL
+    //#define GLCHAOSP_LIGHTVER
+
+    //#define GLCHAOSP_WEBGL_W_SHADOWS
+    //#define GLCHAOSP_NO_AO_SHDW   // disable AmbientOcclusion and Shadows
+#endif
+
+#ifdef GLCHAOSP_WEBGL_W_SHADOWS
+    //#define GLCHAOSP_LIGHTVER
+    //#define GLCHAOSP_LIGHTVER_EXPERIMENTAL
+
+    //#define GLCHAOSP_NO_TF_QUERY       // disable TransformFeedback's glQuery --> need in WebGL
+    //#define GLCHAOSP_NO_AX             // disable AXes/CenterOfRotation manipulation/modification
+    //#define GLCHAOSP_NO_TH             // disable Thread creation --> not enabled in WebGL version
+    //#define GLCHAOSP_NO_FXAA           // disable FXAA filter
+    //#define GLCHAOSP_NO_MB             // disable Motion Blur
+    //#define GLCHAOSP_NO_BB             // use only pointsprite (no billboard with Geometry shader)
+    //#define GLCHAOSP_NO_USES_GLSL_SUBS // disable glsl subroutines
+    //#define GLAPP_NO_GLSL_PIPELINE
+#endif
 
 #ifdef GLCHAOSP_LIGHTVER
-//FF !:! pixel -> layout.css.devPixelsPerPx = 1
-    //#define GLCHAOSP_LIGHTVER_EXPERIMENTAL
-    #define GLCHAOSP_NO_FXAA
+    //#define GLCHAOSP_NO_TF_QUERY // disable TransformFeedback's glQuery --> need in WebGL
+    //#define GLCHAOSP_NO_AX       // disable AXes/CenterOfRotation manipulation/modification
+    //#define GLCHAOSP_NO_TH       // disable Thread creation --> not enabled in WebGL version
+    //#define GLCHAOSP_NO_FXAA     // disable FXAA filter
+    //#define GLCHAOSP_NO_MB       // disable Motion Blur
+    //#define GLCHAOSP_NO_BB       // use only pointsprite (no billboard with Geometry shader)
+    //#define GLCHAOSP_NO_USES_GLSL_SUBS // disable glsl subroutines
+    //#define GLAPP_NO_GLSL_PIPELINE
     //#define GLCHAOSP_NO_DeL
     //#define GLCHAOSP_USE_LOWPRECISION
 #endif
