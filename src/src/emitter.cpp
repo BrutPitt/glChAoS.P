@@ -43,11 +43,13 @@ void singleEmitterClass::setEmitter(bool emit)
     bEmitter = emit;
 #if !defined(GLCHAOSP_LIGHTVER)
     if(emit) theWnd->getParticlesSystem()->viewObjOFF();
-    attractorsList.getStepCondVar().notify_one();
+    #if !defined(GLCHAOSP_NO_TH)
+        attractorsList.getStepCondVar().notify_one();
+    #endif
 #endif
 }
 
-#if !defined(GLCHAOSP_DISABLE_FEEDBACK)
+#if !defined(GLCHAOSP_NO_TF)
 //
 //  transformFeedbackInterleaved
 //
@@ -84,7 +86,7 @@ void transformFeedbackInterleaved::Begin(GLuint query, GLsizeiptr sz)
 
     if(bDiscard) glEnable(GL_RASTERIZER_DISCARD);
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_TF_QUERY)
     glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, query);
 #endif
 
@@ -96,7 +98,7 @@ GLuint transformFeedbackInterleaved::End(GLuint query, GLsizeiptr sz)
     if(!FeedbackActive)  return -1;
     FeedbackActive = false;
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_TF_QUERY)
     glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
     glGetQueryObjectuiv(query,GL_QUERY_RESULT,&iPrimitivesWritten);
 #endif
@@ -127,7 +129,7 @@ void transformedEmitterClass::buildEmitter()
     tfbs[0] = new transformFeedbackInterleaved(GL_POINTS, getSizeAllocatedBuffer(), numVtxAttrib);
     tfbs[1] = new transformFeedbackInterleaved(GL_POINTS, getSizeAllocatedBuffer(), numVtxAttrib);
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_TF_QUERY)
     glGenQueries(1,&query);
 #endif
     InsertVbo = new transformVertexBuffer(GL_POINTS, size, numVtxAttrib);
@@ -157,7 +159,6 @@ void transformedEmitterClass::buildEmitter()
     uniformBlocksClass::create(GLuint(sizeof(tfSettinsClass::uTFData)), nullptr);
 #else
     USE_PROGRAM
-
     uniformBlocksClass::create(GLuint(sizeof(tfSettinsClass::uTFData)), nullptr, getProgram(), "_TFData");
 #endif
 }

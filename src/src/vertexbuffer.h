@@ -155,7 +155,7 @@ public:
         CHECK_GL_ERROR()
     }
 
-#if !defined(GLCHAOSP_DISABLE_FEEDBACK)
+#if !defined(GLCHAOSP_NO_TF)
 //  Feedback functions
 ////////////////////////////////////////////////////////////////////////////
     void BindToFeedback(int index, GLsizeiptr sz)

@@ -117,21 +117,25 @@ public:
     void incEmittedParticles() { emittedPoints++; }
 
     void setEmitterType(int type) {
+#if !defined(GLCHAOSP_NO_TF)
         if(theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback) {
             bUseThread = false; bUseMappedMem = false; 
-        } else {
+        } else
+#endif
             switch(type) {
 #ifdef GLAPP_REQUIRE_OGL45
                 case emitter_separateThread_mappedBuffer:
                     bUseThread = true; bUseMappedMem = true; break;
 #endif
+#if !defined(GLCHAOSP_NO_TH)
                 case emitter_separateThread_externalBuffer:
                     bUseThread = true; bUseMappedMem = false; break;
+#endif
                 case emitter_singleThread_externalBuffer:
                 default:
                     bUseThread = false; bUseMappedMem = false; break;
             }
-        }
+
     }
 
 protected:
@@ -146,7 +150,7 @@ protected:
     bool bEmitter = false;
     bool bStopFull = false, bRestartCircBuff = false;
 
-    bool bUseThread = true;
+    bool bUseThread = false;
     bool bUseMappedMem = true;
     
     bool bBufferRendered = false, bStopLoop = false;
@@ -211,7 +215,7 @@ private:
     vertexBufferBaseClass *InsertVbo = nullptr;
 };
 
-#if !defined(GLCHAOSP_DISABLE_FEEDBACK)
+#if !defined(GLCHAOSP_NO_TF)
 
 class transformFeedbackInterleaved 
 {
@@ -250,7 +254,7 @@ public:
     ~transformedEmitterClass() {
         delete tfbs[0];
         delete tfbs[1];
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_TF_QUERY)
         glDeleteQueries(1,&query);
 #endif
         delete InsertVbo;
