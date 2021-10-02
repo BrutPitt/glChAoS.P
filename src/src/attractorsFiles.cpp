@@ -198,9 +198,13 @@ bool importPLY(bool wantColors, int velType)
 
 uint8_t *getColorBuffer(vec4 *map, const uint32_t sizeBuff, bool alphaDist)
 {
+#ifdef GLCHAOSP_NO_BB
+    particlesBaseClass *pSys = (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
+#else
     particlesBaseClass *pSys = theWnd->getParticlesSystem()->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? 
         (particlesBaseClass *) theWnd->getParticlesSystem()->shaderBillboardClass::getPtr() : 
         (particlesBaseClass *) theWnd->getParticlesSystem()->shaderPointClass::getPtr();
+#endif
 
     uint8_t *clrBuff = new uint8_t[sizeBuff * (alphaDist ? 4:3)];
     uint32_t *palBuff = new uint32_t[256]; // RGBA*256 -> 256*4

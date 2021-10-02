@@ -283,9 +283,11 @@ void saveSettings(Config &cfg, particlesSystemClass *pSys)
         auto &c = cfg["Render"] = Config::object();
 
         c["RenderMode"   ] = pSys->getRenderMode();
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_MB)
         c["motionBlur"   ] = pSys->getMotionBlur()->Active();
         c["blurIntensity"] = pSys->getMotionBlur()->getBlurIntensity();
+#endif
+#if !defined(GLCHAOSP_NO_BB)
         c["mixingVal"    ] = pSys->getMergedRendering()->getMixingVal();
 #endif
         c["circBuff"     ] = pSys->getEmitter()->getSizeCircularBuffer();
@@ -352,7 +354,7 @@ void saveSettings(Config &cfg, particlesSystemClass *pSys)
         }
 
     }
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
     {
         auto &c = cfg["RenderMode0"] = Config::object();
         saveParticlesSettings(c,pSys->shaderBillboardClass::getPtr());
@@ -497,7 +499,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         ptr->dstBlendIdx(getBlendIdx(ptr->getDstBlend()));
         ptr->srcBlendIdx(getBlendIdx(ptr->getSrcBlend()));
     }
-
+//AO
     if(theDlg.getDataDlg().getAO() || checkSelectGroup) {
         ptr->useAO(                    c.get_or("AOenabled"   , false               ));
         ptr->setAOStrong(              c.get_or("AOstrong"    , 0.0                 ));
@@ -509,7 +511,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
     }
 
 
-
+//Shadow
     if(theDlg.getDataDlg().getShadow() || checkSelectGroup) {
         ptr->useShadow(            c.get_or("ShadowEnabled"      , false ));
         ptr->setShadowBias(        c.get_or("ShadowBias"         , 0.0   ));
@@ -657,12 +659,13 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
 
         pSys->setRenderMode(theApp->slowGPU() ? RENDER_USE_POINTS : c.get_or("RenderMode"   , int(RENDER_USE_POINTS)) );
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_MB)
         pSys->getMotionBlur()->Active(            c.get_or("motionBlur"   , pSys->getMotionBlur()->Active()            ));
         pSys->getMotionBlur()->setBlurIntensity(  c.get_or("blurIntensity", pSys->getMotionBlur()->getBlurIntensity()  ));
+#endif
+#if !defined(GLCHAOSP_NO_BB)
         pSys->getMergedRendering()->setMixingVal( c.get_or("mixingVal"    , pSys->getMergedRendering()->getMixingVal() ));
 #endif
-
         if(!(typeToIgnore & loadSettings::ignoreCircBuffer)) {
             pSys->getEmitter()->setSizeCircularBuffer(c.get_or("circBuff"     , pSys->getEmitter()->getSizeCircularBuffer()));
 #ifdef GLCHAOSP_LIGHTVER
@@ -729,7 +732,7 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
     }
 
     {
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
         auto &c0 = cfg["RenderMode0"];
         particlesBaseClass *ptr0 = pSys->shaderBillboardClass::getPtr();
         if(theDlg.getDataDlg().getBBSettings() || checkSelectGroup) getRenderMode(c0, ptr0, typeToIgnore);
@@ -752,7 +755,7 @@ void mainGLApp::invertSettings()
     particlesSystemClass *pSys = theWnd->getParticlesSystem();
 
     //Save Inverted
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
     {
         auto &c = cfg["RenderMode1"] = Config::object();
         saveParticlesSettings(c,pSys->shaderBillboardClass::getPtr());
@@ -763,7 +766,7 @@ void mainGLApp::invertSettings()
         saveParticlesSettings(c,pSys->shaderPointClass::getPtr());
     }
 
-#if !defined(GLCHAOSP_LIGHTVER)
+#if !defined(GLCHAOSP_NO_BB)
     {
         auto &c = cfg["RenderMode0"];
         particlesBaseClass *ptr = pSys->shaderBillboardClass::getPtr();
@@ -998,7 +1001,7 @@ bool mainGLApp::loadProgConfig()
     theApp->useLowPrecision(cfg.get_or("useLowPrecision", false));
     theApp->useDetailedShadows(cfg.get_or("useDetailedShadows", false));
     
-#ifdef GLCHAOSP_DISABLE_MACOS_MT //stuttering multithread OGL
+#if !defined(GLCHAOSP_NO_TH) //stuttering multithread OGL
     theApp->selectEmitterType(emitter_singleThread_externalBuffer);
 #else
     theApp->selectEmitterType(cfg.get_or("emitterType",int(emitter_separateThread_externalBuffer)));

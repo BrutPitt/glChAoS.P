@@ -1016,6 +1016,18 @@ void Kaneko3D::startData()
     Insert(vVal[0]);
 }
 
+void Henon3D::startData()
+{
+    vVal.push_back(vec4(.65f, 0.65f, -.0f, 0.f));
+
+
+    kVal.push_back( 1.524f);
+    kVal.push_back( .000001f);
+    kVal.push_back( 2.0f);
+
+    Insert(vVal[0]);
+}
+
 void WangSunCang::startData()
 {
     vVal.push_back(vec4(0.0f));
