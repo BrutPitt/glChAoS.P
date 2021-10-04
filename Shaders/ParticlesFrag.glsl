@@ -190,9 +190,9 @@ vec4 mainFunc(vec2 ptCoord)
     baseColor = color;
 
 #if defined(GL_ES) || defined(GLCHAOSP_NO_USES_GLSL_SUBS)
-    #if defined(GL_ES) && !defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
+    #ifdef GLCHAOSP_NO_AO_SHDW
         return u.lightActive==1u ? pixelColorDirect(color, N) : pixelColorBlending(color, N);
-    #else        
+    #else
         switch(u.renderType) {
             default:
             case uint(idxBLENDING) : return pixelColorBlending(color, N);
