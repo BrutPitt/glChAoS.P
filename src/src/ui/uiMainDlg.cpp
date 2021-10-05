@@ -897,6 +897,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 #endif
     // Glow settings
     ////////////////////////////////////
+#if !defined(GLCHAOSP_NO_BLUR)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
         const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_LOW_VISION " Blur/Glow/deNoise Effects   "  ICON_FA_COMMENT_O);
@@ -923,8 +924,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     //if(modCheckBox(b, wButt3, true)) glow->setGlowState(b^1);
 */
                     
-#if !defined(GLCHAOSP_LIGHTVER_BLUR)
-                    {    
+                    {
                         bool b = glow->isGlowOn();
                         if(ImGui::Checkbox(buildID(base, idA++, id), &b)) glow->setGlowOn(b);
                     }
@@ -941,16 +941,6 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     }
 
                     ImGui::PopItemWidth();
-#else 
-                    {    
-                        bool b = glow->isGlowOn();
-                        if(ImGui::Checkbox(buildID(base, idA++, id), &b)) {
-                            glow->setGlowOn(b);
-                            if(glow->isGlowOn()) glow->setGlowState(BlurBaseClass::glowType_Bilateral);
-                            else                 glow->setGlowState(BlurBaseClass::glowType_ByPass);
-                        }
-                    }
-#endif
 
                 }
 
@@ -1050,6 +1040,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PopStyleVar();
         }
     }
+#endif
 #if !defined(GLCHAOSP_NO_FXAA)
     // FXAA settings
     ////////////////////////////////////
