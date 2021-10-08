@@ -680,17 +680,15 @@ void BlurBaseClass::create()
 
 
         uniformBlocksClass::create(GLuint(sizeof(uBlurData)), (void *) &uData, getProgram(), "_blurData");
-    #if !defined(GLCHAOSP_LIGHTVER_BLUR)
+    #if !defined(GLCHAOSP_NO_BLUR)
         LOCpass1Texture = getUniformLocation("pass1Texture");
     #endif
-    #if !defined(GLCHAOSP_LIGHTVER)
-        #if !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
-            idxSubGlowType[idxSubroutine_ByPass            ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "byPass"                  );
-            idxSubGlowType[idxSubroutine_BlurCommonPass1   ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass1"             );
-            idxSubGlowType[idxSubroutine_BlurGaussPass2    ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass2"             );
-            idxSubGlowType[idxSubroutine_BlurThresholdPass2]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass2withBilateral");
-            idxSubGlowType[idxSubroutine_Bilateral         ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "bilateralSmooth"         );
-        #endif
+    #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+        idxSubGlowType[idxSubroutine_ByPass            ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "byPass"                  );
+        idxSubGlowType[idxSubroutine_BlurCommonPass1   ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass1"             );
+        idxSubGlowType[idxSubroutine_BlurGaussPass2    ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass2"             );
+        idxSubGlowType[idxSubroutine_BlurThresholdPass2]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass2withBilateral");
+        idxSubGlowType[idxSubroutine_Bilateral         ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "bilateralSmooth"         );
     #endif
         //ProgramObject::reset();
 #endif
@@ -715,16 +713,14 @@ void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex)
     glBindTexture(GL_TEXTURE_2D,  sourceTex);
     setUniform1i(LOCorigTexture,  sourceTex);
 
-    #if !defined(GLCHAOSP_LIGHTVER_BLUR)
+    #if !defined(GLCHAOSP_NO_BLUR)
         glActiveTexture(GL_TEXTURE0 + texPass);
         glBindTexture(GL_TEXTURE_2D,  texPass);
         setUniform1i(LOCpass1Texture, texPass);
     #endif
 
-    #if !defined(GLCHAOSP_LIGHTVER)
-        #if !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
-            glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &idxSubGlowType[subIndex]);
-        #endif
+    #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &idxSubGlowType[subIndex]);
     #endif
     updateData(subIndex);
 #endif
@@ -1179,7 +1175,7 @@ void ambientOcclusionClass::releaseRender()
 ////////////////////////////////////////////////////////////////////////////////
 shadowClass::shadowClass(renderBaseClass *ptrRE) : renderEngine(ptrRE) 
 {
-#if !defined(GLCHAOSP_LIGHTVER) &&  !defined(GLAPP_USES_ES3)
+#if !defined(GLCHAOSP_LIGHTVER)
     const int detail = theApp->useDetailedShadows() ? 2 : 1;
     const int width = theApp->GetWidth()*detail, height = theApp->GetHeight()*detail;
 #else

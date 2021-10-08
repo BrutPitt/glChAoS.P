@@ -27,7 +27,8 @@
 //#define BLEND_EQ_SEPARATE    //enable for more accurate Blending
 //#define GLAPP_IMGUI_VIEWPORT //enable for multiViewports GUI
 
-//#define GLCHAOSP_LIGHTVER_BLUR
+//#define GLCHAOSP_NO_BLUR
+
 //#define APP_DEBUG_GUI_INTERFACE
 
 
