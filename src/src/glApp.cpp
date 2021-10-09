@@ -360,7 +360,7 @@ void mainGLApp::glfwInit()
 
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-            glslVersion = "#version 300 es\n";
+            glslVersion = "#version 320 es\n";
             glslDefines = fPrecision + iPrecision;
             glslDefines+= "#define LAYOUT_BINDING(X)\n"
                           "#define LAYOUT_INDEX(X)\n"
@@ -406,21 +406,32 @@ void mainGLApp::glfwInit()
 #endif
 
 
-#if /*defined(GLAPP_USES_ES3) || */defined(__EMSCRIPTEN__)
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
-#else
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //GLFW_OPENGL_ANY_PROFILE
+#if defined(GLAPP_USES_ES3) || defined(__EMSCRIPTEN__)
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 #endif
+
+
+#if defined(GLAPP_USES_ES3)
+    // From GLFW:
+    //      X11: On some Linux systems, creating contexts via both the native and EGL APIs in a single process
+    //           will cause the application to segfault. Stick to one API or the other on Linux for now.
+    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API); //GLFW_NATIVE_CONTEXT_API
+#endif
+
+
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // from GLFW: If OpenGL ES is requested, this hint is ignored.
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // from GLFW: If OpenGL ES is requested, this hint is ignored.
+
 #ifdef NDEBUG
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_CONTEXT_NO_ERROR);
 #endif
 
     glfwWindowHint(GLFW_SAMPLES, 0); //glfwWindowHint(GLFW_SAMPLES, getMultisamplingValue());
     glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
-    glfwWindowHint(GLFW_DEPTH_BITS, 32);
 
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
+    glfwWindowHint(GLFW_DEPTH_BITS, 0); // rendering is on FBO, so disable DEPTH buffer of context
+
+    //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
 
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
@@ -523,8 +534,8 @@ mainGLApp::mainGLApp()
 #else
     setLowPrecision();
 #endif
-    mainGLApp::theMainApp = this;
 
+    mainGLApp::theMainApp = this;
 
     glEngineWnd = new glWindow; 
     screenShotRequest = false;
@@ -637,7 +648,7 @@ int main(int argc, char **argv)
 {
 //Initialize class e self pointer
     theApp = new mainGLApp;
-#ifdef GLCHAOSP_LIGHTVER
+#ifdef __EMSCRIPTEN__
     if(argc>1 && argc!=8) {
         int w = atoi(argv[1]);
         int h = atoi(argv[2]);

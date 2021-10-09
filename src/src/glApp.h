@@ -284,6 +284,7 @@ public:
 
     GLuint getClampToBorder() { return clampToBorder; }
 
+
     void setLowPrecision() {
         useLowPrecision(true);
         setTexInternalPrecision(GL_R16F);
@@ -293,6 +294,7 @@ public:
         setFBOInterpolation(GL_LINEAR);
         setShaderFloatPrecision(glslPrecision::low);
         setShaderIntPrecision(glslPrecision::medium);
+        multisamplingIdx = 3;
     }
     void setHighPrecision() {
         useLowPrecision(false);
@@ -303,6 +305,7 @@ public:
         setFBOInterpolation(GL_LINEAR);
         setShaderFloatPrecision(glslPrecision::hight);
         setShaderIntPrecision(glslPrecision::hight);
+        multisamplingIdx = 3;
     }
 
     // wgl command line settings
@@ -443,8 +446,7 @@ private:
 
     int fbMultisampling[6] = { GLFW_DONT_CARE, 0, 2, 4, 8, 16 };
 
-
-#if !defined(GLCHAOSP_USE_LOWPRECISION)
+//Values of this block can be overwritten from #define in constructor
     bool lowPrecision = false;
     GLenum fboInternalPrecision = GL_RGBA32F;
     GLenum palInternalPrecision = GL_RGB32F;
@@ -454,17 +456,7 @@ private:
     glslPrecision shaderFloatPrecision = glslPrecision::hight;
     glslPrecision shaderIntPrecision   = glslPrecision::hight;
     int multisamplingIdx = 3;
-#else
-    bool lowPrecision = true;
-    GLenum fboInternalPrecision = GL_RGBA16F;
-    GLenum palInternalPrecision = GL_RGB16F;
-    GLenum texInternalPrecision = GL_R16F;
-    GLuint dbInterpolation      = GL_NEAREST;
-    GLuint fboInterpolation     = GL_LINEAR;
-    glslPrecision shaderFloatPrecision = glslPrecision::low;
-    glslPrecision shaderIntPrecision = glslPrecision::medium;
-    int multisamplingIdx = 2;
-#endif
+////////////////////////////////
 
     std::string lastAttractor = std::string("");
     std::string capturePath = std::string(CAPTURE_PATH);

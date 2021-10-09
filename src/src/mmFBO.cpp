@@ -196,8 +196,8 @@ void mmFBO::attachMultiFB(int num)
         glNamedFramebufferDrawBuffers(m_fb[countFB], num, drawBuffers);
 #else
             glBindFramebuffer(GL_FRAMEBUFFER, m_fb[countFB]);
-    #if !defined(GLCHAOSP_LIGHTVER) /*&& !defined(GLAPP_USES_ES3)*/
-            glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i,i==0 ? m_tex[countFB] : multiDrawFB[(countFB*numMultiDraw)+(i-1)], 0);
+    #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLAPP_USES_ES3)
+            glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i,i==0 ? m_tex[countFB] : multiDrawFB[(countFB*numMultiDraw)+(i-1)], 0); // for OpenGLES -> defined only in ES 3.2
     #else
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, i==0 ? m_tex[countFB] : multiDrawFB[(countFB*numMultiDraw)+(i-1)], 0);
     #endif
@@ -256,8 +256,8 @@ void mmFBO::attachSecondaryBuffer(bool builtIN, secondaryBufferType bufferType, 
             glFramebufferRenderbuffer( GL_FRAMEBUFFER, attach, GL_RENDERBUFFER, m_rb[i]);
         } else {
             defineTexture(m_depth[i], intFormat, format, type, interpol, clamp);
-#if !defined(GLCHAOSP_LIGHTVER) /*&& !defined(GLAPP_USES_ES3)*/
-            glFramebufferTexture(GL_FRAMEBUFFER, attach, m_depth[i], 0);
+#if !defined(GLCHAOSP_LIGHTVER) && !defined(GLAPP_USES_ES3)
+            glFramebufferTexture(GL_FRAMEBUFFER, attach, m_depth[i], 0);  // for OpenGLES -> defined only in ES 3.2
 #else
             glFramebufferTexture2D(GL_FRAMEBUFFER, attach, GL_TEXTURE_2D, m_depth[i], 0);
 #endif
