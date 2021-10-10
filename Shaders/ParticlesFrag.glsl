@@ -198,10 +198,10 @@ vec4 mainFunc(vec2 ptCoord)
             case uint(idxBLENDING) : return pixelColorBlending(color, N);
             case uint(idxSOLID   ) : return pixelColorDirect(color, N);
             case uint(idxSOLID_AO) : return pixelColorAO(color, N);
-            case uint(idxSOLID_DR) : return pixelColorDR(color, N);             
+            case uint(idxSOLID_DR) : return pixelColorDR(color, N);
         }
     #endif
-#else   
-        return pixelColor(color, N); 
+#else
+        return pixelColor(color, N);
 #endif
 }
