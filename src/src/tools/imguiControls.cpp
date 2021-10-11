@@ -187,7 +187,7 @@ bool DragFloatEx(const char* label, float *v, float v_speed, float v_min, float 
     bool temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
     if (!temp_input_is_active)
     {
-        const bool focus_requested = temp_input_allowed && (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_Focused) != 0;
+        const bool focus_requested = temp_input_allowed && (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_FocusedByTabbing) != 0;
         const bool clicked = (hovered && g.IO.MouseClicked[0]);
         const bool double_clicked = (hovered && g.IO.MouseDoubleClicked[0]);
         if (focus_requested || clicked || double_clicked || g.NavActivateId == id || g.NavActivateInputId == id)
@@ -239,83 +239,6 @@ bool DragFloatEx(const char* label, float *v, float v_speed, float v_min, float 
         RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
 
     IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
-    return value_changed;
-}
-
-bool DragFloatEx_(const char* label, float *v, float v_speed, float v_min, float v_max, const char* format, float power, const ImVec2 &alignment)
-{
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
-        return false;
-/*
-    if (power != 1.0f)
-        IM_ASSERT(v_min != NULL && v_max != NULL); // When using a power curve the drag needs to have known bounds
-*/
-    ImGuiContext& g = *GImGui;
-    const ImGuiStyle& style = g.Style;
-    const ImGuiID id = window->GetID(label);
-    const float w = CalcItemWidth();
-    const ImVec2 label_size = CalcTextSize(label, NULL, true);
-    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y*2.0f));
-    const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
-
-    ItemSize(total_bb, style.FramePadding.y);
-    if (!ItemAdd(total_bb, id, &frame_bb))
-        return false;
-
-    
-    ItemSize(total_bb, style.FramePadding.y);
-    if (!ItemAdd(total_bb, id, &frame_bb, ImGuiItemFlags_Inputable))
-        return false;
-
-
-    // Default format string when passing NULL
-    if (format == NULL) format = "%.3f";
-
-    // Tabbing or CTRL-clicking on Drag turns it into an input box
-    const bool hovered = ItemHoverable(frame_bb, id);
-    bool temp_input_is_active = TempInputIsActive(id);
-    bool temp_input_start = false;
-    if (!temp_input_is_active)
-    {
-        const bool focus_requested = (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_Focused) != 0;
-        
-        const bool clicked = (hovered && g.IO.MouseClicked[0]);
-        const bool double_clicked = (hovered && g.IO.MouseDoubleClicked[0]);
-        if (focus_requested || clicked || double_clicked || g.NavActivateId == id /*|| g.NavInputId == id */)
-        {
-            SetActiveID(id, window);
-            SetFocusID(id, window);
-            FocusWindow(window);
-            g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
-                if (focus_requested || (clicked && g.IO.KeyCtrl) || double_clicked || g.NavActivateInputId == id)
-                    temp_input_is_active = true;
-        }
-    }
-
-    if (temp_input_is_active)
-        return TempInputScalar(frame_bb, id, label, ImGuiDataType_Float, v, format);
-
-    // Draw frame
-    const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
-    RenderNavHighlight(frame_bb, id);
-    RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
-
-    // Drag behavior
-    const bool value_changed = DragBehavior(id, ImGuiDataType_Float, v, v_speed, &v_min, &v_max, format, ImGuiSliderFlags_None);
-    if (value_changed)
-        MarkItemEdited(id);
-
-    // Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
-    char value_buf[64];
-    const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), ImGuiDataType_Float, v, format);
-    //const char* value_buf_end = value_buf + ImFormatString(value_buf, IM_ARRAYSIZE(value_buf), format, *v);
-    RenderTextClipped(frame_bb.Min, frame_bb.Max, value_buf, value_buf_end, NULL, alignment);
-
-    if (label_size.x > 0.0f)
-        RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
-
-    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.ItemFlags);
     return value_changed;
 }
 
