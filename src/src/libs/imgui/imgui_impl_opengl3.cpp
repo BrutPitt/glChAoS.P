@@ -279,8 +279,9 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
 
 void    ImGui_ImplOpenGL3_Shutdown()
 {
-    ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
+    IM_ASSERT(bd != NULL && "No renderer backend to shutdown, or already shutdown?");
+    ImGuiIO& io = ImGui::GetIO();
 
     ImGui_ImplOpenGL3_ShutdownPlatformInterface();
     ImGui_ImplOpenGL3_DestroyDeviceObjects();
@@ -720,7 +721,7 @@ bool    ImGui_ImplOpenGL3_CreateDeviceObjects()
         vertex_shader = vertex_shader_glsl_410_core;
         fragment_shader = fragment_shader_glsl_410_core;
     }
-    else if (glsl_version == 300)
+    else if (glsl_version >= 300 && strstr(bd->GlslVersionString,"es"))
     {
         vertex_shader = vertex_shader_glsl_300_es;
         fragment_shader = fragment_shader_glsl_300_es;
