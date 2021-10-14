@@ -76,15 +76,14 @@ set(OGL45 "-DGLAPP_REQUIRE_OGL45")
 
 #   OpenGL 4.1 - Olden GPU and MacOS X
 #
-set(OGL41 "")
+set(OGL41 "-DGLCHAOSP_NO_USES_GLSL_SUBS")   #-DGLCHAOSP_NO_USES_GLSL_SUBS like webGL version: doesn't uses OGL subroutines
 set(OGL41_LOW " -DGLCHAOSP_NO_USES_GLSL_SUBS
                 -DGLAPP_NO_GLSL_PIPELINE
                 -DGLCHAOSP_NO_AX
                 -DGLCHAOSP_NO_BB
-                -DGLCHAOSP_NO_FXAA
                 -DGLCHAOSP_NO_MB
-                -DGLCHAOSP_NO_AO_SHDW")
-# set(OGL41 "-DGLCHAOSP_NO_USES_GLSL_SUBS") #like webGL version: doesn't uses OGL subroutines
+                -DGLCHAOSP_NO_TH
+                ") #  -DGLCHAOSP_NO_AO_SHDW # add for lower resources
 
 #   OpenGL ES 3.0
 #
@@ -95,10 +94,9 @@ set(OGLES " -DGLAPP_USES_ES3
             -DGLAPP_NO_GLSL_PIPELINE
             -DGLCHAOSP_NO_AX
             -DGLCHAOSP_NO_BB
-            -DGLCHAOSP_NO_FXAA
             -DGLCHAOSP_NO_MB")
 
-set(OGLES_LOW "${OGLES} -DGLCHAOSP_NO_AO_SHDW")
+set(OGLES_LOW "${OGLES} -DGLCHAOSP_NO_AO_SHDW -DGLCHAOSP_NO_BLUR -DGLCHAOSP_NO_TH")
 
 
 set(defaultBuildType "Release")
@@ -223,10 +221,10 @@ if(BUILD_wglChAoSP OR BUILD_wglChAoSP_lowres)
                      -DGLCHAOSP_NO_TF_QUERY
                      -DGLCHAOSP_NO_AX
                      -DGLCHAOSP_NO_TH
-                     -DGLCHAOSP_NO_FXAA
                      -DGLCHAOSP_NO_MB
                      -DGLCHAOSP_NO_BB
                      -DGLCHAOSP_NO_USES_GLSL_SUBS
+                     -DGLCHAOSP_WGL_REDUCE_TEXTURES
                      -DGLAPP_NO_GLSL_PIPELINE")
     if(BUILD_wglChAoSP_lowres)
         set(WGL_DEFINES "${WGL_DEFINES} -DGLCHAOSP_USE_LOWPRECISION -DGLCHAOSP_NO_AO_SHDW")
@@ -409,6 +407,7 @@ if(${GLAPP_USE_INTERNAL_GLFW})
         # both MinGW and Linux
             target_link_directories(${PROJECT_NAME} PRIVATE ${SRC}/libs/glfw/buildLinux/lib)
             target_link_directories(${PROJECT_NAME} PRIVATE ${SRC}/libs/glfw/buildLinux/lib64)
+            set(LIB_GLFW "glfw3")
         endif(WIN32)
     endif(APPLE)
 else()
