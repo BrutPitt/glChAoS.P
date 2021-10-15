@@ -319,10 +319,10 @@
 
 #define GLAPP_HELP_LOWRES1\
     "glChAoS.P is running with low resources: your WebGL engine have MaxCombinedTextureImageUnits <= 32\n\n"\
-    "In this condition are disabled AmbientOcclusion and Shadows\n\n"\
-    "If you are running it on a mobile devices this can be normal: use the lowres version (wglChAoSP_lowres.html instead of wglChAoSP.html) to disable this inital warning.\n\n"\
+    "In this condition some things may not work!!!! \n\n"\
+    "If you are running it on a mobile devices this can be normal: use the lowres version (wglChAoSP_lowres.html instead of wglChAoSP.html) to disable this inital warning, but it hasn't shadows and ambient occlusions\n\n"\
     "If you are in Windows with a good/discrete GPU/APU, this can be a problem of A.N.G.L.E. (OpenGL -> DirectX translator) used from your browser (again sets this limit to 32: before was 48)\n\n"\
-    "You can disable ANGLE and to use directly native OpenGL calls, to do it:\n\n"\
+    "You can try to disable ANGLE and to use directly native OpenGL calls, to do it:\n\n"\
 
 #define GLAPP_HELP_LOWRES2\
     "Firefox:\n"\

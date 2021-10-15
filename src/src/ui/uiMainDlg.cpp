@@ -262,7 +262,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 #if defined(GLCHAOSP_NO_AO_SHDW)
             const int numItems = 7;
 #else
-            const int numItems = theApp->checkMaxCombTexImgUnits() ? 8 : 7;
+            const int numItems = 8;
 #endif
 
 
@@ -425,32 +425,30 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     }
                 ImGui::PopItemWidth();
 #if !defined(GLCHAOSP_NO_AO_SHDW)
-                if(theApp->checkMaxCombTexImgUnits()) {
-                    if(!particles->getBlendState() && (particles->getDepthState() || particles->getLightState())) {
+                if(!particles->getBlendState() && (particles->getDepthState() || particles->getLightState())) {
 
-                        ImGui::SetCursorPosX(posA);
+                    ImGui::SetCursorPosX(posA);
+                    {
+                        char txt[32];
+                        bool b = particles->postRenderingActive();
+                        sprintf(txt, b ? "DualPass " ICON_FA_CHECK_SQUARE_O "%s" : "DualPass " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
+                        if(colCheckButton(b , txt, wButt3)) particles->postRenderingActive(b^1);
+                    }
+
+                    if(particles->postRenderingActive()) {
+                        ImGui::PushItemWidth(wButt3);
+                        ImGui::SameLine();
                         {
-                            char txt[32];
-                            bool b = particles->postRenderingActive();
-                            sprintf(txt, b ? "DualPass " ICON_FA_CHECK_SQUARE_O "%s" : "DualPass " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
-                            if(colCheckButton(b , txt, wButt3)) particles->postRenderingActive(b^1);
+                            float f = particles->dpAdjConvex();
+                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .001, .01, 3.0, "Cnvx: %.3f",1.f)) particles->dpAdjConvex(f);
                         }
 
-                        if(particles->postRenderingActive()) {
-                            ImGui::PushItemWidth(wButt3);
-                            ImGui::SameLine();
-                            {
-                                float f = particles->dpAdjConvex();
-                                if(ImGui::DragFloat(buildID(base, idA++, id), &f, .001, .01, 3.0, "Cnvx: %.3f",1.f)) particles->dpAdjConvex(f);
-                            }
-
-                            ImGui::SameLine();
-                            {
-                                float f = particles->dpNormalTune();
-                                if(ImGui::DragFloat(buildID(base, idA++, id), &f, .00025, 0.0, 5.0, "Norm: %.4f",1.f)) particles->dpNormalTune(f);
-                            }
-                            ImGui::PopItemWidth();
+                        ImGui::SameLine();
+                        {
+                            float f = particles->dpNormalTune();
+                            if(ImGui::DragFloat(buildID(base, idA++, id), &f, .00025, 0.0, 5.0, "Norm: %.4f",1.f)) particles->dpNormalTune(f);
                         }
+                        ImGui::PopItemWidth();
                     }
                 }
 #endif
@@ -709,188 +707,186 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 #endif
 
 #if !defined(GLCHAOSP_NO_AO_SHDW)
-    if(theApp->checkMaxCombTexImgUnits()) {
-        if(!particles->getBlendState() && (particles->getDepthState() || particles->getLightState())) {
+    if(!particles->getBlendState() && (particles->getDepthState() || particles->getLightState())) {
 // Shadow settings
 ////////////////////////////////////
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
-                const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SIGN_LANGUAGE  " Shadows   " ICON_FA_COMMENT_O);
-                ImGui::PopStyleColor();
-                ShowHelpOnTitle(GLAPP_HELP_SHADOWS_TREE);
-                if(isOpen) {
-                    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-                    ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+            const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SIGN_LANGUAGE  " Shadows   " ICON_FA_COMMENT_O);
+            ImGui::PopStyleColor();
+            ShowHelpOnTitle(GLAPP_HELP_SHADOWS_TREE);
+            if(isOpen) {
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
+
+                ImGui::SetCursorPosX(posA);
+                {
+                    bool b = particles->useShadow();
+                    if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useShadow(b);
+                }
+
+                //if(particles->useShadow()) {
+                    ImGui::SameLine();
+
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("Ratio");
+                    ImGui::SameLine();
+
+                    ImGui::PushItemWidth((w - ImGui::GetCursorPosX()) * .3 - border);
+                    {
+                        int idx = int(1.f/particles->getShadowGranularity()+.5)-1;
+                        if (ImGui::Combo(buildID(base, idA++, id), &idx, "rad:1\0"\
+                                                                         "rad:2\0"\
+                                                                         "rad:3\0"\
+                                                                         "rad:4\0"\
+                                                                         "rad:5\0"))
+                            {  particles->setShadowGranularity(1.f/float(idx+1)); }
+                    }
+                    ImGui::PopItemWidth();
+
+                    ImGui::SameLine();
+                    const float sz = (w - ImGui::GetCursorPosX()) * .5 - border;
+                    {
+                        char txt[48];
+                        bool b = particles->useScatterdShadow();
+                        sprintf(txt, b ? "Scatter " ICON_FA_CHECK_SQUARE_O "%s" : "Scatter " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
+                        if(colCheckButton(b , txt, sz)) particles->useScatterdShadow(b^1);
+                    }
+                    ImGui::SameLine();
+                    {
+                        char txt[48];
+                        bool b = particles->autoLightDist();
+                        sprintf(txt, b ? "AutoLight " ICON_FA_CHECK_SQUARE_O "%s" : "AutoLight " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
+                        if(colCheckButton(b , txt, sz)) particles->autoLightDist(b^1);
+                    }
+
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::SetCursorPosX(posA);
+                    ImGui::TextDisabled("Rad");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
+                    {
+                        int i = int(particles->getShadowRadius());
+                        if(ImGui::DragInt(buildID(base, idA++, id), &i, .1, 0, 20, "%d")) particles->setShadowRadius(i);
+                    }
+                    ImGui::PopItemWidth();
+
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Bias");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
+                    {
+                        float f = particles->getShadowBias();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, -100.0, 100.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setShadowBias(f);
+                    }
+                    ImGui::PopItemWidth();
+
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Dark");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
+                    {
+                        float f = particles->getShadowDarkness();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setShadowDarkness(f);
+                    }
+
+                    ImGui::PopItemWidth();
+
+                //}
+
+
+
+                ImGui::EndChild();
+                ImGui::PopStyleVar();
+            }
+        }
+// AO settings
+////////////////////////////////////
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+            const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SHIELD  " Ambient Occlusion   " ICON_FA_COMMENT_O);
+            ImGui::PopStyleColor();
+            ShowHelpOnTitle(GLAPP_HELP_AO_TREE);
+            if(isOpen) {
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
 
                     ImGui::SetCursorPosX(posA);
                     {
-                        bool b = particles->useShadow();
-                        if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useShadow(b);
+                        bool b = particles->useAO();
+                        if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useAO(b);
                     }
 
-                    //if(particles->useShadow()) {
-                        ImGui::SameLine();
+                    ImGui::SameLine();
 
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::TextDisabled("Ratio");
-                        ImGui::SameLine();
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("Mul");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
+                    {
+                        float f = particles->getAOMul();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.1, 2.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOMul(f);
+                    }
+                    ImGui::PopItemWidth();
 
-                        ImGui::PushItemWidth((w - ImGui::GetCursorPosX()) * .3 - border);
-                        {
-                            int idx = int(1.f/particles->getShadowGranularity()+.5)-1;
-                            if (ImGui::Combo(buildID(base, idA++, id), &idx, "rad:1\0"\
-                                                                             "rad:2\0"\
-                                                                             "rad:3\0"\
-                                                                             "rad:4\0"\
-                                                                             "rad:5\0"))
-                                {  particles->setShadowGranularity(1.f/float(idx+1)); }
-                        }
-                        ImGui::PopItemWidth();
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Diff");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
+                    ImGui::SameLine();
+                    {
+                        float f = particles->getAOModulate();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.1, 3.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOModulate(f);
+                    }
+                    ImGui::PopItemWidth();
 
-                        ImGui::SameLine();
-                        const float sz = (w - ImGui::GetCursorPosX()) * .5 - border;
-                        {
-                            char txt[48];
-                            bool b = particles->useScatterdShadow();
-                            sprintf(txt, b ? "Scatter " ICON_FA_CHECK_SQUARE_O "%s" : "Scatter " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
-                            if(colCheckButton(b , txt, sz)) particles->useScatterdShadow(b^1);
-                        }
-                        ImGui::SameLine();
-                        {
-                            char txt[48];
-                            bool b = particles->autoLightDist();
-                            sprintf(txt, b ? "AutoLight " ICON_FA_CHECK_SQUARE_O "%s" : "AutoLight " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
-                            if(colCheckButton(b , txt, sz)) particles->autoLightDist(b^1);
-                        }
-
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::SetCursorPosX(posA);
-                        ImGui::TextDisabled("Rad");
-                        ImGui::SameLine();
-                        ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
-                        {
-                            int i = int(particles->getShadowRadius());
-                            if(ImGui::DragInt(buildID(base, idA++, id), &i, .1, 0, 20, "%d")) particles->setShadowRadius(i);
-                        }
-                        ImGui::PopItemWidth();
-
-                        ImGui::SameLine();
-                        ImGui::TextDisabled("Bias");
-                        ImGui::SameLine();
-                        ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
-                        {
-                            float f = particles->getShadowBias();
-                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, -100.0, 100.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setShadowBias(f);
-                        }
-                        ImGui::PopItemWidth();
-
-                        ImGui::SameLine();
-                        ImGui::TextDisabled("Dark");
-                        ImGui::SameLine();
-                        ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
-                        {
-                            float f = particles->getShadowDarkness();
-                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setShadowDarkness(f);
-                        }
-
-                        ImGui::PopItemWidth();
-
-                    //}
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("More");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
+                    {
+                        float f = particles->getAOStrong();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 3.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOStrong(f);
+                    }
+                    ImGui::PopItemWidth();
 
 
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::SetCursorPosX(posA);
+                    ImGui::TextDisabled("Rad");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
+                    {
+                        float f = particles->getAORadius();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .01, 0.01, 20.0,  "%.2f",1.f,ImVec2(.93,0.5))) particles->setAORadius(f);
+                    }
+                    ImGui::PopItemWidth();
 
-                    ImGui::EndChild();
-                    ImGui::PopStyleVar();
-                }
-            }
-// AO settings
-////////////////////////////////////
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
-                const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SHIELD  " Ambient Occlusion   " ICON_FA_COMMENT_O);
-                ImGui::PopStyleColor();
-                ShowHelpOnTitle(GLAPP_HELP_AO_TREE);
-                if(isOpen) {
-                    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-                    ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Bias");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
+                    ImGui::SameLine();
+                    {
+                        float f = particles->getAOBias();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOBias(f);
+                    }
+                    ImGui::PopItemWidth();
 
-                        ImGui::SetCursorPosX(posA);
-                        {
-                            bool b = particles->useAO();
-                            if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useAO(b);
-                        }
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Dark");
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
+                    {
+                        float f = particles->getAODarkness();
+                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .0025, 0.0, 1.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAODarkness(f);
+                    }
 
-                        ImGui::SameLine();
-
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::TextDisabled("Mul");
-                        ImGui::SameLine();
-                        ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
-                        {
-                            float f = particles->getAOMul();
-                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.1, 2.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOMul(f);
-                        }
-                        ImGui::PopItemWidth();
-
-                        ImGui::SameLine();
-                        ImGui::TextDisabled("Diff");
-                        ImGui::SameLine();
-                        ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
-                        ImGui::SameLine();
-                        {
-                            float f = particles->getAOModulate();
-                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.1, 3.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOModulate(f);
-                        }
-                        ImGui::PopItemWidth();
-
-                        ImGui::SameLine();
-                        ImGui::TextDisabled("More");
-                        ImGui::SameLine();
-                        ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
-                        {
-                            float f = particles->getAOStrong();
-                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 3.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOStrong(f);
-                        }
-                        ImGui::PopItemWidth();
+                    ImGui::PopItemWidth();
 
 
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::SetCursorPosX(posA);
-                        ImGui::TextDisabled("Rad");
-                        ImGui::SameLine();
-                        ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
-                        {
-                            float f = particles->getAORadius();
-                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .01, 0.01, 20.0,  "%.2f",1.f,ImVec2(.93,0.5))) particles->setAORadius(f);
-                        }
-                        ImGui::PopItemWidth();
-
-                        ImGui::SameLine();
-                        ImGui::TextDisabled("Bias");
-                        ImGui::SameLine();
-                        ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
-                        ImGui::SameLine();
-                        {
-                            float f = particles->getAOBias();
-                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOBias(f);
-                        }
-                        ImGui::PopItemWidth();
-
-                        ImGui::SameLine();
-                        ImGui::TextDisabled("Dark");
-                        ImGui::SameLine();
-                        ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
-                        {
-                            float f = particles->getAODarkness();
-                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .0025, 0.0, 1.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAODarkness(f);
-                        }
-
-                        ImGui::PopItemWidth();
-
-
-                    ImGui::EndChild();
-                    ImGui::PopStyleVar();
-                }
+                ImGui::EndChild();
+                ImGui::PopStyleVar();
             }
         }
     }
@@ -909,7 +905,8 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
             ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*5-wPaddingY*2), true);
 
-                radialBlurClass *glow = particles->getGlowRender();
+                glowDataClass *glow = particles->getGlowData();
+                imgTuningDataClass *imgT = particles->getImgTuningData();
 
                 int mode = glow->getGlowState();
 
@@ -966,8 +963,8 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
     
                 //////////Linea 9//////////        
                 ImGui::SetCursorPosX(INDENT(posA )); ImGui::TextDisabled("rendrI"); 
-                if(mode == glow->glowType_Blur      || mode == glow->glowType_Threshold) { ImGui::SameLine(INDENT(posB5)); ImGui::TextDisabled("gaussI");         }
-                if(mode == glow->glowType_Bilateral || mode == glow->glowType_Threshold) { ImGui::SameLine(INDENT(posC5)); ImGui::TextDisabled("deNoisI"  );
+                if(mode == filterType::glowType_Blur      || mode == filterType::glowType_Threshold) { ImGui::SameLine(INDENT(posB5)); ImGui::TextDisabled("gaussI");         }
+                if(mode == filterType::glowType_Bilateral || mode == filterType::glowType_Threshold) { ImGui::SameLine(INDENT(posC5)); ImGui::TextDisabled("deNoisI"  );
                                                                                            ImGui::SameLine(INDENT(posD5)); ImGui::TextDisabled("deNoise thrsld"); }
                 //ImGui::SameLine(     INDENT(posD5)); ImGui::TextDisabled("render " ICON_FA_ARROWS_H " glow"); 
 
@@ -976,23 +973,23 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 //glowType_Blur, glowType_Threshold, glowType_Bilateral
                 {
                     ImGui::SetCursorPosX(posA);
-                    float f = glow->getImgTuning()->getTextComponent();                    
-                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.01, 10.0, "%.3f",1.0f,ImVec2(.93,0.5))) glow->getImgTuning()->setTextComponent(f);
+                    float f = imgT->getTextComponent();
+                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.01, 10.0, "%.3f",1.0f,ImVec2(.93,0.5))) imgT->setTextComponent(f);
                 }
-                if(mode == glow->glowType_Blur || mode == glow->glowType_Threshold) {
+                if(mode == filterType::glowType_Blur || mode == filterType::glowType_Threshold) {
                     ImGui::SameLine(posB5);
-                    float f = glow->getImgTuning()->getBlurComponent();                    
-                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.01, 20.0, "%.3f",1.0f,ImVec2(.93,0.5))) glow->getImgTuning()->setBlurComponent(f);
+                    float f = imgT->getBlurComponent();
+                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.01, 20.0, "%.3f",1.0f,ImVec2(.93,0.5))) imgT->setBlurComponent(f);
                 }
-                if(mode == glow->glowType_Bilateral || mode == glow->glowType_Threshold) {
+                if(mode == filterType::glowType_Bilateral || mode == filterType::glowType_Threshold) {
                     ImGui::SameLine(posC5);
-                    float f = glow->getImgTuning()->getBlatComponent();                    
-                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.01, 20.0, "%.3f",1.0f,ImVec2(.93,0.5))) glow->getImgTuning()->setBlatComponent(f);
+                    float f = imgT->getBlatComponent();
+                    if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, 0.01, 20.0, "%.3f",1.0f,ImVec2(.93,0.5))) imgT->setBlatComponent(f);
                 }
                 ImGui::PopItemWidth();
 
 
-                if(mode == glow->glowType_Bilateral || mode == glow->glowType_Threshold) {
+                if(mode == filterType::glowType_Bilateral || mode == filterType::glowType_Threshold) {
                     ImGui::SameLine(posD5); 
                     ImGui::PushItemWidth(wButt5*2+border);
                     float f = glow->getThreshold(); 
@@ -1004,10 +1001,10 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 
                 //////////Linea 9//////////        
                 ImGui::SetCursorPosX(INDENT(posA)); ImGui::TextDisabled("rend" ICON_FA_ARROWS_H "blur");
-                if(mode == glow->glowType_Threshold || mode == glow->glowType_Blur) {
+                if(mode == filterType::glowType_Threshold || mode == filterType::glowType_Blur) {
                     ImGui::SameLine(INDENT(posB3)); ImGui::TextDisabled("gauss" ICON_FA_ARROWS_H "glow");
                 }
-                if(mode == glow->glowType_Threshold) { ImGui::SameLine(INDENT(posC3)); ImGui::TextDisabled("gauss" ICON_FA_ARROWS_H "thres"); }
+                if(mode == filterType::glowType_Threshold) { ImGui::SameLine(INDENT(posC3)); ImGui::TextDisabled("gauss" ICON_FA_ARROWS_H "thres"); }
                 ImGui::SetCursorPosX(posA);
                 const int sz = wButt3+border;
                 ImGui::AlignTextToFramePadding();
@@ -1020,18 +1017,18 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     if(ImGui::SliderFloat(buildID(base, idA++, id), &f, -1.0f, 1.0f, "% .3f")) glow->setMixTexture(f);
                     ImGui::PopItemWidth();
                 }
-                if(mode == glow->glowType_Blur || mode == glow->glowType_Threshold) {
+                if(mode == filterType::glowType_Blur || mode == filterType::glowType_Threshold) {
                     ImGui::SameLine(posB3); ImGui::PushItemWidth(sz);
                     float f = glow->getMixBrurGlow();
                     if(ImGui::SliderFloat(buildID(base, idA++, id), &f, 0.0f, 1.0f, "% .3f")) glow->setMixBrurGlow(f);
                     ImGui::PopItemWidth();
                 }
-                if(mode == glow->glowType_Threshold) {
+                if(mode == filterType::glowType_Threshold) {
                     //ImGui::SameLine(wHalf); ImGui::TextDisabled("thrshldMix"); ImGui::SameLine(); 
                     //ImGui::PushItemWidth(w-ImGui::GetCursorPosX()-border);         
                     ImGui::SameLine(posC3); ImGui::PushItemWidth(sz);
-                    float f = glow->getImgTuning()->getMixBilateral();
-                    if(ImGui::SliderFloat(buildID(base, idA++, id), &f, -1.0f, 1.0f, "% .3f")) glow->getImgTuning()->setMixBilateral(f);
+                    float f = imgT->getMixBilateral();
+                    if(ImGui::SliderFloat(buildID(base, idA++, id), &f, -1.0f, 1.0f, "% .3f")) imgT->setMixBilateral(f);
                     ImGui::PopItemWidth();
                 }
 
@@ -1041,7 +1038,6 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
         }
     }
 #endif
-#if !defined(GLCHAOSP_NO_FXAA)
     // FXAA settings
     ////////////////////////////////////
     {
@@ -1053,9 +1049,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
             ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+wPaddingY), true);
                 
-
-            fxaaClass* fxaa = particles->getFXAA();
-
+            fxaaDataClass *fxaa = particles->getFXAAData();
 
             ImGui::SetCursorPosX(posA);
             {
@@ -1121,7 +1115,6 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PopStyleVar();
         }
     }
-#endif
     // Display Adjoust
     ////////////////////////////////////
     {
@@ -1140,8 +1133,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::SameLine(INDENT(posC4));       ImGui::TextDisabled("Bright"); 
                 ImGui::SameLine(INDENT(posD4));       ImGui::TextDisabled("Contrast"); 
 
-
-                imgTuningClass *imT = particles->getGlowRender()->getImgTuning();
+                imgTuningDataClass *imT = particles->getImgTuningData();
 
                 ImGui::SetCursorPosX(border);
 
@@ -1214,10 +1206,10 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ImGui::SetCursorPosX(border);   
                 {
                     char txt[32];
-                    bool b = particles->getGlowRender()->getImgTuning()->getDynEq();
+                    bool b = particles->getGlowRender()->getImgTuningData()->getDynEq();
                     sprintf(txt, b ? ICON_FA_CHECK_SQUARE_O "%s" : ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
                     ImGui::SetCursorPosX(border);
-                    if(ImGui::Button(txt,ImVec2(wButt4,0))) particles->getGlowRender()->getImgTuning()->setDynEq(b^1);
+                    if(ImGui::Button(txt,ImVec2(wButt4,0))) particles->getGlowRender()->getImgTuningData()->setDynEq(b^1);
                 }
 */
                 //ImGui::PushItemWidth(wHalf-border*1.5);        
@@ -1241,7 +1233,7 @@ void particlesDlgClass::view()
 #if !defined(GLCHAOSP_LIGHTVER) || defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL) 
     #if defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
         const int wSZ = 270, chSZ = 1020;
-        const int hSZ = theApp->checkMaxCombTexImgUnits() ? (chSZ > pSys->getHeight() ? pSys->getHeight() : chSZ) : 1020;
+        const int hSZ = (chSZ > pSys->getHeight() ? pSys->getHeight() : chSZ);
     #else
         const int wSZ = 270, hSZ = 1020;
     #endif
@@ -1312,6 +1304,7 @@ void particlesDlgClass::view()
                     const bool b = pSys->whichRenderMode==RENDER_USE_POINTS;
                     if(colCheckButton(b, b ? "Points " ICON_FA_CHECK : "Points", wButt)) {
                         pSys->setRenderMode(RENDER_USE_POINTS);
+                        //pSys->shaderPointClass::getPtr()->getCMSettings()->setFlagUpdate();
                         if(tfActive) attractorsList.restart();
                         bbTreeVisible = false; //Hide Billboard
                     }
@@ -1345,6 +1338,7 @@ void particlesDlgClass::view()
                     const bool b = pSys->whichRenderMode==RENDER_USE_BILLBOARD;
                     if(colCheckButton(b, b ? "Billboard " ICON_FA_CHECK : "Billboard", wButt)) {
                         pSys->setRenderMode(RENDER_USE_BILLBOARD);
+                        //pSys->shaderBillboardClass::getPtr()->getCMSettings()->setFlagUpdate();
                         if(tfActive) attractorsList.restart();
                         psTreeVisible = false; //Hide pointSprite
                     }
@@ -1383,7 +1377,11 @@ void particlesDlgClass::view()
                 if(!tfActive) {
                     ImGui::SetCursorPosX(border);
                     const bool b = pSys->whichRenderMode==RENDER_USE_BOTH;
-                    if(colCheckButton(b, b ? "Both " ICON_FA_CHECK : "Both", wButt)) pSys->setRenderMode(RENDER_USE_BOTH); 
+                    if(colCheckButton(b, b ? "Both " ICON_FA_CHECK : "Both", wButt)) {
+                        pSys->setRenderMode(RENDER_USE_BOTH);
+                        //pSys->shaderPointClass::getPtr()->getCMSettings()->setFlagUpdate();
+                        //pSys->shaderBillboardClass::getPtr()->getCMSettings()->setFlagUpdate();
+                    }
                 } else ImGui::NewLine();
 #else 
                 ImGui::NewLine();
@@ -1682,9 +1680,7 @@ void progSettingDlgClass::view()
         if(ImGui::Combo("##MSamp", &idxMS, "Don't care\0"\
                                            "Disabled\0"\
                                            "x2\0"
-                                           "x4\0"
-                                           "x8\0"
-                                           "x16\0"    )) {
+                                           "x4\0")) {
             emitterChanges|=true;
         }
         ImGui::PopItemWidth();
@@ -2293,38 +2289,58 @@ void cockpitDlgClass::view()
                         ImGui::SameLine();
                         a = ImGui::GetCursorPosX();
 
-                        if(ImGui::RadioButton(" SplitView ", pos == cPit.pip::splitView)) { cPit.setPIPposition(cPit.pip::splitView); }
-                        if(pos == cPit.pip::splitView) {
-                            ImGui::SameLine();
-                            if(ImGui::Button(" halfSplit ")) cPit.setPIPzoom(.5);
-                        }
-
-
-                        ImGui::SetCursorPosX(ImGui::GetCursorPosX()+size);
-                        if(ImGui::RadioButton("##noPIP", pos == cPit.pip::noPIP)) { cPit.setPIPposition(cPit.pip::noPIP); } 
-                        ImGui::SameLine();
-                        ImGui::SetCursorPosX(a);
-                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-                        {
-                            float f = cPit.getPIPzoom()*100.f;
-                            if(ImGui::SliderFloat("##zoomPIP", &f, 25.0f, 75.f,"size PiP %.1f%%")) cPit.setPIPzoom(f/100.f);
-                        }
-                        ImGui::PopItemWidth();
-
-                        if(ImGui::RadioButton("##lBottom", pos == cPit.pip::lBottom)) { cPit.setPIPposition(cPit.pip::lBottom); } 
-                        ImGui::SameLine(); 
-                        ImGui::SetCursorPosX(b+size);
-                        if(ImGui::RadioButton("##rBottom", pos == cPit.pip::rBottom)) { cPit.setPIPposition(cPit.pip::rBottom); } 
-                        ImGui::SameLine();
-                        a = ImGui::GetCursorPosX();
                         {
                             bool b = cPit.invertPIP();
-                            if(ImGui::Checkbox(" InvertPIP ", &b)) cPit.invertPIP(b);
+                            if(ImGui::Checkbox(" Invert ", &b)) cPit.invertPIP(b);
                         }
-                        ImGui::SameLine();
-                        {
-                            vec3 v(cPit.getPipBkgrndColor());
-                            if(ImGui::ColorEdit3(" bkgColor", value_ptr(v), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float)) cPit.setPipBkgrndColor(vec4(v));
+
+                        if(cPit.getPIPposition() != cPit.pip::noPIP) {
+                            ImGui::SameLine();
+                            {
+                                bool b = cPit.borderActive();
+                                if(ImGui::Checkbox(" Border ", &b)) cPit.borderActive(b);
+                            }
+                            if(cPit.borderActive()) {
+                                ImGui::SameLine();
+                                {
+                                    vec3 v(cPit.getPipBorderColor());
+                                    if(ImGui::ColorEdit3(" Color", value_ptr(v), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float)) cPit.setPipBorderColor(vec4(v));
+                                }
+                            }
+                        }
+                        ImGui::SetCursorPosX(ImGui::GetCursorPosX()+size);
+                        if(ImGui::RadioButton("##noPIP", pos == cPit.pip::noPIP)) { cPit.setPIPposition(cPit.pip::noPIP); }
+
+                        if(cPit.getPIPposition() != cPit.pip::noPIP) {
+                            ImGui::SameLine();
+                            ImGui::SetCursorPosX(a);
+                            ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+                            {
+                                float f = cPit.getPIPzoom()*100.f;
+                                if(ImGui::SliderFloat("##zoomPIP", &f, 25.0f, 75.f,"wndSize %.1f%%")) cPit.setPIPzoom(f/100.f);
+                            }
+                            ImGui::PopItemWidth();
+                        }
+
+                        if(ImGui::RadioButton("##lBottom", pos == cPit.pip::lBottom)) { cPit.setPIPposition(cPit.pip::lBottom); }
+                        ImGui::SameLine(); 
+                        ImGui::SetCursorPosX(b+size);
+                        if(ImGui::RadioButton("##rBottom", pos == cPit.pip::rBottom)) { cPit.setPIPposition(cPit.pip::rBottom); }
+
+                        if(cPit.getPIPposition() != cPit.pip::noPIP) {
+                            ImGui::SameLine();
+                            a = ImGui::GetCursorPosX();
+                            ImGui::PushItemWidth((ImGui::GetContentRegionAvail().x-ImGui::GetStyle().FramePadding.x)*.5);
+                            {
+                                float f = cPit.getPipTransparence();
+                                if(ImGui::SliderFloat("##transPIP", &f, 0.0f, 1.f,"transp %.1f%%")) cPit.setPipTransparence(f);
+                            }
+                            ImGui::SameLine();
+                            {
+                                float f = cPit.getPipIntensity();
+                                if(ImGui::SliderFloat("##intenPIP", &f, 1.0f, 3.f,"intens %.1f%%")) cPit.setPipIntensity(f);
+                            }
+                            ImGui::PopItemWidth();
                         }
 
                     }
@@ -2744,7 +2760,7 @@ void lotexDlgClass::view()
 {
     if(!isVisible) return;
     ImGui::SetNextWindowPos(ImVec2(250, 190), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(520, 410), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(520, 425), ImGuiCond_FirstUseEver);
 
     ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(1.0,0,0,1.0));
     ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(1.0,0,0,1.0));
