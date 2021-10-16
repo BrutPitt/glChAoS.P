@@ -17,31 +17,6 @@
 //#include "attractorsBase.h"
 //#include "ParticlesUtils.h"
 
-
-//
-//  imgTuning
-//
-////////////////////////////////////////////////////////////////////////////////
-imgTuningClass::imgTuningClass(dataBlurClass *ptrGlow) {
-    glow = ptrGlow;
-    videoControls.x = 2.3; //setGamma(2.5);
-    videoControls.z = 0.0; //setBright(0.0);
-    videoControls.w = 0.0; //setContrast(0.0);
-    videoControls.y = 1.2; //setExposure(1.0);
-    texControls.x = 1.0; //blurred image component
-    texControls.y = 1.0; //Original image component
-    texControls.z = 1.0; //Bilateral image component
-    texControls.w = 0.3; // mix(Blur,bilateral,dot(Blur,bilateral)+w
-    useDynEQ = false;
-}
-
-dataBlurClass::dataBlurClass() 
-{ 
-    //renderEngine = ptrRE;
-    imageTuning = new imgTuningClass(this);
-    mixTexture =.0f;        
-}
-
 //
 // PointSprite 
 //
@@ -59,13 +34,11 @@ shaderPointClass::shaderPointClass()
     srcIdxBlendAttribA = 6;
     dstIdxBlendAttribA = 1;
 
-
     setAlphaAtten(0.0);
     setPointSizeFactor(1.0);
     setClippingDist(.5);
     setAlphaKFactor(1.0);
 
-    initShader();
 }
 
 void shaderPointClass::initShader()
@@ -122,7 +95,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     
     tfSettinsClass &cPit = getTFSettings();
 
-    if(checkFlagUpdate()) {
+    //if(checkFlagUpdate()) {
         //getUData().scrnRes = vec2((isTFRender && cPit.getPIPposition() == cPit.pip::splitView) ? getRenderFBO().getSizeX()<<1 : getRenderFBO().getSizeX(), (isTFRender && cPit.getPIPposition() == cPit.pip::splitView) ? getRenderFBO().getSizeY()<<1 : getRenderFBO().getSizeY());
         getUData().scrnRes = vec2(getRenderFBO().getSizeX(), getRenderFBO().getSizeY());
         getUData().invScrnRes = 1.f/getUData().scrnRes;
@@ -132,7 +105,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         getUData().shadowDetail = float(theApp->useDetailedShadows() ? 2.0f : 1.f);
         getUData().rotCenter = currentTMat->getTrackball().getRotationCenter();
         getUData().lightDir = normalize(getLightDir());
-    }
+    //}
 
     getUData().slowMotion = isTFRender;
 
@@ -147,7 +120,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
             cpitView ? cPit.getLifeTimeAttenCP() : cPit.getLifeTimeAtten(); // if PiP get max for both to sync view
 
     getUData().smoothDistance= cPit.getSmoothDistance();
-    getUData().vpReSize      = isFullScreenPiP || cPit.getPIPposition() == cPit.pip::splitView ? 1.0 : cPit.getPIPzoom()*.5;
+    getUData().vpReSize      = isFullScreenPiP ? 1.0 : cPit.getPIPzoom()*.5;
 
     getUData().zNear = currentTMat->getPerspNear();
     getUData().zFar  = currentTMat->getPerspFar();
@@ -177,44 +150,42 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 
     const vec3 light(getLightDir()*lightReduction);
     const vec3 lightTGT(currentTMat->getTGT());
-    if(theApp->checkMaxCombTexImgUnits()) {
 
-        if(computeShadow && !blendActive ) {
-            //FIXME: POV.z+Dolly.z (shadow) and Light Distance
-            const vec3 tmpPov = currentTMat->getPOV();
-            const float tmpDolly = currentTMat->getTrackball().getDollyPosition().z;
-            currentTMat->setPOV(vec3(vec2(currentTMat->getPOV()), currentTMat->getOverallDistance()));
-            currentTMat->getTrackball().setDollyPosition(0.f);
-            currentTMat->applyTransforms();
+    if(computeShadow && !blendActive ) {
+        //FIXME: POV.z+Dolly.z (shadow) and Light Distance
+        const vec3 tmpPov = currentTMat->getPOV();
+        const float tmpDolly = currentTMat->getTrackball().getDollyPosition().z;
+        currentTMat->setPOV(vec3(vec2(currentTMat->getPOV()), currentTMat->getOverallDistance()));
+        currentTMat->getTrackball().setDollyPosition(0.f);
+        currentTMat->applyTransforms();
 
-            if(autoLightDist() ) {
-                const float dist = currentTMat->getOverallDistance()<FLT_EPSILON ?  FLT_EPSILON : currentTMat->getOverallDistance();
-                setLightDir(normalize(getLightDir()) * (dist*(theApp->useDetailedShadows() ? 1.5f : 1.5f /* 2/2.5*/) + dist*.1f));
-            }
-            glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
-
-            getShadow()->bindRender();
-
-            currentTMat->setLightView(light,lightTGT);
-            mat4 m(1.f);
-
-            currentTMat->tM.mvLightM = currentTMat->tM.mvLightM*currentTMat->tM.mMatrix;
-
-            currentTMat->updateBufferData();
-            getPlanesUBlock().updateBufferData();
-            updateBufferData();
-
-            // render shadow
-            emitter->renderEvents();
-
-            getShadow()->releaseRender();
-
-            //FIXME: POV.z+Dolly.z (shadow) ==> look UP
-            currentTMat->setPOV(tmpPov);
-            currentTMat->getTrackball().setDollyPosition(tmpDolly);
-            currentTMat->applyTransforms();
-            glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
+        if(autoLightDist() ) {
+            const float dist = currentTMat->getOverallDistance()<FLT_EPSILON ?  FLT_EPSILON : currentTMat->getOverallDistance();
+            setLightDir(normalize(getLightDir()) * (dist*(theApp->useDetailedShadows() ? 1.5f : 1.5f /* 2/2.5*/) + dist*.1f));
         }
+        glViewport(0,0, getUData().scrnRes.x*shadowDetail, getUData().scrnRes.y*shadowDetail);
+
+        getShadow()->bindRender();
+
+        currentTMat->setLightView(light,lightTGT);
+        mat4 m(1.f);
+
+        currentTMat->tM.mvLightM = currentTMat->tM.mvLightM*currentTMat->tM.mMatrix;
+
+        currentTMat->updateBufferData();
+        getPlanesUBlock().updateBufferData();
+        updateBufferData();
+
+        // render shadow
+        emitter->renderEvents();
+
+        getShadow()->releaseRender();
+
+        //FIXME: POV.z+Dolly.z (shadow) ==> look UP
+        currentTMat->setPOV(tmpPov);
+        currentTMat->getTrackball().setDollyPosition(tmpDolly);
+        currentTMat->applyTransforms();
+        glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
     }
 #endif
 
@@ -234,10 +205,11 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     glClearBufferfv(GL_DEPTH , 0, &f);
 
     // clear Color buffer
-    vec4 bkgColor((!isFullScreenPiP && cPit.getPIPposition()!=cPit.pip::splitView) ? cPit.getPipBkgrndColor() : backgroundColor());
+    const vec4 bkgColor(backgroundColor());
     if(!showAxes()) glClearBufferfv(GL_COLOR,  0, value_ptr(bkgColor));
 
     if(blendActive || showAxes()) {
+        glEnable(GL_BLEND);
 #ifdef BLEND_EQ_SEPARATE
         glBlendEquationSeparate(getBlendEqRGB(), getBlendEqAlpha());
         glBlendFuncSeparate(getSrcBlend(), getDstBlend(), getSrcBlendA(), getDstBlendA());
@@ -245,7 +217,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         glBlendEquation(getBlendEqRGB());
         glBlendFunc(getSrcBlend(), getDstBlend());
 #endif
-        glEnable(GL_BLEND);
     }
 
 
@@ -283,43 +254,39 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
 // AO & Shadows process
 /////////////////////////////////////////////
 #if !defined(GLCHAOSP_NO_AO_SHDW)
-    if(theApp->checkMaxCombTexImgUnits()) {
-        if(!blendActive && isAO_RD_SHDW)  {
+    if(!blendActive && isAO_RD_SHDW)  {
 
-            if(!cpitView) {
-                currentTMat->setLightView(light,lightTGT);
-                mat4 m(1.f);
+        if(!cpitView) {
+            currentTMat->setLightView(light,lightTGT);
+            mat4 m(1.f);
 
-                m = translate(m,vec3(vec2(0.f), currentTMat->getOverallDistance()));
-                currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * m;
-                //currentTMat->tM.mvLightM = (currentTMat->tM.mvLightM * currentTMat->tM.mMatrix) ;
-                currentTMat->tM.mvpLightM = currentTMat->tM.pMatrix * currentTMat->tM.mvLightM;
-                getUData().halfTanFOV = tanf(currentTMat->getPerspAngleRad()*.5f);
-            }
+            m = translate(m,vec3(vec2(0.f), currentTMat->getOverallDistance()));
+            currentTMat->tM.mvLightM = currentTMat->tM.mvLightM * m;
+            //currentTMat->tM.mvLightM = (currentTMat->tM.mvLightM * currentTMat->tM.mMatrix) ;
+            currentTMat->tM.mvpLightM = currentTMat->tM.pMatrix * currentTMat->tM.mvLightM;
+            getUData().halfTanFOV = tanf(currentTMat->getPerspAngleRad()*.5f);
+        }
 
 // AO frag
 /////////////////////////////////////////////
-            if(useAO()) {
-                currentTMat->updateBufferData();
-                getAO()->bindRender(this, fbIdx, bkgColor);
-                getAO()->render();
-                getAO()->releaseRender();
-                //returnedTex = getAO()->getFBO().getTex(0);
-            }
+        if(useAO()) {
+            currentTMat->updateBufferData();
+            getAO()->bindRender(this, fbIdx, bkgColor);
+            getAO()->render();
+            getAO()->releaseRender();
+            //returnedTex = getAO()->getFBO().getTex(0);
+        }
 
 // PostRendering frag
 /////////////////////////////////////////////
 
-            currentTMat->updateBufferData();
-            getPostRendering()->bindRender(this, fbIdx, bkgColor);
-            getPostRendering()->render();
-            getPostRendering()->releaseRender();
-
-            returnedTex = getPostRendering()->getFBO().getTex(0);
-        }
+        currentTMat->updateBufferData();
+        returnedTex = getPostRendering()->bindRender(this, fbIdx, bkgColor);
+        getPostRendering()->render();
+        getPostRendering()->releaseRender();
+        //returnedTex = getFboContainer().selectFB();
     }
 #endif
-
     //restore GL state
     glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
@@ -330,7 +297,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     if(isTFRender) getUData().pointDistAtten = distAtt;
 
     //glViewport(0,0, getUData().scrnRes.x, getUData().scrnRes.y);
-
+    getFboContainer().lockTex(returnedTex);
     return returnedTex;
 }
 
@@ -353,8 +320,6 @@ shaderBillboardClass::shaderBillboardClass()
     setPointSizeFactor(1.0);
     setClippingDist(.5);
     setAlphaKFactor(1.0);
-
-    initShader();
 }
 
 void shaderBillboardClass::initShader()
@@ -375,72 +340,6 @@ void shaderBillboardClass::initShader()
     removeAllShaders(true);
 
     setCommonData();
-}
-
-//
-//  mergedRendering
-//
-////////////////////////////////////////////////////////////////////////////////
-GLuint mergedRenderingClass::render(GLuint texA, GLuint texB) 
-{
-    bindPipeline();
-
-    const GLuint fbo = renderEngine->getMotionBlur()->Active() ? mergedFBO.getFB(0) : 0;
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
-    //glInvalidateBufferData(fbo);
-    //glClear(GL_COLOR_BUFFER_BIT);
-    CHECK_GL_ERROR()
-#ifdef GLAPP_REQUIRE_OGL45
-    glBindTextureUnit(0, texA);
-    glBindTextureUnit(1, texB);
-#else
-    glActiveTexture(GL_TEXTURE0 + texA);
-    glBindTexture(GL_TEXTURE_2D,  texA);
-
-    glActiveTexture(GL_TEXTURE0 + texB);
-    glBindTexture(GL_TEXTURE_2D,  texB);
-    USE_PROGRAM
-#endif
-
-//leggo dal rendered buffer
-
-    if(renderEngine->checkFlagUpdate()) {
-        updatemixingVal();
-
-#ifndef GLAPP_REQUIRE_OGL45
-        updateBillboardTex(texA);  
-        updatePointsTex(texB);
-#endif
-    }
-
-    theWnd->getVAO()->draw();
-
-    return mergedFBO.getTex(0);
-}
-
-void mergedRenderingClass::create() 
-{
-#ifdef GLAPP_NO_GLSL_PIPELINE
-    useVertex(renderEngine->getCommonVShader());
-    addShader(vertObj);
-#else
-    glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, renderEngine->getSeparableVertex());
-#endif
-
-    useFragment();
-    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "MergedRenderingFrag.glsl");
-    addShader(fragObj);
-
-    link();
-
-    removeAllShaders(true);
- 
-#if !defined(GLAPP_REQUIRE_OGL45)
-    LOCbillboardTex = getUniformLocation("billboardTex");
-    LOCpointsTex =    getUniformLocation("pointTex");
-#endif
-    LOCmixingVal =    getUniformLocation("mixingVal");       
-
 }
 #endif //GLCHAOSP_NO_BB
 
@@ -556,6 +455,50 @@ renderBaseClass::renderBaseClass()
     PB(GL_MAX                  , "Max" )
 #undef PB
 
+#if !defined(GLCHAOSP_NO_AO_SHDW)
+    ambientOcclusion = new ambientOcclusionClass(this);
+    shadow  = new shadowClass(this);
+    postRendering = new postRenderingClass(this);
+#endif
+
+}
+
+void renderBaseClass::buildFBO()
+{
+    //msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision(), true, 4);
+    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(),  theApp->getFBOInternalPrecision());
+    renderFBO.attachMultiFB(1);
+
+    renderFBO.attachDB(mmFBO::depthTexture,theApp->getDBInterpolation(),theApp->getClampToBorder());
+
+    auxFBO.buildFBO(numAuxFBO, theApp->GetWidth(), theApp->GetHeight(),  theApp->getFBOInternalPrecision());
+
+    fboContainer.insertItems(auxFBO,numAuxFBO);
+    fboContainer.addMainFBO(renderFBO);
+}
+
+void renderBaseClass::create()
+{
+    renderBaseClass::buildFBO();
+
+    filterBase = new filtersBaseClass(this);
+    pipWnd = new pipWndClass(filterBase);
+
+    blitRender = new blitRenderClass(filterBase);
+    imgTuningRender  = new imgTuningRenderClass(this->getFilter());
+    fxaaRender = new fxaaRenderClass(this->getFilter());
+    glowRender = new glowRenderClass(this->getFilter());
+
+#if !defined(GLCHAOSP_NO_AX)
+    axes = new oglAxes;
+#endif
+#if !defined(GLCHAOSP_NO_MB)
+    motionBlur = new motionBlurClass(this);
+#endif
+#if !defined(GLCHAOSP_NO_BB)
+    mergedRendering = new mergedRenderingClass(filterBase);
+#endif
+
     {
 #ifdef GLAPP_NO_GLSL_PIPELINE
         commonVShader.Load( (theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "mmFBO_all_vert.glsl");
@@ -566,61 +509,29 @@ renderBaseClass::renderBaseClass()
         separableVertex = glCreateShaderProgramv(GL_VERTEX_SHADER, 1, s);
 #endif
     }
-    renderBaseClass::buildFBO();
-
-    //msaaFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision(), true, 4);
-
     std::string verS = theApp->get_glslVer() + theApp->get_glslDef();
 #if !defined(GLAPP_NO_GLSL_PIPELINE)
     verS += "#define GLAPP_USE_PIPELINE\n";
 #endif
 
+#if !defined(GLCHAOSP_NO_AO_SHDW)
+    ambientOcclusion->create();
+    shadow->create();
+    postRendering->create();
+#endif
+    filterBase->create();
+
 #if !defined(GLCHAOSP_NO_AX)
-    axes = new oglAxes;
     axes->initShaders(verS.c_str(), verS.c_str());
 #endif
 
-
-#if !defined(GLCHAOSP_NO_MB)
-    motionBlur = new motionBlurClass(this);
-#endif
-#if !defined(GLCHAOSP_NO_BB)
-    mergedRendering = new mergedRenderingClass(this);
-#endif
-
-#if !defined(GLCHAOSP_NO_AO_SHDW)
-    if(theApp->checkMaxCombTexImgUnits()) {
-        ambientOcclusion = new ambientOcclusionClass(this);
-        shadow  = new shadowClass(this);
-        postRendering = new postRenderingClass(this);
-    }
-#endif
 }
-
-void renderBaseClass::buildFBO()
-{
-    renderFBO.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(),  theApp->getFBOInternalPrecision());
-    renderFBO.attachMultiFB(1);
-
-    renderFBO.attachDB(mmFBO::depthTexture,theApp->getDBInterpolation(),theApp->getClampToBorder());
-
-}
-
-void renderBaseClass::create()
-{
-#if !defined(GLCHAOSP_NO_AO_SHDW)
-    if(theApp->checkMaxCombTexImgUnits()) {
-        ambientOcclusion->create();
-        shadow->create();
-        postRendering->create();
-    }
-#endif
-}
-
 
 renderBaseClass::~renderBaseClass()
 {
-#if !defined(GLCHAOSP_NO_BB)
+    delete filterBase;
+
+#if !defined(GLCHAOSP_NO_MB)
     delete motionBlur;
 #endif
 #if !defined(GLCHAOSP_NO_BB)
@@ -631,21 +542,23 @@ renderBaseClass::~renderBaseClass()
 #endif
 
 #if !defined(GLCHAOSP_NO_AO_SHDW)
-    if(theApp->checkMaxCombTexImgUnits()) {
-        delete ambientOcclusion;
-        delete shadow;
-        delete postRendering;
-    }
+    delete ambientOcclusion;
+    delete shadow;
+    delete postRendering;
 #endif
+    delete pipWnd;
+    delete imgTuningRender;
+    delete fxaaRender;
+    delete glowRender;
 }
 
 void renderBaseClass::setRenderMode(int which) 
 { 
-#if !defined(GLCHAOSP_NO_BB)
+/*#if !defined(GLCHAOSP_NO_BB)
     if(which == RENDER_USE_BOTH && whichRenderMode!=RENDER_USE_BOTH) getMergedRendering()->Activate();
-    else 
+    else
         if(which!=RENDER_USE_BOTH && whichRenderMode==RENDER_USE_BOTH) getMergedRendering()->Deactivate();
-#endif
+#endif*/
     whichRenderMode=which;
     setFlagUpdate();
 }
@@ -656,7 +569,7 @@ VertexShader* commonVShader = nullptr;
 //  BlurBase (Glow)
 //
 ////////////////////////////////////////////////////////////////////////////////
-void BlurBaseClass::create()    
+void filtersBaseClass::create()
 {
 #ifdef GLAPP_NO_GLSL_PIPELINE
         useVertex(renderEngine->getCommonVShader());
@@ -665,7 +578,7 @@ void BlurBaseClass::create()
         glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, renderEngine->getSeparableVertex());
 #endif
         useFragment();
-        fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "colorSpaces.glsl", SHADER_PATH "RadialBlur2PassFrag.glsl");
+        fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "colorSpaces.glsl", SHADER_PATH "filtersFrag.glsl");
         addShader(fragObj);
 
         link();
@@ -678,82 +591,144 @@ void BlurBaseClass::create()
         USE_PROGRAM
         LOCorigTexture = getUniformLocation("origTexture");
 
-
-        uniformBlocksClass::create(GLuint(sizeof(uBlurData)), (void *) &uData, getProgram(), "_blurData");
+        uniformBlocksClass::create(GLuint(sizeof(uBlurData)), (void *) &uData, getProgram(), "_filterData");
     #if !defined(GLCHAOSP_NO_BLUR)
-        LOCpass1Texture = getUniformLocation("pass1Texture");
+        LOCauxTexture = getUniformLocation("auxTexture");
     #endif
     #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
-        idxSubGlowType[idxSubroutine_ByPass            ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "byPass"                  );
+        idxSubGlowType[idxSubroutine_imgTuning         ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "imgTuning"               );
         idxSubGlowType[idxSubroutine_BlurCommonPass1   ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass1"             );
         idxSubGlowType[idxSubroutine_BlurGaussPass2    ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass2"             );
         idxSubGlowType[idxSubroutine_BlurThresholdPass2]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "radialPass2withBilateral");
         idxSubGlowType[idxSubroutine_Bilateral         ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "bilateralSmooth"         );
+        idxSubGlowType[idxSubroutine_FXAA              ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "fxaaData"              );
+        idxSubGlowType[idxSubroutine_Blit              ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "blitFilter"              );
+        idxSubGlowType[idxSubroutine_MixTwoTex         ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "mixTwoTex"               );
+        idxSubGlowType[idxSubroutine_pipRender         ]  = glGetSubroutineIndex(getProgram(),GL_FRAGMENT_SHADER, "pipRender"               );
     #endif
         //ProgramObject::reset();
 #endif
 }
 
-void BlurBaseClass::glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex) 
+void blitRenderClass::renderOnDB()
 {
-    bindPipeline();
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+    fboContainerClass &fboContainer = filterShader->getRenderEngine()->getFboContainer();
+    const GLuint srcTex = fboContainer.selectTex(); //select and unlock FBO texture
 
-    const GLuint texPass = subIndex != idxSubroutine_BlurCommonPass1 ? glowFBO.getTex(RB_PASS_1) : glowFBO.getTex(RB_PASS_2);
+    bindData(idxSubroutine_Blit, 0, srcTex);
 
-#ifdef GLAPP_REQUIRE_OGL45
-    glBindTextureUnit(0, sourceTex);
-    glBindTextureUnit(1, texPass);
+}
+GLuint blitRenderClass::renderOnFB() //return locked texture associated FB
+{
+    fboContainerClass &fboContainer = filterShader->getRenderEngine()->getFboContainer();
+    const GLuint srcTex = fboContainer.getLockedTex(); // get locked texture... unlock after...
+    lockedFBO &fbo = fboContainer.getItem(filterShader->getRenderEngine()->getNumAuxFBO()-1); // select FBO to reserve... unlock after...
 
-    glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIndex);
-    updateData(subIndex);
-#else
-    USE_PROGRAM
-    glActiveTexture(GL_TEXTURE0 + sourceTex);
-    glBindTexture(GL_TEXTURE_2D,  sourceTex);
-    setUniform1i(LOCorigTexture,  sourceTex);
+    bindData(idxSubroutine_Blit, fbo.fb, srcTex);
 
-    #if !defined(GLCHAOSP_NO_BLUR)
-        glActiveTexture(GL_TEXTURE0 + texPass);
-        glBindTexture(GL_TEXTURE_2D,  texPass);
-        setUniform1i(LOCpass1Texture, texPass);
-    #endif
+    //fboContainer.unlockTex(srcTex);
+    return fbo.tex;
 
-    #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
-        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &idxSubGlowType[subIndex]);
-    #endif
-    updateData(subIndex);
+    // fboContainer.unlockTex(srcTex); // ... unlock now
+}
+
+void imgTuningRenderClass::render(imgTuningDataClass *imgT)
+{
+    fboContainerClass &fboContainer = filterShader->getRenderEngine()->getFboContainer();
+    const GLuint srcTex = fboContainer.getLockedTex(); // get locked texture... unlock after...
+    const GLuint dstFB  = fboContainer.selectFB();  //select and lock free FBO FB
+
+    bindData(imgT, idxSubroutine_imgTuning, dstFB, srcTex);
+    fboContainer.unlockTex(srcTex); // ... unlock now
+}
+
+void fxaaRenderClass::render(fxaaDataClass *fxaaData)
+{
+
+    fboContainerClass &fboContainer = filterShader->getRenderEngine()->getFboContainer();
+    const GLuint srcTex = fboContainer.getLockedTex(); // get locked texture... unlock after...
+    const GLuint dstFB  = fboContainer.selectFB();  //select and lock free FBO FB
+    //const GLuint srcTex = fboContainer.selectTex(); //select and unlock FBO texture
+    filterShader->getUData().fxaaData = vec4(fxaaData->getThreshold(), 1.f/fxaaData->getReductMul(), 1.f/fxaaData->getReductMin(), fxaaData->getSpan());
+
+    bindData(idxSubroutine_FXAA, dstFB, srcTex);
+    fboContainer.unlockTex(srcTex); // ... unlock now
+}
+
+#if !defined(GLCHAOSP_NO_BB)
+void mergedRenderingClass::mixRender(GLuint auxTex)
+{
+    fboContainerClass &fboContainer = filterShader->getRenderEngine()->getFboContainer();
+    const GLuint srcTex = fboContainer.getLockedTex(); // get locked texture... unlock after...
+    lockedFBO &fbo = fboContainer.selectFBO(); // select and lock FBO
+
+    filterShader->getUData().mixTexture = (mixingVal+1.f)*.5f;
+
+    bindData(idxSubroutine_MixTwoTex, fbo.fb, srcTex, auxTex);
+
+    fboContainer.unlockTex(srcTex); // ... unlock now
+    fboContainer.unlockTex(auxTex); // ... unlock
+
+}
+#endif
+void pipWndClass::pipRender(GLuint auxTex, const vec4& viewport, const vec2& transp_intens, bool border, const vec4& borderColor)
+{
+    fboContainerClass &fboContainer = filterShader->getRenderEngine()->getFboContainer();
+    const GLuint srcTex = fboContainer.getLockedTex(); // get locked texture... unlock after...
+    lockedFBO &fbo = fboContainer.selectFBO(); // select and lock FBO
+
+    filterShader->getUData().pipViewport = viewport; // viewport limits
+    filterShader->getUData().toneMapVals = 1.f/vec2(viewport.z-viewport.x, viewport.w-viewport.y); // size;
+    filterShader->getUData().mixTexture = transp_intens.x;
+    filterShader->getUData().threshold  = transp_intens.y;
+    filterShader->getUData().toneMapping = border; //bool value
+    filterShader->getUData().fxaaData = borderColor;
+
+    bindData(idxSubroutine_pipRender, fbo.fb, srcTex, auxTex);
+
+    fboContainer.unlockTex(srcTex); // ... unlock now
+    fboContainer.unlockTex(auxTex); // ... unlock
+
+}
+
+void glowRenderClass::render(glowDataClass *glowData)
+{
+#if !defined(GLCHAOSP_NO_BLUR)
+    fboContainerClass &fboContainer = filterShader->getRenderEngine()->getFboContainer();
+
+    GLuint srcTex = fboContainer.getLockedTex(); // get locked texture... unlock after...
+
+    if((glowData->getGlowState()==glowType_Blur || glowData->getGlowState()==glowType_Threshold)) {
+        lockedFBO &fbo1 = fboContainer.selectFBO(), fbo2 = fboContainer.selectFBO(); //select and lock 2 FBO
+
+        bindData(glowData, idxSubroutine_BlurCommonPass1, fbo1.fb, srcTex);
+        bindData(glowData, glowData->getGlowState()==glowType_Blur ? idxSubroutine_BlurGaussPass2 : idxSubroutine_BlurThresholdPass2,
+                                                fbo2.fb, srcTex, fbo1.tex);
+        fboContainer.unlockFB(fbo1.fb); // unlock fbo1 not more used
+    } else {
+        lockedFBO &fbo = fboContainer.selectFBO();
+        bindData(glowData, idxSubroutine_Bilateral, fbo.fb, srcTex);
+        //GLuint fb = 0; //theWnd->getParticlesSystem()->getAuxFBO().getFB(0);
+        //glowPass(srcTex, fb, NO_TEXTURE, idxSubroutine_Bilateral);
+    }
+
+    fboContainer.unlockTex(srcTex); // ... unlock now
+#endif
+}
+
+void filtersBaseClass::updateDataAndDraw()
+{
+    getUData().invScreenSize = 1.f/vec2(float(renderEngine->getAuxFBO().getSizeX()), float(renderEngine->getAuxFBO().getSizeY()));
+    updateBufferData();
+    theWnd->getVAO()->draw();
+#ifdef GLAPP_NO_GLSL_PIPELINE // need WebGL: GL_INVALID_OPERATION: Feedback loop formed between Framebuffer and active Texture.
+    glBindTexture(GL_TEXTURE_2D, 0);
+    //glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 #endif
 
-    theWnd->getVAO()->draw();
-    if(theApp->useSyncOGL()) glFinish(); // stuttering with frequent calls on slow GPU & APPLE
+    //if(theApp->useSyncOGL()) glFinish(); // stuttering with frequent calls on slow GPU & APPLE
 }
 
-void BlurBaseClass::updateData(GLuint subIndex) 
-{
-    getUData().sigmaRange   = sigmaRange;
-    getUData().sigmaSize    = sigmaSize;
-    getUData().threshold    = threshold;
-    getUData().mixBrurGlow  = mixBrurGlow*mixBrurGlow*mixBrurGlow;
-
-    getUData().toneMapping  = imageTuning->toneMapping;
-    getUData().toneMapVals  = imageTuning->toneMapValsAG;
-
-    const float gamma = 1.f/imageTuning->videoControls.x;
-    const float exposure = imageTuning->videoControls.y;
-    const float bright   = imageTuning->videoControls.z; 
-    const float contrast = imageTuning->videoControls.w;        
-    getUData().videoControls = vec4(gamma , exposure, bright, contrast); 
-    getUData().texControls = vec4(vec3(imageTuning->texControls), (imageTuning->texControls.w+1.f)*.5f);
-
-    getUData().mixTexture   = (1.f + mixTexture)*.5;
-
-    getUData().blurCallType = subIndex;
-    particlesSystemClass *pSys = theWnd->getParticlesSystem();
-    getUData().invScreenSize = 1.f/vec2(float(pSys->getWidth()), float(pSys->getHeight()));
-
-    updateBufferData();
-}
 
 //
 //  colorMapTextured
@@ -784,9 +759,6 @@ void colorMapTexturedClass::create()
 #endif
 
     LOCpaletteTex = getUniformLocation("paletteTex");
-
-
-
 }
 
 void colorMapTexturedClass::render(int tex)
@@ -819,73 +791,8 @@ void colorMapTexturedClass::render(int tex)
     //ProgramObject::reset();
 #endif
 
-    glViewport(0,0, particles->getWidth(), particles->getHeight());
+    //glViewport(0,0, particles->getWidth(), particles->getHeight());
 }
-
-#if !defined(GLCHAOSP_NO_FXAA)
-//
-//  fxaa
-//
-////////////////////////////////////////////////////////////////////////////////
-void fxaaClass::create() {
-#ifdef GLAPP_NO_GLSL_PIPELINE
-    useVertex(renderEngine->getCommonVShader());
-    addShader(vertObj);
-#else
-    glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, renderEngine->getSeparableVertex());
-#endif
-    useFragment();
-    fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "fxaaFrag.glsl");
-    addShader(fragObj);
-
-    link();
-
-    removeAllShaders(true);
-
-    _fxaaData    = getUniformLocation("fxaaData");
-    _invScrnSize = getUniformLocation("invScrnSize");
-    _u_colorTexture = getUniformLocation("u_colorTexture");
-
-}
-
-GLuint fxaaClass::render(GLuint texIn, bool useFB)
-{
-    bindPipeline();
-
-#if !defined(GLCHAOSP_NO_MB)
-    const GLuint fbID = useFB || renderEngine->getMotionBlur()->Active() ? fbo.getFB(0) : 0;
-#else
-    const GLuint fbID = 0;
-#endif
-
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER,  fbID);
-
-#ifdef GLAPP_REQUIRE_OGL45
-    glBindTextureUnit(0, texIn);
-#else
-    USE_PROGRAM
-    glActiveTexture(GL_TEXTURE0 + texIn);
-    glBindTexture(GL_TEXTURE_2D,  texIn);
-
-    setUniform1i(_u_colorTexture, texIn);
-#endif
-
-    if(renderEngine->checkFlagUpdate()) {
-        setUniform2f(_invScrnSize, 1.f/fbo.getSizeX(), 1.f/fbo.getSizeY());
-        updateSettings();
-    }
-
-    theWnd->getVAO()->draw();
-
-#if !defined(GLAPP_REQUIRE_OGL45)
-    //ProgramObject::reset();
-#endif
-
-
-    return fbo.getTex(0);
-}
-
-#endif
 
 //
 //  postRenderingClass
@@ -893,7 +800,7 @@ GLuint fxaaClass::render(GLuint texIn, bool useFB)
 ////////////////////////////////////////////////////////////////////////////////
 postRenderingClass::postRenderingClass(renderBaseClass *ptrRE) : renderEngine(ptrRE) 
 {
-    fbo.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision());
+    //fbo.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision());
 }
 
 void postRenderingClass::create() {
@@ -935,21 +842,27 @@ void postRenderingClass::create() {
 
 }
 
-void postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx, const vec4 &bkgColor)
+GLuint postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx, const vec4 &bkgColor)
 {
     particle->updateBufferData();
     mmFBO &renderFBO = particle->getRenderFBO();
 
     bindPipeline();
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
+    const int idxFBO = 1;
+    const GLuint fb = particle->getAuxFBO().getFB(idxFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb);
+    //particle->getFboContainer().lockItem(1);
+
+
+
 
     //const vec4 bkg(particle->backgroundColor());
     glClearBufferfv(GL_COLOR,  0, value_ptr(bkgColor));
    
 
 #ifdef GLAPP_REQUIRE_OGL45
-        glBindTextureUnit(6, renderEngine->getAO()->getFBO().getTex(0));
+        glBindTextureUnit(6, particle->getAuxFBO().getTex(0));
         glBindTextureUnit(7, renderEngine->getShadow()->getFBO().getDepth(0));
 
         GLuint subIDX = particle->getUData().lightModel + particlesBaseClass::lightMDL::modelOffset; 
@@ -960,9 +873,9 @@ void postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx, 
 
 #else
         USE_PROGRAM
-        glActiveTexture(GL_TEXTURE0 + renderEngine->getAO()->getFBO().getTex(0));
-        glBindTexture(GL_TEXTURE_2D,  renderEngine->getAO()->getFBO().getTex(0));
-        setUniform1i(getLocAOTex() ,  renderEngine->getAO()->getFBO().getTex(0));
+        glActiveTexture(GL_TEXTURE0 + particle->getAuxFBO().getTex(0));
+        glBindTexture(GL_TEXTURE_2D,  particle->getAuxFBO().getTex(0));
+        setUniform1i(getLocAOTex() ,  particle->getAuxFBO().getTex(0));
 
         glActiveTexture(GL_TEXTURE0 +   renderEngine->getShadow()->getFBO().getDepth(0));
         glBindTexture(GL_TEXTURE_2D,    renderEngine->getShadow()->getFBO().getDepth(0));
@@ -988,6 +901,8 @@ void postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx, 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIDX);
 #endif
 
+        return particle->getAuxFBO().getTex(idxFBO);
+
 }
 
 void postRenderingClass::render()
@@ -1010,7 +925,7 @@ void postRenderingClass::releaseRender()
 ////////////////////////////////////////////////////////////////////////////////
 ambientOcclusionClass::ambientOcclusionClass(renderBaseClass *ptrRE) : renderEngine(ptrRE) 
 {
-    fbo.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision());
+    //fbo.buildFBO(1, theApp->GetWidth(), theApp->GetHeight(), theApp->getFBOInternalPrecision());
 
     // generate sample kernel
     // ----------------------
@@ -1123,7 +1038,7 @@ void ambientOcclusionClass::bindRender(particlesBaseClass *particle, GLuint fbId
 
     bindPipeline();
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.getFB(0));
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, particle->getAuxFBO().getFB(0));
 
     //const vec4 bkg(particle->backgroundColor());
     glClearBufferfv(GL_COLOR,  0, value_ptr(bkgColor));
@@ -1151,9 +1066,9 @@ void ambientOcclusionClass::bindRender(particlesBaseClass *particle, GLuint fbId
     glActiveTexture(GL_TEXTURE0 + renderFBO.getDepth(fbIdx));
     glBindTexture(GL_TEXTURE_2D,  renderFBO.getDepth(fbIdx));
     setUniform1i(locZTex,         renderFBO.getDepth(fbIdx));
-
-    
 #endif
+
+
 }
 
 void ambientOcclusionClass::render()
@@ -1234,32 +1149,28 @@ void shadowClass::releaseRender()
 tfSettinsClass::tfCommonsStruct tfSettinsClass::tfCommons;
 
 void tfSettinsClass::setViewport(int w, int h) {
-    float szX = float(w)*getPIPzoom()+.5, szY = float(h)*getPIPzoom()+.5;
-    w++; h++;
+    const float szX = float(w)*getPIPzoom(), szY = float(h)*getPIPzoom();
+    setViewportSize(vec2(szX, szY));
+
+    //w++; h++;
     switch(getPIPposition()) {
         case pip::lTop:
-            setViewportSize(ivec4(0, h-szY, szX, h));
+            setViewportLimits(vec4(0, h-szY, szX, h));
             break;
         case pip::lBottom:
-            setViewportSize(ivec4(0, 0, szX, szY));
+            setViewportLimits(vec4(0, 0, szX, szY));
             break;
         case pip::rTop:
-            setViewportSize(ivec4(w-szX, h-szY, w, h));
+            setViewportLimits(vec4(w-szX, h-szY, w, h));
             break;
         case pip::rBottom:
-            setViewportSize(ivec4(w-szX, 0, w, szY));
-            break;
-        case pip::splitView:
-            {
-                const float zoom = getPIPzoom();
-                const float startY = float(h)*zoom*.5;
-                setViewportSize(ivec4(float(w)*zoom, startY, float(w), float(h)-startY));
-            }
+            setViewportLimits(vec4(w-szX, 0, w, szY));
             break;
         case pip::noPIP:
         default:
-            setViewportSize(ivec4(0,0, w, h));
+            setViewportLimits(vec4(0,0, w, h));
             break;
     }
 }
+
 

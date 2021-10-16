@@ -25,6 +25,7 @@
 #define SHADER_PATH "Shaders/"
 
 #define PURE_VIRTUAL 0
+#define NO_TEXTURE -1
 
 #include "mmFBO.h"
 
@@ -71,216 +72,419 @@ enum PS_FRAME_BUFFERS {
     FB_POINTSPRITE
 };
 
+enum filterType { glowType_ByPass, glowType_Blur, glowType_Threshold, glowType_Bilateral };
+enum subIdx {  idxSubroutine_imgTuning,
+               idxSubroutine_BlurCommonPass1,
+               idxSubroutine_BlurGaussPass2,
+               idxSubroutine_BlurThresholdPass2,
+               idxSubroutine_Bilateral,
+               idxSubroutine_FXAA,
+               idxSubroutine_Blit,
+               idxSubroutine_MixTwoTex,
+               idxSubroutine_pipRender,
+               idxSubroutine_End};
+
+
 class renderBaseClass;
-class dataBlurClass ;
-class imgTuningClass;
-class BlurBaseClass;
+class filtersBaseClass;
+class ColorMapSettingsClass;
+class imgTuningRenderClass;
 
-/*
-
-struct uTuningData {
-    GLfloat gamma;
-    GLfloat bright;
-    GLfloat contrast;
-    GLfloat exposure;
-    GLfloat blurIntensity;
-    GLfloat renderIntensity;
-    GLfloat sigma;
-
+struct lockedFBO {
+    lockedFBO() = default;
+    lockedFBO(GLuint fb_, GLuint tex_, bool locked_) : fb(fb_), tex(tex_), locked(locked_) {}
+    lockedFBO& operator = (const lockedFBO& other) = default;
+    GLuint fb = -1;
+    GLuint tex = -1;
+    bool locked = false;
 };
-*/
 
-
-//
-//  imgTuning
-//
-////////////////////////////////////////////////////////////////////////////////
-class imgTuningClass
-{
-
+class fboContainerClass {
 public:
-    imgTuningClass(dataBlurClass *ptrGlow);
 
-////////////////////////////
-// imgTuningClass
-    GLfloat getGamma()    { return videoControls.x; }
-    GLfloat getBright()   { return videoControls.z; }
-    GLfloat getContrast() { return videoControls.w; }
-    GLfloat getExposure() { return videoControls.y; }
+    fboContainerClass() = default;
 
-    void  setGamma(GLfloat v)   ;
-    void  setBright(GLfloat v)  ;
-    void  setContrast(GLfloat v);
-    void  setExposure(GLfloat v);
-    
+    void insertItems(mmFBO &fbo, int numItems) {
+        //for(int i=numItems-1; i>=0;i--)
+        for(int i=0; i<numItems; i++)
+            lkdFBO.emplace_back( fbo.getFB(i), fbo.getTex(i), false );
+    }
 
-    GLfloat getTextComponent() { return texControls.y; }    
-    GLfloat getBlurComponent() { return texControls.x; }
-    GLfloat getBlatComponent() { return texControls.z; }
+    //void addMainFBO(mmFBO &fbo) { mainFBO.fb = fbo.getFB(0); mainFBO.tex = fbo.getTex(0); }
+    void addMainFBO(mmFBO &fbo) { lkdFBO.emplace_back( fbo.getFB(0), fbo.getTex(0), false ); }
 
-    void  setBlurComponent(GLfloat v); 
-    void  setBlatComponent(GLfloat v); 
-    void  setTextComponent(GLfloat v); 
+    GLuint getUnlockedFB() {
+        for(auto &i : lkdFBO) if(!i.locked) return i.fb;
+        return -1;
+    }
+    GLuint getUnlockedTex() {
+        for(auto &i : lkdFBO) if(!i.locked) return i.tex;
+        return -1;
+    }
+    GLuint getLockedFB() {
+        for(auto &i : lkdFBO) if(i.locked) return i.fb;
+        return mainFBO.fb;
+    }
+    GLuint getLockedTex() {
+        for(auto &i : lkdFBO) if(i.locked) return i.tex;
+        return mainFBO.tex;
+    }
 
-    void  setMixBilateral(GLfloat v); 
-    GLfloat getMixBilateral() { return texControls.w; }
+    GLuint lockItemTex(int i)   { lkdFBO[i].locked = true; return lkdFBO[i].tex; }
+    GLuint lockItemFB (int i)   { lkdFBO[i].locked = true; return lkdFBO[i].fb;  }
+    lockedFBO& lockItem(int i)  { lkdFBO[i].locked = true; return lkdFBO[i];  }
 
-    void  setDynEq(bool b);
-    bool  getDynEq() { return useDynEQ; }
+    lockedFBO& getItem(int i)  { return lkdFBO[i];  }
 
-    void setToneMap(bool b);
-    bool getToneMap() { return toneMapping; }
+    void unlockItem(int i) { lkdFBO[i].locked = false; }
 
-    void setToneMap_A(float v);
-    void setToneMap_G(float v);
-    float getToneMap_A() { return toneMapValsAG.x; } 
-    float getToneMap_G() { return toneMapValsAG.y; } 
+    void unlockTex(GLuint tex) { for(auto &i : lkdFBO) if(tex == i.tex) { i.locked = false;  return; } }
+    void unlockFB (GLuint fb ) { for(auto &i : lkdFBO) if(fb  == i.fb ) { i.locked = false;  return; } }
+    void lockTex(GLuint tex) { for(auto &i : lkdFBO) if(tex == i.tex) { i.locked = true;  return; } }
+    void lockFB (GLuint fb ) { for(auto &i : lkdFBO) if(fb  == i.fb ) { i.locked = true;  return; } }
 
-protected:
-vec4 videoControls;
-vec4 texControls;
-bool useDynEQ;
-bool toneMapping = false;
-vec2 toneMapValsAG = vec2(1.0, 1.0); // tonemap -> col = A * pow(col, G); -> x = A and y = G
-dataBlurClass *glow;
+    void unlockAll() { for(auto &i : lkdFBO) i.locked = false; }
 
-friend BlurBaseClass;
+    lockedFBO& selectFBO() {
+        for(auto &i : lkdFBO) if(!i.locked) { i.locked = true; return i; }
+        return mainFBO;
+    }
+    GLuint selectFB() {
+        for(auto &i : lkdFBO) if(!i.locked) { i.locked = true; return i.fb; }
+        return -1;
+    }
+    GLuint selectTex() {
+        for(auto &i : lkdFBO) if(i.locked) { i.locked = false; return i.tex; }
+        return mainFBO.tex;
+    }
 
+private:
+    vector<lockedFBO> lkdFBO;
+    lockedFBO mainFBO;
 };
-
-
-//
-//  dataBlur
-//
-////////////////////////////////////////////////////////////////////////////////
-class dataBlurClass 
-{
-public:
-    enum { glowType_ByPass, glowType_Blur, glowType_Threshold, glowType_Bilateral };
-    enum { idxSubroutine_ByPass, 
-           idxSubroutine_BlurCommonPass1, 
-           idxSubroutine_BlurGaussPass2, 
-           idxSubroutine_BlurThresholdPass2, 
-           idxSubroutine_Bilateral,
-           idxSubroutine_End};
-
-    dataBlurClass();
-
-    ~dataBlurClass() { delete imageTuning; }
-
-
-    mmFBO &getFBO() { return glowFBO; };
-
-    ////////////////////////////
-// dataBlurClass
-    GLfloat getSigma()       { return sigmaSize; }
-    void setSigma(GLfloat s)    { sigmaSize = s; setFlagUpdate(); }
-
-    GLfloat getSigmaRadX()     { return sigmaRange; }
-    void setSigmaRadX(float f) { sigmaRange = f; setFlagUpdate(); }
-    void setSigmaRad2X()       { sigmaRange = 2.0; setFlagUpdate(); }
-    void setSigmaRad3X()       { sigmaRange = 3.0; setFlagUpdate(); }
-
-    GLfloat getMixTexture()       { return mixTexture; }
-    void setMixTexture(GLfloat s)    { mixTexture = s; setFlagUpdate(); }
-
-    void setFlagUpdate();
-    void clearFlagUpdate();
-    void flagUpdate(bool b);
-
-    imgTuningClass *getImgTuning() { return imageTuning; }
-
-    int getGlowState() { return glowState; }
-    void setGlowState(int b) { glowState = b; setFlagUpdate(); }
-
-    bool isGlowOn() { return glowActive; }
-    void setGlowOn(bool b) { glowActive = b; }
-
-    float getThreshold() { return threshold; }
-    void setThreshold(float f) { threshold = f; setFlagUpdate(); }
-
-    float  getMixBrurGlow() { return mixBrurGlow; }
-    void setMixBrurGlow(float f) {   mixBrurGlow = f; setFlagUpdate(); }
-
-protected:
-    float sigmaSize, sigmaRange;
-    int glowState = glowType_Threshold;
-    bool glowActive = false;
-    float threshold = .1;
-    float mixBrurGlow = .5;
-    GLfloat mixTexture;
-    mmFBO glowFBO;
-    renderBaseClass *renderEngine;
-    imgTuningClass *imageTuning;
-};
-
-inline void imgTuningClass::setGamma(GLfloat v)    { videoControls.x = v; glow->setFlagUpdate(); }
-inline void imgTuningClass::setBright(GLfloat v)   { videoControls.z = v; glow->setFlagUpdate(); }
-inline void imgTuningClass::setContrast(GLfloat v) { videoControls.w = v; glow->setFlagUpdate(); }
-inline void imgTuningClass::setExposure(GLfloat v) { videoControls.y = v; glow->setFlagUpdate(); }
-inline void imgTuningClass::setDynEq(bool b)       { useDynEQ = b;        glow->setFlagUpdate(); }
-inline void imgTuningClass::setToneMap(bool b)     { toneMapping = b;     glow->setFlagUpdate(); }
-inline void imgTuningClass::setToneMap_A(float v)  { toneMapValsAG.x = v; glow->setFlagUpdate(); } 
-inline void imgTuningClass::setToneMap_G(float v)  { toneMapValsAG.y = v; glow->setFlagUpdate(); } 
-
-inline void imgTuningClass::setBlatComponent(GLfloat v) { texControls.z = v; glow->setFlagUpdate(); }
-inline void imgTuningClass::setBlurComponent(GLfloat v) { texControls.x = v; glow->setFlagUpdate(); }
-inline void imgTuningClass::setTextComponent(GLfloat v) { texControls.y = v; glow->setFlagUpdate(); }
-
-inline void imgTuningClass::setMixBilateral(GLfloat v) { texControls.w = v; glow->setFlagUpdate(); }
-
 
 //
 //  blurBase
 //
 ////////////////////////////////////////////////////////////////////////////////
-class BlurBaseClass : public mainProgramObj, public uniformBlocksClass, public virtual dataBlurClass
+class filtersBaseClass : public mainProgramObj, public uniformBlocksClass
 {
+
 struct uBlurData {
     vec4 texControls;       // align 32
     vec4 videoControls;     // align 48
+    vec4 fxaaData;
+    vec4 pipViewport;
     vec2 invScreenSize;
     vec2 toneMapVals;       // align 16+2N 24
 
     GLfloat sigmaSize;
     GLfloat sigmaRange;
     GLfloat threshold;
-    GLuint toneMapping;     //bool, but need to align 4 byte
-
 
     GLfloat mixTexture;
     GLfloat mixBrurGlow;
-    
-    GLint blurCallType;
+
+    GLint filterCallType;
+    GLuint toneMapping;     //bool, but need to align 4 byte
 
 } uData;
 
 public:
 
-    BlurBaseClass() {}
-    ~BlurBaseClass() {}
+    filtersBaseClass(renderBaseClass *rndE) : renderEngine(rndE) {}
+    ~filtersBaseClass() {}
+
+    renderBaseClass* getRenderEngine() { return renderEngine; }
 
     void create();
 
-    void glowPass(GLuint sourceTex, GLuint fbo, GLuint subIndex);
+    void bindingShader() {
+#if !defined GLAPP_REQUIRE_OGL45
+        USE_PROGRAM
+#endif
+    }
 
-    void updateData(GLuint subIndex);
+    void bindData(GLuint subIndex, GLuint dstFBO, GLuint srcTex, GLuint auxTex=NO_TEXTURE) {
+        getUData().filterCallType = subIndex;
 
-    uBlurData &getUData() { return uData; }
+        //bindPipeline();
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dstFBO);
+        bindPipeline();
 
+    #ifdef GLAPP_REQUIRE_OGL45
+        glBindTextureUnit(0, srcTex);
+        if(auxTex != NO_TEXTURE) glBindTextureUnit(1, auxTex);
 
-protected:
+        glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIndex);
+    #else
+        //USE_PROGRAM
 
-    bool actualPass;
+        glActiveTexture(GL_TEXTURE0 + srcTex);
+        glBindTexture(GL_TEXTURE_2D,  srcTex);
+        setUniform1i(LOCorigTexture,  srcTex);
+
+        #if !defined(GLCHAOSP_NO_BLUR)
+        if(auxTex != NO_TEXTURE) {
+            glActiveTexture(GL_TEXTURE0 + auxTex);
+            glBindTexture(GL_TEXTURE_2D,  auxTex);
+            setUniform1i(LOCauxTexture, auxTex);
+        }
+        #endif
+
+        #if !defined(GLCHAOSP_LIGHTVER) && !defined(GLCHAOSP_NO_USES_GLSL_SUBS)
+            glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &idxSubGlowType[subIndex]);
+        #endif
+    #endif
+
+    }
+
+    void updateDataAndDraw();
+
+    uBlurData& getUData() { return uData; }
 
 private:
+    renderBaseClass *renderEngine;
+
+    bool actualPass;
+    GLuint LOCauxTexture, LOCorigTexture;
 #if !defined(GLAPP_REQUIRE_OGL45)
-    GLuint LOCpass1Texture, LOCorigTexture;
     GLuint idxSubGlowType[idxSubroutine_End];
 #endif
+
+private:
 };
 
-class radialBlurClass;
+
+class filtersCommonsClass
+{
+public:
+    filtersCommonsClass(filtersBaseClass *filter) : filterShader(filter) {}
+    virtual ~filtersCommonsClass() {}
+    virtual void bindData(GLuint subIndex, GLuint dstFBO, GLuint srcTex, GLuint auxTex=NO_TEXTURE) {
+        filterShader->bindData(subIndex, dstFBO, srcTex, auxTex);
+        filterShader->updateDataAndDraw(); // transfer uniform buffer to shader and draw
+    }
+
+protected:
+    filtersBaseClass *filterShader;
+};
+
+//  pipRender
+////////////////////////////////////////////////////////////////////////////////
+class pipWndClass : public filtersCommonsClass
+{
+public:
+    pipWndClass(filtersBaseClass *filter) :  filtersCommonsClass(filter) {}
+
+    void pipRender(GLuint auxTex, const vec4& viewport, const vec2& transp_intens, bool border, const vec4& borderColor);
+
+private:
+};
+
+
+//  blitRender
+////////////////////////////////////////////////////////////////////////////////
+class blitRenderClass : public filtersCommonsClass
+{
+
+public:
+    blitRenderClass(filtersBaseClass *filter) : filtersCommonsClass(filter) {}
+
+    GLuint renderOnFB(); // return locked texture associated FB
+    void renderOnDB();
+
+
+};
+
+
+//  imgTuning
+////////////////////////////////////////////////////////////////////////////////
+class imgTuningDataClass
+{
+
+public:
+    imgTuningDataClass() = default;
+
+////////////////////////////
+// imgTuningDataClass
+    GLfloat getGamma()    { return videoControls.x; }
+    GLfloat getBright()   { return videoControls.z; }
+    GLfloat getContrast() { return videoControls.w; }
+    GLfloat getExposure() { return videoControls.y; }
+
+    void setGamma(GLfloat v)    { videoControls.x = v; }
+    void setBright(GLfloat v)   { videoControls.z = v; }
+    void setContrast(GLfloat v) { videoControls.w = v; }
+    void setExposure(GLfloat v) { videoControls.y = v; }
+
+    void setBlatComponent(GLfloat v) { texControls.z = v; }
+    void setBlurComponent(GLfloat v) { texControls.x = v; }
+    void setTextComponent(GLfloat v) { texControls.y = v; }
+
+    GLfloat getTextComponent() { return texControls.y; }
+    GLfloat getBlurComponent() { return texControls.x; }
+    GLfloat getBlatComponent() { return texControls.z; }
+
+    void setMixBilateral(GLfloat v) { texControls.w = v;  }
+    GLfloat getMixBilateral() { return texControls.w; }
+
+    void setDynEq(bool b)       { useDynEQ = b;        }
+    bool  getDynEq() { return useDynEQ; }
+
+    void setToneMap(bool b)     { toneMapping = b;     }
+    bool getToneMap() { return toneMapping; }
+
+    void setToneMap_A(float v)  { toneMapValsAG.x = v; }
+    void setToneMap_G(float v)  { toneMapValsAG.y = v; }
+    float getToneMap_A() { return toneMapValsAG.x; }
+    float getToneMap_G() { return toneMapValsAG.y; }
+    vec2& getToneMap_AG() { return toneMapValsAG; }
+
+
+private:
+    vec4 videoControls = vec4(2.3, 1.2, 0.0, 0.0); // .x = setGamma.y = setExposure, .z = setBright, .w = setContrast
+    vec4 texControls = vec4(1.0, 1.0, 1.0, 0.3);   //.x = blurredTex component,  .y = OrigTex comp., z = BilateralTex comp., .w =  mix(Blur,bilateral,dot(Blur,bilateral)+w
+    bool useDynEQ = false;
+    bool toneMapping = false;
+    vec2 toneMapValsAG = vec2(1.0, 1.0); // tonemap -> col = A * pow(col, G); -> x = A and y = G
+
+    friend imgTuningRenderClass;
+};
+
+class imgTuningRenderClass : public filtersCommonsClass
+{
+public:
+
+    imgTuningRenderClass(filtersBaseClass *filter) : filtersCommonsClass(filter) {}
+    void render(imgTuningDataClass *imgT);
+    void bindData(imgTuningDataClass *imgT, GLuint subIndex, GLuint dstFBO, GLuint srcTex, GLuint auxTex=NO_TEXTURE) {
+        filterShader->getUData().toneMapping  = imgT->getToneMap();
+        filterShader->getUData().toneMapVals  = imgT->getToneMap_AG();
+
+        const float gamma = 1.f/imgT->getGamma();
+        const float exposure =  imgT->getExposure();
+        const float bright   =  imgT->getBright();
+        const float contrast =  imgT->getContrast();
+        filterShader->getUData().videoControls = vec4(gamma , exposure, bright, contrast);
+        filterShader->getUData().texControls = vec4(vec3(imgT->texControls), (imgT->texControls.w+1.f)*.5f);
+
+        filtersCommonsClass::bindData(subIndex, dstFBO, srcTex, auxTex);
+    }
+
+};
+
+//  fxaa
+////////////////////////////////////////////////////////////////////////////////
+class fxaaDataClass
+{
+public:
+    fxaaDataClass() = default;
+
+    bool isOn() { return bIsOn; }
+    void activate(bool b) {
+        if(b==bIsOn) return;
+        bIsOn=b;
+    }
+
+    void setThreshold(float f) { threshold = f; }  // fxxaData.x
+    void setReductMul(float f) { reduceMul = f; }  // 1/fxxaData.y
+    void setReductMin(float f) { reduceMin = f; }  // 1/fxxaData.z
+    void setSpan     (float f) { span      = f; }  // fxxaData.w
+
+    float getThreshold() { return threshold; }
+    float getReductMul() { return reduceMul; }
+    float getReductMin() { return reduceMin; }
+    float getSpan     () { return span;      }
+
+    float getSpanMax() { return spanMax; }
+    float getMulMax()  { return mulMax;  }
+    float getMinMax()  { return minMax;  }
+
+private:
+    bool bIsOn = false;
+
+    const float spanMax = 8.f, mulMax = 64.f, minMax = 512.f;
+    GLfloat span = 4.f, reduceMul = 8.f, reduceMin = 128.f, threshold = .5f;
+};
+
+class fxaaRenderClass : public filtersCommonsClass
+{
+public:
+    fxaaRenderClass(filtersBaseClass *filter) : filtersCommonsClass(filter) {}
+
+    void render(fxaaDataClass *fxaaData);
+};
+
+//
+//  radialBlur
+//
+////////////////////////////////////////////////////////////////////////////////
+class glowDataClass
+{
+public:
+
+    glowDataClass() = default;
+
+////////////////////////////
+// dataBlurClass
+    GLfloat getSigma()       { return sigmaSize; }
+    void setSigma(GLfloat s)    { sigmaSize = s; }
+
+    GLfloat getSigmaRadX()     { return sigmaRange; }
+    void setSigmaRadX(float f) { sigmaRange = f;    }
+    void setSigmaRad2X()       { sigmaRange = 2.0;  }
+    void setSigmaRad3X()       { sigmaRange = 3.0;  }
+
+    GLfloat getMixTexture()       { return mixTexture; }
+    void setMixTexture(GLfloat s)    { mixTexture = s; }
+
+    void setFlagUpdate();
+    void clearFlagUpdate();
+    void flagUpdate(bool b);
+
+    int getGlowState() { return glowState; }
+    void setGlowState(int b) { glowState = b; }
+
+    bool isGlowOn() { return glowActive; }
+    void setGlowOn(bool b) { glowActive = b; }
+
+    float getThreshold() { return threshold; }
+    void setThreshold(float f) { threshold = f; }
+
+    float  getMixBrurGlow() { return mixBrurGlow; }
+    void setMixBrurGlow(float f) {   mixBrurGlow = f; }
+
+
+
+private:
+    float sigmaSize, sigmaRange;
+    int glowState = glowType_Threshold;
+    bool glowActive = false;
+    float threshold = .1;
+    float mixBrurGlow = .5;
+    GLfloat mixTexture = 0.0;
+};
+
+class glowRenderClass : public filtersCommonsClass
+{
+public:
+    glowRenderClass(filtersBaseClass *filter) : filtersCommonsClass(filter) {}
+
+    void render(glowDataClass *glowData);
+    void bindData(glowDataClass *glowData, GLuint subIndex, GLuint dstFBO, GLuint srcTex, GLuint auxTex=NO_TEXTURE) {
+        filterShader->getUData().sigmaRange   = glowData->getSigmaRadX();
+        filterShader->getUData().sigmaSize    = glowData->getSigma();
+        filterShader->getUData().threshold    = glowData->getThreshold();
+        filterShader->getUData().mixBrurGlow  = glowData->getMixBrurGlow()*glowData->getMixBrurGlow()*glowData->getMixBrurGlow();
+        filterShader->getUData().mixTexture   = (1.f + glowData->getMixTexture())*.5;
+        //filterShader->getUData().filterCallType = subIndex;
+        filtersCommonsClass::bindData(subIndex, dstFBO, srcTex, auxTex);
+    }
+
+};
+
+
 #if !defined(GLCHAOSP_NO_MB)
 class motionBlurClass;
 #endif
@@ -306,7 +510,7 @@ struct uTFData {
 
 public:
 
-    enum pip { noPIP, lTop, rTop, lBottom, rBottom, splitView };
+    enum pip { noPIP, lTop, rTop, lBottom, rBottom, endValue};
 
     uTFData& getUdata() { return uData; }
 
@@ -392,6 +596,11 @@ public:
     bool fixedDistance() { return cpFixDistance; }
     void fixedDistance(bool b)  { cpFixDistance=b; }
 
+    float getPipTransparence()  { return pipTransparence; };
+    float getPipIntensity()     { return pipIntensity;    };
+    void  setPipTransparence(float f) { pipTransparence = f; };
+    void  setPipIntensity(float f)    { pipIntensity    = f; };
+
 //const static
     static float getPerspNear() { return perspNear; }
     static int getMaxTransformedEmission()      { return maxEmission; }
@@ -403,11 +612,17 @@ public:
     //void setMaxEmissionFrame(int i)  {  maxEmissionFrame =  i; }    //getEmittedParticles
     //static int getMaxEmissionFrame() { return maxEmissionFrame; }
 
-    ivec4 &getViewportSize() { return viewportSize; }
-    void setViewportSize(const ivec4 &v) { viewportSize = v; }
+    vec2 &getViewportSize() { return viewportSize; }
+    void setViewportSize(const vec2 &v) { viewportSize = v; }
 
-    vec4 &getPipBkgrndColor() { return pipBkgrndColor; }
-    void setPipBkgrndColor(const vec4 &v) { pipBkgrndColor = v; }
+    vec4 &getViewportLimits() { return viewportLimits; }
+    void setViewportLimits(const vec4 &v) { viewportLimits = v; }
+
+    vec4 &getPipBorderColor() { return pipBorderColor; }
+    void setPipBorderColor(const vec4 &v) { pipBorderColor = v; }
+
+    bool borderActive() { return border; }
+    void borderActive(bool b) { border = b; }
 private:
 
     struct tfCommonsStruct {
@@ -416,10 +631,14 @@ private:
         int pipPosition = noPIP;
         float perspAngle = 60.f;
         bool invertPip = false;
-        float pipZoom = .5; // 1.0 -> 1/4 Window
+        float pipZoom = .4; // 1.0 -> 1/4 Window
     } static tfCommons;
 
-    ivec4 viewportSize = ivec4(0, 0, 100, 100);
+    float pipTransparence = .5f;
+    float pipIntensity    = 1.f;
+
+    vec2 viewportSize;
+    vec4 viewportLimits;
     float smoothDistance = .250;
     float lifeTime = 75.0;
     float lifeTimeAtten = .3;
@@ -440,7 +659,8 @@ private:
     quat qRot = quat(1.0f, 0.0f, 0.0f, 0.0f);
     int slowMotionDpS = 100; //tfSettings DotPerSec
     int slowMotionFSDpS = 5000; //FullScreen DotPerSec
-    vec4 pipBkgrndColor = vec4(.003f, .003f, .007f, 1.f);
+    vec4 pipBorderColor = vec4(.1f, .1f, .5f, 1.f);
+    bool border = true;
 
     static constexpr float perspNear = .001f;
 
@@ -492,14 +712,14 @@ public:
     void render();
     void releaseRender();
 
-    mmFBO &getFBO() { return fbo; }
+    //mmFBO &getFBO() { return fbo; }
 
 #if !defined(GLAPP_REQUIRE_OGL45)
     //GLuint getLocPrevData() { return locPrevData; }
 #endif
 
 private:
-    mmFBO fbo;
+    //mmFBO fbo;
     renderBaseClass *renderEngine;
     std::vector<vec3> ssaoKernel;
     GLuint ssaoKernelTex;
@@ -523,12 +743,12 @@ public:
 
     void create();
 
-    void bindRender(particlesBaseClass *particle, GLuint fbIdx, const vec4 &bkgColor);
+    GLuint bindRender(particlesBaseClass *particle, GLuint fbIdx, const vec4 &bkgColor);
     void render();
     void releaseRender();
 
 
-    mmFBO &getFBO() { return fbo; }
+    //mmFBO &getFBO() { return fbo; }
 
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint getLocPrevData() { return locPrevData; }
@@ -538,7 +758,7 @@ public:
 #endif
 
 private:
-    mmFBO fbo;
+    //mmFBO fbo;
     renderBaseClass *renderEngine;
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locSubLightModel;
@@ -548,6 +768,9 @@ private:
     friend particlesBaseClass;
 };
 
+
+
+class fxaaDataClass;
 //
 //  renderBase
 //
@@ -585,12 +808,14 @@ public:
     int getRenderMode() { return whichRenderMode; }
 
     mmFBO &getRenderFBO() { return renderFBO; };
+    mmFBO &getAuxFBO() { return auxFBO; };
     //mmFBO &getMSAAFBO() { return msaaFBO; };
+
     int getWidth()  { return getRenderFBO().getSizeX(); }
     int getHeight() { return getRenderFBO().getSizeY(); }
 
- 
     cmContainerClass &getColorMapContainer() { return colorMapContainer; }
+    fboContainerClass &getFboContainer() { return fboContainer; }
 
 
     bool checkFlagUpdate() { return flagUpdate; }
@@ -603,6 +828,7 @@ public:
     void showAxes(int b) { axesShow = b; }
     int showAxes() { return axesShow; }
 
+    pipWndClass *getPipWnd() { return pipWnd; }
 #if !defined(GLCHAOSP_NO_BB)
     mergedRenderingClass *getMergedRendering() { return mergedRendering; }
 #endif
@@ -631,8 +857,13 @@ public:
     postRenderingClass* getPostRendering() { return postRendering; }
     ambientOcclusionClass* getAO() { return ambientOcclusion; }
     shadowClass* getShadow() { return shadow; }
+    filtersBaseClass* getFilter()  { return filterBase; }
+    blitRenderClass* getBlitRender() { return blitRender; }
+    imgTuningRenderClass* getImgTuningRender() { return imgTuningRender; }
+    fxaaRenderClass* getFXAARender() { return fxaaRender; }
+    glowRenderClass* getGlowRender() { return glowRender; }
 
-    
+
     int getBlendArrayElements() { return blendArray.size(); }
     std::vector<GLuint> &getBlendArray() { return blendArray; }
     std::vector<const char *> &getBlendArrayStrings() { return blendingStrings; }
@@ -644,9 +875,17 @@ public:
 
     uClippingPlanes &getUPlanes() { return uPlanes; }
 
+    int  getNumAuxFBO() { return numAuxFBO; }
 
 protected:
-    int whichRenderMode;    
+    int whichRenderMode;
+
+    pipWndClass *pipWnd = nullptr;
+    blitRenderClass* blitRender = nullptr;
+    imgTuningRenderClass* imgTuningRender = nullptr;
+    fxaaRenderClass* fxaaRender = nullptr;
+    glowRenderClass* glowRender = nullptr;
+
 
 #if !defined(GLCHAOSP_NO_MB)
     motionBlurClass *motionBlur = nullptr;
@@ -665,13 +904,14 @@ protected:
     int axesShow = noShowAxes;
 
     cmContainerClass colorMapContainer;
+    fboContainerClass fboContainer;
 
     vec4 clippingPlane[3] = { vec4(1.f, 0.f, 0.f, 0.f), vec4(0.f, 1.f, 0.f, 0.f), vec4(0.f, 0.f, 1.f, 0.f) };
 
     bool flagUpdate;
 
-    mmFBO renderFBO;
-    mmFBO drawFBO;
+    mmFBO renderFBO; // multi FB con depth
+    mmFBO auxFBO;
 //         msaaFBO;
 
     transformsClass tMat, cpTMat;
@@ -681,6 +921,14 @@ protected:
     postRenderingClass *postRendering = nullptr;
     ambientOcclusionClass *ambientOcclusion = nullptr;
     shadowClass* shadow = nullptr;
+    filtersBaseClass *filterBase = nullptr;
+
+#ifdef GLCHAOSP_LIGHTVER
+    int numAuxFBO = 3;
+#else
+    int numAuxFBO = 4;
+#endif
+
 
     std::vector<GLuint> blendArray;
     std::vector<const char *> blendingStrings;
@@ -691,108 +939,33 @@ protected:
 private:
 };
 
-//
-//  radialBlur
-//
-////////////////////////////////////////////////////////////////////////////////
-class radialBlurClass : public BlurBaseClass
-{
-public:
-    
-    radialBlurClass(renderBaseClass *ptrRE) {
-        renderEngine = ptrRE;
-#if !defined(GLCHAOSP_NO_BLUR)
-        glowFBO.buildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());
-#else
-        glowFBO.buildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());
-#endif
-    }
-
-    void render(GLuint sourceTex, GLuint fbOut) {
-
-#if !defined(GLCHAOSP_NO_BLUR)
-        if(isGlowOn() && (getGlowState()==glowType_Blur || getGlowState()==glowType_Threshold)) {
-            glowPass(sourceTex, glowFBO.getFB(RB_PASS_1), idxSubroutine_BlurCommonPass1);
-            glowPass(sourceTex, fbOut, getGlowState()==glowType_Blur ?
-                                                       idxSubroutine_BlurGaussPass2 : 
-                                                       idxSubroutine_BlurThresholdPass2);
-        } else
-            glowPass(sourceTex, fbOut, isGlowOn() && getGlowState()==glowType_Bilateral ? idxSubroutine_Bilateral : idxSubroutine_ByPass);
-#else
-            glowPass(sourceTex, fbOut, isGlowOn() ? idxSubroutine_Bilateral : idxSubroutine_ByPass);
-#endif
-            
-    }
+struct overlapWindow {
+    vec4 viewport;
+    vec4 color;
+    float transparence;
+    float intensity;
+    bool border;
 };
 
-#if !defined(GLCHAOSP_NO_FXAA)
 
-//
-//  fxaa
-//
+
+
+#if !defined(GLCHAOSP_NO_BB)
+// mergedRendering
 ////////////////////////////////////////////////////////////////////////////////
-class fxaaClass : public mainProgramObj
+class mergedRenderingClass : public filtersCommonsClass
 {
 public:
-    fxaaClass(renderBaseClass *ptrRE) { 
-        renderEngine = ptrRE;
-        fbo.declareFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());
-        create();
-    }
+    mergedRenderingClass(filtersBaseClass *filter) : filtersCommonsClass(filter), mixingVal(0.0) {}
 
-    void create();
-    GLuint render(GLuint texIn, bool useFB=false);
+    void mixRender(GLuint auxTex);
 
-    bool isOn() { return bIsOn; }
-    void activate(bool b) {
-        if(b==bIsOn) return;
-        if(b) on();
-        else off();
-        bIsOn=b; 
-        renderEngine->setFlagUpdate();
-    }
-
-    void setThreshold(float f) { threshold = f; renderEngine->setFlagUpdate(); }  // fxxaData.x
-    void setReductMul(float f) { reduceMul = f; renderEngine->setFlagUpdate(); }  // 1/fxxaData.y
-    void setReductMin(float f) { reduceMin = f; renderEngine->setFlagUpdate(); }  // 1/fxxaData.z
-    void setSpan     (float f) { span      = f; renderEngine->setFlagUpdate(); }  // fxxaData.w
-
-    float getThreshold() { return threshold; }
-    float getReductMul() { return reduceMul; }
-    float getReductMin() { return reduceMin; }
-    float getSpan     () { return span;      }
-
-    void updateSettings() {
-        const vec4 fxaaData = vec4(threshold, 
-                                   1.f/reduceMul, 
-                                   1.f/reduceMin, 
-                                   span);
-        setUniform4fv(_fxaaData, 1, value_ptr(fxaaData));    
-    }
-
-    mmFBO &getFBO() { return fbo; }
-
-    float getSpanMax() { return spanMax; }
-    float getMulMax() { return mulMax; }
-    float getMinMax() { return minMax; }
+    void setMixingVal(GLfloat f) { mixingVal = f; }
+    GLfloat getMixingVal() { return mixingVal; }
 
 private:
-    void on()  { fbo.reBuildFBO(1, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision()); }
-    void off() { fbo.deleteFBO(); }
-
-    renderBaseClass *renderEngine;
-    mmFBO fbo;
-    bool bIsOn = false;
-
-    const float spanMax = 8.f, mulMax = 64.f, minMax = 512.f;
-    GLfloat span = 4.f, reduceMul = 8.f, reduceMin = 128.f, threshold = .5f;
-    //Locations
-    GLuint _fxaaData, _invScrnSize, _u_colorTexture;
+    GLfloat mixingVal;
 };
-
-#endif
-
-#if !defined(GLCHAOSP_NO_MB)
 
 //
 //  motionBlur
@@ -860,62 +1033,6 @@ private:
 };
 #endif
 
-#if !defined(GLCHAOSP_NO_BB)
-//
-// mergedRendering
-//
-////////////////////////////////////////////////////////////////////////////////
-class mergedRenderingClass : public mainProgramObj
-{
-public:
-
-    mergedRenderingClass(renderBaseClass *ptrRE) { 
-        renderEngine = ptrRE;
-        mixingVal=0.0;
-        mergedFBO.declareFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision()); 
-        create();
-    }
-
-    GLuint render(GLuint texA, GLuint texB);
-    void create();
-
-    void Activate()   { 
-        renderEngine->getRenderFBO().reBuildFBO(2,renderEngine->getWidth(),renderEngine->getHeight(), GL_RGBA32F);
-        mergedFBO.reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), theApp->getFBOInternalPrecision()); 
-        renderEngine->setFlagUpdate();
-    }
-    void Deactivate() { 
-        renderEngine->getRenderFBO().reBuildFBO(1,renderEngine->getWidth(),renderEngine->getHeight(), GL_RGBA32F);
-        mergedFBO.deleteFBO(); 
-        renderEngine->setFlagUpdate();
-    }
-
-#ifndef GLAPP_REQUIRE_OGL45
-    void updateBillboardTex(GLuint tex)    { setUniform1i(LOCbillboardTex, tex); }
-    void updatePointsTex(GLuint tex)       { setUniform1i(LOCpointsTex, tex); }
-#endif
-    void updatemixingVal()  { setUniform1f(LOCmixingVal, (mixingVal+1.0)*.5); }
-
-    void setMixingVal(GLfloat f) { mixingVal = f; setFlagUpdate(); }
-    GLfloat getMixingVal() { return mixingVal; }
-
-    void setFlagUpdate() { renderEngine->setFlagUpdate(); }
-    void clearFlagUpdate() { renderEngine->clearFlagUpdate(); }
-    void flagUpdate(bool b) { b ? renderEngine->setFlagUpdate() : renderEngine->clearFlagUpdate(); }
-
-    mmFBO &getFBO() { return mergedFBO; }
-
-private:
-    GLfloat mixingVal;
-#ifndef GLAPP_REQUIRE_OGL45
-    GLuint LOCbillboardTex, LOCpointsTex;
-#endif
-    GLuint LOCmixingVal;
-    renderBaseClass *renderEngine;
-
-    mmFBO mergedFBO;
-};
-#endif
 
 class particlesDlgClass;
 
@@ -935,7 +1052,7 @@ struct uCMapData {
 
 public:
     enum {
-        ORIG_TEXTURE ,
+        ORIG_TEXTURE,
         MODF_TEXTURE
     };
 
@@ -980,11 +1097,12 @@ public:
     void setFlagUpdate()   { flagUpdate = true; }
     void clearFlagUpdate() { flagUpdate = false; }
 
-    mmFBO &getFBO() { return cmTex; }
+    //mmFBO &getFBO() { return cmTex; }
 
 private:
     
     GLuint LOCpaletteTex;
+
     particlesBaseClass *particles;
     mmFBO cmTex;
     bool flagUpdate;
@@ -998,25 +1116,19 @@ private:
 class ColorMapSettingsClass : public paletteTexClass, public colorMapTexturedClass
 {
 public:
-    ColorMapSettingsClass(particlesBaseClass *p) : colorMapTexturedClass(p) {
-        particles = p;
-        velIntensity = .3f;
-    }
+    ColorMapSettingsClass(particlesBaseClass *p) : colorMapTexturedClass(p), velIntensity(.3f) { setFlagUpdate(); }
 
     void selected(int i)       { selection = i;    }
-    int  selected()            { return selection; } 
+    int  selected()            { return selection; }
 
     float getVelIntensity() { return velIntensity; }    
     void setVelIntensity(float f);
-
 
 protected:
     int selection;
     float velIntensity;
 
 private:
-    particlesBaseClass *particles;
-
 };
 
 
@@ -1092,24 +1204,17 @@ public:
     enum pixColIDX { pixOffset, pixBlendig=pixOffset, pixDirect, pixAO, pixDR };
     enum subsLoc { lightModel, pixelColor };
 
-    particlesBaseClass ()  { 
-        glowRender = new radialBlurClass(this);
+    particlesBaseClass ()  {
 
-        colorMap = new ColorMapSettingsClass(this);
-#if !defined(GLCHAOSP_NO_FXAA)
-        fxaaFilter = new fxaaClass(this);
-#endif
+        colorMap        = new ColorMapSettingsClass(this);
+
         dotTex.build(DOT_TEXT_SHFT, vec4(.7f, 0.f, .3f, 0.f), dotsTextureClass::dotsAlpha);
         selectColorMap(0);
 
-        glowRender->create();
-        colorMap->create();
     }
 
-    ~particlesBaseClass ()  {  delete glowRender; delete colorMap;
-#if !defined(GLCHAOSP_NO_FXAA)
-    delete fxaaFilter; 
-#endif
+    ~particlesBaseClass ()  {
+        delete colorMap;
     }
 
     void clearFB(GLuint fbID) {
@@ -1256,10 +1361,6 @@ public:
     void setBlendState(bool b) { blendActive = b; }
     void setLightState(bool b) { uData.lightActive = b ? GLuint(on) : GLuint(off); }
 
-    radialBlurClass *getGlowRender()  { return glowRender; }
-#if !defined(GLCHAOSP_NO_FXAA)
-    fxaaClass *getFXAA() { return fxaaFilter; } 
-#endif
     void dstBlendIdx(int i) { dstIdxBlendAttrib = i; }
     int  dstBlendIdx() { return dstIdxBlendAttrib; }
     void dstBlendIdxA(int i) { dstIdxBlendAttribA = i; }
@@ -1349,6 +1450,10 @@ public:
 
     tfSettinsClass& getTFSettings() { return tfSettings; }
 
+    glowDataClass* getGlowData() { return &glowData; }
+    fxaaDataClass* getFXAAData() { return &fxaaData; }
+    imgTuningDataClass* getImgTuningData() { return &imgTuning; }
+
 protected:
     uniformBlocksClass planesUBlock;
 
@@ -1360,16 +1465,12 @@ protected:
     int rgbIdxEq = 0, aIdxEq = 0;
 
     ColorMapSettingsClass *colorMap;
-
     dotsTextureClass dotTex;
 
-    radialBlurClass *glowRender;
+    glowDataClass glowData;
+    fxaaDataClass fxaaData;
+    imgTuningDataClass imgTuning;
 
-#if !defined(GLCHAOSP_NO_FXAA)
-    fxaaClass *fxaaFilter;
-#endif
-
-    
 #if !defined(GLAPP_REQUIRE_OGL45)
     GLuint locSubLightModel, locSubPixelColor;
     GLuint locDotsTex, locPaletteTex;
@@ -1398,13 +1499,6 @@ private:
 friend class particlesDlgClass;
 };
 
-inline void ColorMapSettingsClass::setVelIntensity(float f) { velIntensity = f; particles->setFlagUpdate(); }
-inline GLuint colorMapTexturedClass::getOrigTex() { return particles->getPaletteTexID(); }
-
-
-inline void dataBlurClass::setFlagUpdate() { renderEngine->setFlagUpdate(); }
-inline void dataBlurClass::clearFlagUpdate() { renderEngine->clearFlagUpdate(); }
-inline void dataBlurClass::flagUpdate(bool b) { b ? renderEngine->setFlagUpdate() : renderEngine->clearFlagUpdate(); }
 
 inline void renderBaseClass::uClippingPlanes::buildInvMV_forPlanes(particlesBaseClass *particles) {
     if(planeActive[0] || planeActive[1] || planeActive[2]) {
@@ -1415,6 +1509,10 @@ inline void renderBaseClass::uClippingPlanes::buildInvMV_forPlanes(particlesBase
     clipPlane[1] = particles->getClippingPlane(1);
     clipPlane[2] = particles->getClippingPlane(2);
 }
+
+inline GLuint colorMapTexturedClass::getOrigTex() { return particles->getPaletteTexID(); }
+inline void ColorMapSettingsClass::setVelIntensity(float f) { velIntensity = f; setFlagUpdate(); }
+
 
 
 class emitterBaseClass;
@@ -1429,9 +1527,9 @@ public:
     shaderPointClass();
 
     shaderPointClass *getPtr() { return this; }
+    void initShader();
 
 private:
-    void initShader();
 };
 
 #if !defined(GLCHAOSP_NO_BB)
@@ -1445,9 +1543,9 @@ public:
     shaderBillboardClass();
 
     shaderBillboardClass *getPtr() { return this; }
+    void initShader();
 
 private:
-    void initShader();
 };
 #endif
 

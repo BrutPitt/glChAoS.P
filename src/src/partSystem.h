@@ -21,10 +21,7 @@ class particlesSystemClass : public shaderPointClass
 #endif
 {
 public:
-    particlesSystemClass() {
-        setRenderMode(RENDER_USE_POINTS);
-        buildEmitter((enumEmitterEngine) theApp->getEmitterEngineType());
-    }
+    particlesSystemClass() { setRenderMode(RENDER_USE_POINTS); }
     ~particlesSystemClass() { deleteEmitter(); }
 
 
@@ -52,37 +49,39 @@ public:
         return getParticleRenderPtr()->render(0, getEmitter(), isFullScreenPiP, cpitView);
     }
 
-    /////////////////////////////////////////////
-    GLuint renderGlowEffect(GLuint texRendered, bool useFB=false) {
+
 #if !defined(GLCHAOSP_NO_BB)
-        particlesBaseClass *particles = getParticleRenderPtr();
-
-        const GLuint fbo = (useFB || getMotionBlur()->Active() || particles->getFXAA()->isOn()) ? particles->getGlowRender()->getFBO().getFB(1) : 0;
-        particles->getGlowRender()->render(texRendered, fbo);
-        return particles->getGlowRender()->getFBO().getTex(1);  // used only if FXAA and/or Motionblur
-#else
-        shaderPointClass::getPtr()->getGlowRender()->render(texRendered, 0);
-        return 0;
+    void mixedRendering(GLuint auxTex) {
+        getMergedRendering()->mixRender(auxTex); }
 #endif
-    }
-
-#if !defined(GLCHAOSP_NO_FXAA)
-    GLuint renderFXAA(GLuint texRendered, bool useFB=false) {
-        particlesBaseClass *particles = getParticleRenderPtr();
-
-        return particles->getFXAA()->isOn() ? particles->getFXAA()->render(texRendered, useFB) : texRendered;
-    }
-#endif
+    void pipRendering(GLuint auxTex, const vec4& viewport, const vec2& transp_intens, bool border, const vec4& borderColor) {
+        getPipWnd()->pipRender(auxTex, viewport, transp_intens, border, borderColor); }
 
 
     GLuint renderSingle();  // render single emitter engine
     GLuint renderTF();      // render TransformFeedback emitter engine
 
     /////////////////////////////////////////////
-    GLuint render() {
+    GLuint render() { // main render renderSingle() or renderTF() ==> this->*renderEmitter()
         glViewport(0,0, getWidth(), getHeight());
-
+        getFboContainer().unlockAll();
         return (this->*renderEmitter)();
+    }
+
+    void renderFilters() {
+        particlesBaseClass *ptr = getParticleRenderPtr();
+        bindFilterShader();
+        if(ptr->getGlowData()->isGlowOn()) getGlowRender()->render(ptr->getGlowData());
+        getImgTuningRender()->render(ptr->getImgTuningData());
+        if(ptr->getFXAAData()->isOn()) getFXAARender()->render(ptr->getFXAAData());
+    }
+
+    void blitOnDrawBuffer() { getBlitRender()->renderOnDB(); }
+    GLuint blitOnFrameBuffer() { return getBlitRender()->renderOnFB(); }
+
+    void bindFilterShader() {
+        getFilter()->bindingShader();
+
     }
     /////////////////////////////////////////////
     void renderPalette() {      // ColorMaps: rebuilds texture only if settings are changed

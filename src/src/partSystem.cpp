@@ -16,22 +16,21 @@
 void particlesSystemClass::buildEmitter(enumEmitterEngine ee)
 {
 
+    if(ee != emitterEngine_noEmitterSelected) {
 #if !defined(GLCHAOSP_NO_TF)
-    if(ee == enumEmitterEngine::emitterEngine_staticParticles) {
+        if(ee == enumEmitterEngine::emitterEngine_staticParticles) {
+            emitter = (emitterBaseClass*) new singleEmitterClass;
+            renderEmitter = &particlesSystemClass::renderSingle;
+        } else {  // enumEmitterEngine::emitterEngine_transformFeedback
+            emitter = (emitterBaseClass*) new transformedEmitterClass;
+            renderEmitter = &particlesSystemClass::renderTF;
+        }
+#else
         emitter = (emitterBaseClass*) new singleEmitterClass;
         renderEmitter = &particlesSystemClass::renderSingle;
-    } else {  // enumEmitterEngine::emitterEngine_transformFeedback
-        emitter = (emitterBaseClass*) new transformedEmitterClass;
-        renderEmitter = &particlesSystemClass::renderTF;
-    }
-#else
-    emitter = (emitterBaseClass*) new singleEmitterClass;
-    renderEmitter = &particlesSystemClass::renderSingle;
 #endif
-
-    renderBaseClass::create();
-
-    emitter->buildEmitter(); // post build for WebGL texture ID outRange
+        emitter->buildEmitter(); // post build for WebGL texture ID outRange
+    }
 
 //start new thread (if aux thread enabled)
 #if !defined(GLCHAOSP_NO_TH)
@@ -77,25 +76,14 @@ void particlesSystemClass::onReshape(int w, int h)
     getTMat()->setPerspective(float(w)/float(h));
 
     getRenderFBO().reSizeFBO(w, h);
-    shaderPointClass::getGlowRender()->getFBO().reSizeFBO(w, h);
+    getAuxFBO().reSizeFBO(w, h);
 
 #if !defined(GLCHAOSP_NO_AO_SHDW)
-    getPostRendering()->getFBO().reSizeFBO(w, h);
     getShadow()->resize(w, h);
-    getAO()->getFBO().reSizeFBO(w, h);
-#endif
-#if !defined(GLCHAOSP_NO_FXAA)
-    shaderPointClass::getFXAA()->getFBO().reSizeFBO(w, h);
-#endif
-#if !defined(GLCHAOSP_NO_BB)
-    shaderBillboardClass::getGlowRender()->getFBO().reSizeFBO(w, h);
-    shaderBillboardClass::getFXAA()->getFBO().reSizeFBO(w, h);
-    getMergedRendering()->getFBO().reSizeFBO(w, h);
 #endif
 #if !defined(GLCHAOSP_NO_MB)
      getMotionBlur()->getFBO().reSizeFBO(w, h);
 #endif
-
     setFlagUpdate();
 }
 
@@ -157,37 +145,44 @@ void particlesSystemClass::renderAxes()
 
 GLuint particlesSystemClass::renderSingle()
 {
-    GLuint texRendered;
+    GLuint texRendered = 0;
 
     emitter->preRenderEvents();
 
 #if !defined(GLCHAOSP_NO_BB)
     if(getRenderMode() != RENDER_USE_BOTH) {
-        texRendered = renderParticles();
-        texRendered = renderGlowEffect(texRendered);
-        texRendered = renderFXAA(texRendered);
+        renderParticles();
+        renderFilters();    //render gausBlur-glow, imgTuning, FXAA
     } else {
-        GLuint tex1 = shaderBillboardClass::render(0, getEmitter());
-        GLuint tex2 = shaderPointClass::render(1, getEmitter());
-        emitter->bufferRendered();
+        shaderBillboardClass::render(0, getEmitter());
+        if(shaderBillboardClass::getGlowData()->isGlowOn()) getGlowRender()->render(shaderBillboardClass::getGlowData());
+        getImgTuningRender()->render(shaderBillboardClass::getImgTuningData());
+        if(shaderBillboardClass::getFXAAData()->isOn())     getFXAARender()->render(shaderBillboardClass::getFXAAData());
 
-        if(shaderBillboardClass::getFXAA()->isOn()) tex1 = shaderBillboardClass::getFXAA()->render(tex1, true);
-        shaderBillboardClass::getGlowRender()->render(tex1, shaderBillboardClass::getGlowRender()->getFBO().getFB(1));
+        const GLuint tex1 = blitOnFrameBuffer();
+        
+        getFboContainer().unlockAll();
 
-        if(shaderPointClass::getFXAA()->isOn())  tex2 = shaderPointClass::getFXAA()->render(tex2, true);
-        shaderPointClass::getGlowRender()->render(tex2, shaderPointClass::getGlowRender()->getFBO().getFB(1));
+        shaderPointClass::render(0, getEmitter());
+        if(shaderPointClass::getGlowData()->isGlowOn()) getGlowRender()->render(shaderPointClass::getGlowData());
+        getImgTuningRender()->render(shaderPointClass::getImgTuningData());
+        if(shaderPointClass::getFXAAData()->isOn())     getFXAARender()->render(shaderPointClass::getFXAAData());
 
-        texRendered = getMergedRendering()->render(shaderBillboardClass::getGlowRender()->getFBO().getTex(1), shaderPointClass::getGlowRender()->getFBO().getTex(1));  // only if Motionblur
+        mixedRendering(tex1);
+
+        //emitter->bufferRendered();
 
     }
 #else
-    texRendered = renderParticles();
-    texRendered = renderGlowEffect(texRendered);
-#if !defined(GLCHAOSP_NO_FXAA)
-    if(shaderPointClass::getPtr()->getFXAA()->isOn())
-        texRendered = shaderPointClass::getPtr()->getFXAA()->render(texRendered);
+    glBindTexture(GL_TEXTURE_2D,  0);
+    renderParticles();
+
+    bindFilterShader();
+
+    //glBindTexture(GL_TEXTURE_2D,  0);
+    renderFilters();
 #endif
-#endif
+
     emitter->postRenderEvents();
     return texRendered;
 }
@@ -203,7 +198,6 @@ GLuint particlesSystemClass::renderTF()
     const int w = getWidth(), h = getHeight();
 
     const bool isDualView = cPit.cockPit() && cPit.getPIPposition() != cPit.pip::noPIP;
-    const bool isSplitView = cPit.cockPit() && cPit.getPIPposition() == cPit.pip::splitView;
 
     getEmitter()->preRenderEvents();
 
@@ -219,7 +213,7 @@ GLuint particlesSystemClass::renderTF()
 
     transformsClass *cpTM = getCockPitTMat();
 
-    cpTM->setPerspective(tfSettinsClass::getPerspAngle(), float(cPit.getPIPposition() == cPit.pip::splitView ? w>>1 : w) / float(h),
+    cpTM->setPerspective(tfSettinsClass::getPerspAngle(),  w / float(h),
                          tfSettinsClass::getPerspNear(),
                          getTMat()->getPerspFar());
 
@@ -244,37 +238,25 @@ GLuint particlesSystemClass::renderTF()
     setFlagUpdate();
     
     //Render TF full screen view
-    GLuint texRendered = renderParticles(true, cPit.cockPit() && !cPit.invertPIP());
-    texRendered = renderGlowEffect(texRendered, isSplitView);
-#if !defined(GLCHAOSP_NO_FXAA)
-    texRendered = renderFXAA(texRendered, isSplitView);
-    GLuint srcFB = particles->getFXAA()->isOn() ? particles->getFXAA()->getFBO().getFB(0) : particles->getGlowRender()->getFBO().getFB(1);
-#else
-    GLuint srcFB = particles->getGlowRender()->getFBO().getFB(1);
-#endif
+    renderParticles(true, cPit.cockPit() && !cPit.invertPIP());
+    renderFilters();    //render gausBlur-glow, imgTuning, FXAA
 
-    auto blitFB = [&](const ivec4 &vp) { blitFrameBuffer(srcFB, 0, ivec4(0, 0, w, h), vp);  };
-
-    if(isSplitView) {
-        const float zoom = cPit.getPIPzoom();
-        const float startY = float(h)*(1.f-zoom)*.5;
-        blitFB( ivec4(0, startY, float(w)*zoom+.5, float(h)-startY) );
-    }
+    GLuint tex1 = 0;
 
     //Render PiP view
     if(isDualView) {
         cPit.setViewport(w,h);
+        vec4 normViewport(cPit.getViewportLimits()/vec4(w,h,w,h)); //normalized viewport Limits
 
-        GLuint littleTex = renderParticles(false, cPit.invertPIP());
-        littleTex = renderGlowEffect(littleTex, true);
-#if !defined(GLCHAOSP_NO_FXAA)
-        littleTex = renderFXAA(littleTex, true);
-#endif
+        tex1 = blitOnFrameBuffer();
+        getFboContainer().unlockAll();
 
-        blitFB(cPit.getViewportSize());
+        renderParticles(false, cPit.invertPIP());
+        renderFilters();    //render gausBlur-glow, imgTuning, FXAA
+        pipRendering(tex1, normViewport, vec2(cPit.getPipTransparence(), cPit.getPipIntensity()), cPit.borderActive(), cPit.getPipBorderColor());
+
     }
-
     getEmitter()->postRenderEvents();
 
-    return texRendered;
+    return tex1;
 }
