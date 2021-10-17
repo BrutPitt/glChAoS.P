@@ -37,7 +37,7 @@ public:
     void deleteFBO();
 
     GLuint getFB(int num)  { return num<m_NumFB ? m_fb[num] : -1; }
-    GLuint getTex(int num) { return num<m_NumFB ? m_tex[num] : -1; }
+    GLuint getTex(int num=0) { return num<m_NumFB ? m_tex[num] : -1; }
     GLuint getRB(int num)  { return num<m_NumFB ? m_rb[num] : -1; }
     GLuint getDepth(int num) { return num<m_NumFB ? m_depth[num] : -1; }
     GLuint getTexMultiFB(int fbIDX, int multiIDX) { return fbIDX<m_NumFB && multiIDX<numMultiDraw ? multiDrawFB[fbIDX*numMultiDraw+multiIDX] : -1; }

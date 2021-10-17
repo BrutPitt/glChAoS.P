@@ -204,35 +204,35 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
     }
 
 //glow
-    radialBlurClass *glow = ptr->getGlowRender();
+    glowDataClass *glow = ptr->getGlowData();
+    imgTuningDataClass *imgT = ptr->getImgTuningData();
     c["glowOn"          ] = glow->isGlowOn();
     c["glowSelect"      ] = glow->getGlowState();
     c["sigma"           ] = glow->getSigma();
     c["sigmaRadX"       ] = glow->getSigmaRadX();
-    c["renderInt"       ] = glow->getImgTuning()->getTextComponent();
-    c["blurInt"         ] = glow->getImgTuning()->getBlurComponent();
-    c["bilatInt"        ] = glow->getImgTuning()->getBlatComponent();
-    c["bilatMix"        ] = glow->getImgTuning()->getMixBilateral() ;
+    c["renderInt"       ] = imgT->getTextComponent();
+    c["blurInt"         ] = imgT->getBlurComponent();
+    c["bilatInt"        ] = imgT->getBlatComponent();
+    c["bilatMix"        ] = imgT->getMixBilateral() ;
     c["mixTexture"      ] = glow->getMixTexture();
     c["mixBrurGlow"     ] = glow->getMixBrurGlow();
     c["glowThreshold"   ] = glow->getThreshold();
 
-#if !defined(GLCHAOSP_NO_FXAA)
+    fxaaDataClass *fxaa = ptr->getFXAAData();
 //FXAA
-    c["fxaaOn"          ] = ptr->getFXAA()->isOn();
-    c["fxaaThreshold"   ] = ptr->getFXAA()->getThreshold();
-    c["ReductMul"       ] = ptr->getFXAA()->getReductMul();
-    c["ReductMin"       ] = ptr->getFXAA()->getReductMin();
-    c["Span"            ] = ptr->getFXAA()->getSpan();
-#endif
+    c["fxaaOn"          ] = fxaa->isOn();
+    c["fxaaThreshold"   ] = fxaa->getThreshold();
+    c["ReductMul"       ] = fxaa->getReductMul();
+    c["ReductMin"       ] = fxaa->getReductMin();
+    c["Span"            ] = fxaa->getSpan();
 //DisplayAdjust
-    c["Gamma"           ] = glow->getImgTuning()->getGamma();
-    c["Bright"          ] = glow->getImgTuning()->getBright();
-    c["Contrast"        ] = glow->getImgTuning()->getContrast();
-    c["Exposure"        ] = glow->getImgTuning()->getExposure();
-    c["ToneMap"         ] = glow->getImgTuning()->getToneMap();  
-    c["ToneMapVal"      ] = glow->getImgTuning()->getToneMap_A();
-    c["ToneMapExp"      ] = glow->getImgTuning()->getToneMap_G();
+    c["Gamma"           ] = imgT->getGamma();
+    c["Bright"          ] = imgT->getBright();
+    c["Contrast"        ] = imgT->getContrast();
+    c["Exposure"        ] = imgT->getExposure();
+    c["ToneMap"         ] = imgT->getToneMap();
+    c["ToneMapVal"      ] = imgT->getToneMap_A();
+    c["ToneMapExp"      ] = imgT->getToneMap_G();
 
     if(attractorsList.get()->dtType()) {
         tfSettinsClass &cPit = ptr->getTFSettings();
@@ -266,6 +266,12 @@ void saveParticlesSettings(Config &c, particlesBaseClass *ptr)
         c["cpFixedDistance"   ] = cPit.fixedDistance();
         c["cpitMovPosTail"    ] = cPit.getMovePositionTail();
         c["cpitInvertView"    ] = cPit.invertView();
+        c["cpitBorder"        ] = cPit.borderActive();
+        {
+            vector<float> q(4);
+            *((vec4 *)q.data())= cPit.getPipBorderColor();
+            c["cpitPiPBorderColor"] = Config::array(q);
+        }
         {
             vector<float> q(4);
             *((quat *)q.data())= cPit.getRotation();
@@ -348,7 +354,7 @@ void saveSettings(Config &cfg, particlesSystemClass *pSys)
             c["tfModeOn"        ] = tfSettinsClass::tfMode();
             c["cpitOn"          ] = tfSettinsClass::cockPit();
             c["cpitFOVangle"    ] = tfSettinsClass::getPerspAngle();
-            c["cpitPiPsize"     ] = tfSettinsClass::getPIPzoom();
+            c["cpitPiPzoom"     ] = tfSettinsClass::getPIPzoom();
             c["cpitPiPpos"      ] = tfSettinsClass::getPIPposition();
             c["cpitPiPinvert"   ] = tfSettinsClass::invertPIP();
         }
@@ -553,8 +559,11 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         ptr->getUData().lightColor = (getVec_asArray(c, "lightColor", v3) ? v3 : vec3(1.f));
     }
 
+    glowDataClass *glow = ptr->getGlowData();
+    imgTuningDataClass *imgT = ptr->getImgTuningData();
+    fxaaDataClass *fxaa = ptr->getFXAAData();
+
 //glow   
-    radialBlurClass *glow = ptr->getGlowRender();
     if(theDlg.getDataDlg().getGlow() || checkSelectGroup) {
         if(c.has_key("glowOn")) { //last version
             glow->setGlowOn(c.get_or("glowOn"  , glow->isGlowOn() ));
@@ -562,11 +571,11 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         } else {
             if(c.has_key("glowState")) { //first version
                 glow->setGlowOn(c.get_or("glowState",false));
-                glow->setGlowState(glow->glowType_Blur);
+                glow->setGlowState(filterType::glowType_Blur);
             } else {                  //second version
                 int gSel = c.get_or("glowSelect" , glow->getGlowState() );
                 glow->setGlowOn(gSel>0);
-                glow->setGlowState( gSel>0 ? gSel : glow->glowType_Threshold);            
+                glow->setGlowState( gSel>0 ? gSel : filterType::glowType_Threshold);
             }
         }
         if(theApp->startWithGlowOFF()) glow->setGlowOn(false);    
@@ -581,16 +590,14 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         glow->setMixBrurGlow(c.get_or("mixBrurGlow" , 0.0));
         glow->setThreshold(  c.get_or("glowThreshold", glow->getThreshold()));
 
-        glow->getImgTuning()->setTextComponent(c.get_or("renderInt", glow->getImgTuning()->getTextComponent()));
-        glow->getImgTuning()->setBlurComponent(c.get_or("blurInt"  , glow->getImgTuning()->getBlurComponent()));
-        glow->getImgTuning()->setBlatComponent(c.get_or("bilatInt" , glow->getImgTuning()->getBlatComponent()));
-        glow->getImgTuning()->setMixBilateral (c.get_or("bilatMix" , glow->getImgTuning()->getMixBilateral() ));
+        imgT->setTextComponent(c.get_or("renderInt", imgT->getTextComponent()));
+        imgT->setBlurComponent(c.get_or("blurInt"  , imgT->getBlurComponent()));
+        imgT->setBlatComponent(c.get_or("bilatInt" , imgT->getBlatComponent()));
+        imgT->setMixBilateral (c.get_or("bilatMix" , imgT->getMixBilateral() ));
     }
 
-#if !defined(GLCHAOSP_NO_FXAA)
 //FXAA
     if(theDlg.getDataDlg().getGlow() || checkSelectGroup) {
-        fxaaClass *fxaa = ptr->getFXAA();
         fxaa->activate(    c.get_or("fxaaOn"       , fxaa->isOn()));
         fxaa->setThreshold(c.get_or("fxaaThreshold", fxaa->getThreshold()));
         fxaa->setReductMul(c.get_or("ReductMul"    , fxaa->getReductMul()));
@@ -600,17 +607,16 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         if(fxaa->getReductMul()>fxaa->getMulMax() ) fxaa->setReductMul(fxaa->getMulMax() );
         if(fxaa->getReductMin()>fxaa->getMinMax() ) fxaa->setReductMin(fxaa->getMinMax() );
     }
-#endif
 
 //DisplayAdjust
     if(theDlg.getDataDlg().getAdjust() || checkSelectGroup) {
-        glow->getImgTuning()->setGamma(    c.get_or("Gamma"     , glow->getImgTuning()->getGamma()    ));
-        glow->getImgTuning()->setBright(   c.get_or("Bright"    , glow->getImgTuning()->getBright()   ));
-        glow->getImgTuning()->setContrast( c.get_or("Contrast"  , glow->getImgTuning()->getContrast() ));
-        glow->getImgTuning()->setExposure( c.get_or("Exposure"  , glow->getImgTuning()->getExposure() ));
-        glow->getImgTuning()->setToneMap(  c.get_or("ToneMap"   , glow->getImgTuning()->getToneMap()  ));
-        glow->getImgTuning()->setToneMap_A(c.get_or("ToneMapVal", glow->getImgTuning()->getToneMap_A()));
-        glow->getImgTuning()->setToneMap_G(c.get_or("ToneMapExp", glow->getImgTuning()->getToneMap_G()));
+        imgT->setGamma(    c.get_or("Gamma"     , imgT->getGamma()    ));
+        imgT->setBright(   c.get_or("Bright"    , imgT->getBright()   ));
+        imgT->setContrast( c.get_or("Contrast"  , imgT->getContrast() ));
+        imgT->setExposure( c.get_or("Exposure"  , imgT->getExposure() ));
+        imgT->setToneMap(  c.get_or("ToneMap"   , imgT->getToneMap()  ));
+        imgT->setToneMap_A(c.get_or("ToneMapVal", imgT->getToneMap_A()));
+        imgT->setToneMap_G(c.get_or("ToneMapExp", imgT->getToneMap_G()));
     }
 
     //Transform Feedback for any system
@@ -643,8 +649,9 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         cPit.setMovePositionTail(c.get_or("cpitMovPosTail"    , cPitDef.getMovePositionTail()));
         cPit.invertView(         c.get_or("cpitInvertView"    , cPitDef.invertView()         ));
         cPit.setRotation(getVec_asArray(c,"cpitRotation"      , q) ? q :cPitDef.getRotation() );
+        cPit.borderActive(       c.get_or("cpitBorder"        , cPitDef.borderActive()       ));
+        cPit.setPipBorderColor(getVec_asArray(c,"cpitPiPBorderColor", v4) ? v4 : cPitDef.getPipBorderColor());
     }
-
 
     if(theDlg.getDataDlg().getColor() || checkSelectGroup) loadPalette(c, ptr);
 }
@@ -723,10 +730,11 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
         if(attractorsList.get()->dtType()) {
             tfSettinsClass::tfMode(c.get_or("tfModeOn", false));
             tfSettinsClass::cockPit(            c.get_or("cpitOn"        , false));
-            tfSettinsClass::setPerspAngle(      c.get_or("cpitFOVangle"  , 60.f ));
-            tfSettinsClass::setPIPzoom(         c.get_or("cpitPiPsize"   , .5f  ));
-            tfSettinsClass::invertPIP(          c.get_or("cpitPiPinvert" , false));
+            tfSettinsClass::setPerspAngle(      c.get_or("cpitFOVangle"  , tfSettinsClass::getPerspAngle()));
+            tfSettinsClass::setPIPzoom(         c.get_or("cpitPiPzoom"   , tfSettinsClass::getPIPzoom()  ));
+            tfSettinsClass::invertPIP(          c.get_or("cpitPiPinvert" , tfSettinsClass::invertPIP()));
             tfSettinsClass::setPIPposition(     c.get_or("cpitPiPpos"    , int(tfSettinsClass::pip::noPIP)));
+            if(tfSettinsClass::getPIPposition()>=tfSettinsClass::pip::endValue) tfSettinsClass::setPIPposition(tfSettinsClass::pip::noPIP);
             
             tfSettinsClass::cockPit(false); // OVERRIDE start anyway OFF // FIXME:???
         }

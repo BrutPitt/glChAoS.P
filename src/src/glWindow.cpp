@@ -54,6 +54,16 @@ void glWindow::onInit()
     //hlsTexture.buildTex(1024);
 
     particlesSystem = new particlesSystemClass;
+    particlesSystem->renderBaseClass::create();
+    particlesSystem->buildEmitter((enumEmitterEngine) theApp->getEmitterEngineType());
+
+    particlesSystem->shaderPointClass::colorMap->create();
+    particlesSystem->shaderPointClass::initShader();
+
+#if !defined(GLCHAOSP_NO_BB)
+    particlesSystem->shaderBillboardClass::colorMap->create();
+    particlesSystem->shaderBillboardClass::initShader();
+#endif
 
 #if !defined(__EMSCRIPTEN__) && !defined(GLAPP_USES_ES3)
 
@@ -108,6 +118,7 @@ void glWindow::onInit()
         }
         else attractorsList.setSelection(getRandomIDX());
     }
+    glEnable(GL_MULTISAMPLE);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -122,8 +133,8 @@ GLint glWindow::onRender()
 {
     particlesSystem->renderPalette();
 
-    if(theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback && tfSettinsClass::cockPit() && tfSettinsClass::getPIPposition() == tfSettinsClass::pip::splitView)
-        particlesSystem->getParticleRenderPtr()->clearFB(0);
+//    if(theApp->getEmitterEngineType() == enumEmitterEngine::emitterEngine_transformFeedback && tfSettinsClass::cockPit() && tfSettinsClass::getPIPposition() == tfSettinsClass::pip::splitView)
+//        particlesSystem->getParticleRenderPtr()->clearFB(0);
 
 #if !defined(GLCHAOSP_NO_AX)
     particlesSystem->renderAxes();
@@ -132,18 +143,23 @@ GLint glWindow::onRender()
 #endif
 
     // main render event
-    GLuint texRendered = particlesSystem->render();
+    particlesSystem->render();
 
 #if !defined(GLCHAOSP_NO_MB)
     //  Motion Blur
-    if(particlesSystem->getMotionBlur()->Active())
+    if(particlesSystem->getMotionBlur()->Active()) {
+        const GLuint texRendered = particlesSystem->blitOnFrameBuffer();
         blitFrameBuffer(particlesSystem->getMotionBlur()->render(texRendered), 0,
                         ivec4(0,0,particlesSystem->getWidth(), particlesSystem->getHeight()),
                         ivec4(0,0,theApp->GetWidth(), theApp->GetHeight()), GL_NEAREST);
+    } else  particlesSystem->blitOnDrawBuffer();
+
+#else
+        blitOnDrawBuffer();
 #endif
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     particlesSystem->clearFlagUpdate();
-    return texRendered;
+    return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////
