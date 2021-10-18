@@ -312,7 +312,7 @@ int mainGLApp::imguiExit()
     return 0;
 }
 
-void mainGLApp::getScreenShot(GLuint tex, bool is32bit) 
+void mainGLApp::getScreenShot(bool is32bit)
 {
     const int w = glEngineWnd->getParticlesSystem()->getWidth(), h = glEngineWnd->getParticlesSystem()->getHeight();
     const int rowDim = w*(is32bit ? 4 : 3);
@@ -359,7 +359,7 @@ void mainGLApp::glfwInit()
             glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
             glslVersion = "#version 320 es\n";
             glslDefines = fPrecision + iPrecision;
             glslDefines+= "#define LAYOUT_BINDING(X)\n"
@@ -370,7 +370,11 @@ void mainGLApp::glfwInit()
                           "#define CONST\n";
         #else
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        #ifdef NDEBUG
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+        #else
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); //debug to 4.3: need glDebugMessageCallback
+        #endif
             glslVersion = "#version 410\n";
             glslDefines = "#define LAYOUT_BINDING(X)\n"
                           "#define LAYOUT_LOCATION(X)\n"
@@ -394,8 +398,8 @@ void mainGLApp::glfwInit()
                       "#define LAYOUT_LOCATION(X)\n"
                       "#define SUBROUTINE(X)\n"
                       "#define CONST\n";
-#if !defined(GLCHAOSP_NO_AO_SHDW)
-       if(theApp->checkMaxCombTexImgUnits()) glslDefines+= "#define GLCHAOSP_NO_AO_SHDW\n";
+#if defined(GLCHAOSP_NO_AO_SHDW)
+        glslDefines+= "#define GLCHAOSP_NO_AO_SHDW\n";
 #endif
 
 
@@ -424,14 +428,16 @@ void mainGLApp::glfwInit()
 
 #ifdef NDEBUG
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_CONTEXT_NO_ERROR);
+#else
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 #endif
 
-    glfwWindowHint(GLFW_SAMPLES, 0); //glfwWindowHint(GLFW_SAMPLES, getMultisamplingValue());
+    glfwWindowHint(GLFW_SAMPLES, getMultisamplingValue());
     glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
 
     glfwWindowHint(GLFW_DEPTH_BITS, 0); // rendering is on FBO, so disable DEPTH buffer of context
 
-    //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
+    //
 
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
@@ -463,6 +469,22 @@ void mainGLApp::glfwInit()
     #else
         gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);    //get OpenGL extensions
     #endif
+
+#ifndef NDEBUG
+/*
+    glEnable              ( GL_DEBUG_OUTPUT );
+    //glDebugMessageCallback( MessageCallback, nullptr );
+    glDebugMessageCallback( openglCallbackFunction, nullptr);
+*/
+    if(glDebugMessageCallback) {
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(openglCallbackFunction, nullptr);
+        GLuint unusedIds = 0;
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unusedIds, true);
+    }
+    else
+        cout << "glDebugMessageCallback not available: need OpenGL ES 3.2+ or OpenGL 4.3+" << endl;
+#endif
 
 #else
     bool b = emscripten_webgl_enable_extension(emscripten_webgl_get_current_context(),"EXT_color_buffer_float");
@@ -621,7 +643,7 @@ void mainGLApp::mainLoop()
             // debug interface
             //glClearColor(0.0, 0.0, 0.0, 0.1);
             //glClear(GL_COLOR_BUFFER_BIT);
-            GLuint tex = theWnd->onRender();
+            theWnd->onRender();
 
 
             if(screenShotRequest) {
@@ -630,7 +652,7 @@ void mainGLApp::mainLoop()
                 //glfwMakeContextCurrent(getGLFWWnd());
                     getScreenShot(0);
                 } else {
-                    getScreenShot(tex, screenShotRequest == ScreeShotReq::ScrnSht_SILENT_MODE_ALPHA || screenShotRequest == ScreeShotReq::ScrnSht_FILE_NAME_ALPHA);
+                    getScreenShot(screenShotRequest == ScreeShotReq::ScrnSht_SILENT_MODE_ALPHA || screenShotRequest == ScreeShotReq::ScrnSht_FILE_NAME_ALPHA);
                     getMainDlg().postRenderImGui();
                 }
             } else  getMainDlg().postRenderImGui();
@@ -665,8 +687,8 @@ int main(int argc, char **argv)
         }
         // 4
     #if defined(GLCHAOSP_LIGHTVER_EXPERIMENTAL)
-            if(atoi(argv[4])==1 || !theApp->checkMaxCombTexImgUnits()) theApp->setLowPrecision();
-            else                                                       theApp->setHighPrecision();
+            if(atoi(argv[4])==1) theApp->setLowPrecision();
+            else                 theApp->setHighPrecision();
     #else
             theApp->setLowPrecision();
     #endif

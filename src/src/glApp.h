@@ -36,13 +36,11 @@ enum enumEmitterType { emitter_singleThread_externalBuffer,    // webGL and APPL
                        emitter_separateThread_externalBuffer,  // max performance for OGL 4.1
                        emitter_separateThread_mappedBuffer};    // max performance for OGL 4.5
 
-enum enumEmitterEngine { emitterEngine_staticParticles,
+enum enumEmitterEngine { emitterEngine_noEmitterSelected = -1,
+                         emitterEngine_staticParticles,
                          emitterEngine_transformFeedback };
 
 enum glslPrecision { low, medium, hight };
-
-
-
 
 #define GLAPP_PROG_NAME "glChAoS.P"
 
@@ -212,7 +210,7 @@ public:
 //  Request for scrrenshot
 //////////////////////////////////////////////////////////////////
     void setScreenShotRequest(int val) { screenShotRequest = val; }
-    void getScreenShot(GLuint tex, bool is32bit=false);
+    void getScreenShot(bool is32bit=false);
 
     char const *openFile(char const *startDir, char const * patterns[], int numPattern);
     char const *saveFile(char const *startDir, char const * patterns[], int numPattern);
@@ -376,7 +374,7 @@ public:
     timerClass& getTimer() { return timer; }
 
     int getMaxCombTexImgUnits() { return maxCombTexImgUnits; }
-    bool checkMaxCombTexImgUnits() { return (maxCombTexImgUnits>32); }
+    bool checkMaxCombTexImgUnits() { return (maxCombTexImgUnits>=32); }
 
 protected:
 
