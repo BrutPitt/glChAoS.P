@@ -455,9 +455,11 @@ void threadStepClass::notify() {
 #endif
 }
 
-void threadStepClass::restartEmitter() { 
-    emitter->resetVBOindexes(); 
-    getEmitter()->resetEmittedParticles();
+void threadStepClass::restartEmitter() {
+    if(getEmitter()) {
+        getEmitter()->resetVBOindexes();
+        getEmitter()->resetEmittedParticles();
+    }
 }
    
 //  Attractor Class container

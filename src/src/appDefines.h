@@ -12,7 +12,7 @@
 //------------------------------------------------------------------------------
 #pragma once
 
-#define GLCHAOSP_VERSION "1.6.0 WiP"
+#define GLCHAOSP_VERSION "1.7.0 WiP"
 
 #define APP_USE_FBO
 
@@ -40,14 +40,12 @@
     //#define GLCHAOSP_NO_TF       // disable TransformFeedback -> TF is slowmotion/cockpit effects for dp/dt attractors
     //#define GLCHAOSP_NO_TF_QUERY // disable TransformFeedback's glQuery --> need to disable in WebGL
     //#define GLCHAOSP_NO_AO_SHDW  // disable AmbientOcclusion and Shadows
-    //#define GLCHAOSP_NO_FXAA     // disable FXAA filter
     //#define GLCHAOSP_NO_AX       // disable AXes/CenterOfRotation manipulation/modification
     //#define GLCHAOSP_NO_TH       // disable Thread creation
 
     //#define GLCHAOSP_LIGHTVER_EXPERIMENTAL
 
 #ifdef GLAPP_USES_ES3
-    //#define GLCHAOSP_NO_FXAA     // disable FXAA filter .. FixMe!!!!
     //#define GLCHAOSP_NO_MB       // disable Motion Blur
     // #define GLCHAOSP_NO_AX
     // #define GLCHAOSP_NO_BB       // disable BillBoard use only pointsprite (no billboard with Geometry shader)
@@ -68,7 +66,6 @@
     //#define GLCHAOSP_NO_TF_QUERY       // disable TransformFeedback's glQuery --> need in WebGL
     //#define GLCHAOSP_NO_AX             // disable AXes/CenterOfRotation manipulation/modification
     //#define GLCHAOSP_NO_TH             // disable Thread creation --> not enabled in WebGL version
-    //#define GLCHAOSP_NO_FXAA           // disable FXAA filter
     //#define GLCHAOSP_NO_MB             // disable Motion Blur
     //#define GLCHAOSP_NO_BB             // use only pointsprite (no billboard with Geometry shader)
     //#define GLCHAOSP_NO_USES_GLSL_SUBS // disable glsl subroutines
@@ -79,7 +76,6 @@
     //#define GLCHAOSP_NO_TF_QUERY // disable TransformFeedback's glQuery --> need in WebGL
     //#define GLCHAOSP_NO_AX       // disable AXes/CenterOfRotation manipulation/modification
     //#define GLCHAOSP_NO_TH       // disable Thread creation --> not enabled in WebGL version
-    //#define GLCHAOSP_NO_FXAA     // disable FXAA filter
     //#define GLCHAOSP_NO_MB       // disable Motion Blur
     //#define GLCHAOSP_NO_BB       // use only pointsprite (no billboard with Geometry shader)
     //#define GLCHAOSP_NO_USES_GLSL_SUBS // disable glsl subroutines

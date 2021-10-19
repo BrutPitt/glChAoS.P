@@ -131,7 +131,7 @@ void HLSTexture::buildTex(int size)
     glTextureStorage2D(texID, 1, theApp->getPalInternalPrecision(), size, 1);
     glTextureSubImage2D(texID, 0, 0, 0, size, 1, GL_RGB, GL_FLOAT, buffer);
 #else    
-    //glActiveTexture(GL_TEXTURE0 + texID);
+    glActiveTexture(GL_TEXTURE0 + texID);
     glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
     glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_FLOAT, buffer);
 #endif
@@ -154,7 +154,7 @@ void RandomTexture::buildTex(int size)
     glTextureStorage2D(texID, 1, GL_RGB32F, size, 1);
     glTextureSubImage2D(texID, 0, 0, 0, size, 1, GL_RGB, GL_FLOAT, buffer);
 #else
-    //glActiveTexture(GL_TEXTURE0 + texID);
+    glActiveTexture(GL_TEXTURE0 + texID);
     glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
     glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_FLOAT, buffer);
 #endif
@@ -173,7 +173,7 @@ void paletteTexClass::buildTex(unsigned char *buffer, int size)
     glTextureStorage2D(texID, 1, theApp->getPalInternalPrecision(), size, 1);
     glTextureSubImage2D(texID, 0, 0, 0, size, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 #else
-    //glActiveTexture(GL_TEXTURE0 + texID);
+    glActiveTexture(GL_TEXTURE0 + texID);
     glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
     glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 #endif
@@ -191,7 +191,7 @@ void paletteTexClass::buildTex(float *buffer, int size)
     glTextureStorage2D(texID, 1, theApp->getPalInternalPrecision(), size, 1);
     glTextureSubImage2D(texID, 0, 0, 0, size, 1, GL_RGB, GL_FLOAT, buffer);
 #else
-    //glActiveTexture(GL_TEXTURE0 + texID);
+    glActiveTexture(GL_TEXTURE0 + texID);
     glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
     glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_FLOAT, buffer);
 
