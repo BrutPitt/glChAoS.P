@@ -103,22 +103,8 @@ inline void CheckErrorsGL( const char* location = NULL,
 #endif
 
 #if !defined(NDEBUG)
-#define CHECK_GL_ERROR() {\
-    static int count=0;\
-    if(count++<5) {\
-        CheckGLError(__FILE__, __LINE__);\
-        GLenum err = glGetError();\
-        if(err!=GL_NO_ERROR) cout << "OpenGL Error:" << err << endl;\
-    }\
-}
-#define CHECK_GL_ERROR_MSG(X) {\
-    static int count=0;\
-    if(count++<5) {\
-        CheckGLError(__FILE__, __LINE__);\
-        GLenum err = glGetError();\
-        if(err!=GL_NO_ERROR) cout << X << " - OpenGL Error:" << err << endl;\
-    }\
-}
+#define CHECK_GL_ERROR()      CheckGLError(__FILE__, __LINE__);
+#define CHECK_GL_ERROR_MSG(X) CheckGLError(__FILE__, __LINE__);
 #else
 #define CHECK_GL_ERROR()
 #define CHECK_GL_ERROR_MSG(X)
@@ -139,8 +125,17 @@ inline void CheckErrorsGL( const char* location = NULL,
 
 void getFileContents(const char* fileName, string &str);
 
-void checkDeletedShader(GLuint shader);
-void getCompilerLog(GLuint handle, GLint blen, bool isShader);
+//void checkDeletedShader(GLuint shader);
 
-int CheckGLError(const char *file, int line);
-void CheckShaderError(GLuint hProg);
+#if !defined(NDEBUG)
+    void CheckShaderError(GLuint hProg);
+    void getCompilerLog(GLuint handle, GLint blen, bool isShader);
+    int CheckGLError(const char *file, int line);
+    #if !defined(GLCHAOSP_LIGHTVER)
+
+        void GLAPIENTRY openglCallbackFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                                               const GLchar* message, const void* userParam);
+    #endif
+
+#endif
+

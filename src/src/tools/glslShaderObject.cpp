@@ -15,24 +15,116 @@
 #define ANSI
 #ifdef ANSI             // ANSI compatible version
 #include <stdarg.h>
+#include <vector>
 #else                   // UNIX compatible version
 #include <varargs.h>
 #endif
 
+#define MAX_ERRORS_TO_SHOW 25
+
+#if !defined(NDEBUG)
+    #if !defined(GLCHAOSP_LIGHTVER)
+        void GLAPIENTRY openglCallbackFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                                               const GLchar* message, const void* userParam)
+        {
+            static int count = 0;
+            if(type!=GL_DEBUG_TYPE_OTHER && count<MAX_ERRORS_TO_SHOW) {
+                cout << endl << "----- debug message -----" << endl;
+                cout << "message: "<< message << endl;
+                cout << "type: ";
+                switch (type) {
+                case GL_DEBUG_TYPE_ERROR:
+                    cout << "ERROR";
+                    break;
+                case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+                    cout << "DEPRECATED_BEHAVIOR";
+                    break;
+                case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+                    cout << "UNDEFINED_BEHAVIOR";
+                    break;
+                case GL_DEBUG_TYPE_PORTABILITY:
+                    cout << "PORTABILITY";
+                    break;
+                case GL_DEBUG_TYPE_PERFORMANCE:
+                    cout << "PERFORMANCE";
+                    break;
+                case GL_DEBUG_TYPE_OTHER:
+                    cout << "OTHER";
+                    break;
+                }
+                cout << endl;
+
+                cout << "id: " << id << endl;
+                cout << "severity: ";
+                switch (severity){
+                case GL_DEBUG_SEVERITY_LOW:
+                    cout << "LOW";
+                    break;
+                case GL_DEBUG_SEVERITY_MEDIUM:
+                    cout << "MEDIUM";
+                    break;
+                case GL_DEBUG_SEVERITY_HIGH:
+                    cout << "HIGH";
+                    break;
+                default :
+                    cout << severity;
+                }
+                count++;
+                cout << endl;
+            }
+        }
+
+        void GetFirstNMessages(GLuint numMsgs)
+        {
+            GLint maxMsgLen = 0;
+            glGetIntegerv(GL_MAX_DEBUG_MESSAGE_LENGTH, &maxMsgLen);
+
+            std::vector<GLchar> msgData(numMsgs * maxMsgLen);
+            std::vector<GLenum> sources(numMsgs);
+            std::vector<GLenum> types(numMsgs);
+            std::vector<GLenum> severities(numMsgs);
+            std::vector<GLuint> ids(numMsgs);
+            std::vector<GLsizei> lengths(numMsgs);
+
+            GLuint numFound = glGetDebugMessageLog(numMsgs, msgData.size(), &sources[0], &types[0], &ids[0], &severities[0], &lengths[0], &msgData[0]);
+
+            sources.resize(numFound);
+            types.resize(numFound);
+            severities.resize(numFound);
+            ids.resize(numFound);
+            lengths.resize(numFound);
+
+            std::vector<std::string> messages;
+            messages.reserve(numFound);
+
+            std::vector<GLchar>::iterator currPos = msgData.begin();
+            for(size_t msg = 0; msg < lengths.size(); ++msg)
+            {
+               messages.push_back(std::string(currPos, currPos + lengths[msg] - 1));
+               currPos = currPos + lengths[msg];
+            }
+
+            for(int i=0; i<numMsgs; i++)
+                cout << "num: "<< numFound << " - src: " << sources[i] << " - type: " << types[i] << " - id: " << ids[i] << " - sev: " << severities[i] << endl << " ***** " << messages[i] << endl;
+        }
+    #endif
 // GL ERROR CHECK
 int CheckGLError(const char *file, int line)
 {
+    static int count = 0;
+
     GLenum glErr;
     int    retCode = 0;
 
     glErr = glGetError();
-    while (glErr != GL_NO_ERROR)
-    {
+    while (glErr != GL_NO_ERROR)  {
 
-     cout << "GL Error #" << glErr << "(" << (glErr) << ") " << " in File " << file << " at line: " << line << endl;
+        if(count++<MAX_ERRORS_TO_SHOW)
+            cout << "GL error (" << (glErr) << ") " << " in File " << file << " at line: " << line << endl;
+//        GetFirstNMessages(50);
 
-     retCode = 1;
-     glErr = glGetError();
+        retCode = 1;
+        glErr = glGetError();
     }
     return retCode;
 }
@@ -64,7 +156,8 @@ void getCompilerLog(GLuint handle, GLint blen, bool isShader)
         delete[] compilerLog;
     }
 }
-
+#endif
+/*
 void checkDeletedShader(GLuint shader)
 {
     GLint deleted;
@@ -72,7 +165,7 @@ void checkDeletedShader(GLuint shader)
 
     cout << "Shader#: " << shader << (deleted == GL_TRUE ? " flagged for delete" : " still active") << endl;
 }
-
+*/
 void checkShader(GLuint shader)
 {
     GLint compiled;
@@ -81,8 +174,9 @@ void checkShader(GLuint shader)
     if(compiled == GL_FALSE) {
         GLint len;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH , &len);
-        
+#ifndef NDEBUG
         getCompilerLog(shader, len, true);
+#endif
     }
 }
 
@@ -95,7 +189,9 @@ void checkProgram(GLuint program)
     if(linked == GL_FALSE) {
         GLint len;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH , &len);
+#ifndef NDEBUG
         getCompilerLog(program, len, false);
+#endif
     }
 }
 
