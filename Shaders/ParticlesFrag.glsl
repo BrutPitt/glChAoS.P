@@ -36,7 +36,7 @@ in float magnitudeFrag;
 //in vec4 shadowlightView;
 
 layout (location = 0) out vec4 outColor;
-layout (location = 1) out vec4 baseColor;
+layout (location = 1) out vec4 baseColor;  // color for postprocessing w/o light attribute
 
 // multi out
 //layout (location = 1) out vec4 vtxOut;
@@ -177,7 +177,7 @@ vec4 mainFunc(vec2 ptCoord)
 
     newVertex = mvVtxPos + vec4(0., 0., N.z * particleSize, 0.);
 
-    if(N.w > 1.0 || N.z < u.alphaSkip || -mvVtxPos.z<u.clippingDist || clippedPoint(newVertex)) { discard; } //returm need for Angle error
+    if(N.w > 1.0 || N.z < u.alphaSkip || -mvVtxPos.z<u.clippingDist || clippedPoint(newVertex))  discard;
 
     gl_FragDepth = getFragDepth(newVertex.z);
 

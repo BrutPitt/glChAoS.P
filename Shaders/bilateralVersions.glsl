@@ -563,7 +563,7 @@ vec4 g4PassModuled(sampler2D tex, vec2 direction)
     for ( float r = -radius; r <= radius; r++) {
             float factor = exp( -(r*r) * invSigmaSqx2 ) * invSigmaxSqrt2PI ;
             vec4 c = texelFetch(tex, ivec2(gl_FragCoord.xy + r * direction), 0);
-            vec4 t = texelFetch(pass1Texture, ivec2(gl_FragCoord.xy + r * direction), 0);
+            vec4 t = texelFetch(auxTexture, ivec2(gl_FragCoord.xy + r * direction), 0);
 
             float factor2;
             if(pass==1) {
@@ -636,7 +636,7 @@ vec4 gPassModuledA(sampler2D tex, vec2 direction, int pass)
     float depth = 0.0;
 
     vec4 oCol = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0);
-    vec4 tCol = texelFetch(pass1Texture,ivec2(gl_FragCoord.xy),0);
+    vec4 tCol = texelFetch(auxTexture,ivec2(gl_FragCoord.xy),0);
 
     float dotP = dot(oCol.rgb, oCol.rgb);
     if(dotP<threshold) {

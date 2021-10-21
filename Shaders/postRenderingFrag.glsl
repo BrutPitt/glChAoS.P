@@ -406,7 +406,7 @@ void main()
     vec2 uv = gl_FragCoord.xy*u.invScrnRes;
 
     float depth = texture(zTex,uv).x;
-    if(depth>.9999) { discard; /*outColor = vec4(0.0); return;*/ }
+    if(depth>.9999) discard;
 
     vec4 vtx = getVertexFromDepth(-viewRay, restoreZ(depth));
 
