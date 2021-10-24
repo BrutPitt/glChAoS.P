@@ -22,12 +22,21 @@ cmake_minimum_required(VERSION 3.15)
 #           OpenGL_41_LowRes
 #           OpenGL_ES
 #           OpenGL_ES_LowRes
-#       <MakeTool> is your preferred generator like "Unix Makefiles" or "ninja"
+#       <MakeTool> is your preferred generator like "Unix Makefiles" or "Ninja"
 #       <FolderToBuild> is the folder where will be generated Makefile, move in it and run your generator
 #       - Default build is "Release" but it can be changed via CMAKE_BUILD_TYPE definition:
 #           command line: -DCMAKE_BUILD_TYPE:STRING=<Debug|Release|MinSizeRel|RelWithDebInfo>
 #           cmake-gui: from combo associated to CMAKE_BUILD_TYPE var
 #       - Executable will be generated directly in glChAoS.P root folder
+#
+# Example:
+#   to build glChAoS.P compliant to OpenGL 4.5, with "make" utility, in "./build" folder, type:
+#
+#       > cmake -DBuildTarget:String=OpenGL_45 -G Unix\ Makefiles -B./build
+#       > cd build
+#       > make
+#
+#
 #
 # for Windows users, Visual Studio "solution" is also provided (msBuilds folder)
 #
@@ -83,7 +92,7 @@ set(OGL41_LOW " -DGLCHAOSP_NO_USES_GLSL_SUBS
                 -DGLCHAOSP_NO_BB
                 -DGLCHAOSP_NO_MB
                 -DGLCHAOSP_NO_TH
-                ") #  -DGLCHAOSP_NO_AO_SHDW # add for lower resources
+                ") #  -DGLCHAOSP_NO_AO_SHDW # add for fewer resources
 
 #   OpenGL ES 3.0
 #
