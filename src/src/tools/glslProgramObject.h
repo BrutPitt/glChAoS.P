@@ -19,10 +19,17 @@ using namespace std;
 class ProgramObject
 {
 public:
-    ProgramObject();
-    virtual ~ProgramObject();
+    ProgramObject() = default;
+
+    virtual ~ProgramObject() {  deleteProgram(); deletePipeline(); }
+
     void createProgram();
-    void deleteProgram();
+    void deleteProgram()  { if(program) glDeleteProgram(program); }
+    void deletePipeline() {
+#if !defined(GLAPP_NO_GLSL_PIPELINE)
+        if(pipeline) glDeleteProgramPipelines(1, &pipeline);
+#endif
+    }
 
     void addShader(ShaderObject* shader);
     void removeShader(ShaderObject* shader, bool wantDelete = false);
@@ -30,16 +37,38 @@ public:
 
     void link();
 
-    void bindPipeline();
-    void useProgram();
-    static void reset();
+    void bindShaderProg() { bindPipeline(); bindProgram(); }
+
+    void bindPipeline() {
+#if !defined(GLAPP_NO_GLSL_PIPELINE)
+        glBindProgramPipeline(pipeline);
+#endif
+    }
+    void bindProgram() {
+#ifdef GLAPP_NO_GLSL_PIPELINE
+        glUseProgram(program);
+#endif
+    }
+
+    static void resetPipeline() {
+#if !defined(GLAPP_NO_GLSL_PIPELINE)
+        glBindProgramPipeline(0);
+#endif
+    }
+    static void resetProgram() {
+#ifdef GLAPP_NO_GLSL_PIPELINE
+        glUseProgram(0);
+#endif
+    }
+
+    static void resetShaderProg() { resetProgram(); resetPipeline(); }
 
     GLuint  getHandle() { return program; }
     GLuint  getProgram() { return program; }
     GLuint  getPipeline() { return pipeline; }
 
 #ifdef GLAPP_NO_GLSL_PIPELINE
-#define USE_PROGRAM useProgram();
+#define USE_PROGRAM bindProgram();
   void setUniform1f(GLuint loc, GLfloat v0)                                     { glUniform1f(loc, v0); }  
   void setUniform2f(GLuint loc, GLfloat v0, GLfloat v1)                         { glUniform2f(loc, v0, v1); }    
   void setUniform3f(GLuint loc, GLfloat v0, GLfloat v1, GLfloat v2)             { glUniform3f(loc, v0, v1, v2); }    
@@ -165,8 +194,8 @@ public:
 
 protected:
     /** The handle to the program object */
-    GLuint  program;
-    GLuint pipeline;
+    GLuint  program = 0;
+    GLuint pipeline = 0;
 
     VertexShader    *vertObj = nullptr;
     FragmentShader  *fragObj = nullptr;

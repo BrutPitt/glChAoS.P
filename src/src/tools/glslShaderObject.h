@@ -50,7 +50,7 @@ class ShaderObject
 
         void deleteShader() {
             if(getStatus() == ShaderObject::attached || getStatus() == ShaderObject::wantDetach) {
-                glDeleteShader(getShader()); 
+                glDeleteShader(getShader());
                 statusWantDelete();
             }
         }
@@ -104,7 +104,7 @@ inline void CheckErrorsGL( const char* location = NULL,
 
 #if !defined(NDEBUG)
 #define CHECK_GL_ERROR()      CheckGLError(__FILE__, __LINE__);
-#define CHECK_GL_ERROR_MSG(X) CheckGLError(__FILE__, __LINE__);
+#define CHECK_GL_ERROR_MSG(X) printf(X); CheckGLError(__FILE__, __LINE__);
 #else
 #define CHECK_GL_ERROR()
 #define CHECK_GL_ERROR_MSG(X)

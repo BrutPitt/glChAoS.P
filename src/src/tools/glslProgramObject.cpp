@@ -12,22 +12,14 @@
 //------------------------------------------------------------------------------
 #include "glslProgramObject.h"
 
-ProgramObject::ProgramObject()
-{
-    program = 0;
-}
 
-ProgramObject::~ProgramObject()
-{
-    deleteProgram();
-}
 
 /////////////////////////////////////////////////
 void ProgramObject::createProgram()
 {
     program = glCreateProgram();
 
-#if !defined(__EMSCRIPTEN__) && !defined(GLAPP_NO_GLSL_PIPELINE)
+#if !defined(GLAPP_NO_GLSL_PIPELINE)
     #ifdef GLAPP_REQUIRE_OGL45
         glCreateProgramPipelines(1, &pipeline);
     #else
@@ -35,13 +27,6 @@ void ProgramObject::createProgram()
     #endif
 #endif
 }
-
-/////////////////////////////////////////////////
-void ProgramObject::deleteProgram()
-{
-    if(program) glDeleteProgram(program);
-}
-
 
 /////////////////////////////////////////////////
 void ProgramObject::addShader(ShaderObject* shader)
@@ -54,7 +39,7 @@ void ProgramObject::addShader(ShaderObject* shader)
 /////////////////////////////////////////////////
 void ProgramObject::removeShader(ShaderObject* shader, bool wantDelete)
 {
-    if(shader!=nullptr)  shader->detachShader(program, wantDelete); 
+    if(shader!=nullptr)  shader->detachShader(program, wantDelete);
 }
 
 void ProgramObject::deleteShader(ShaderObject* shader)
@@ -67,40 +52,20 @@ void checkProgram(GLuint program);
 void ProgramObject::link()
 {
     if(!program) createProgram();
-#if !defined(__EMSCRIPTEN__) && !defined(GLAPP_NO_GLSL_PIPELINE)
+#if !defined(GLAPP_NO_GLSL_PIPELINE)
     glProgramParameteri(program, GL_PROGRAM_SEPARABLE, GL_TRUE);
 #endif
     glLinkProgram(program);
 
     checkProgram(program);
 
-#if !defined(__EMSCRIPTEN__) && !defined(GLAPP_NO_GLSL_PIPELINE)
+#if !defined(GLAPP_NO_GLSL_PIPELINE)
     glUseProgramStages(pipeline, (vertObj == nullptr ? 0 : GL_VERTEX_SHADER_BIT  ) | 
                                  (geomObj == nullptr ? 0 : GL_GEOMETRY_SHADER_BIT) | 
                                  (fragObj == nullptr ? 0 : GL_FRAGMENT_SHADER_BIT), 
                        program);
 #endif
 }
-
-/////////////////////////////////////////////////
-void ProgramObject::useProgram()
-{
-    glUseProgram(program);
-}
-/////////////////////////////////////////////////
-void ProgramObject::bindPipeline()
-{
-#if !defined(__EMSCRIPTEN__) && !defined(GLAPP_NO_GLSL_PIPELINE)
-    glBindProgramPipeline(pipeline);
-#endif
-}
-
-/////////////////////////////////////////////////
-void ProgramObject::reset()
-{
-    glUseProgram(0);
-}
-
 
 
 /////////////////////////////////////////////////
