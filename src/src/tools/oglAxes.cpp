@@ -315,10 +315,11 @@ void oglAxes::render()
 
     glClearBufferfv(GL_COLOR, 0, value_ptr(bgColor));    
 
-    bindPipeline();
 
     vec3 zoom(axesZoom*zoomFactor);
-    USE_PROGRAM
+    //bindPipeline();
+    //USE_PROGRAM
+    bindShaderProg();
     setUniform3fv(_zoomF, 1, value_ptr(zoom));
     setUniformMatrix4fv(_pMat , 1, GL_FALSE, value_ptr(getTransforms()->tM.pMatrix) );
     setUniformMatrix4fv(_mvMat, 1, GL_FALSE, value_ptr(getTransforms()->tM.mvMatrix));
