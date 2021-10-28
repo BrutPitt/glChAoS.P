@@ -199,27 +199,20 @@ public:
 
     void create();
 
-    void bindingShader() {
-#if !defined GLAPP_REQUIRE_OGL45
-        USE_PROGRAM
-#endif
-    }
+    void bindingShader() { }
 
     void bindData(GLuint subIndex, GLuint dstFBO, GLuint srcTex, GLuint auxTex=NO_TEXTURE) {
         getUData().filterCallType = subIndex;
 
-        //bindPipeline();
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dstFBO);
-        bindPipeline();
 
+        bindShaderProg();
     #ifdef GLAPP_REQUIRE_OGL45
         glBindTextureUnit(0, srcTex);
         if(auxTex != NO_TEXTURE) glBindTextureUnit(1, auxTex);
 
         glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, GLsizei(1), &subIndex);
     #else
-        //USE_PROGRAM
-
         glActiveTexture(GL_TEXTURE0 + srcTex);
         glBindTexture(GL_TEXTURE_2D,  srcTex);
         setUniform1i(LOCorigTexture,  srcTex);
@@ -228,7 +221,7 @@ public:
         if(auxTex != NO_TEXTURE) {
             glActiveTexture(GL_TEXTURE0 + auxTex);
             glBindTexture(GL_TEXTURE_2D,  auxTex);
-            setUniform1i(LOCauxTexture, auxTex);
+            setUniform1i(LOCauxTexture,   auxTex);
         }
         #endif
 
@@ -635,7 +628,7 @@ private:
     } static tfCommons;
 
     float pipTransparence = .5f;
-    float pipIntensity    = 1.f;
+    float pipIntensity    = 2.f;
 
     vec2 viewportSize;
     vec4 viewportLimits;
@@ -924,7 +917,7 @@ protected:
     filtersBaseClass *filterBase = nullptr;
 
 #ifdef GLCHAOSP_LIGHTVER
-    int numAuxFBO = 3;
+    int numAuxFBO = 4;
 #else
     int numAuxFBO = 4;
 #endif
@@ -982,7 +975,6 @@ public:
         isActive = false;
         
         mBlurFBO.declareFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());        
-        create();
     }
 
     GLuint render(GLuint renderedTex);
