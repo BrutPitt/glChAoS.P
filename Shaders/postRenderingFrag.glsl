@@ -403,7 +403,7 @@ vec3 sampleCoord[9];
 void main()
 {
 
-    vec2 uv = gl_FragCoord.xy*u.invScrnRes;
+    vec2 uv = vTexCoord; //gl_FragCoord.xy*u.invScrnRes;
 
     float depth = texture(zTex,uv).x;
     if(depth>.9999) discard;

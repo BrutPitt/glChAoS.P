@@ -169,7 +169,6 @@ vec4 bilateralSmartSmooth(float reductFactor)
 #ifdef USE_TEXEL_FETCH
             vec4 walkPx =  texelFetch(origTexture, ivec2(gl_FragCoord.xy+d),0 );
 #else
-            //vec2 vTexCoord = gl_FragCoord.xy * invScreenSize; use this or pass VTX attributes
             vec4 walkPx =  texture(origTexture, vTexCoord+d*invScreenSize);
 #endif
             vec4 dC = walkPx-centrPx;
