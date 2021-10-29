@@ -113,7 +113,7 @@ void textureBaseClass::assignAttribs(GLint filterMin, GLint filterMag, GLint wra
     glTextureParameteri(texID, GL_TEXTURE_WRAP_S, wrap );
     glTextureParameteri(texID, GL_TEXTURE_WRAP_T, wrap );
 #else
-    glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
+    glBindTexture(GL_TEXTURE_2D, texID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMag);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMin);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap );
@@ -131,8 +131,7 @@ void HLSTexture::buildTex(int size)
     glTextureStorage2D(texID, 1, theApp->getPalInternalPrecision(), size, 1);
     glTextureSubImage2D(texID, 0, 0, 0, size, 1, GL_RGB, GL_FLOAT, buffer);
 #else    
-    glActiveTexture(GL_TEXTURE0 + texID);
-    glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
+    glBindTexture(GL_TEXTURE_2D, texID);
     glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_FLOAT, buffer);
 #endif
     assignAttribs(GL_LINEAR, GL_LINEAR, GL_REPEAT);
@@ -154,8 +153,7 @@ void RandomTexture::buildTex(int size)
     glTextureStorage2D(texID, 1, GL_RGB32F, size, 1);
     glTextureSubImage2D(texID, 0, 0, 0, size, 1, GL_RGB, GL_FLOAT, buffer);
 #else
-    glActiveTexture(GL_TEXTURE0 + texID);
-    glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
+    glBindTexture(GL_TEXTURE_2D, texID);
     glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_FLOAT, buffer);
 #endif
     assignAttribs(GL_LINEAR, GL_LINEAR, GL_REPEAT);
@@ -173,8 +171,7 @@ void paletteTexClass::buildTex(unsigned char *buffer, int size)
     glTextureStorage2D(texID, 1, theApp->getPalInternalPrecision(), size, 1);
     glTextureSubImage2D(texID, 0, 0, 0, size, 1, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 #else
-    glActiveTexture(GL_TEXTURE0 + texID);
-    glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
+    glBindTexture(GL_TEXTURE_2D, texID);
     glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 #endif
     assignAttribs(GL_LINEAR, GL_LINEAR, GL_REPEAT);
@@ -191,8 +188,7 @@ void paletteTexClass::buildTex(float *buffer, int size)
     glTextureStorage2D(texID, 1, theApp->getPalInternalPrecision(), size, 1);
     glTextureSubImage2D(texID, 0, 0, 0, size, 1, GL_RGB, GL_FLOAT, buffer);
 #else
-    glActiveTexture(GL_TEXTURE0 + texID);
-    glBindTexture(GL_TEXTURE_2D, texID);			// Bind Our Texture
+    glBindTexture(GL_TEXTURE_2D, texID);
     glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_FLOAT, buffer);
 
 #endif

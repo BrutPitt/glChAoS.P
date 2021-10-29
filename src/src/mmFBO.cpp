@@ -307,8 +307,8 @@ void mmFBO::buildFBO(int num, int sizeX, int sizeY, GLenum intFormat, GLuint for
     glCreateFramebuffers(num, m_fb);
     glCreateTextures((aaLevel>0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D ,num, m_tex);
 #else
-    glGenFramebuffers(num, m_fb);
     glGenTextures(num, m_tex);
+    glGenFramebuffers(num, m_fb);
 #endif
     
     for(int i=0; i<num; i++) {

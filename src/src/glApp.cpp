@@ -359,8 +359,8 @@ void mainGLApp::glfwInit()
             glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-            glslVersion = "#version 320 es\n";
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+            glslVersion = "#version 300 es\n";
             glslDefines = fPrecision + iPrecision;
             glslDefines+= "#define LAYOUT_BINDING(X)\n"
                           "#define LAYOUT_INDEX(X)\n"
@@ -388,6 +388,7 @@ void mainGLApp::glfwInit()
                           "#define CONST\n";
         #endif
     #endif
+    glfwWindowHint(GLFW_SAMPLES, getMultisamplingValue());
 #else
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -398,22 +399,16 @@ void mainGLApp::glfwInit()
                       "#define LAYOUT_LOCATION(X)\n"
                       "#define SUBROUTINE(X)\n"
                       "#define CONST\n";
-#if defined(GLCHAOSP_NO_AO_SHDW)
-        glslDefines+= "#define GLCHAOSP_NO_AO_SHDW\n";
-#endif
-
-
+        glfwWindowHint(GLFW_SAMPLES, 0);
 #endif
 
 #ifdef GLCHAOSP_NO_AO_SHDW
        glslDefines+= "#define GLCHAOSP_NO_AO_SHDW\n";
 #endif
 
-
 #if defined(GLAPP_USES_ES3) || defined(__EMSCRIPTEN__)
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 #endif
-
 
 #if defined(GLAPP_USES_ES3)
     // From GLFW:
@@ -421,8 +416,6 @@ void mainGLApp::glfwInit()
     //           will cause the application to segfault. Stick to one API or the other on Linux for now.
     glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API); //GLFW_NATIVE_CONTEXT_API
 #endif
-
-
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // from GLFW: If OpenGL ES is requested, this hint is ignored.
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // from GLFW: If OpenGL ES is requested, this hint is ignored.
 
@@ -432,12 +425,8 @@ void mainGLApp::glfwInit()
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 #endif
 
-    glfwWindowHint(GLFW_SAMPLES, getMultisamplingValue());
     glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
-
     glfwWindowHint(GLFW_DEPTH_BITS, 0); // rendering is on FBO, so disable DEPTH buffer of context
-
-    //
 
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
@@ -502,9 +491,12 @@ void mainGLApp::glfwInit()
     //EM_ASM(console.log(Module.ctx.getContextAttributes().alpha ? "alpha VERO!!" : "alpha FALSO!!"); );
     //EM_ASM(console.log(Module.ctx.getContextAttributes().premultipliedAlpha ? "pre VERO!!" :"pre FALSO!!"); );
     //EM_ASM(Module.ctx.pixelStorei(Module.ctx.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true););
-
+#ifndef NDEBUG
     EM_ASM(if(!Module.ctx.getExtension('EXT_color_buffer_float')) alert("wglChAoS.P need EXT_color_buffer_float"););
     EM_ASM(if(!Module.ctx.getExtension('EXT_float_blend'))        alert("wglChAoS.P need EXT_float_blend"););
+#endif
+
+
     //emscripten_set_deviceorientation_callback(getEmsDevice(), true, emsMDeviceClass::devOrientation);
     //emscripten_set_orientationchange_callback(getEmsDevice(), true, emsMDeviceClass::devOrientChange);
     //emscripten_set_devicemotion_callback(getEmsDevice(), true, emsMDeviceClass::devMotion);
@@ -527,6 +519,9 @@ void mainGLApp::glfwInit()
     // init glfwTimer
     timer.init();
 }
+
+//EM_JS(void, jsActiveTexture, (int tex),  { _glActiveTexture(tex); } );
+//EM_JS(void, jsActiveTexture, (int tex),  { console.log(GL.textures[tex]); console.log(GL.textures[tex].name); _glActiveTexture(tex); } );
 
 int mainGLApp::glfwExit()
 {

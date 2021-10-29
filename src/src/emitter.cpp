@@ -165,8 +165,9 @@ void transformedEmitterClass::buildEmitter()
 
 void transformedEmitterClass::renderOfflineFeedback()
 {
-    bindPipeline();
-    USE_PROGRAM
+    //bindPipeline();
+    //USE_PROGRAM
+    bindShaderProg();
 
     static auto start = std::chrono::high_resolution_clock::now();
     static const auto startEvent = start;

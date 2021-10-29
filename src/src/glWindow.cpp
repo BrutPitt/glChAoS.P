@@ -118,7 +118,6 @@ void glWindow::onInit()
         }
         else attractorsList.setSelection(getRandomIDX());
     }
-    glEnable(GL_MULTISAMPLE);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -155,8 +154,9 @@ GLint glWindow::onRender()
     } else  particlesSystem->blitOnDrawBuffer();
 
 #else
-        blitOnDrawBuffer();
+    particlesSystem->blitOnDrawBuffer();
 #endif
+    
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     particlesSystem->clearFlagUpdate();
     return 0;

@@ -57,6 +57,7 @@ class glWindow;
 #include "ui/uiMainDlg.h"
 #ifdef __EMSCRIPTEN__
     #include "emsTouch.h"
+    extern "C" { void jsActiveTexture(int tex); }
 #endif
 
 bool fileExist(const char *filename);
@@ -282,6 +283,15 @@ public:
 
     GLuint getClampToBorder() { return clampToBorder; }
 
+    void ActiveTexture(GLuint tex) {
+#ifdef __EMSCRIPTEN__
+        jsActiveTexture(tex);
+        //glActiveTexture(tex);
+#else
+        glActiveTexture(tex);
+#endif
+    }
+
 
     void setLowPrecision() {
         useLowPrecision(true);
@@ -378,17 +388,17 @@ public:
 
 protected:
 
-	// The Position of the window
-	int xPosition, yPosition;
-	int width, height;
-	/** The title of the window */
+    // The Position of the window
+    int xPosition, yPosition;
+    int width, height;
+    /** The title of the window */
 
     bool exitFullScreen;
     bool particlesSizeConstant = false;
 
-	// The title of the window
-	std::string windowTitle;
-	std::string glslVersion;
+    // The title of the window
+    std::string windowTitle;
+    std::string glslVersion;
     std::string glslDefines;
 
     std::vector<std::string> listQuickView;
