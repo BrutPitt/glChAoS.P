@@ -26,7 +26,19 @@ public:
     enum depthBufferType { depthTexture, depthBuiltIn };
     
     mmFBO()  { resetData(); }
-    ~mmFBO() { deleteFBO(); }
+    ~mmFBO() {
+        //deleteFBO();
+        if(m_fb != nullptr) glDeleteFramebuffers(m_NumFB,m_fb);
+        if(haveColors) glDeleteTextures(m_NumFB, m_tex);
+        if(numMultiDraw) glDeleteTextures(numMultiDraw*m_NumFB, multiDrawFB);
+        if(haveRB) glDeleteRenderbuffers(m_NumFB, m_rb);
+        if(!isBuiltIn) glDeleteTextures(m_NumFB, m_depth);
+        delete [] m_fb;
+        delete [] m_tex;
+        delete [] multiDrawFB;
+        delete [] m_depth;
+        delete [] m_rb;
+    }
 
     void buildOnlyFBO(int num,int sizeX,int sizeY,GLenum intFormat);
     
@@ -66,7 +78,7 @@ private:
     void resetData();
 
     int m_NumFB, aaLevel = 0;
-    bool isBuilded;
+    bool isBuilt;
     bool haveRB = false;
     bool isBuiltIn = true;
     bool haveColors = false;

@@ -21,27 +21,28 @@ void mmFBO::resetData()
     m_NumFB = 0;
     haveRB = false;
 
-    isBuilded = false;
+    isBuilt = false;
     m_sizeX = m_sizeY = 0;
-    multiDrawFB = m_depth = m_rb = m_fb = m_tex = nullptr;
+    //multiDrawFB = m_depth = m_rb = m_fb = m_tex = nullptr;
+    //m_rb = m_fb = nullptr;
     numMultiDraw = 0;
 }
 
 void mmFBO::deleteFBO()
 {
-    if(!isBuilded) return;
+    if(!isBuilt) return;
 
-    glDeleteFramebuffers(m_NumFB,m_fb);
-    if(haveColors) glDeleteTextures(m_NumFB, m_tex);
-    if(numMultiDraw) glDeleteTextures(numMultiDraw*m_NumFB, multiDrawFB);
-    if(haveRB) glDeleteRenderbuffers(m_NumFB, m_rb);
-    if(!isBuiltIn) glDeleteTextures(m_NumFB, m_depth);
+    //glDeleteFramebuffers(m_NumFB,m_fb);
+    //if(haveColors) glDeleteTextures(m_NumFB, m_tex);
+    //if(numMultiDraw) glDeleteTextures(numMultiDraw*m_NumFB, multiDrawFB);
+    //if(haveRB) glDeleteRenderbuffers(m_NumFB, m_rb);
+    //if(!isBuiltIn) glDeleteTextures(m_NumFB, m_depth);
 
-    delete [] m_fb;
-    delete [] m_tex;
-    delete [] m_rb;
-    delete [] m_depth;
-    delete [] multiDrawFB;
+    //delete [] m_fb;
+    //delete [] m_tex;
+    //delete [] m_rb;
+    //delete [] m_depth;
+    //delete [] multiDrawFB;
 
     resetData();
 }
@@ -61,7 +62,7 @@ void mmFBO::reBuildFBO(int num, int sizeX, int sizeY, GLenum intFormat, GLuint f
 
 void mmFBO::reSizeFBO(int sizeX, int sizeY)
 {
-    if(!isBuilded) return;
+    if(!isBuilt) return;
 
     int tmpNumFB = m_NumFB;
     bool tmpHaveRB = haveRB, tmpIsBuiltIn = isBuiltIn;
@@ -173,16 +174,21 @@ void mmFBO::attachMultiFB(int num)
 {
     int totalMultiAttached = num*m_NumFB; // attaching "num" textures to any FB
 
-    multiDrawFB = new GLuint[totalMultiAttached];
     numMultiDraw = num;
     num++;
     
     GLuint *drawBuffers = new GLuint[num];
 
 #ifdef GLAPP_REQUIRE_OGL45
-    glCreateTextures(GL_TEXTURE_2D ,totalMultiAttached, multiDrawFB);
+    if(multiDrawFB == nullptr) {
+        multiDrawFB = new GLuint[totalMultiAttached];
+        glCreateTextures(GL_TEXTURE_2D ,totalMultiAttached, multiDrawFB);
+    }
 #else
-    glGenTextures(totalMultiAttached, multiDrawFB);
+    if(multiDrawFB == nullptr) {
+        multiDrawFB = new GLuint[totalMultiAttached];
+        glGenTextures(totalMultiAttached, multiDrawFB);
+    }
 #endif
     for (int i = 0; i < totalMultiAttached; i++) defineTexture(multiDrawFB[i], glPrecision);
 
@@ -214,15 +220,24 @@ void mmFBO::attachSecondaryBuffer(bool builtIN, secondaryBufferType bufferType, 
 {
     haveRB = true;
     isBuiltIn = builtIN;
-    m_rb    = new GLuint[m_NumFB];
     dsBufferType = bufferType;
 
 #ifdef GLAPP_REQUIRE_OGL45
-    glCreateRenderbuffers(m_NumFB, m_rb);
-    if(!isBuiltIn) { m_depth = new GLuint[m_NumFB]; glCreateTextures(GL_TEXTURE_2D ,m_NumFB, m_depth); }
+        if(!isBuiltIn) {
+            if(m_depth==nullptr)) {
+                m_depth = new GLuint[m_NumFB];
+                glCreateTextures(GL_TEXTURE_2D ,m_NumFB, m_depth);
+            }
+        }
+        if(m_rb == nullptr) { m_rb = new GLuint[m_NumFB]; glCreateRenderbuffers(m_NumFB, m_rb); }
 #else
-    glGenRenderbuffers(m_NumFB, m_rb);
-    if(!isBuiltIn) { m_depth = new GLuint[m_NumFB]; glGenTextures(m_NumFB, m_depth); }
+        if(!isBuiltIn) {
+            if(m_depth==nullptr) {
+                m_depth = new GLuint[m_NumFB];
+                glGenTextures(m_NumFB, m_depth);
+            }
+        }
+        if(m_rb == nullptr) { m_rb = new GLuint[m_NumFB]; glGenRenderbuffers(m_NumFB, m_rb); }
 #endif
 
     GLuint intFormat, attach, format, type;
@@ -274,14 +289,15 @@ void mmFBO::buildOnlyFBO(int num, int sizeX, int sizeY, GLenum intFormat)
     m_sizeY = sizeY;
     haveColors = false;
 
-    m_fb    = new GLuint[num];
-
+    if(m_fb == nullptr) {
+        m_fb    = new GLuint[num];
 #ifdef GLAPP_REQUIRE_OGL45
-    glCreateFramebuffers(num, m_fb);
+        glCreateFramebuffers(num, m_fb);
 #else
-    glGenFramebuffers(num, m_fb);
+        glGenFramebuffers(num, m_fb);
 #endif
-    isBuilded = true;
+    }
+    isBuilt = true;
 }
 
 void mmFBO::declareFBO(int num, int sizeX, int sizeY, GLenum intFormat, GLuint format, int AA)
@@ -300,16 +316,24 @@ void mmFBO::buildFBO(int num, int sizeX, int sizeY, GLenum intFormat, GLuint for
 
     declareFBO(num,sizeX,sizeY,intFormat,AA);
 
-    m_fb    = new GLuint[num];
-    m_tex   = new GLuint[num];
 
+    if(m_tex == nullptr) {
+        m_tex = new GLuint[num];
 #ifdef GLAPP_REQUIRE_OGL45
-    glCreateFramebuffers(num, m_fb);
-    glCreateTextures((aaLevel>0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D ,num, m_tex);
+        glCreateTextures((aaLevel>0) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D ,num, m_tex);
 #else
-    glGenTextures(num, m_tex);
-    glGenFramebuffers(num, m_fb);
+        glGenTextures(num, m_tex);
 #endif
+    }
+
+    if(m_fb ==nullptr) {
+        m_fb = new GLuint[num];
+#ifdef GLAPP_REQUIRE_OGL45
+        glCreateFramebuffers(num, m_fb);
+#else
+        glGenFramebuffers(num, m_fb);
+#endif
+    }
     
     for(int i=0; i<num; i++) {
         initFB( m_fb[i], m_tex[i]);
@@ -322,7 +346,7 @@ void mmFBO::buildFBO(int num, int sizeX, int sizeY, GLenum intFormat, GLuint for
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    isBuilded = true;
+    isBuilt = true;
 } 
 
 void mmFBO::CheckFramebufferStatus(GLenum status)
