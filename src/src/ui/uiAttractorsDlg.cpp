@@ -427,8 +427,8 @@ void attractorDlgClass::view()
         int w,h; glfwGetWindowSize(theApp->getGLFWWnd(), &w, &h);
 #if defined(GLCHAOSP_LIGHTVER) || defined(GLAPP_USES_ES3)
         ImGui::SetNextWindowCollapsed(isCollapsed, ImGuiCond_FirstUseEver);
-        if(isCollapsed) {
-            ImGui::SetNextWindowPos(ImVec2(270, 0), ImGuiCond_FirstUseEver);
+        if(theWnd->GetWidth()<=1280) {
+            ImGui::SetNextWindowPos(ImVec2(270, ImGui::GetFrameHeightWithSpacing()), ImGuiCond_FirstUseEver);
         } else
 #endif
             ImGui::SetNextWindowPos(ImVec2(w-szX, h-szY), ImGuiCond_FirstUseEver);

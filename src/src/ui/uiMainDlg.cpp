@@ -29,7 +29,7 @@ bool loadObjFile();
 void saveSettingsFile();
 void loadSettingsFile(bool isImportConfig=false);
 
-
+enum baseDlgClass::webRes baseDlgClass::webResStatus = baseDlgClass::webRes::noRestriction;
 
 bool show_test_window = true;
 bool show_another_window = false;
@@ -1244,14 +1244,17 @@ void particlesDlgClass::view()
     const float border = DLG_BORDER_SIZE;    
 
     ImGui::SetNextWindowSize(ImVec2(wSZ, hSZ), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
 
     const float szMin = 270.f;
     ImGui::SetNextWindowSizeConstraints(ImVec2(szMin, 0), ImVec2(FLT_MAX, FLT_MAX));
     
 #ifdef GLCHAOSP_LIGHTVER
     ImGui::SetNextWindowCollapsed(isCollapsed, ImGuiCond_FirstUseEver);
+    if(isCompactView())
+        ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetFrameHeightWithSpacing()+DLG_BORDER_SIZE*2), ImGuiCond_FirstUseEver);
+    else
 #endif
+        ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
 
     const char *particlesWndName = getTitle();
     if(ImGui::Begin(particlesWndName, &isVisible)) {
@@ -1355,7 +1358,7 @@ void particlesDlgClass::view()
                 }
 #else
                 bool b = theDlg.getInvertSettings();
-                if(colCheckButton(b, b ? ICON_FA_CHECK " Alternative settings"  : "   Alternative settings", (wButt+border)*2)) {
+                if(colCheckButton(b, b ? ICON_FA_CHECK " Other settings"  : "   Other settings", (wButt+border)*2)) {
                     theDlg.setInvertSettings(b^1);
                     if(theApp->getLastFile().size()>0) loadAttractorFile(false, theApp->getLastFile().c_str());
                 }
@@ -2037,34 +2040,43 @@ void particleEditDlgClass::view()
             sprintf(txt, b ? ICON_FA_CHECK_SQUARE_O " solidDot##" "%s" : ICON_FA_SQUARE_O " solidDot##"  "%s", theWnd->getParticlesSystem()->getWhitchRenderMode()==RENDER_USE_BILLBOARD ? "B" : "P"); 
             if(colCheckButton(b , txt, wSZ)) dots->setDotType(b^1);
         }
-
-
     }
     ImGui::End();
 
 }
+
+#define WND_MENU_WIDTH (fontSize * fontZoom * 12.f)
 
 void cockpitDlgClass::view()
 {
 
     if(!isVisible) return;
 
-    const int posH = 225;
     const int szH = 400+12*ImGui::GetFrameHeightWithSpacing();
-    const int posW = 0;
     const int szW = 250;
-/*
-    particlesSystemClass *pSys = theWnd->getParticlesSystem();
-    bool bbSelected = pSys->whichRenderMode==RENDER_USE_BILLBOARD || pSys->getRenderMode() == RENDER_USE_BOTH;
-    bool psSelected = pSys->whichRenderMode==RENDER_USE_POINTS  
-  */
 
-    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-szW-posW,posH ), ImGuiCond_FirstUseEver);
+#ifdef GLCHAOSP_WEBGL
+    int posW, posH;
+    ImGui::SetNextWindowCollapsed(isCollapsed, ImGuiCond_FirstUseEver);
+    if(isCompactView()) {
+        posW = WND_MENU_WIDTH;
+        posH = 0;
+    } else {
+        posW = theApp->GetWidth()-szW;
+        posH = 225;
+    }
+    isCollapsed = true; //check if collapsed
+#else
+    const int posH = 225;
+    const int posW = theApp->GetWidth()-szW;
+#endif
+    ImGui::SetNextWindowPos(ImVec2(posW,posH), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(szW, szH), ImGuiCond_FirstUseEver);
 
     //bool wndVisible;
     if(ImGui::Begin(getTitle(), &isVisible, ImGuiWindowFlags_NoScrollbar)) { 
         particlesSystemClass *pSys = theWnd->getParticlesSystem();
+        isCollapsed = false; //not collapsed!
 
 #if !defined(GLCHAOSP_NO_BB)
         particlesBaseClass *particles =  pSys->getRenderMode()==RENDER_USE_BILLBOARD ? (particlesBaseClass *) pSys->shaderBillboardClass::getPtr() : 
@@ -2659,7 +2671,10 @@ void imGuIZMODlgClass::view()
 #ifdef GLAPP_IMGUI_VIEWPORT
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetMainViewport()->Pos.x+ImGui::GetMainViewport()->Size.x-sz,ImGui::GetMainViewport()->Pos.y), ImGuiCond_Always);
 #else
-    ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-sz,0 ), ImGuiCond_Always);
+    if(isCompactView())
+        ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-sz,theApp->GetHeight()-(sz+ImGui::GetFrameHeightWithSpacing()*2)), ImGuiCond_Always);
+    else
+        ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-sz,0 ), ImGuiCond_Always);
 #endif
 
     sz -= ImGui::GetStyle().ItemSpacing.x*2;
@@ -2729,8 +2744,8 @@ void imGuIZMODlgClass::view()
 void aboutDlgClass::view()
 {
     if(!isVisible) return;
-    ImGui::SetNextWindowPos(ImVec2(320, 190), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(390, 560), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(290, 170), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(450, 600), ImGuiCond_FirstUseEver);
 
     if(ImGui::Begin(getTitle(), &isVisible)) {
     
@@ -3029,16 +3044,17 @@ void mainImGuiDlgClass::view()
 
 
 #ifdef GLCHAOSP_LIGHTVER
-    ImGui::SetNextWindowCollapsed(isCollapsed, ImGuiCond_FirstUseEver);
-    if(theApp->GetWidth()<1150)
-        ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-wndSizeX, 225), ImGuiCond_FirstUseEver);
-    else
+    if(isCompactView()) {
+        ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+        isCollapsed = true;
+    } else
 #endif
         ImGui::SetNextWindowPos(ImVec2(theApp->GetWidth()-190-wndSizeX, posH), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(wndSizeX, ImGui::GetFrameHeightWithSpacing()*numItems), ImGuiCond_Always);
+    ImGui::SetNextWindowCollapsed(isCollapsed, ImGuiCond_FirstUseEver);
+    
 
     if(ImGui::Begin(getTitle(),  NULL ,ImGuiWindowFlags_NoResize)) {
-
         const float w = ImGui::GetContentRegionAvail().x;
         const float wButt = w;
 
@@ -3081,7 +3097,6 @@ void mainImGuiDlgClass::view()
             }
         }
 #if !defined(GLCHAOSP_LIGHTVER)
-
         {
             const bool b = dataDlg.visible();
             if(colCheckButton(b, b ? ICON_FA_CHECK "    Data    (F7)"  : "      Data    (F7)", wButt)) {
@@ -3095,6 +3110,8 @@ void mainImGuiDlgClass::view()
                 progSettingDlg.visible(!b);
             }
         }
+#else
+        isCollapsed = false;
 #endif
     }
 
@@ -3195,6 +3212,10 @@ void mainImGuiDlgClass::renderImGui()
 #endif
 
         view();
+
+        if(isCompactView() && (isCollapsed && cockpitDlg.collapse())) ImGui::GetStyle().Alpha = .3;
+        else ImGui::GetStyle().Alpha = 1.0;
+
 
 #ifdef GLCHAOSP_LIGHTVER_EXPERIMENTAL
     if(!theApp->checkMaxCombTexImgUnits()) lotexDlg.view();

@@ -32,6 +32,7 @@ void saveAttractorFile(bool fileExport = false);
 class baseDlgClass
 {
 public:
+    enum webRes { onlyMainMenuMinimized, fullRestriction, minus1024, minus1280, minus1440, minus1600, noRestriction };
 
     baseDlgClass(const char *title, bool visible=false) : wndTitle(title), isVisible(visible) {}
     //baseDlgClass(bool visible=false) : isVisible(visible) {}
@@ -48,11 +49,14 @@ public:
     void collapse(bool b) { isCollapsed = b; }
     bool collapse() { return isCollapsed; }
 
+    static bool isCompactView() { return webResStatus == onlyMainMenuMinimized; }
 
 protected:
     bool isVisible;
     bool isCollapsed = false;
     std::string wndTitle;
+    static enum webRes webResStatus;
+    float fontSize = 13.f, fontZoom = 1.f;
 
 };
 
@@ -295,7 +299,6 @@ public:
 
     void switchMode(int x, int y);
 
-    enum webRes { fullRestriction, minus1024, minus1280, minus1440, minus1600, noRestriction };
 
 /*
     void setTableAlterbateColor1(ImVec4 &c) { tableAlternateColor1 = c; }
@@ -320,6 +323,10 @@ public:
     void selectableScrolled(bool b) { isSelectableScrolled = b; }
     void needToScrooll() { selectableScrolled(false); }
 
+    void setCockpitDlgVisible(bool b = true)   { cockpitDlg.visible(b); }
+    void setCockpitDlgCollapsed(bool b = true) { cockpitDlg.collapse(b); }
+    void setAttractorDlgVisible(bool b = true) { attractorDlg.visible(b); }
+
     fastViewDlgClass & getfastViewDlg() { return fastViewDlg; }
 
     dataDlgClass& getDataDlg() { return dataDlg; }
@@ -330,6 +337,8 @@ public:
     void startMinimized(enum webRes res=noRestriction) {
         webResStatus = res;
         switch(res) {
+            case onlyMainMenuMinimized :
+                imGuIZMODlg.visible(false);
             case fullRestriction :
                 attractorDlg.visible(false);
                 particlesDlg.visible(false);
@@ -375,10 +384,7 @@ private:
     bool fontChanged = false;
     float RasterizerMultiply = 1.0;
        
-    float fontSize = 13.f, fontZoom = 1.f;
-
     bool isSelectableScrolled = false;
-    enum webRes webResStatus = noRestriction;
 
     ImFont *mainFont = nullptr, *iconFont = nullptr;
     //ImFont *testFont = nullptr;
@@ -413,6 +419,5 @@ friend void tfTools();
 friend class particlesDlgClass;
 friend class viewSettingDlgClass;
 friend class attractorDtType;
-
 };
 
