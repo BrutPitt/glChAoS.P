@@ -23,7 +23,7 @@
 #define MAX_ERRORS_TO_SHOW 25
 
 #if !defined(NDEBUG)
-    #if !defined(GLCHAOSP_LIGHTVER)
+    #if !defined(GLAPP_WEBGL)
         void GLAPIENTRY openglCallbackFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                                                const GLchar* message, const void* userParam)
         {

@@ -19,7 +19,7 @@ void ProgramObject::createProgram()
 {
     program = glCreateProgram();
 
-#if !defined(GLAPP_NO_GLSL_PIPELINE)
+#ifdef GLAPP_USES_GLSL_PIPELINE
     #ifdef GLAPP_REQUIRE_OGL45
         glCreateProgramPipelines(1, &pipeline);
     #else
@@ -52,14 +52,14 @@ void checkProgram(GLuint program);
 void ProgramObject::link()
 {
     if(!program) createProgram();
-#if !defined(GLAPP_NO_GLSL_PIPELINE)
+#ifdef GLAPP_USES_GLSL_PIPELINE
     glProgramParameteri(program, GL_PROGRAM_SEPARABLE, GL_TRUE);
 #endif
     glLinkProgram(program);
 
     checkProgram(program);
 
-#if !defined(GLAPP_NO_GLSL_PIPELINE)
+#ifdef GLAPP_USES_GLSL_PIPELINE
     glUseProgramStages(pipeline, (vertObj == nullptr ? 0 : GL_VERTEX_SHADER_BIT  ) | 
                                  (geomObj == nullptr ? 0 : GL_GEOMETRY_SHADER_BIT) | 
                                  (fragObj == nullptr ? 0 : GL_FRAGMENT_SHADER_BIT), 

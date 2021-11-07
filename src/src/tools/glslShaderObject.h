@@ -131,7 +131,7 @@ void getFileContents(const char* fileName, string &str);
     void CheckShaderError(GLuint hProg);
     void getCompilerLog(GLuint handle, GLint blen, bool isShader);
     int CheckGLError(const char *file, int line);
-    #if !defined(GLCHAOSP_LIGHTVER)
+    #if !defined(GLAPP_WEBGL)
 
         void GLAPIENTRY openglCallbackFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                                                const GLchar* message, const void* userParam);
