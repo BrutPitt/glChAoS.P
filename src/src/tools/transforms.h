@@ -90,7 +90,7 @@ public:
     void updateMVmatrix (GLuint loc) { glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(tM.mvMatrix) ); }
     void updateMVPmatrix(GLuint loc) { glUniformMatrix4fv(loc, 1, GL_FALSE, value_ptr(tM.mvpMatrix)); }
 
-#if !defined(GLAPP_NO_GLSL_PIPELINE)
+#ifdef GLAPP_USES_GLSL_PIPELINE
     void updatePmatrix  (GLuint prog, GLuint loc) { glProgramUniformMatrix4fv(prog, loc, 1, GL_FALSE, value_ptr(tM.pMatrix)  ); }
     void updateMmatrix  (GLuint prog, GLuint loc) { glProgramUniformMatrix4fv(prog, loc, 1, GL_FALSE, value_ptr(tM.mMatrix)  ); }
     void updateVmatrix  (GLuint prog, GLuint loc) { glProgramUniformMatrix4fv(prog, loc, 1, GL_FALSE, value_ptr(tM.vMatrix)  ); }

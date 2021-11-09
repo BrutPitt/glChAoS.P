@@ -335,7 +335,7 @@ void oglAxes::render()
     vaoAxes->drawInstanced(GL_TRIANGLES);
 #endif
 
-#ifdef GLAPP_NO_GLSL_PIPELINE
+#if !defined(GLAPP_USES_GLSL_PIPELINE)
     //reset();
 #endif
 
