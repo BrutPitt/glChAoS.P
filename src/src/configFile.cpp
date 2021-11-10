@@ -736,7 +736,28 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
             tfSettinsClass::setPIPposition(     c.get_or("cpitPiPpos"    , int(tfSettinsClass::pip::noPIP)));
             if(tfSettinsClass::getPIPposition()>=tfSettinsClass::pip::endValue) tfSettinsClass::setPIPposition(tfSettinsClass::pip::noPIP);
             
-            tfSettinsClass::cockPit(false); // OVERRIDE start anyway OFF // FIXME:???
+            //tfSettinsClass::cockPit(false); // OVERRIDE start anyway OFF // FIXME:???
+#ifdef GLAPP_WEBGL
+            switch(theApp->getScoutMode()) {
+                case mainGLApp::scoutTypes::flyMode :
+                    tfSettinsClass::tfMode(true);
+                    tfSettinsClass::cockPit(true);
+                    tfSettinsClass::setPIPposition(tfSettinsClass::pip::rTop);
+                    //tfSettinsClass::invertPIP(true);
+                    break;
+                case mainGLApp::scoutTypes::evolutionMode :
+                    tfSettinsClass::tfMode(true);
+                    tfSettinsClass::cockPit(false);
+                    tfSettinsClass::setPIPposition(tfSettinsClass::pip::lBottom);
+                    tfSettinsClass::invertPIP(true);
+                    break;
+                case mainGLApp::scoutTypes::renderingMode :
+                default:
+                    tfSettinsClass::tfMode(false);
+                    tfSettinsClass::cockPit(false);
+            }
+            theApp->setScoutMode(mainGLApp::scoutTypes::normalSelectionMode);
+#endif
         }
     }
 
@@ -748,7 +769,11 @@ void loadSettings(Config &cfg, particlesSystemClass *pSys, int typeToIgnore = lo
 
         auto &c1 = cfg["RenderMode1"];
 #else
+        if(theApp->getSelectionMode() == mainGLApp::selectionTypes::forceSelBB) pSys->setRenderMode(RENDER_USE_BILLBOARD);
+        else if(theApp->getSelectionMode() == mainGLApp::selectionTypes::forceSelPS) pSys->setRenderMode(RENDER_USE_POINTS);
+        
         auto &c1 = cfg[(!theDlg.getInvertSettings())^(pSys->getRenderMode()==RENDER_USE_BILLBOARD) ? "RenderMode1" : "RenderMode0"];
+        theApp->setSelectionMode(mainGLApp::selectionTypes::noSelection);
 #endif
         particlesBaseClass *ptr1 = pSys->shaderPointClass::getPtr();
         if(theDlg.getDataDlg().getPSSettings() || checkSelectGroup) getRenderMode(c1,ptr1, typeToIgnore);
