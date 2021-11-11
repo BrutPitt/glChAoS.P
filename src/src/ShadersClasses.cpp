@@ -351,11 +351,11 @@ void shaderBillboardClass::initShader()
 ////////////////////////////////////////////////////////////////////////////////
 void motionBlurClass::create()
 {
-#ifdef GLAPP_NO_GLSL_PIPELINE
+#ifdef GLAPP_USES_GLSL_PIPELINE
+    glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, renderEngine->getSeparableVertex());
+#else
     useVertex(renderEngine->getCommonVShader());
     addShader(vertObj);
-#else
-    glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, renderEngine->getSeparableVertex());
 #endif
     useFragment();
     fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "MotionBlurFS.glsl");
@@ -472,7 +472,7 @@ void renderBaseClass::buildFBO()
 
     auxFBO.buildFBO(numAuxFBO, theApp->GetWidth(), theApp->GetHeight(),  theApp->getFBOInternalPrecision());
 
-    fboContainer.insertItems(auxFBO,numAuxFBO);
+    fboContainer.insertItems(auxFBO,numAuxFBO);   // add to locked list
     fboContainer.addMainFBO(renderFBO);
 }
 
@@ -499,17 +499,17 @@ void renderBaseClass::create()
 #endif
 
     {
-#ifdef GLAPP_NO_GLSL_PIPELINE
-        commonVShader.Load( (theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "mmFBO_all_vert.glsl");
-#else
+#ifdef GLAPP_USES_GLSL_PIPELINE
         string str(theApp->get_glslVer() + theApp->get_glslDef());
         getFileContents(SHADER_PATH "mmFBO_all_vert.glsl", str);
         const char *s[] = { str.c_str(), "\0" };
         separableVertex = glCreateShaderProgramv(GL_VERTEX_SHADER, 1, s);
+#else
+        commonVShader.Load( (theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 1, SHADER_PATH "mmFBO_all_vert.glsl");
 #endif
     }
     std::string verS = theApp->get_glslVer() + theApp->get_glslDef();
-#if !defined(GLAPP_NO_GLSL_PIPELINE)
+#ifdef GLAPP_USES_GLSL_PIPELINE
     verS += "#define GLAPP_USE_PIPELINE\n";
 #endif
 
@@ -527,8 +527,6 @@ void renderBaseClass::create()
 #if !defined(GLCHAOSP_NO_MB)
     motionBlur->create();
 #endif
-
-
 }
 
 renderBaseClass::~renderBaseClass()
@@ -575,11 +573,11 @@ VertexShader* commonVShader = nullptr;
 ////////////////////////////////////////////////////////////////////////////////
 void filtersBaseClass::create()
 {
-#ifdef GLAPP_NO_GLSL_PIPELINE
+#ifdef GLAPP_USES_GLSL_PIPELINE
+        glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, renderEngine->getSeparableVertex());
+#else
         useVertex(renderEngine->getCommonVShader());
         addShader(vertObj);
-#else
-        glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, renderEngine->getSeparableVertex());
 #endif
         useFragment();
         fragObj->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "colorSpaces.glsl", SHADER_PATH "filtersFrag.glsl");
@@ -720,7 +718,7 @@ void filtersBaseClass::updateDataAndDraw()
     getUData().invScreenSize = 1.f/vec2(float(renderEngine->getAuxFBO().getSizeX()), float(renderEngine->getAuxFBO().getSizeY()));
     updateBufferData();
     theWnd->getVAO()->draw();
-#ifdef GLAPP_NO_GLSL_PIPELINE // Necessary! : WebGL GL_INVALID_OPERATION: Feedback loop formed between Framebuffer and active Texture.
+#if !defined(GLAPP_USES_GLSL_PIPELINE) // Necessary! : WebGL GL_INVALID_OPERATION: Feedback loop formed between Framebuffer and active Texture.
     glBindTexture(GL_TEXTURE_2D, 0); // Perhaps necessary also on secondary texture for 2 pass filters (???): now works
 #endif
 }
@@ -731,11 +729,11 @@ void filtersBaseClass::updateDataAndDraw()
 ////////////////////////////////////////////////////////////////////////////////
 void colorMapTexturedClass::create()
 {
-#ifdef GLAPP_NO_GLSL_PIPELINE
+#ifdef GLAPP_USES_GLSL_PIPELINE
+    glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, particles->getSeparableVertex());
+#else
     useVertex(particles->getCommonVShader());
     addShader(vertObj);
-#else
-    glUseProgramStages(getPipeline(), GL_VERTEX_SHADER_BIT, particles->getSeparableVertex());
 #endif
 
     useFragment();

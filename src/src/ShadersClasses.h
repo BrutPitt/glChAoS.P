@@ -973,8 +973,9 @@ public:
         rotationBuff = 0;  
         blurIntensity = .5;
         isActive = false;
-        
-        mBlurFBO.declareFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());        
+
+        //mBlurFBO.declareFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());
+        mBlurFBO.buildFBO(2, renderEngine->getWidth(), renderEngine->getHeight(), theApp->getFBOInternalPrecision());
     }
 
     GLuint render(GLuint renderedTex);
