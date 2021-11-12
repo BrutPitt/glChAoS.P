@@ -175,7 +175,10 @@ private:
 class mainGLApp
 {
 public:
-    // self pointer .. static -> the only one 
+    enum scoutTypes { normalSelectionMode, renderingMode, evolutionMode, flyMode };
+    enum selectionTypes { noSelection, forceSelBB, forceSelPS };
+
+    // self pointer .. static -> the only one
     static mainGLApp* theMainApp;
 
     mainGLApp();
@@ -333,6 +336,13 @@ public:
     bool needRestart() { return appNeedRestart; }
     void needRestart(bool b) {  appNeedRestart = b; }
 
+    enum scoutTypes getScoutMode() { return scoutMode; }
+    void setScoutMode(enum scoutTypes b) {  scoutMode = b; }
+
+    enum selectionTypes getSelectionMode() { return selectionMode; }
+    void setSelectionMode(enum selectionTypes b) {  selectionMode = b; }
+
+
     bool useSyncOGL() { return syncOGL; }
     void useSyncOGL(bool b) { syncOGL = b; }
 
@@ -427,6 +437,8 @@ private:
     bool isIdleRotation = true;
     bool isSlowGPU = false;
     bool appNeedRestart = false;
+    enum scoutTypes scoutMode = scoutTypes::normalSelectionMode;
+    enum selectionTypes selectionMode = selectionTypes::noSelection;
 #if defined(__APPLE__) || defined(GLCHAOSP_LIGHTVER) || defined(GLAPP_USES_ES3)
     bool syncOGL = true;
 #else
@@ -483,8 +495,8 @@ public:
     int getCanvasY() { return canvasY; }
     int getSizeX() { return GetWidth(); }
     int getSizeY() { return GetHeight(); }
-    void setCanvasX(int i) { canvasX = i; }
-    void setCanvasY(int i) { canvasY = i; }
+    void setCanvasX(int i) { width  = canvasX = i; }
+    void setCanvasY(int i) { height = canvasY = i; }
 private:
     emsMDeviceClass emsDevice;
     int canvasX=0, canvasY=0;

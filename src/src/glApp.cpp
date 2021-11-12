@@ -448,7 +448,11 @@ void mainGLApp::glfwInit()
 //        }
 //    }
 //
+    glfwPollEvents();
+    
     if(getPosX()>=0 && getPosY()>=0) glfwSetWindowPos(getGLFWWnd(), getPosX(), getPosY());
+    glfwSetWindowSize(getGLFWWnd(), width, height);
+
     glfwMakeContextCurrent(getGLFWWnd());
 
 #if !defined (__EMSCRIPTEN__)
@@ -487,6 +491,13 @@ void mainGLApp::glfwInit()
     emscripten_set_touchmove_callback("#canvas", &getEmsDevice(), true, emsMDeviceClass::touchMove);
     emscripten_set_touchcancel_callback("#canvas", &getEmsDevice(), true, emsMDeviceClass::touchCancel);
 
+    const int x = EM_ASM_INT({ return window.innerWidth;  }), y = EM_ASM_INT({ return window.innerHeight; });
+    width  = canvasX = x;
+    height = canvasY = y;
+
+    glfwSetWindowSize(theApp->getGLFWWnd(), x, y);
+
+
     //EM_ASM(console.log(Module.ctx.getParameter(Module.ctx.UNPACK_PREMULTIPLY_ALPHA_WEBGL) ? "unpak VERO!!" : "unpack FALSO!!"););
     //EM_ASM(console.log(Module.ctx.getContextAttributes().alpha ? "alpha VERO!!" : "alpha FALSO!!"); );
     //EM_ASM(console.log(Module.ctx.getContextAttributes().premultipliedAlpha ? "pre VERO!!" :"pre FALSO!!"); );
@@ -520,8 +531,13 @@ void mainGLApp::glfwInit()
     timer.init();
 }
 
+#ifdef __EMSCRIPTEN__
 //EM_JS(void, jsActiveTexture, (int tex),  { _glActiveTexture(tex); } );
 //EM_JS(void, jsActiveTexture, (int tex),  { console.log(GL.textures[tex]); console.log(GL.textures[tex].name); _glActiveTexture(tex); } );
+
+EM_JS(int, get_canvas_width, (), { return canvas.width; });
+EM_JS(int, get_canvas_height, (), { return canvas.height; });
+#endif
 
 int mainGLApp::glfwExit()
 {
@@ -580,12 +596,6 @@ void mainGLApp::onInit(int w, int h)
     glfwInit();
 
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxCombTexImgUnits);
-
-    
-#ifdef __EMSCRIPTEN__
-    //initVR();
-#endif
-
 }
 
 int mainGLApp::onExit()  
@@ -602,9 +612,14 @@ void newFrame()
 #ifdef __EMSCRIPTEN__    
     //theApp->setCanvasX(EM_ASM_INT({ return Module.canvas.width; }));
     //theApp->setCanvasY(EM_ASM_INT({ return Module.canvas.height; }));
-    theApp->setCanvasX(EM_ASM_INT({ return window.innerWidth;  }));
-    theApp->setCanvasY(EM_ASM_INT({ return window.innerHeight; }));
+    const int x = EM_ASM_INT({ return window.innerWidth;  }), y = EM_ASM_INT({ return window.innerHeight; });
 
+    if(x != theApp->getCanvasX() || y != theApp->getCanvasY()) {
+        //theWnd->onReshape(x, y);
+        glfwSetWindowSize(theApp->getGLFWWnd(), x, y);
+        theApp->setCanvasX(x);
+        theApp->setCanvasY(y);
+    }
 
     theApp->getTimer().tick();
     glfwPollEvents();
@@ -623,6 +638,10 @@ void newFrame()
 
 void mainGLApp::mainLoop() 
 {
+
+    //glfwSetWindowSize(getGLFWWnd(), width, height);
+    //glfwSetWindowPos(getGLFWWnd(), getPosX(), getPosY());
+
     while (!glfwWindowShouldClose(getGLFWWnd()) && !appNeedRestart) {
         
         glfwPollEvents();
@@ -696,11 +715,39 @@ int main(int argc, char **argv)
         // 7
             theApp->startWithGlowOFF(atoi(argv[7])==1 ? true : false);
         // 8
-            theApp->useLightGUI((atoi(argv[8])&1) ? true : false);
-            theApp->useFixedCanvas((atoi(argv[8])&2) ? true : false);
-            if((atoi(argv[8])&4)) { // start minimized
-                theDlg.startMinimized(mainImGuiDlgClass::webRes::fullRestriction);
+// 0000000001 0x001 LightGui
+// 0000000010 0x002 FizedCanvas
+// 0000000100 0x004 FullRestriction
+// 0000001000 0x008 All Menu minimized
+// 0000010000 0x010 Rendering mode
+// 0000100000 0x020 TF FullScrren
+// 0001000000 0x040 TF Cockpit
+// 0010000000 0x080 Force BB
+// 0100000000 0x100 Force PS
+            const uint32_t val = atoi(argv[8]);
+            theApp->useLightGUI(val&1 ? true : false);
+            theApp->useFixedCanvas(val&2 ? true : false);
+            if(val&0x004) theDlg.startMinimized(mainImGuiDlgClass::webRes::fullRestriction); // start all standard Wnd minimized
+            if(val&0x008) theDlg.startMinimized(mainImGuiDlgClass::webRes::onlyMainMenuMinimized);
+
+            // singlePixel / TF fullscreen / TF cockpit
+            theApp->setScoutMode(mainGLApp::scoutTypes::normalSelectionMode);                // select default
+            if(val&0x010)      { theApp->setScoutMode(mainGLApp::scoutTypes::renderingMode);   // singlePixel
+                theDlg.setAttractorDlgVisible(false);
             }
+            else if(val&0x020) { theApp->setScoutMode(mainGLApp::scoutTypes::evolutionMode);   // TF fullscreen
+                theDlg.startMinimized(mainImGuiDlgClass::webRes::minus1280);
+                theDlg.setCockpitDlgVisible();
+                theDlg.setCockpitDlgCollapsed();
+            }
+            else if(val&0x040) { theApp->setScoutMode(mainGLApp::scoutTypes::flyMode);         // TF cockpit
+                theDlg.setCockpitDlgVisible();
+                theDlg.setCockpitDlgCollapsed();
+            }
+
+            theApp->setSelectionMode(mainGLApp::selectionTypes::noSelection);                   // no preference
+            if(val&0x080)      theApp->setSelectionMode(mainGLApp::selectionTypes::forceSelBB); // force slection btween BB/PS
+            else if(val&0x100) theApp->setSelectionMode(mainGLApp::selectionTypes::forceSelPS); // force slection btween BB/PS
         // 9
             std::string s(argv[9]);
             theApp->setStartWithAttractorName(s.empty() ? "random" : s);
