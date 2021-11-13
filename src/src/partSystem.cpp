@@ -71,7 +71,11 @@ void particlesSystemClass::changeEmitter(enumEmitterEngine ee)
 
 void particlesSystemClass::onReshape(int w, int h)
 {
-    if(w==0 || h==0) return; //Is in iconic (GLFW do not intercept on Window)
+    if(w==0 || h==0 || (w == theApp->GetWidth() && h == theApp->GetHeight())) return; //Is in iconic (GLFW do not intercept on Window)
+
+    theApp->SetWidth(w); theApp->SetHeight(h);
+
+    getTMat()->getTrackball().viewportSize(w, h);
 
     getTMat()->setPerspective(float(w)/float(h));
 
