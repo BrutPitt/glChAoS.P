@@ -52,7 +52,7 @@
 #endif
 
 
-#ifdef GLCHAOSP_WEBGL
+#ifdef GLAPP_WEBGL
     //#define GLCHAOSP_LIGHTVER
 
     //#define GLCHAOSP_WEBGL_W_SHADOWS

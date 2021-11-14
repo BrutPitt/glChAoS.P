@@ -139,7 +139,8 @@ void transformedEmitterClass::buildEmitter()
     activeBuffer = 0;
 
     //build shader
-    const GLchar *namesParticlesLoc[] {"posOut", "velTOut", "TexCoord0Out", "TexCoord1Out", "TexCoord2Out"};
+    //const GLchar *namesParticlesLoc[] {"posOut", "velTOut", "TexCoord0Out", "TexCoord1Out", "TexCoord2Out"};
+    const GLchar *namesParticlesLoc[] {"posOut", "velTOut", "TexCoord0Out", "TexCoord1Out"};
     useVertex();
     useFragment();
 

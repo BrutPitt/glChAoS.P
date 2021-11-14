@@ -173,8 +173,6 @@ void glWindow::onReshape(GLint w, GLint h)
 {
     //glViewport(0,0,w,h);
 
-    theApp->SetWidth(w); theApp->SetHeight(h);
-    particlesSystem->getTMat()->getTrackball().viewportSize(w, h);
 
     if(particlesSystem) particlesSystem->onReshape(w,h);
 
