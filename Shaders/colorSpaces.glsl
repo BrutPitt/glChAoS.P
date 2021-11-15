@@ -78,6 +78,10 @@ vec3 gammaCorrection(vec3 c, float gamma)
                            c.g < 0.0031308f ? 12.92f*c.g : 1.055f * pow(c.g, gamma) - .055f,
                            c.b < 0.0031308f ? 12.92f*c.b : 1.055f * pow(c.b, gamma) - .055f  ));
 }
+vec3 gammaCorrection_(vec3 c, float gamma)
+{
+    return saturate(pow(c, vec3(gamma)));
+}
 
 /////////////////////////////////////////////////
 vec3 rgb2yuv(vec3 c)

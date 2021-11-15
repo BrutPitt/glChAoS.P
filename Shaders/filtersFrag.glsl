@@ -137,7 +137,6 @@ CONST vec2 aspect = vec2(1.0, 1.0);
 
 vec4 bilateralSmartSmooth(float reductFactor)
 {
-    //
     float bsigma = threshold*reductFactor;
     float reductSigma = sigmaSize * reductFactor;
     float radius = float(round(sigmaRange*reductSigma-1.f));
@@ -159,6 +158,7 @@ vec4 bilateralSmartSmooth(float reductFactor)
     
     float Zbuff = 0.0;
     vec4 accumBuff = vec4(0.0);
+    vec4 glowBuff  = vec4(0.0);
     
     vec2 d;
     for(d.x=-radius; d.x <= radius; d.x++)	{
@@ -173,13 +173,52 @@ vec4 bilateralSmartSmooth(float reductFactor)
 #endif
             vec4 dC = walkPx-centrPx;
             float deltaFactor = exp( -dot(dC.rgb, dC.rgb) * invBSigmaSqx2) * invBSigmaxSqrt2PI * blurFactor;
-                                 
+            //float l = luminance(walkPx.rgb) - luminance(centrPx.rgb);
+            //float deltaFactor = exp( -(l*l) * invBSigmaSqx2) * invBSigmaxSqrt2PI * blurFactor;
+
             Zbuff     += deltaFactor;
             accumBuff += deltaFactor*walkPx;
+            //glowBuff  += deltaFactor*vec4(walkPx.rgb*walkPx.a, walkPx.a);
         }
     }
+    //return mix(accumBuff, glowBuff, mixBrurGlow) /Zbuff;
     return accumBuff/Zbuff;
 }
+
+
+/*
+
+            vec4 walkPx =  texture(tex,uv+d/size);
+            vec4 dC;
+            float deltaFactor, l;
+            switch(pass) {
+                case 1:
+                     dC = walkPx-centrPx;
+                     deltaFactor = exp( -dot(dC, dC) * invThresholdSqx2) * invThresholdSqrt2PI * blurFactor;
+                break;
+                case 2:
+                    l = linearLum(walkPx.rgb) - linearLum(centrPx.rgb);
+                    deltaFactor = exp( -(l*l) * invThresholdSqx2) * invThresholdSqrt2PI * blurFactor;
+                break;
+                case 3:
+                    l = luminance(walkPx.rgb) - luminance(centrPx.rgb);
+                    deltaFactor = exp( -(l*l) * invThresholdSqx2) * invThresholdSqrt2PI * blurFactor;
+                break;
+                case 4:
+                     dC = walkPx-centrPx;
+                     l = linearLum(dC.rgb);
+                     deltaFactor = exp( -(l*l) * invThresholdSqx2) * invThresholdSqrt2PI * blurFactor;
+                break;
+                case 5:
+                     dC = walkPx-centrPx;
+                     l = luminance(dC.rgb);
+                     deltaFactor = exp( -(l*l) * invThresholdSqx2) * invThresholdSqrt2PI * blurFactor;
+                break;
+            }
+
+
+
+*/
 
 
 vec4 bilateralSmartSmoothOK()
