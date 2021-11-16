@@ -842,7 +842,7 @@ GLuint postRenderingClass::bindRender(particlesBaseClass *particle, GLuint fbIdx
 #ifdef GLAPP_REQUIRE_OGL45
         GLuint subIDX = particle->getUData().lightModel + particlesBaseClass::lightMDL::modelOffset;
 
-        glBindTextureUnit(6, particle->getAuxFBO().getTex(0));
+        glBindTextureUnit(6, particle->getAuxFBO().getTex(1));
         glBindTextureUnit(7, renderEngine->getShadow()->getFBO().getDepth(0));
         glBindTextureUnit( 5, renderFBO.getTex(fbIdx));
         glBindTextureUnit( 8, renderFBO.getTexMultiFB(fbIdx, 0));
