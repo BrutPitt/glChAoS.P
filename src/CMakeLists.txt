@@ -81,13 +81,12 @@ set_property(CACHE BuildTarget PROPERTY STRINGS ${BuildTargetValues} )
 
 #   OpenGL 4.5 - Zero Driver Overhead
 #
-set(OGL45 "-DGLAPP_REQUIRE_OGL45")
+set(OGL45 "-DGLAPP_REQUIRE_OGL45 -DGLAPP_USES_GLSL_PIPELINE")
 
 #   OpenGL 4.1 - Olden GPU and MacOS X
 #
 set(OGL41 "-DGLCHAOSP_NO_USES_GLSL_SUBS")   #-DGLCHAOSP_NO_USES_GLSL_SUBS like webGL version: doesn't uses OGL subroutines
 set(OGL41_LOW " -DGLCHAOSP_NO_USES_GLSL_SUBS
-                -DGLAPP_NO_GLSL_PIPELINE
                 -DGLCHAOSP_NO_AX
                 -DGLCHAOSP_NO_BB
                 -DGLCHAOSP_NO_MB
@@ -100,7 +99,6 @@ set(OGLES " -DGLAPP_USES_ES3
             -DIMGUI_IMPL_OPENGL_ES3
             -DGLFW_INCLUDE_NONE
             -DGLCHAOSP_NO_USES_GLSL_SUBS
-            -DGLAPP_NO_GLSL_PIPELINE
             -DGLCHAOSP_NO_AX
             -DGLCHAOSP_NO_BB
             -DGLCHAOSP_NO_MB")
@@ -156,6 +154,7 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/libs/imgui/imgui_impl_glfw.h
         ${SRC}/libs/imgui/imgui_impl_opengl3.cpp
         ${SRC}/libs/imgui/imgui_impl_opengl3.h
+        ${SRC}/libs/imgui/imgui_impl_opengl3_loader.h
         ${SRC}/libs/imgui/imgui_internal.h
         ${SRC}/libs/imgui/imstb_rectpack.h
         ${SRC}/libs/imgui/imstb_textedit.h
@@ -171,6 +170,8 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/tools/glslProgramObject.h
         ${SRC}/tools/glslShaderObject.cpp
         ${SRC}/tools/glslShaderObject.h
+        ${SRC}/tools/mmFBO.cpp
+        ${SRC}/tools/mmFBO.h
         ${SRC}/tools/transforms.h
         ${SRC}/tools/vgMath.h
         ${SRC}/tools/vgConfig.h
@@ -211,8 +212,6 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/partSystem.h
         ${SRC}/emitter.cpp
         ${SRC}/emitter.h
-        ${SRC}/mmFBO.cpp
-        ${SRC}/mmFBO.h
         ${SRC}/palettes.cpp
         ${SRC}/palettes.h
         ${SRC}/ParticlesUtils.cpp
@@ -225,7 +224,8 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
 #   wglChAoS.P - EMSCRIPTEN build
 ###########################################################
 if(BUILD_wglChAoSP OR BUILD_wglChAoSP_lowres)
-    set(WGL_DEFINES "-DGLCHAOSP_WEBGL
+    set(WGL_DEFINES "-DGLAPP_WEBGL
+                     -DGLCHAOSP_WEBGL
                      -DGLCHAOSP_LIGHTVER
                      -DGLCHAOSP_NO_TF_QUERY
                      -DGLCHAOSP_NO_AX
@@ -233,8 +233,7 @@ if(BUILD_wglChAoSP OR BUILD_wglChAoSP_lowres)
                      -DGLCHAOSP_NO_MB
                      -DGLCHAOSP_NO_BB
                      -DGLCHAOSP_NO_USES_GLSL_SUBS
-                     -DGLCHAOSP_WGL_REDUCE_TEXTURES
-                     -DGLAPP_NO_GLSL_PIPELINE")
+                     -DGLCHAOSP_WGL_REDUCE_TEXTURES")
     if(BUILD_wglChAoSP_lowres)
         set(WGL_DEFINES "${WGL_DEFINES} -DGLCHAOSP_USE_LOWPRECISION -DGLCHAOSP_NO_AO_SHDW")
         project(wglChAoSP_lowres)
@@ -283,7 +282,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 # BUILD TYPE: [Debug|RelWithDebInfo|Release|MinSizeRel]    
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
         set(M_EMCC_BINARYEN "-s WASM=0 -s DEMANGLE_SUPPORT=1 -s LZ4=1")
-        set(M_EMCC_SHELL_FILE "--shell-file \"${CMAKE_SOURCE_DIR}/shell_minimal.html\"")
+        set(M_EMCC_SHELL_FILE "--shell-file \"${CMAKE_SOURCE_DIR}/mVeryMinimal.html\"") #shell_minimal.html
     elseif(${CMAKE_BUILD_TYPE} MATCHES "RelWithDebInfo")
             set(M_EMCC_BINARYEN "-s WASM=1")
             set(M_EMCC_SHELL_FILE "--shell-file \"${CMAKE_SOURCE_DIR}/shell_minimal.html\"")
@@ -491,7 +490,7 @@ endif()
 
 
     if(APPLE)
-        add_definitions(${OGL41} -DGLCHAOSP_NO_USES_GLSL_SUBS -DGLAPP_NO_GLSL_PIPELINE)
+        add_definitions(${OGL41} -DGLCHAOSP_NO_USES_GLSL_SUBS)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-logical-op-parentheses -Wno-unused-command-line-argument -Wno-parentheses -framework Cocoa -framework IOKit -framework CoreVideo")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-security -Wno-format-nonliteral -Wdeprecated-declarations -Wno-reorder -Wno-logical-op-parentheses -fexceptions -Wno-unused-command-line-argument -Wno-parentheses")
         set(TARGET_LIBS ${CMAKE_DL_LIBS} "-lpthread")
