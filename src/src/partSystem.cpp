@@ -83,7 +83,7 @@ void particlesSystemClass::onReshape(int w, int h)
     getAuxFBO().reSizeFBO(w, h);
 
 #if !defined(GLCHAOSP_NO_AO_SHDW)
-    getShadow()->resize(w, h);
+    if(theApp->canUseShadow()) getShadow()->resize(w, h);
 #endif
 #if !defined(GLCHAOSP_NO_MB)
      getMotionBlur()->getFBO().reSizeFBO(w, h);

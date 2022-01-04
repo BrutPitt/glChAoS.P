@@ -332,6 +332,23 @@ void mainGLApp::getScreenShot(bool is32bit)
     delete[] flipped;
 }
 
+#ifdef __EMSCRIPTEN__
+//EM_JS(void, jsActiveTexture, (int tex),  { _glActiveTexture(tex); } );
+//EM_JS(void, jsActiveTexture, (int tex),  { console.log(GL.textures[tex]); console.log(GL.textures[tex].name); _glActiveTexture(tex); } );
+
+EM_JS(int, get_canvas_width, (), { return canvas.width; });
+EM_JS(int, get_canvas_height, (), { return canvas.height; });
+EM_JS(bool, isAngleWithChromium, (), {
+    var lineWidthRange = Module.ctx.getParameter(Module.ctx.ALIASED_LINE_WIDTH_RANGE);
+    var isLineOneOne = (lineWidthRange[0] == 1) && (lineWidthRange[1] == 1);
+    var isNotFF = navigator.userAgent.toLowerCase().indexOf('firefox') == -1;
+    let platform = navigator.platform; //navigator.userAgentData.platform
+
+    var angle = ((platform === 'Win32') || (platform === 'Win64')) && isNotFF && isLineOneOne;
+    //alert(angle);
+    return angle;
+});
+#endif
 
 /////////////////////////////////////////////////
 // glfw utils
@@ -343,6 +360,8 @@ void mainGLApp::glfwInit()
 
     const std::string fPrecision(std::string("precision ") + std::string(shaderFloatPrecision == glslPrecision::low ? "lowp" : (shaderFloatPrecision == glslPrecision::medium ? "mediump" : "highp")) + " float;\n");
     const std::string iPrecision(std::string("precision ") + std::string(shaderIntPrecision   == glslPrecision::low ? "lowp" : (shaderIntPrecision   == glslPrecision::medium ? "mediump" : "highp")) + " int;\n");
+//    const std::string fPrecision(std::string("precision highp float;\n"));
+//    const std::string iPrecision(std::string("precision highp int;\n"));
 
 #if !defined (__EMSCRIPTEN__)
     #ifdef GLAPP_REQUIRE_OGL45
@@ -402,10 +421,6 @@ void mainGLApp::glfwInit()
         glfwWindowHint(GLFW_SAMPLES, 0);
 #endif
 
-#ifdef GLCHAOSP_NO_AO_SHDW
-       glslDefines+= "#define GLCHAOSP_NO_AO_SHDW\n";
-#endif
-
 #if defined(GLAPP_USES_ES3) || defined(__EMSCRIPTEN__)
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 #endif
@@ -433,7 +448,7 @@ void mainGLApp::glfwInit()
     //glfwWindowHint(GLFW_SAMPLES,4);
 
     setGLFWWnd(glfwCreateWindow(GetWidth(), GetHeight(), getWindowTitle(), NULL, NULL));
-    if (!getGLFWWnd()) {  glfwTerminate(); exit(EXIT_FAILURE);  }
+    if(!getGLFWWnd()) {  glfwTerminate(); exit(EXIT_FAILURE);  }
 
 //list  video modes
 //    GLFWmonitor* monitor = getCurrentMonitor(getGLFWWnd());
@@ -502,17 +517,28 @@ void mainGLApp::glfwInit()
     //EM_ASM(console.log(Module.ctx.getContextAttributes().alpha ? "alpha VERO!!" : "alpha FALSO!!"); );
     //EM_ASM(console.log(Module.ctx.getContextAttributes().premultipliedAlpha ? "pre VERO!!" :"pre FALSO!!"); );
     //EM_ASM(Module.ctx.pixelStorei(Module.ctx.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true););
+
+    //detect ANGLE
+    //EM_ASM( var angleInfo = Module.ctx.getExtension('ANGLE_instanced_arrays'); if(angleInfo!=null) alert("Angle detected"););
+    //EM_ASM( var debInfo = Module.ctx.getExtension('WEBGL_debug_renderer_info'); alert(Module.ctx.getParameter(debInfo.UNMASKED_RENDERER_WEBGL)););
+
+    isAngleBug = false; //isAngleWithChromium();
+
 #ifndef NDEBUG
     EM_ASM(if(!Module.ctx.getExtension('EXT_color_buffer_float')) alert("wglChAoS.P need EXT_color_buffer_float"););
     EM_ASM(if(!Module.ctx.getExtension('EXT_float_blend'))        alert("wglChAoS.P need EXT_float_blend"););
 #endif
-
 
     //emscripten_set_deviceorientation_callback(getEmsDevice(), true, emsMDeviceClass::devOrientation);
     //emscripten_set_orientationchange_callback(getEmsDevice(), true, emsMDeviceClass::devOrientChange);
     //emscripten_set_devicemotion_callback(getEmsDevice(), true, emsMDeviceClass::devMotion);
 #endif
 
+#ifdef GLCHAOSP_NO_AO_SHDW
+       glslDefines+= "#define GLCHAOSP_NO_AO_SHDW\n";
+#else
+       if(!canUseShadow()) glslDefines+= "#define GLCHAOSP_NO_AO_SHDW\n";
+#endif
     glfwSetMouseButtonCallback(getGLFWWnd(), glfwMouseButtonCallback);
     glfwSetKeyCallback(getGLFWWnd(), glfwKeyCallback);
     glfwSetCharCallback(getGLFWWnd(), glfwCharCallback);
@@ -530,14 +556,6 @@ void mainGLApp::glfwInit()
     // init glfwTimer
     timer.init();
 }
-
-#ifdef __EMSCRIPTEN__
-//EM_JS(void, jsActiveTexture, (int tex),  { _glActiveTexture(tex); } );
-//EM_JS(void, jsActiveTexture, (int tex),  { console.log(GL.textures[tex]); console.log(GL.textures[tex].name); _glActiveTexture(tex); } );
-
-EM_JS(int, get_canvas_width, (), { return canvas.width; });
-EM_JS(int, get_canvas_height, (), { return canvas.height; });
-#endif
 
 int mainGLApp::glfwExit()
 {
@@ -573,18 +591,15 @@ mainGLApp::mainGLApp()
     glEngineWnd = new glWindow; 
     screenShotRequest = false;
     getQuickViewDirList();
-
 }
 
 mainGLApp::~mainGLApp() 
 {
-
     delete glEngineWnd;
 }
 
 void mainGLApp::onInit(int w, int h) 
 {
-
     xPosition = yPosition = -1;
     width = w, height = h;
     windowTitle = GLAPP_PROG_NAME;
@@ -600,7 +615,6 @@ void mainGLApp::onInit(int w, int h)
 
 int mainGLApp::onExit()  
 {
-
     glfwExit();
 
 // need to test returns code... now 0!        
@@ -633,21 +647,19 @@ void newFrame()
     
     glfwSwapBuffers(theApp->getGLFWWnd());
 #endif
-
 }
 
 void mainGLApp::mainLoop() 
 {
-
     //glfwSetWindowSize(getGLFWWnd(), width, height);
     //glfwSetWindowPos(getGLFWWnd(), getPosX(), getPosY());
 
-    while (!glfwWindowShouldClose(getGLFWWnd()) && !appNeedRestart) {
+    while(!glfwWindowShouldClose(getGLFWWnd()) && !appNeedRestart) {
         
         glfwPollEvents();
         glfwGetFramebufferSize(getGLFWWnd(), &width, &height);
 
-        if (!glfwGetWindowAttrib(getGLFWWnd(), GLFW_ICONIFIED))
+        if(!glfwGetWindowAttrib(getGLFWWnd(), GLFW_ICONIFIED))
             getTimer().tick();
 #if !defined(GLCHAOSP_LIGHTVER)
             theWnd->onIdle();

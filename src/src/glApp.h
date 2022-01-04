@@ -202,11 +202,11 @@ public:
     void setPosX(int v) { xPosition = v; }
     void setPosY(int v) { yPosition = v; }
 
-	int GetWidth()     const { return width;     }
-	int GetHeight()    const { return height;    }
+    int GetWidth()     const { return width;     }
+    int GetHeight()    const { return height;    }
     void SetWidth(int v)  { width  = v; }
     void SetHeight(int v) { height = v; }
-	const char* getWindowTitle() const { return(windowTitle.c_str()); }
+    const char* getWindowTitle() const { return(windowTitle.c_str()); }
 
     void setWindowSize(int  w, int  h) { glfwSetWindowSize(mainGLFWwnd, w, h); }
     void getWindowSize(int *w, int *h) { glfwGetWindowSize(mainGLFWwnd, w, h); }
@@ -329,6 +329,15 @@ public:
     bool useFixedCanvas() { return fixedCanvas; }
     void useFixedCanvas(bool b) {  fixedCanvas = b; }
 
+    bool canUseShadow() {
+#ifdef NDEBUG
+        return true;
+        //return !isAngleBug;
+#else
+        return true;
+#endif
+    }
+
     bool startWithGlowOFF() { return initialGlowOFF; }
     void startWithGlowOFF(bool b) {  initialGlowOFF = b; }
     bool slowGPU() { return isSlowGPU; }
@@ -437,6 +446,7 @@ private:
     bool isIdleRotation = true;
     bool isSlowGPU = false;
     bool appNeedRestart = false;
+    bool isAngleBug = false;
     enum scoutTypes scoutMode = scoutTypes::normalSelectionMode;
     enum selectionTypes selectionMode = selectionTypes::noSelection;
 #if defined(__APPLE__) || defined(GLCHAOSP_LIGHTVER) || defined(GLAPP_USES_ES3)
