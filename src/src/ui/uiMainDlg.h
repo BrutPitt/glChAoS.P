@@ -245,7 +245,7 @@ private:
 class lotexDlgClass  : public baseDlgClass
 {
 public:
-    lotexDlgClass() : baseDlgClass(" LOW Resources", true) {}
+    lotexDlgClass() : baseDlgClass(" W A R N I N G", true) { }
 
     void view();
 

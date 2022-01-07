@@ -262,7 +262,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 #if defined(GLCHAOSP_NO_AO_SHDW)
             const int numItems = 7;
 #else
-            const int numItems = 8;
+            const int numItems = theApp->canUseShadow() ? 8 : 7;
 #endif
 
 
@@ -425,6 +425,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     }
                 ImGui::PopItemWidth();
 #if !defined(GLCHAOSP_NO_AO_SHDW)
+            if(theApp->canUseShadow()) {
                 if(!particles->getBlendState() && (particles->getDepthState() || particles->getLightState())) {
 
                     ImGui::SetCursorPosX(posA);
@@ -451,6 +452,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                         ImGui::PopItemWidth();
                     }
                 }
+            }
 #endif
             ImGui::EndChild();
             ImGui::PopStyleVar();
@@ -707,186 +709,188 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
 #endif
 
 #if !defined(GLCHAOSP_NO_AO_SHDW)
-    if(!particles->getBlendState() && (particles->getDepthState() || particles->getLightState())) {
+    if(theApp->canUseShadow()) {
+        if(!particles->getBlendState() && (particles->getDepthState() || particles->getLightState())) {
 // Shadow settings
 ////////////////////////////////////
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
-            const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SIGN_LANGUAGE  " Shadows   " ICON_FA_COMMENT_O);
-            ImGui::PopStyleColor();
-            ShowHelpOnTitle(GLAPP_HELP_SHADOWS_TREE);
-            if(isOpen) {
-                ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-                ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+                const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SIGN_LANGUAGE  " Shadows   " ICON_FA_COMMENT_O);
+                ImGui::PopStyleColor();
+                ShowHelpOnTitle(GLAPP_HELP_SHADOWS_TREE);
+                if(isOpen) {
+                    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                    ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
 
-                ImGui::SetCursorPosX(posA);
-                {
-                    bool b = particles->useShadow();
-                    if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useShadow(b);
-                }
-
-                //if(particles->useShadow()) {
-                    ImGui::SameLine();
-
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("Ratio");
-                    ImGui::SameLine();
-
-                    ImGui::PushItemWidth((w - ImGui::GetCursorPosX()) * .3 - border);
-                    {
-                        int idx = int(1.f/particles->getShadowGranularity()+.5)-1;
-                        if (ImGui::Combo(buildID(base, idA++, id), &idx, "rad:1\0"\
-                                                                         "rad:2\0"\
-                                                                         "rad:3\0"\
-                                                                         "rad:4\0"\
-                                                                         "rad:5\0"))
-                            {  particles->setShadowGranularity(1.f/float(idx+1)); }
-                    }
-                    ImGui::PopItemWidth();
-
-                    ImGui::SameLine();
-                    const float sz = (w - ImGui::GetCursorPosX()) * .5 - border;
-                    {
-                        char txt[48];
-                        bool b = particles->useScatterdShadow();
-                        sprintf(txt, b ? "Scatter " ICON_FA_CHECK_SQUARE_O "%s" : "Scatter " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
-                        if(colCheckButton(b , txt, sz)) particles->useScatterdShadow(b^1);
-                    }
-                    ImGui::SameLine();
-                    {
-                        char txt[48];
-                        bool b = particles->autoLightDist();
-                        sprintf(txt, b ? "AutoLight " ICON_FA_CHECK_SQUARE_O "%s" : "AutoLight " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
-                        if(colCheckButton(b , txt, sz)) particles->autoLightDist(b^1);
-                    }
-
-                    ImGui::AlignTextToFramePadding();
                     ImGui::SetCursorPosX(posA);
-                    ImGui::TextDisabled("Rad");
-                    ImGui::SameLine();
-                    ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
                     {
-                        int i = int(particles->getShadowRadius());
-                        if(ImGui::DragInt(buildID(base, idA++, id), &i, .1, 0, 20, "%d")) particles->setShadowRadius(i);
-                    }
-                    ImGui::PopItemWidth();
-
-                    ImGui::SameLine();
-                    ImGui::TextDisabled("Bias");
-                    ImGui::SameLine();
-                    ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
-                    {
-                        float f = particles->getShadowBias();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, -100.0, 100.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setShadowBias(f);
-                    }
-                    ImGui::PopItemWidth();
-
-                    ImGui::SameLine();
-                    ImGui::TextDisabled("Dark");
-                    ImGui::SameLine();
-                    ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
-                    {
-                        float f = particles->getShadowDarkness();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setShadowDarkness(f);
+                        bool b = particles->useShadow();
+                        if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useShadow(b);
                     }
 
-                    ImGui::PopItemWidth();
+                    //if(particles->useShadow()) {
+                        ImGui::SameLine();
 
-                //}
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::TextDisabled("Ratio");
+                        ImGui::SameLine();
+
+                        ImGui::PushItemWidth((w - ImGui::GetCursorPosX()) * .3 - border);
+                        {
+                            int idx = int(1.f/particles->getShadowGranularity()+.5)-1;
+                            if (ImGui::Combo(buildID(base, idA++, id), &idx, "rad:1\0"\
+                                                                             "rad:2\0"\
+                                                                             "rad:3\0"\
+                                                                             "rad:4\0"\
+                                                                             "rad:5\0"))
+                                {  particles->setShadowGranularity(1.f/float(idx+1)); }
+                        }
+                        ImGui::PopItemWidth();
+
+                        ImGui::SameLine();
+                        const float sz = (w - ImGui::GetCursorPosX()) * .5 - border;
+                        {
+                            char txt[48];
+                            bool b = particles->useScatterdShadow();
+                            sprintf(txt, b ? "Scatter " ICON_FA_CHECK_SQUARE_O "%s" : "Scatter " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
+                            if(colCheckButton(b , txt, sz)) particles->useScatterdShadow(b^1);
+                        }
+                        ImGui::SameLine();
+                        {
+                            char txt[48];
+                            bool b = particles->autoLightDist();
+                            sprintf(txt, b ? "AutoLight " ICON_FA_CHECK_SQUARE_O "%s" : "AutoLight " ICON_FA_SQUARE_O "%s", buildID(base, idA++, id));
+                            if(colCheckButton(b , txt, sz)) particles->autoLightDist(b^1);
+                        }
+
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::SetCursorPosX(posA);
+                        ImGui::TextDisabled("Rad");
+                        ImGui::SameLine();
+                        ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
+                        {
+                            int i = int(particles->getShadowRadius());
+                            if(ImGui::DragInt(buildID(base, idA++, id), &i, .1, 0, 20, "%d")) particles->setShadowRadius(i);
+                        }
+                        ImGui::PopItemWidth();
+
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("Bias");
+                        ImGui::SameLine();
+                        ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
+                        {
+                            float f = particles->getShadowBias();
+                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, -100.0, 100.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setShadowBias(f);
+                        }
+                        ImGui::PopItemWidth();
+
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("Dark");
+                        ImGui::SameLine();
+                        ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
+                        {
+                            float f = particles->getShadowDarkness();
+                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setShadowDarkness(f);
+                        }
+
+                        ImGui::PopItemWidth();
+
+                    //}
 
 
 
-                ImGui::EndChild();
-                ImGui::PopStyleVar();
-            }
+                    ImGui::EndChild();
+                    ImGui::PopStyleVar();
+                }
         }
 // AO settings
 ////////////////////////////////////
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
-            const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SHIELD  " Ambient Occlusion   " ICON_FA_COMMENT_O);
-            ImGui::PopStyleColor();
-            ShowHelpOnTitle(GLAPP_HELP_AO_TREE);
-            if(isOpen) {
-                ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-                ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, titleCol);
+                const bool isOpen = ImGui::TreeNodeEx(buildID(base, idA++, id),ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_NoTreePushOnOpen,ICON_FA_SHIELD  " Ambient Occlusion   " ICON_FA_COMMENT_O);
+                ImGui::PopStyleColor();
+                ShowHelpOnTitle(GLAPP_HELP_AO_TREE);
+                if(isOpen) {
+                    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+                    ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*2+ImGui::GetStyle().ItemSpacing.y), true);
 
-                    ImGui::SetCursorPosX(posA);
-                    {
-                        bool b = particles->useAO();
-                        if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useAO(b);
-                    }
+                        ImGui::SetCursorPosX(posA);
+                        {
+                            bool b = particles->useAO();
+                            if(ImGui::Checkbox(buildID(base, idA++, id), &b)) particles->useAO(b);
+                        }
 
-                    ImGui::SameLine();
+                        ImGui::SameLine();
 
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::TextDisabled("Mul");
-                    ImGui::SameLine();
-                    ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
-                    {
-                        float f = particles->getAOMul();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.1, 2.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOMul(f);
-                    }
-                    ImGui::PopItemWidth();
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::TextDisabled("Mul");
+                        ImGui::SameLine();
+                        ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
+                        {
+                            float f = particles->getAOMul();
+                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.1, 2.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOMul(f);
+                        }
+                        ImGui::PopItemWidth();
 
-                    ImGui::SameLine();
-                    ImGui::TextDisabled("Diff");
-                    ImGui::SameLine();
-                    ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
-                    ImGui::SameLine();
-                    {
-                        float f = particles->getAOModulate();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.1, 3.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOModulate(f);
-                    }
-                    ImGui::PopItemWidth();
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("Diff");
+                        ImGui::SameLine();
+                        ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
+                        ImGui::SameLine();
+                        {
+                            float f = particles->getAOModulate();
+                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.1, 3.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->setAOModulate(f);
+                        }
+                        ImGui::PopItemWidth();
 
-                    ImGui::SameLine();
-                    ImGui::TextDisabled("More");
-                    ImGui::SameLine();
-                    ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
-                    {
-                        float f = particles->getAOStrong();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 3.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOStrong(f);
-                    }
-                    ImGui::PopItemWidth();
-
-
-                    ImGui::AlignTextToFramePadding();
-                    ImGui::SetCursorPosX(posA);
-                    ImGui::TextDisabled("Rad");
-                    ImGui::SameLine();
-                    ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
-                    {
-                        float f = particles->getAORadius();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .01, 0.01, 20.0,  "%.2f",1.f,ImVec2(.93,0.5))) particles->setAORadius(f);
-                    }
-                    ImGui::PopItemWidth();
-
-                    ImGui::SameLine();
-                    ImGui::TextDisabled("Bias");
-                    ImGui::SameLine();
-                    ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
-                    ImGui::SameLine();
-                    {
-                        float f = particles->getAOBias();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOBias(f);
-                    }
-                    ImGui::PopItemWidth();
-
-                    ImGui::SameLine();
-                    ImGui::TextDisabled("Dark");
-                    ImGui::SameLine();
-                    ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
-                    {
-                        float f = particles->getAODarkness();
-                        if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .0025, 0.0, 1.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAODarkness(f);
-                    }
-
-                    ImGui::PopItemWidth();
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("More");
+                        ImGui::SameLine();
+                        ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
+                        {
+                            float f = particles->getAOStrong();
+                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 3.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOStrong(f);
+                        }
+                        ImGui::PopItemWidth();
 
 
-                ImGui::EndChild();
-                ImGui::PopStyleVar();
+                        ImGui::AlignTextToFramePadding();
+                        ImGui::SetCursorPosX(posA);
+                        ImGui::TextDisabled("Rad");
+                        ImGui::SameLine();
+                        ImGui::PushItemWidth(border + (wButt3 - ImGui::GetCursorPosX()));
+                        {
+                            float f = particles->getAORadius();
+                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .01, 0.01, 20.0,  "%.2f",1.f,ImVec2(.93,0.5))) particles->setAORadius(f);
+                        }
+                        ImGui::PopItemWidth();
+
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("Bias");
+                        ImGui::SameLine();
+                        ImGui::PushItemWidth(border + (wButt3*2+border - ImGui::GetCursorPosX()));
+                        ImGui::SameLine();
+                        {
+                            float f = particles->getAOBias();
+                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .001, 0.0, 1.0, "%.3f",1.f,ImVec2(.93,0.5))) particles->setAOBias(f);
+                        }
+                        ImGui::PopItemWidth();
+
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("Dark");
+                        ImGui::SameLine();
+                        ImGui::PushItemWidth(w - (ImGui::GetCursorPosX() +border));
+                        {
+                            float f = particles->getAODarkness();
+                            if(ImGui::DragFloatEx(buildID(base, idA++, id), &f, .0025, 0.0, 1.0,  "%.3f",1.f,ImVec2(.93,0.5))) particles->setAODarkness(f);
+                        }
+
+                        ImGui::PopItemWidth();
+
+
+                    ImGui::EndChild();
+                    ImGui::PopStyleVar();
+                }
             }
         }
     }
@@ -2774,8 +2778,8 @@ void aboutDlgClass::view()
 void lotexDlgClass::view()
 {
     if(!isVisible) return;
-    ImGui::SetNextWindowPos(ImVec2(250, 190), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(520, 425), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(250, 0), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(520, 110), ImGuiCond_FirstUseEver);
 
     ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(1.0,0,0,1.0));
     ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(1.0,0,0,1.0));
@@ -2786,17 +2790,22 @@ void lotexDlgClass::view()
         ImGui::TextWrapped(GLAPP_HELP_LOWRES1);
         //showHelpMarkdown(GLAPP_HELP_ABOUT);
 
-        ImGui::NewLine();
+        //ImGui::NewLine();
         
-        ImGui::TextUnformatted(GLAPP_HELP_LOWRES2);
+        //ImGui::TextUnformatted(GLAPP_HELP_LOWRES2);
 
         ImGui::NewLine();
 
-        if(ImGui::Button(" OK ", ImVec2(ImGui::GetContentRegionAvail().x-2,0) ) ) isVisible = false;
+        if(ImGui::Button(" Please read here for more informations ", ImVec2(ImGui::GetContentRegionAvail().x-2,0) ) ) {
+#ifdef __EMSCRIPTEN__
+            EM_ASM(window.open("https://www.michelemorrone.eu/glchaosp/webGL.html"););
+#endif
+            isVisible = false;
+        }
 
-        ImGui::NewLine();
+        //ImGui::NewLine();
 
-        ImGui::TextWrapped(GLAPP_HELP_LOWRES3);
+        //ImGui::TextWrapped(GLAPP_HELP_LOWRES3);
 
     }
     ImGui::End();
@@ -3218,7 +3227,7 @@ void mainImGuiDlgClass::renderImGui()
 
 
 #ifdef GLCHAOSP_LIGHTVER_EXPERIMENTAL
-    if(!theApp->checkMaxCombTexImgUnits()) lotexDlg.view();
+    if(!theApp->canUseShadow()) lotexDlg.view();
 #endif
         ImGui::Render();
 
