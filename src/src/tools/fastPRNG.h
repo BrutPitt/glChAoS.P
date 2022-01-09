@@ -16,6 +16,7 @@
 #include <chrono>
 #include <type_traits>
 #include <cfloat>
+#include <functional>
 
 namespace fastPRNG {
 #define UNI_32BIT_INV 2.3283064365386962890625e-10
@@ -24,21 +25,25 @@ namespace fastPRNG {
 #define UNI_64BIT_INV 5.42101086242752217003726400434970e-20
 #define VNI_64BIT_INV 1.08420217248550443400745280086994e-19 // UNI_64BIT_INV * 2
 
+#define FPRNG_SEED_INIT64 std::chrono::system_clock::now().time_since_epoch().count()
+#define FPRNG_SEED_INIT32 FPRNG_SEED_INIT64
+
 inline static uint32_t splitMix32(const uint32_t val) {
-    uint32_t z = val + 0x9e3779b9;
+    uint32_t z = val + UINT32_C(0x9e3779b9);
     z ^= z >> 15; // 16 for murmur3
-    z *= 0x85ebca6b;
+    z *= UINT32_C(0x85ebca6b);
     z ^= z >> 13;
-    z *= 0xc2b2ae35;
+    z *= UINT32_C(0xc2b2ae35);
     return z ^ (z >> 16);
 }
 
 inline static uint64_t splitMix64(const uint64_t val) {
-    uint64_t z = val    + 0x9e3779b97f4a7c15;
-    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-    z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+    uint64_t z = val    + UINT64_C(0x9e3779b97f4a7c15);
+    z = (z ^ (z >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
+    z = (z ^ (z >> 27)) * UINT64_C(0x94d049bb133111eb);
     return z ^ (z >> 31);
 }
+
 
 // 32/64 bit rotation func
 template <typename T> inline static T rotl(const T x, const int k) { return (x << k) | (x >> (sizeof(T)*8 - k)); } // sizeof*8 is resolved to compile-time
@@ -49,7 +54,7 @@ template <typename T> inline static T rotl(const T x, const int k) { return (x <
  xoshiro256+ / xoshiro256++ / xoshiro256**
  xoroshiro128+ / xoroshiro128++ / xoroshiro128**
 
- Originally written by David Blackman and Sebastiano Vigna
+ Algorithms by David Blackman and Sebastiano Vigna
  http://prng.di.unimi.it/
 
  To the extent possible under law, the author has dedicated all copyright
@@ -81,17 +86,17 @@ template <typename T> inline static T rotl(const T x, const int k) { return (x <
     return s0;
 
 #define XOSHIRO128_STATIC(FUNC)\
-    static const uint32_t seed = uint32_t(std::chrono::system_clock::now().time_since_epoch().count());\
+    static const uint32_t seed = uint32_t(FPRNG_SEED_INIT32);\
     static uint32_t s0 = splitMix32(seed), s1 = splitMix32(s0), s2 = splitMix32(s1), s3 = splitMix32(s2);\
     FUNC; XOSHIRO128
 
 #define XOROSHIRO64_STATIC(FUNC)\
-    static const uint32_t seed = uint32_t(std::chrono::system_clock::now().time_since_epoch().count());\
+    static const uint32_t seed = uint32_t(FPRNG_SEED_INIT32);\
     static uint32_t s0 = splitMix32(seed), s1 = splitMix32(s0);\
     FUNC; XOROSHIRO64
 
 #define XORSHIFT32_STATIC\
-    static uint32_t s0 = uint32_t(std::chrono::system_clock::now().time_since_epoch().count());\
+    static uint32_t s0 = uint32_t(FPRNG_SEED_INIT32);\
     XORSHIFT32
 
 // fastXS32
@@ -103,7 +108,7 @@ template <typename T> inline static T rotl(const T x, const int k) { return (x <
 class fastXS32
 {
 public:
-    fastXS32(const uint32_t seedVal = uint32_t(std::chrono::system_clock::now().time_since_epoch().count())) { seed(seedVal); }
+    fastXS32(const uint32_t seedVal = uint32_t(FPRNG_SEED_INIT32)) { seed(seedVal); }
 
     inline uint32_t xoshiro128p()  { return xoshiro128(s0 + s3); }
     inline uint32_t xoshiro128pp() { return xoshiro128(rotl<uint32_t>(s0 + s3, 7) + s0); }
@@ -114,8 +119,8 @@ public:
     template <typename T> inline T xoshiro128p_Range(T min, T max)                                         // _Range<T> returns value in [min, max] with T ==> float/double
             { return min + (max-min) * xoshiro128p_UNI<T>(); }
 
-    inline uint32_t xoroshiro64x()  { return xoroshiro64(               s0 * 0x9E3779BB); }
-    inline uint32_t xoroshiro64xx() { return xoroshiro64(rotl<uint32_t>(s0 * 0x9E3779BB, 5) * 5); }
+    inline uint32_t xoroshiro64x()  { return xoroshiro64(               s0 * UINT32_C(0x9E3779BB)); }
+    inline uint32_t xoroshiro64xx() { return xoroshiro64(rotl<uint32_t>(s0 * UINT32_C(0x9E3779BB), 5) * 5); }
 
     template <typename T> inline T xoroshiro64x_UNI() { return T(         xoroshiro64x() ) * UNI_32BIT_INV; } // _UNI<T>   returns value in [ 0, 1] with T ==> float/double
     template <typename T> inline T xoroshiro64x_VNI() { return T(int32_t(xoroshiro64x()))  * VNI_32BIT_INV; } // _VNI<T>   returns value in [-1, 1] with T ==> float/double
@@ -129,7 +134,7 @@ public:
     template <typename T> inline T xorShift_Range(T min, T max)                                   // _Range<T> returns value in [min, max] with T ==> float/double
             { return min + (max-min) * xorShift_UNI<T>(); }
 
-    void seed(const uint32_t seedVal) {
+    void seed(const uint32_t seedVal = uint32_t(FPRNG_SEED_INIT32)) {
         s0 = splitMix32(seedVal);
         s1 = splitMix32(s0);
         s2 = splitMix32(s1);
@@ -167,8 +172,8 @@ public:
     template <typename T> inline static T xoshiro128p_Range(T min, T max)                                         // _Range<T> returns value in [min, max] with T ==> float/double
             { return min + (max-min) * xoshiro128p_UNI<T>(); }
 
-    inline static uint32_t xoroshiro64x()  { XOROSHIRO64_STATIC(const uint32_t result =                s0 * 0x9E3779BB)         }
-    inline static uint32_t xoroshiro64xx() { XOROSHIRO64_STATIC(const uint32_t result = rotl<uint32_t>(s0 * 0x9E3779BB, 5) * 5) }
+    inline static uint32_t xoroshiro64x()  { XOROSHIRO64_STATIC(const uint32_t result =                s0 * UINT32_C(0x9E3779BB))         }
+    inline static uint32_t xoroshiro64xx() { XOROSHIRO64_STATIC(const uint32_t result = rotl<uint32_t>(s0 * UINT32_C(0x9E3779BB), 5) * 5) }
 
     template <typename T> inline static T xoroshiro64x_UNI() { return T(         xoroshiro64x() ) * UNI_32BIT_INV; } // _UNI<T>   returns value in [ 0, 1] with T ==> float/double
     template <typename T> inline static T xoroshiro64x_VNI() { return T(int32_t(xoroshiro64x()))  * VNI_32BIT_INV; } // _VNI<T>   returns value in [-1, 1] with T ==> float/double
@@ -196,7 +201,7 @@ public:
  xoshiro256+ / xoshiro256++ / xoshiro256**
  xoroshiro128+ / xoroshiro128++ / xoroshiro128**
 
- Originally written by David Blackman and Sebastiano Vigna
+ Algorithms by David Blackman and Sebastiano Vigna
  http://prng.di.unimi.it/
 
  To the extent possible under law, the author has dedicated all copyright
@@ -228,20 +233,20 @@ public:
     return s0;
 
 #define XOSHIRO256_STATIC(FUNC)\
-    static const uint64_t seed = uint64_t(std::chrono::system_clock::now().time_since_epoch().count());\
+    static const uint64_t seed = uint64_t(FPRNG_SEED_INIT64);\
     static uint64_t s0 = splitMix64(seed), s1 = splitMix64(s0), s2 = splitMix64(s1), s3 = splitMix64(s2);\
     FUNC; XOSHIRO256
 
 #define XOROSHIRO128_STATIC(FUNC, A, B, C)\
-    static const uint64_t seed = uint64_t(std::chrono::system_clock::now().time_since_epoch().count());\
+    static const uint64_t seed = uint64_t(FPRNG_SEED_INIT64);\
     static uint64_t s0 = splitMix64(seed), s1 = splitMix64(s0);\
     FUNC; XOROSHIRO128(A,B,C)
 
 #define XORSHIFT64_STATIC\
-    static uint64_t s0 = uint64_t(std::chrono::system_clock::now().time_since_epoch().count());\
+    static uint64_t s0 = uint64_t(FPRNG_SEED_INIT64);\
     XORSHIFT64
 
-// fastXS32
+// fastXS64
 //
 // 64bit pseudo-random generator
 // All integer values are returned in interval [0, UINT64_MAX]
@@ -250,7 +255,7 @@ public:
 class fastXS64
 {
 public:
-    fastXS64(const uint64_t seedVal = uint64_t(std::chrono::system_clock::now().time_since_epoch().count())) { seed(seedVal); }
+    fastXS64(const uint64_t seedVal = uint64_t(FPRNG_SEED_INIT64)) { seed(seedVal); }
 
     inline uint64_t xoshiro256p()  { return xoshiro256(s0 + s3); }
     inline uint64_t xoshiro256pp() { return xoshiro256(rotl<uint64_t>(s0 + s3, 23) + s0); }
@@ -277,19 +282,97 @@ public:
     template <typename T> inline T xorShift_Range(T min, T max)                                   // _Range<T> returns value in [min, max] with T ==> float/double
             { return min + (max-min) * xorShift_UNI<T>(); }
 
-    void seed(const uint64_t seedVal) {
+    void seed(const uint64_t seedVal = uint64_t(FPRNG_SEED_INIT64)) {
         s0 = splitMix64(seedVal);
         s1 = splitMix64(s0);
         s2 = splitMix64(s1);
         s3 = splitMix64(s2);
     }
+
 private:
     inline uint64_t xoshiro256(const uint64_t result)   { XOSHIRO256 }
     inline uint64_t xoroshiro128(const uint64_t result, const int A = 24, const int B = 16, const int C = 37) { XOROSHIRO128(A,B,C) }
 
-    uint64_t s0, s1, s2, s3;
-};
+protected:
+    union {
+        uint64_t s[4];
+        struct { uint64_t s0, s1, s2, s3; };
+    };
 
+};
+#ifdef SHOW_BETA_FEATURES
+// fastXS64_mt - multi-threads - to generate non-overlapping subsequences
+//
+// contains jump and long_jump functions for fastXS64 xoshiro256 and
+// xoroshiro128 generators, to avoid overlapping sequence for
+// parallel / multi-threads computations
+//
+// For more informations: http://prng.di.unimi.it/
+///////////////////////////////////////////////////////////////////////////////
+
+class fastXS64_mt : public fastXS64
+{
+public:
+    fastXS64_mt(const uint64_t seedVal = uint64_t(FPRNG_SEED_INIT64)) : fastXS64(seedVal) {}
+
+/* This is the jump function for the generator. It is equivalent
+   to 2^128 calls to next(); it can be used to generate 2^128
+   non-overlapping subsequences for parallel computations. */
+
+    void jump_xoshiro256p()  { jump256(&fastXS64::xoshiro256p , JUMP256); }
+    void jump_xoshiro256pp() { jump256(&fastXS64::xoshiro256pp, JUMP256); }
+    void jump_xoshiro256xx() { jump256(&fastXS64::xoshiro256xx, JUMP256); }
+
+    void jump_xoroshiro128p()  { jump128(&fastXS64::xoroshiro128p , JUMP128); }
+    void jump_xoroshiro128pp() { jump128(&fastXS64::xoroshiro128pp, JUMP128); }
+    void jump_xoroshiro128xx() { jump128(&fastXS64::xoroshiro128xx, JUMP128); }
+
+/* This is the long-jump function for the generator. It is equivalent to
+   2^192 calls to next(); it can be used to generate 2^64 starting points,
+   from each of which jump() will generate 2^64 non-overlapping
+   subsequences for parallel distributed computations. */
+
+    void long_jump_xoshiro256p()  { jump256(&fastXS64::xoshiro256p , LONG_JUMP256); }
+    void long_jump_xoshiro256pp() { jump256(&fastXS64::xoshiro256pp, LONG_JUMP256); }
+    void long_jump_xoshiro256xx() { jump256(&fastXS64::xoshiro256xx, LONG_JUMP256); }
+
+    void long_jump_xoroshiro128p()  { jump128(&fastXS64::xoroshiro128p , LONG_JUMP128); }
+    void long_jump_xoroshiro128pp() { jump128(&fastXS64::xoroshiro128pp, LONG_JUMP128); }
+    void long_jump_xoroshiro128xx() { jump128(&fastXS64::xoroshiro128xx, LONG_JUMP128); }
+
+private:
+
+    void jump256(uint64_t (fastXS64::*func) (), const uint64_t *JUMP) {
+
+        uint64_t c0 = 0, c1 = 0, c2 = 0, c3 = 0;
+
+        for(int i = 0; i < sizeof JUMP256 / sizeof *JUMP256; i++)
+            for(int b = 0; b < 64; b++) {
+                if (JUMP256[i] & UINT64_C(1) << b) c0 ^= s0; c1 ^= s1; c2 ^= s2; c3 ^= s3;
+                ((fastXS64 *)this->*func)();
+            }
+        s0 = c0, s1 = c1, s2 = c2, s3 = c3;
+    }
+
+    void jump128(uint64_t (fastXS64::*func) (), const uint64_t *JUMP) {
+
+        uint64_t c0 = 0, c1 = 0;
+        for(int i = 0; i < sizeof JUMP / sizeof *JUMP; i++)
+            for(int b = 0; b < 64; b++) {
+                if (JUMP[i] & UINT64_C(1) << b) c0 ^= s0, c1 ^= s1;
+                ((fastXS64 *)this->*func)();
+            }
+        s0 = c0, s1 = c1;
+    }
+
+    const uint64_t      JUMP128[2] = { UINT64_C(0xdf900294d8f554a5), UINT64_C(0x170865df4b3201fc) };
+    const uint64_t LONG_JUMP128[2] = { UINT64_C(0xd2a98b26625eee7b), UINT64_C(0xdddf9b1090aa7ac1) };
+    const uint64_t      JUMP256[4] = { UINT64_C(0x180ec6d33cfd0aba), UINT64_C(0xd5a61266f0c9392c),
+                                       UINT64_C(0xa9582618e03fc9aa), UINT64_C(0x39abdc4529b1661c) };
+    const uint64_t LONG_JUMP256[4] = { UINT64_C(0x76e15d3efefdcbbf), UINT64_C(0xc5004e441c522fb3),
+                                       UINT64_C(0x77710069854ee241), UINT64_C(0x39109bb02acbe635) };
+};
+#endif
 // fastXS64s - static members
 //      you can call directly w/o declaration, but..
 //      N.B. all members/functions share same seed, and subsequents xor & shift
@@ -360,11 +443,11 @@ class fastRandom32Class
 public:
 
     // no vaule, seed from system clock, or same seed for same sequence of numbers
-    fastRandom32Class(const uint32_t seedVal = uint32_t(std::chrono::system_clock::now().time_since_epoch().count()))
+    fastRandom32Class(const uint32_t seedVal = uint32_t(FPRNG_SEED_INIT32))
         { reset(); seed(seedVal); }
 
     // re-seed the current state/values with a new random values
-    void seed(const uint32_t seed) {
+    void seed(const uint32_t seed = uint32_t(FPRNG_SEED_INIT32)) {
         uint32_t s[6];
         s[0] = splitMix32(seed);
         for(int i=1; i<6; i++) s[i] = splitMix32(s[i-1]);
@@ -373,9 +456,9 @@ public:
 
     // reset to initial state
     void reset() {
-        z   = 362436069; w     = 521288629;
-        jsr = 123456789; jcong = 380116160;
-        a   = 224466889; b     = 7584631;
+        z   = UINT32_C(362436069); w     = UINT32_C(521288629);
+        jsr = UINT32_C(123456789); jcong = UINT32_C(380116160);
+        a   = UINT32_C(224466889); b     = UINT32_C(7584631);
     }
 
     inline uint32_t znew() { return z=36969*(z&65535)+(z>>16); }
@@ -429,10 +512,10 @@ class fastRandom64Class
 {
 public:
     // no vaule, seed from system clock, or same seed for same sequence of numbers
-    fastRandom64Class(const uint64_t seedVal = uint64_t(std::chrono::system_clock::now().time_since_epoch().count())) { reset(); seed(seedVal);  }
+    fastRandom64Class(const uint64_t seedVal = uint64_t(FPRNG_SEED_INIT64)) { reset(); seed(seedVal);  }
 
     // re-seed the current state/values with a new random values
-    void seed(const uint64_t seed) {
+    void seed(const uint64_t seed = uint64_t(FPRNG_SEED_INIT64)) {
         uint64_t s[6];
         s[0] = splitMix64(seed);
         for(int i=1; i<6; i++) s[i] = splitMix64(s[i-1]);
@@ -440,13 +523,13 @@ public:
     }
     // reset to initial state
     void reset() {
-        x=uint64_t(1234567890987654321ULL); c=uint64_t(123456123456123456ULL);
-        y=uint64_t(362436362436362436ULL ); z=uint64_t(1066149217761810ULL  );
-        a=uint64_t(224466889);              b=uint64_t(7584631);
+        x=uint64_t(UINT64_C(1234567890987654321)); c=uint64_t(UINT64_C(123456123456123456));
+        y=uint64_t(UINT64_C(362436362436362436 )); z=uint64_t(UINT64_C(1066149217761810  ));
+        a=uint64_t(UINT64_C(224466889));           b=uint64_t(UINT64_C(7584631));
     }
 
     inline uint64_t MWC() { uint64_t t; return t=(x<<58)+c, c=(x>>6), x+=t, c+=(x<t), x; }
-    inline uint64_t CNG() { return z=6906969069LL*z+1234567;            }
+    inline uint64_t CNG() { return z=UINT64_C(6906969069)*z+1234567;            }
     inline uint64_t XSH() { return y^=(y<<13), y^=(y>>17), y^=(y<<43);  }
     inline uint64_t FIB() { return (b=a+b),(a=b-a);                     }
 
@@ -473,6 +556,8 @@ using fastRand64 = fastRandom64Class;
 #undef VNI_32BIT_INV
 #undef UNI_64BIT_INV
 #undef VNI_64BIT_INV
+#undef FPRNG_SEED_INIT32
+#undef FPRNG_SEED_INIT64
 
 /*-----------------------------------------------------
     32bit Marsaglia algorithms description
@@ -638,7 +723,7 @@ names, to avoid conflict with your own choices. */
 
 
 /*-----------------------------------------------------
-    64bit algorithms
+    64bit Marsaglia algorithms description
 -------------------------------------------------------
 
 64-bit KISS RNGs
