@@ -171,13 +171,15 @@ void checkShader(GLuint shader)
     GLint compiled;
     glGetShaderiv( shader, GL_COMPILE_STATUS, &compiled );
 
+#ifndef NDEBUG
     if(compiled == GL_FALSE) {
         GLint len;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH , &len);
-#ifndef NDEBUG
+
         getCompilerLog(shader, len, true);
-#endif
+        exit(-1);
     }
+#endif
 }
 
 void checkProgram(GLuint program)
@@ -186,13 +188,15 @@ void checkProgram(GLuint program)
     glGetProgramiv( program, GL_LINK_STATUS, &linked );	
     //CHECK_GL_ERROR(); 
 
+#ifndef NDEBUG
     if(linked == GL_FALSE) {
         GLint len;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH , &len);
-#ifndef NDEBUG
+
         getCompilerLog(program, len, false);
-#endif
+        exit(-1);
     }
+#endif
 }
 
 void ShaderObject::Load(const char *name)
@@ -218,7 +222,14 @@ void ShaderObject::Load(const char *defines, int numShaders, ...)
     for(int i=0; i<numShaders; i++) {
         getFileContents(va_arg(argList,const char *), str);
     }
-    
+
+//#define GLAPP_PRINT_SHADER_SOURCE
+#if !defined(NDEBUG) && defined(GLAPP_PRINT_SHADER_SOURCE)
+#define GLAPP_DEBUG_PRINT_SEPARATOR "****************************************************\n"
+    cout << endl << GLAPP_DEBUG_PRINT_SEPARATOR;
+    cout << str ;
+    cout << endl << GLAPP_DEBUG_PRINT_SEPARATOR;
+#endif
     Compile((GLchar *) str.data());
 
     va_end(argList);
@@ -234,6 +245,17 @@ void ShaderObject::Compile(const GLchar *code)
 
     // Compile the shader 
     glCompileShader(shaderID);
+
+#ifdef __EMSCRIPTEN__
+/*
+  To print HLSL code in ANGLE ==> subst _glCompileShader function in JS
+  function _glCompileShader(shader) {
+      GLctx.compileShader(GL.shaders[shader]);
+      var hlsl = GLctx.getExtension("WEBGL_debug_shaders").getTranslatedShaderSource(GL.shaders[shader]);
+      console.log(hlsl);
+    }
+*/
+#endif
     
     checkShader(shaderID);
 }
@@ -255,7 +277,7 @@ void getFileContents(const char* fileName, string &str)
     // Check to see that the file is open
     if (!input.is_open()) {
 #if !defined(NDEBUG)
-    cout << fileName << "NOT OPEN..."<< endl;
+    cout << fileName << "NOT OPENed..."<< endl;
 #endif
         return;
     }
