@@ -211,8 +211,8 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/partSystem.h
         ${SRC}/emitter.cpp
         ${SRC}/emitter.h
-        ${SRC}/mmFBO.cpp
-        ${SRC}/mmFBO.h
+        ${SRC}/tools/mmFBO.cpp
+        ${SRC}/tools/mmFBO.h
         ${SRC}/palettes.cpp
         ${SRC}/palettes.h
         ${SRC}/ParticlesUtils.cpp
@@ -396,7 +396,7 @@ add_executable(${PROJECT_NAME}
 # GLFW package - default search for already installed
 #
 #       to use internal GLFW set TRUE
-set(GLAPP_USE_INTERNAL_GLFW FALSE)
+set(GLAPP_USE_INTERNAL_GLFW TRUE)
 if(${GLAPP_USE_INTERNAL_GLFW})
     target_include_directories(${PROJECT_NAME} PUBLIC ${SRC}/libs/glfw/include)
 
