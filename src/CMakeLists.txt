@@ -2,11 +2,11 @@
 #  Copyright (c) 2018-2021 Michele Morrone
 #  All rights reserved.
 #
-#  https://michelemorrone.eu - https://brutpitt.com - https://glchaosp.com
+#  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
 #
-#  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+#  references: https://x.com/BrutPitt - github: https://github.com/BrutPitt
 #
-#  mail me to: brutpitt at gmail.com - me at michelemorrone.eu
+#  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
 #  
 #  This software is distributed under the terms of the BSD 2-Clause license
 #------------------------------------------------------------------------------
@@ -63,6 +63,19 @@ cmake_minimum_required(VERSION 3.15)
 # SET(BUILD_wglChAoSP_lowres FALSE BOOL "wglChAoS.P: need EMSCRIPTEN toolchain")
 # SET(BUILD_prng_test FALSE BOOL)
 
+
+# Defines
+#
+# -DGLCHAOSP_NO_AX              ==> disable Axes
+# -DGLCHAOSP_NO_BB              ==> disable BillBoard
+# -DGLCHAOSP_NO_MB              ==> disable MotionBlur
+# -DGLCHAOSP_NO_TH              ==> disable Other Thread
+# -DGLCHAOSP_NO_AO_SHDW         ==> disable AmbientOcclusion and Shadows
+# -DGLCHAOSP_NO_BLUR            ==> disable Blur/Glow components
+# -DGLCHAOSP_NO_USES_GLSL_SUBS  ==> disable GLSL Subroutine
+# -DGLCHAOSP_NEAREST_MIPMAP     ==> disable LINEAR MipMap interpolation
+# -DGLCHAOSP_USE_LOWPRECISION   ==> enable LowPrecision for default
+
 set(OGL_45      "OpenGL_45")
 set(OGL_41      "OpenGL_41")
 set(OGL_41_LOW  "OpenGL_41_LowRes")
@@ -99,11 +112,13 @@ set(OGLES " -DGLAPP_USES_ES3
             -DIMGUI_IMPL_OPENGL_ES3
             -DGLFW_INCLUDE_NONE
             -DGLCHAOSP_NO_USES_GLSL_SUBS
+            -DGLCHAOSP_LIGHTVER
+            -DGLCHAOSP_NO_TF_QUERY
             -DGLCHAOSP_NO_AX
             -DGLCHAOSP_NO_BB
             -DGLCHAOSP_NO_MB")
 
-set(OGLES_LOW "${OGLES} -DGLCHAOSP_NO_AO_SHDW -DGLCHAOSP_NO_BLUR -DGLCHAOSP_NO_TH")
+set(OGLES_LOW "${OGLES} -DGLCHAOSP_USE_LOWPRECISION -DGLCHAOSP_NO_TH")
 
 
 set(defaultBuildType "Release")
@@ -232,13 +247,12 @@ if(BUILD_wglChAoSP OR BUILD_wglChAoSP_lowres)
                      -DGLCHAOSP_NO_TH
                      -DGLCHAOSP_NO_MB
                      -DGLCHAOSP_NO_BB
-                     -DGLCHAOSP_NO_USES_GLSL_SUBS
-                     -DGLCHAOSP_WGL_REDUCE_TEXTURES")
+                     -DGLCHAOSP_NO_USES_GLSL_SUBS")
     if(BUILD_wglChAoSP_lowres)
         set(WGL_DEFINES "${WGL_DEFINES} -DGLCHAOSP_USE_LOWPRECISION -DGLCHAOSP_NO_AO_SHDW")
         project(wglChAoSP_lowres)
     else()
-        set(WGL_DEFINES "${WGL_DEFINES} -DGLCHAOSP_WEBGL_W_SHADOWS -DGLCHAOSP_LIGHTVER_EXPERIMENTAL")
+        set(WGL_DEFINES "${WGL_DEFINES} -DGLCHAOSP_LIGHTVER_EXPERIMENTAL")
         project(wglChAoSP)
     endif()
 
@@ -247,7 +261,8 @@ if(BUILD_wglChAoSP OR BUILD_wglChAoSP_lowres)
     if(DEFINED ENV{EMSDK})
         set(EMS_CMAKE_FILE $ENV{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake)
         if(EXISTS "${EMS_CMAKE_FILE}")
-            include_directories(BEFORE SYSTEM $ENV{EMSDK}/upstream/emscripten/system/include)
+            # no longer needed in EMSDK 3.1.23
+            # include_directories(BEFORE SYSTEM $ENV{EMSDK}/upstream/emscripten/system/include)
         else()
             message(FATAL_ERROR "Can't find the file: ${EMS_CMAKE_FILE}")
         endif()
@@ -276,7 +291,7 @@ if(BUILD_wglChAoSP OR BUILD_wglChAoSP_lowres)
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
 # emcc compiler options
-    add_definitions(${WGL_DEFINES} -DVGM_USES_TEMPLATE -DIMGUI_IMPL_OPENGL_ES3 -DGLFW_INCLUDE_ES3 -DGLM_ENABLE_EXPERIMENTAL) # -DGLFW_INCLUDE_NONE
+    add_definitions(${WGL_DEFINES} -DVGM_USES_TEMPLATE -DIMGUI_IMPL_OPENGL_ES3 -DGLFW_INCLUDE_ES3 -DGLM_ENABLE_EXPERIMENTAL -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS) # -DGLFW_INCLUDE_NONE
     add_compile_options(-Wno-parentheses -Wno-format-security -Wno-logical-op-parentheses -Wno-unused-value -Wdelete-non-virtual-dtor -Wno-unused-command-line-argument -fpermissive)
 
 # BUILD TYPE: [Debug|RelWithDebInfo|Release|MinSizeRel]    
@@ -289,7 +304,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
         elseif(${CMAKE_BUILD_TYPE} MATCHES "MinSizeRel")
                 # one file no memory option: -s SINGLE_FILE=1 --memory-init-file 0
                 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-                set(M_EMCC_BINARYEN "--no-heap-copy --closure 1 -s WASM=1 -s LZ4=1")
+                set(M_EMCC_BINARYEN "-s ERROR_ON_UNDEFINED_SYMBOLS=0 --no-heap-copy --closure 1 -s WASM=1 -s LZ4=1")
                 set(M_EMCC_SHELL_FILE "--shell-file \"${CMAKE_SOURCE_DIR}/mVeryMinimal.html\"")
         else() # Release
                 # -s SINGLE_FILE=1 --memory-init-file 0 -s \"BINARYEN_METHOD='interpret-asm2wasm'\"
@@ -327,10 +342,17 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OGL_EMITTER_TYPE} ${M_EMCC_OPTIONS} ${GLAPP_DISABLE_DLA}")
 
-    add_executable(${PROJECT_NAME} 
+set(SHDR ${CMAKE_SOURCE_DIR}/../Shaders)
+
+    FILE(GLOB SHADER_FILES ${SHDR}/*.glsl)
+    #message("${SHADER_FILES}")
+
+
+    add_executable(${PROJECT_NAME}
                     ${SRC}/emsTouch.cpp
                     ${SRC}/emsTouch.h
                     ${SOURCE_FILES})
+
 
 # relative emscripten output files (EMSOUT_PATH for my RAMDISK, if defined)
     if(DEFINED $ENV{EMSOUT_PATH})
@@ -345,6 +367,7 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
     else ()
         set(BUILD_DIR ${EMSOUT}/emsOut/${CMAKE_BUILD_TYPE})
     endif()
+    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_DEPENDS "${SHADER_FILES}")
     set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR})
 
 #strip "_LowRes" from .js file to load just one wglChAoSP.data file, common for both version
@@ -450,7 +473,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${SRC}/tools)
 target_include_directories(${PROJECT_NAME} PUBLIC ${SRC}/libs)
 #target_include_directories(${PROJECT_NAME} PUBLIC $ENV{INCLUDE})
 
-add_definitions(-DVGM_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL)
+add_definitions(-DVGM_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if(WIN32)
