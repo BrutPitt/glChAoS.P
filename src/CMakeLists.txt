@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-#  Copyright (c) 2018-2023 Michele Morrone
+#  Copyright (c) 2018-2024 Michele Morrone
 #  All rights reserved.
 #
 #  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
