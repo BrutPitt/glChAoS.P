@@ -4,7 +4,7 @@
 #
 #  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
 #
-#  references: https://x.com/BrutPitt - github: https://github.com/BrutPitt
+#  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 #
 #  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
 #  
