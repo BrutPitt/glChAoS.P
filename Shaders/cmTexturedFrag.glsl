@@ -1,19 +1,15 @@
 ////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2018-2020 Michele Morrone
+//  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
-//  
-//  https://github.com/BrutPitt
+//  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
 //
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
+//  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
+//
+//  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
 //
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 #line 17    //#version dynamically inserted
 
 layout(std140) uniform;
@@ -36,8 +32,8 @@ vec4 pal1()
 {       
     float tCoord = u.offsetPoint+gl_FragCoord.x*u.palRange/256.0;
     
-    if(u.reverse) tCoord = 1.0-tCoord; //reverse?    
-    if(u.clmp)    tCoord = clamp(tCoord, 0.0, .99); //clamp?
+    if(u.reverse) tCoord = 1.0-tCoord; //reverse?
+    if(u.clmp) tCoord = clamp(tCoord, 0.01, .99); //clamp?
 
     vec4 c = texture(paletteTex, vec2(tCoord,0.0),0.0);
     c.xyz = rgb2hsl(c.xyz) + vec3(u.hslData.x*.5, u.hslData.yz);
