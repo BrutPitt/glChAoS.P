@@ -1,13 +1,13 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2020 Michele Morrone
+//  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  https://michelemorrone.eu - https://BrutPitt.com
+//  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
 //
-//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 //
-//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
-//  
+//  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
+//
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #include <chrono>
@@ -580,8 +580,7 @@ void getRenderMode(Config &c, particlesBaseClass *ptr, int typeToIgnore=loadSett
         }
         if(theApp->startWithGlowOFF()) glow->setGlowOn(false);    
 #ifdef GLCHAOSP_NO_BLUR
-
-        if(glow->isGlowOn()) glow->setGlowState(glow->glowType_Bilateral);
+        //if(glow->isGlowOn()) glow->setGlowState(glow->glowType_Bilateral);
 #endif
 
         glow->setSigma(      c.get_or("sigma"       , glow->getSigma()     ));
