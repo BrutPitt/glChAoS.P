@@ -1,20 +1,16 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2018-2020 Michele Morrone
+//------------------------------------------------------------------------------
+//  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  mailto:me@michelemorrone.eu
-//  mailto:brutpitt@gmail.com
-//  
-//  https://github.com/BrutPitt
+//  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
 //
-//  https://michelemorrone.eu
-//  https://BrutPitt.com
+//  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
+//
+//  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
 //
 //  This software is distributed under the terms of the BSD 2-Clause license
-//  
-////////////////////////////////////////////////////////////////////////////////
-#line 17    //#version dynamically inserted - #include ColorSpaces.glsl
+//------------------------------------------------------------------------------
+#line 13    //#version dynamically inserted - #include ColorSpaces.glsl
 
 ///////////////////////////////////////
 //
@@ -149,7 +145,8 @@ vec4 bilateralSmartSmooth(float reductFactor)
     float invBSigma = 1.f/bsigma;
     float invBSigmaSqx2 = .5 * invBSigma * invBSigma;          // 1.0 / (sigma^2 * 2.0)
     float invBSigmaxSqrt2PI = INV_SQRT_OF_2PI * invBSigma;    // 1.0 / (sqrt(2*PI) * sigma)
-    
+
+//#define USE_TEXEL_FETCH
 #ifdef USE_TEXEL_FETCH
     vec4 centrPx = texelFetch(origTexture,ivec2(gl_FragCoord.xy),0);    
 #else    
@@ -422,7 +419,7 @@ LAYOUT_INDEX(idxTUNING) SUBROUTINE(filterSub) vec4 imgTuning()
 LAYOUT_INDEX(idxBLIT) SUBROUTINE(filterSub) vec4 blitFilter()
 {
 #ifdef USE_TEXEL_FETCH
-    return texelFetch(origTexture, gl_FragCoord.xy, 0);
+    return texelFetch(origTexture, ivec2(gl_FragCoord.xy), 0);
 #else
     return texture(origTexture, vTexCoord);
 #endif    
@@ -445,7 +442,7 @@ LAYOUT_INDEX(idxMIXTEX) SUBROUTINE(filterSub) vec4 mixTwoTex()
 
 LAYOUT_INDEX(idxPIP) SUBROUTINE(filterSub) vec4 pipRender()
 {
-    //   return texture(origTexture, pipViewport.xy+vTexCoord * pipViewport*zw);
+       //return texture(origTexture, pipViewport.xy+vTexCoord * pipViewport*zw);
 #ifdef USE_TEXEL_FETCH
     #error not still defined
 #else
