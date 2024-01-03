@@ -1,13 +1,13 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2020 Michele Morrone
+//  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  https://michelemorrone.eu - https://BrutPitt.com
+//  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
 //
-//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 //
-//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
-//  
+//  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
+//
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #include <array>
@@ -512,7 +512,6 @@ void mainGLApp::glfwInit()
 
     glfwSetWindowSize(theApp->getGLFWWnd(), x, y);
 
-
     //EM_ASM(console.log(Module.ctx.getParameter(Module.ctx.UNPACK_PREMULTIPLY_ALPHA_WEBGL) ? "unpak VERO!!" : "unpack FALSO!!"););
     //EM_ASM(console.log(Module.ctx.getContextAttributes().alpha ? "alpha VERO!!" : "alpha FALSO!!"); );
     //EM_ASM(console.log(Module.ctx.getContextAttributes().premultipliedAlpha ? "pre VERO!!" :"pre FALSO!!"); );
@@ -585,7 +584,6 @@ mainGLApp::mainGLApp()
 #else
     setLowPrecision();
 #endif
-
     mainGLApp::theMainApp = this;
 
     glEngineWnd = new glWindow; 
@@ -671,7 +669,6 @@ void mainGLApp::mainLoop()
             //glClear(GL_COLOR_BUFFER_BIT);
             theWnd->onRender();
 
-
             if(screenShotRequest) {
                 if(screenShotRequest == ScreeShotReq::ScrnSht_CAPTURE_ALL) {
                     getMainDlg().postRenderImGui();
@@ -728,7 +725,7 @@ int main(int argc, char **argv)
             theApp->startWithGlowOFF(atoi(argv[7])==1 ? true : false);
         // 8
 // 0000000001 0x001 LightGui
-// 0000000010 0x002 FizedCanvas
+// 0000000010 0x002 FixedCanvas
 // 0000000100 0x004 FullRestriction
 // 0000001000 0x008 All Menu minimized
 // 0000010000 0x010 Rendering mode
