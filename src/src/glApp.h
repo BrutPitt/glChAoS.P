@@ -1,13 +1,13 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2020 Michele Morrone
+//  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  https://michelemorrone.eu - https://BrutPitt.com
+//  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
 //
-//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 //
-//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
-//  
+//  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
+//
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #pragma once
@@ -295,14 +295,13 @@ public:
 #endif
     }
 
-
     void setLowPrecision() {
         useLowPrecision(true);
         setTexInternalPrecision(GL_R16F);
         setPalInternalPrecision(GL_RGB16F);
         setFBOInternalPrecision(GL_RGBA16F);
         setDBInterpolation(GL_NEAREST);
-        setFBOInterpolation(GL_LINEAR);
+        setFBOInterpolation(GL_NEAREST); //GL_LINEAR
         setShaderFloatPrecision(glslPrecision::low);
         setShaderIntPrecision(glslPrecision::medium);
         multisamplingIdx = 3;
@@ -350,7 +349,6 @@ public:
 
     enum selectionTypes getSelectionMode() { return selectionMode; }
     void setSelectionMode(enum selectionTypes b) {  selectionMode = b; }
-
 
     bool useSyncOGL() { return syncOGL; }
     void useSyncOGL(bool b) { syncOGL = b; }
