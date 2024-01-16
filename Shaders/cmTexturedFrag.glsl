@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 //  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
@@ -10,7 +10,7 @@
 //
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
-#line 17    //#version dynamically inserted
+#line 13    //#version dynamically inserted
 
 layout(std140) uniform;
 
