@@ -1,16 +1,16 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2020 Michele Morrone
+//  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  https://michelemorrone.eu - https://BrutPitt.com
+//  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
 //
-//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 //
-//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
-//  
+//  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
+//
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
-#line 14    //#version dynamically inserted
+#line 13    //#version dynamically inserted
 layout(std140) uniform;
 
 LAYOUT_BINDING(2) uniform _particlesData {
@@ -351,12 +351,35 @@ vec4 getParticleNormal(vec2 coord)
     vec4 N;
     N.xy = (coord - vec2(.5))*2.0;  // diameter ZERO centred -> radius    
     N.w = dot(N.xy, N.xy);          // magnitudo
-    N.z = sqrt(1.0-N.w);            // Z convexity
+    N.z = pow(sqrt(1.0-N.w), 1.0/u.dpAdjConvex);            // Z convexity
     N.xyz = normalize(N.xyz); 
     
     return N;
 }
 
+vec4 getParticleNormalSphere(vec2 coord)
+{
+    vec4 N;
+    N.xy = (coord - vec2(.5))*2.0;  // diameter ZERO centred -> radius
+    N.w = dot(N.xy, N.xy);          // magnitudo
+    N.z = sqrt(1.0-N.w);            // Z convexity
+    N.xyz = normalize(N.xyz);
+
+    return N;
+}
+
+
+vec4 getParticleNormalFromTex(sampler2D t, vec2 coord)
+{
+    vec4 N;
+    N.xy = (coord - vec2(.5))*2.0;  // diameter ZERO centred -> radius
+    N.z = texture(t, coord).r;            // Z convexity
+    //if(N.z==0.0) discard;
+    N.w = N.z*N.z;          // magnitudo
+    N.xyz = normalize(N.xyz);
+
+    return N;
+}
 
 vec3 getSimpleNormal(float z, sampler2D depthData)
 {
@@ -373,6 +396,49 @@ vec3 getSimpleNormal(float z, sampler2D depthData)
 
     return normalize (N0);
 }
+
+#define INV_SQRT_OF_2PI 0.39894228040143267793994605993439  // 1.0/SQRT_OF_2PI
+#define INV_PI          0.31830988618379067153776752674503
+
+float depSmartDeNoise(sampler2D tex, vec2 uv)
+{
+    float sigma = 7.0;
+    float kSigma = 3.0;
+    float threshold =.01;
+    float radius = round(kSigma*sigma);
+    float radQ = radius * radius;
+
+    float invSigmaQx2 = .5 / (sigma * sigma);      // 1.0 / (sigma^2 * 2.0)
+    float invSigmaQx2PI = INV_PI * invSigmaQx2;    // // 1/(2 * PI * sigma^2)
+
+    float invThresholdSqx2 = .5 / (threshold * threshold);     // 1.0 / (sigma^2 * 2.0)
+    float invThresholdSqrt2PI = INV_SQRT_OF_2PI / threshold;   // 1.0 / (sqrt(2*PI) * sigma)
+
+    float centrPx = (texture(tex,uv).r+1.0) * .5;
+
+    float zBuff = 0.0;
+    float aBuff = 0.0;
+    vec2 size = vec2(textureSize(tex, 0));
+
+    vec2 d;
+    for (d.x=-radius; d.x <= radius; d.x++) {
+        float pt = sqrt(radQ-d.x*d.x);       // pt = yRadius: have circular trend
+        for (d.y=-pt; d.y <= pt; d.y++) {
+            float blurFactor = exp( -dot(d , d) * invSigmaQx2 ) * invSigmaQx2PI;
+
+            float walkPx =  (texture(tex,uv+d/size).r+1.0)*.5;
+
+            float dC = walkPx-centrPx;
+            float deltaFactor = exp( -(dC*dC) * invThresholdSqx2) * invThresholdSqrt2PI * blurFactor;
+
+            zBuff += deltaFactor;
+            aBuff += deltaFactor*walkPx;
+        }
+    }
+    return aBuff/zBuff*2.0 -1.0;
+}
+
+
 vec3 getSelectedNormal(float z, sampler2D depthData)
 {
 
@@ -408,6 +474,7 @@ vec3 getSimpleNormal(vec4 vtx, sampler2D depthData)
     vec4 vtxB = getVertexFromDepth(getFOVPos(uv2), gradB);
 
     vec3 invTanFOV = vec3(1.0, 1.0, u.dpAdjConvex);
+    //vec3 invTanFOV = vec3(1.0);
 
     vec3 v1 = (vtx.xyz-vtxA.xyz) * invTanFOV;
     vec3 v2 = (vtx.xyz-vtxB.xyz) * invTanFOV;
@@ -423,21 +490,22 @@ vec3 getSelectedNormal(vec4 vtx, sampler2D depthData)
     vec2 uv2 = (gl_FragCoord.xy + vec2( 0., 1.))*u.invScrnRes;
     vec2 uv3 = (gl_FragCoord.xy + vec2(-1., 0.))*u.invScrnRes;
     vec2 uv4 = (gl_FragCoord.xy + vec2( 0.,-1.))*u.invScrnRes;
+
     float gradA = restoreZ(texture(depthData, uv1).x);
     float gradB = restoreZ(texture(depthData, uv2).x);
     float gradC = restoreZ(texture(depthData, uv3).x);
     float gradD = restoreZ(texture(depthData, uv4).x);
+
     vec4 vtxA = getVertexFromDepth(getFOVPos(uv1), gradA);
     vec4 vtxB = getVertexFromDepth(getFOVPos(uv2), gradB);
     vec4 vtxC = getVertexFromDepth(getFOVPos(uv3), gradC);
     vec4 vtxD = getVertexFromDepth(getFOVPos(uv4), gradD);
 
     vec3 invTanFOV = vec3(1.0, 1.0, u.dpAdjConvex);
+    //vec3 invTanFOV = vec3(1.0);
 
-    float z = vtx.z;
-
-    vec3 V1 = (abs(gradA-gradC)>=u.dpNormalTune && abs(gradA-z)<abs(z-gradC) ? (vtx.xyz-vtxA.xyz) : (vtxC.xyz-vtx.xyz)) * invTanFOV;
-    vec3 V2 = (abs(gradB-gradD)>=u.dpNormalTune && abs(gradB-z)<abs(z-gradD) ? (vtx.xyz-vtxB.xyz) : (vtxD.xyz-vtx.xyz)) * invTanFOV;
+    vec3 V1 = (abs(gradA-gradC)>=u.dpNormalTune && abs(gradA-vtx.z)<abs(vtx.z-gradC) ? (vtx.xyz-vtxA.xyz) : (vtxC.xyz-vtx.xyz)) * invTanFOV;
+    vec3 V2 = (abs(gradB-gradD)>=u.dpNormalTune && abs(gradB-vtx.z)<abs(vtx.z-gradD) ? (vtx.xyz-vtxB.xyz) : (vtxD.xyz-vtx.xyz)) * invTanFOV;
     vec3 N0 = cross(V1, V2);
 
     return normalize (vec3(-N0.xy, N0.z));
