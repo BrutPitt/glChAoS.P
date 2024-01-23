@@ -12,6 +12,9 @@
 //------------------------------------------------------------------------------
 #line 14    //#version dynamically inserted
 
+//#define LAYOUT_BINDING(X)  layout(binding = X)
+//#define LAYOUT_LOCATION(X) layout(location = X)
+
 LAYOUT_BINDING(1) uniform sampler2D tex;
 
 #define pixelColorOFFSET 0
@@ -93,10 +96,8 @@ LAYOUT_INDEX(idxSOLID) SUBROUTINE(_pixelColor)
 vec4 pixelColorDirect(vec4 color, vec4 N)
 {
 
-    if(alphaAttenuation<.25) { discard; return vec4(0.0); } // timeout particle slowMotion 
-
     vec3 light = u.lightDir;  // already normalized light
-    
+
     float lambertian = max(0.0, dot(light, N.xyz));
 
     vec3 V = normalize(newVertex.xyz);
@@ -117,10 +118,8 @@ vec4 pixelColorDirect(vec4 color, vec4 N)
 LAYOUT_INDEX(idxSOLID_AO) SUBROUTINE(_pixelColor) 
 vec4 pixelColorAO(vec4 color, vec4 N)
 {
-    if(alphaAttenuation<.25) { discard; return vec4(0.0); } // timeout particle slowMotion
-
     vec3 light = u.lightDir; // already normalized light
-    
+
     float lambertian = max(0.0, dot(light, N.xyz));
 
     vec3 V = normalize(newVertex.xyz);
@@ -131,7 +130,7 @@ vec4 pixelColorAO(vec4 color, vec4 N)
 #endif
 
     vec3 lColor =  color.rgb * u.lightColor * lambertian * u.lightDiffInt +  //diffuse component
-                    u.lightColor * specular * u.lightSpecInt;
+                   u.lightColor * specular * u.lightSpecInt;
 
     return vec4(lColor, color.a);
 }
@@ -139,33 +138,21 @@ vec4 pixelColorAO(vec4 color, vec4 N)
 LAYOUT_INDEX(idxSOLID_DR) SUBROUTINE(_pixelColor)
 vec4 pixelColorDR(vec4 color, vec4 N)
 {
-   if(alphaAttenuation<.25) { discard; return vec4(0.0); } // timeout particle slowMotion 
    return color;
 }
 
 LAYOUT_INDEX(idxBLENDING) SUBROUTINE(_pixelColor)  
 vec4 pixelColorBlending(vec4 color, vec4 N)
 {
-    if(color.a < u.alphaSkip ) { discard; return vec4(0.0); }  //returm need for Angle error
-    
-    color *= alphaAttenuation;
-    float dist = -newVertex.z;
-    if(u.slowMotion!=uint(0) && dist<u.smoothDistance)
-        color *= 1.0-(u.smoothDistance-dist)/u.smoothDistance;
-    //color.xyz  *= color.a;
-    return color;
-}
-
-vec4 getParticleNormal(sampler2D t, vec2 coord)
-{
-    vec4 N;
-    N.xy = (coord - vec2(.5))*2.0;  // diameter ZERO centred -> radius    
-    N.z = texture(t, coord).r;            // Z convexity
-    if(N.z==0.0) discard;
-    N.w = N.z*N.z;          // magnitudo
-    N.xyz = normalize(N.xyz); 
-    
-    return N;
+    if(color.a < u.alphaSkip ) { color.a = 0.0; return color; }
+    else {
+        color *= alphaAttenuation;
+        float dist = -newVertex.z;
+        if(u.slowMotion!=uint(0) && dist<u.smoothDistance)
+            color *= 1.0-(u.smoothDistance-dist)/u.smoothDistance;
+        //color.xyz  *= color.a;
+        return color;
+    }
 }
 
 
@@ -176,32 +163,36 @@ vec4 mainFunc(vec2 ptCoord)
         //if(pointDistance<u.clippingDist) discard;
 
     newVertex = mvVtxPos + vec4(0., 0., N.z * particleSize, 0.);
-
-    if(N.w > 1.0 || N.z < u.alphaSkip || -mvVtxPos.z<u.clippingDist || clippedPoint(newVertex))  discard;
-
-    gl_FragDepth = getFragDepth(newVertex.z);
-
     vec4 color = acquireColor(ptCoord);
 
-    // plane bound color
-    vec4 bound = colorBoundary(newVertex, 0) + colorBoundary(newVertex, 1) + colorBoundary(newVertex, 2);
-    color.xyz = mix(color.xyz, bound.xyz, bound.a);
+    if(N.w > 1.0 || N.z < u.alphaSkip || -mvVtxPos.z<u.clippingDist || clippedPoint(newVertex))  discard;
+    else {
 
-    baseColor = color;
+        gl_FragDepth = getFragDepth(newVertex.z);
+
+        // plane bound color
+        vec4 bound = colorBoundary(newVertex, 0) + colorBoundary(newVertex, 1) + colorBoundary(newVertex, 2);
+        color.xyz = mix(color.xyz, bound.xyz, bound.a);
+
+        color.a = clamp(color.a, .01, .99);
+
+        baseColor = color;
 
 #if defined(GL_ES) || defined(GLCHAOSP_NO_USES_GLSL_SUBS)
     #ifdef GLCHAOSP_NO_AO_SHDW
-        return u.lightActive==1u ? pixelColorDirect(color, N) : pixelColorBlending(color, N);
+        color = u.lightActive==1u ? pixelColorDirect(color, N) : pixelColorBlending(color, N);
     #else
         switch(u.renderType) {
             default:
-            case uint(idxBLENDING) : return pixelColorBlending(color, N);
-            case uint(idxSOLID   ) : return pixelColorDirect(color, N);
-            case uint(idxSOLID_AO) : return pixelColorAO(color, N);
-            case uint(idxSOLID_DR) : return pixelColorDR(color, N);
+            case uint(idxBLENDING) : color = pixelColorBlending(color, N); break;
+            case uint(idxSOLID   ) : color = pixelColorDirect(color, N);   break;
+            case uint(idxSOLID_AO) : color = pixelColorAO(color, N);       break;
+            case uint(idxSOLID_DR) : color = pixelColorDR(color, N);       break;
         }
     #endif
 #else
-        return pixelColor(color, N);
+        color = pixelColor(color, N);
 #endif
+    }
+    return color;
 }
