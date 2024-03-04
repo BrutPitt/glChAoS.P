@@ -12,7 +12,6 @@
 //------------------------------------------------------------------------------
 #line 13    //#version dynamically inserted
 
-
 //This is an HEADER/INCLUDE file for RadialBlur2PassFrag.glsl and cmTextureFrag.glsl
 
 #ifdef GL_ES
