@@ -1,13 +1,13 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2020 Michele Morrone
+//  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  https://michelemorrone.eu - https://BrutPitt.com
+//  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
 //
-//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 //
-//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
-//  
+//  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
+//
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #include <stdlib.h>
@@ -192,7 +192,7 @@ void paletteTexClass::buildTex(float *buffer, int size)
     glTexImage2D(GL_TEXTURE_2D, 0, theApp->getPalInternalPrecision(), size, 1, 0, GL_RGB, GL_FLOAT, buffer);
 
 #endif
-    assignAttribs(GL_NEAREST, GL_NEAREST, GL_REPEAT);
+    assignAttribs(GL_LINEAR, GL_LINEAR, GL_REPEAT);
     CHECK_GL_ERROR();
 
     texSize = size;
