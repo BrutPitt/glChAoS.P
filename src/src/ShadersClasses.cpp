@@ -1,13 +1,13 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2020 Michele Morrone
+//  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  https://michelemorrone.eu - https://BrutPitt.com
+//  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
 //
-//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 //
-//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
-//  
+//  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
+//
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #include <fastPRNG.h>
@@ -45,13 +45,9 @@ void shaderPointClass::initShader()
 {
     useVertex(); useFragment();
 
-#ifdef __EMSCRIPTEN__
-    getVertex  ()->Load(nullptr, 1, SHADER_PATH "allShadowVert.glsl");
-    getFragment()->Load(nullptr, 1, SHADER_PATH "allShadowFrag.glsl");
-#else
     getVertex  ()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 2, SHADER_PATH "ParticlesVert.glsl", SHADER_PATH "PointSpriteVert.glsl");
     getFragment()->Load((theApp->get_glslVer() + theApp->get_glslDef()).c_str(), 3, SHADER_PATH "lightModelsFrag.glsl", SHADER_PATH "ParticlesFrag.glsl", SHADER_PATH "PointSpriteFragLight.glsl");
-#endif
+
     addVertex();
     addFragment();
 
@@ -214,7 +210,6 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
     if(!showAxes()) glClearBufferfv(GL_COLOR,  0, value_ptr(bkgColor));
 
     if(blendActive || showAxes()) {
-        glEnable(GL_BLEND);
 #ifdef BLEND_EQ_SEPARATE
         glBlendEquationSeparate(getBlendEqRGB(), getBlendEqAlpha());
         glBlendFuncSeparate(getSrcBlend(), getDstBlend(), getSrcBlendA(), getDstBlendA());
@@ -222,6 +217,7 @@ GLuint particlesBaseClass::render(GLuint fbIdx, emitterBaseClass *emitter, bool 
         glBlendEquation(getBlendEqRGB());
         glBlendFunc(getSrcBlend(), getDstBlend());
 #endif
+        glEnable(GL_BLEND);
     }
 
 
