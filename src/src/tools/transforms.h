@@ -57,7 +57,7 @@ public:
         glGenBuffers(1, &uBuffer);
         glBindBuffer(GL_UNIFORM_BUFFER,uBuffer);
 
-        glBufferData(GL_UNIFORM_BUFFER,  uBlockSize, nullptr, GL_STATIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER,  uBlockSize, nullptr, GL_DYNAMIC_DRAW);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, SZ, PTR); 
     #endif
     }
