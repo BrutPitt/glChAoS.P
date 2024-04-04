@@ -224,8 +224,8 @@ void tfTools()
         attractorsList.getThreadStep()->startThread();
     }
 
+    ImGui::SameLine();
     if(tfSettinsClass::tfMode()) {
-        //ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetStyle().ItemSpacing.x);
 /*
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x*.5);
@@ -448,7 +448,7 @@ void attractorDlgClass::view()
         const float szReg = .25f;
     #endif
 
-        if(firstTime) { ImGui::SetColumnWidth(0, ImGui::GetWindowContentRegionMax().x*szReg); firstTime = false; }
+        if(firstTime) { ImGui::SetColumnWidth(0, (ImGui::GetContentRegionAvail() + ImGui::GetCursorScreenPos() - ImGui::GetWindowPos()).x*szReg); firstTime = false; }
 #else
         const float szReg = 1.f;
 #endif
@@ -656,6 +656,12 @@ const float border = 5;
                 ImGui::PopStyleColor();
             };
 
+            auto resetEmitter = [&] () {
+                auto *emitter = theWnd->getParticlesSystem()->getEmitter();
+                if(!emitter->isEmitterOn()) emitter->setEmitterOn();
+                if(emitter->restartCircBuff()) { attractorsList.restart(); }
+            };
+
             auto innerLoop3 = [&] () {                        
                 for(int j = 0; j < 3; j++, idx++)
                 {
@@ -664,9 +670,9 @@ const float border = 5;
                         
                     float f = att->getValue(i,j,typeVal);
                     if(ImGui::DragFloatEx(s, (float *) &f, .0001, minVal, maxVal, "%.7f",1.0f,ImVec2(.93,0.5))) {
-                         att->setValue(i, j, typeVal, f); valIdx=idx; 
-                         if(!theWnd->getParticlesSystem()->getEmitter()->isEmitterOn()) 
-                             theWnd->getParticlesSystem()->getEmitter()->setEmitterOn(); 
+                         att->setValue(i, j, typeVal, f); valIdx=idx;
+                         resetEmitter();
+
                     }
                     ImGui::SameLine(0, style.ItemInnerSpacing.x);
 
@@ -682,9 +688,8 @@ const float border = 5;
                 float f =  att->getValue(i,typeVal);
                 if(ImGui::DragFloatEx(s, (float *) &f, .0001, minVal, maxVal, "%.7f",1.0f,ImVec2(.93,0.5))) {
                     att->setValue(i, typeVal, f); 
-                    valIdx=idx; 
-                    if(!theWnd->getParticlesSystem()->getEmitter()->isEmitterOn()) 
-                        theWnd->getParticlesSystem()->getEmitter()->setEmitterOn(); 
+                    valIdx=idx;
+                    resetEmitter();
                 }
                 if(idx==selIdx) popColorSelectedCell();
                 idx++;
