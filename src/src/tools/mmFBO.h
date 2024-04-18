@@ -1,13 +1,13 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2020 Michele Morrone
+//  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  https://michelemorrone.eu - https://BrutPitt.com
+//  https://michelemorrone.eu - https://brutpitt.com
 //
-//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 //
-//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
-//  
+//  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
+//
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #ifndef _mm_FBO_
@@ -25,7 +25,7 @@
 //
 
 #ifdef GLAPP_REQUIRE_OGL45
-    //#define GLAPP_NOT_REUSES_FBO
+    #define GLAPP_NOT_REUSES_FBO
 #endif
 
 // for OpenGL 4.1 / ES  and WebGL to destroy and recreate FBO need follow define
@@ -41,7 +41,7 @@ public:
     mmFBO()  { resetData(); }
     ~mmFBO() {
 #if !defined(GLAPP_NOT_REUSES_FBO)
-        deletAll_FB_TEX();
+        deleteAll_FB_TEX();
 #else
         deleteFBO();
 #endif
@@ -54,7 +54,7 @@ public:
     void reBuildFBO(int num, int sizeX, int sizeY, GLenum intFormat, GLuint format = GL_RGBA, int levelAA=0);
     void reSizeFBO(int sizeX, int sizeY);
     void deleteFBO();
-    void deletAll_FB_TEX();
+    void deleteAll_FB_TEX();
 
     GLuint getFB(int num)  { return num<m_NumFB ? m_fb[num] : -1; }
     GLuint getTex(int num=0) { return num<m_NumFB ? m_tex[num] : -1; }
