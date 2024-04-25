@@ -2,7 +2,7 @@
 //  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
+//  https://michelemorrone.eu - https://brutpitt.com
 //
 //  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 //
