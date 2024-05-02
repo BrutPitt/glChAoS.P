@@ -1,13 +1,13 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2020 Michele Morrone
+//  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  https://michelemorrone.eu - https://BrutPitt.com
+//  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
 //
-//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 //
-//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
-//  
+//  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
+//
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #include <sstream>
@@ -436,7 +436,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                         if(colCheckButton(b , txt, wButt3)) particles->postRenderingActive(b^1);
                     }
 
-                    if(particles->postRenderingActive()) {
+                    //if(particles->postRenderingActive()) {
                         ImGui::PushItemWidth(wButt3);
                         ImGui::SameLine();
                         {
@@ -450,7 +450,7 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                             if(ImGui::DragFloat(buildID(base, idA++, id), &f, .00025, 0.0, 5.0, "Norm: %.4f",1.f)) particles->dpNormalTune(f);
                         }
                         ImGui::PopItemWidth();
-                    }
+                    //}
                 }
             }
 #endif
@@ -474,12 +474,10 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
             ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
             ImGui::BeginChild(buildID(base, idA++, id), ImVec2(0,ImGui::GetFrameHeightWithSpacing()*7-ImGui::GetStyle().ItemSpacing.y*2), true);
 
+
                 ColorMapSettingsClass *cmSet = particles->getCMSettings();
 
-
-
                 //////////Linea 1//////////
-
                 {
                     ImGui::SetCursorPosX(posA);
                     bool b = cmSet->getClamp();
@@ -508,12 +506,19 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 // PushButton Colormap
                 ////////////////////////////////////
                 ImGui::SameLine(posB4);
-                //if(ImGui::colormapButton("pippo", ImVec2(w-10,12), 256, particles->getSelectedColorMap_pf3()))
-                if(ImGui::ImageButton(reinterpret_cast<ImTextureID>((int64) cmSet->getOrigTex()), ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
-                //if(ImGui::Button("paletteAAA", ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
-                    theDlg.paletteDlg.visible( theDlg.paletteDlg.visible()^1);
+                {
+                    char s[32];
+                    sprintf(s,"##%s", buildID(base, idA++, id));
+
+                    //if(ImGui::colormapButton("pippo", ImVec2(w-10,12), 256, particles->getSelectedColorMap_pf3()))
+
+                    if(ImGui::ImageButton(s, int64_t(cmSet->getOrigTex()), ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
+                    //if(ImGui::ImageButton(reinterpret_cast<ImTextureID>((int64) cmSet->getOrigTex()), ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
+                    //if(ImGui::Button("paletteAAA", ImVec2((wButt4)*3-border,fontSize * ImGui::GetIO().FontGlobalScale))) {
+                        theDlg.paletteDlg.visible( theDlg.paletteDlg.visible()^1);
+                    }
                 }
-               
+
 
                 //ImGui::colormapButton("pluto", ImVec2(300,16), 256, particles->getColorMap().getRGB_pf3(1));
                 
@@ -523,15 +528,23 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 ////////////////////////////////////
                 //const float wButt3Half = (wButt4-border)*.5;
                 //const float pos3H = wButt3Half + border*2;
-                
-                ImGui::SetCursorPosX(INDENT(posA )); ImGui::TextDisabled("Range");
+
+
+                ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(INDENT(border), 0));
+                ImGui::Dummy(ImVec2(0,0));
+                /*ImGui::SetCursorPosX(INDENT(posA ));*/ ImGui::TextDisabled("Range");
                 ImGui::SameLine(     INDENT(posB4)); ImGui::TextDisabled("Offset");
                 ImGui::SameLine(     INDENT(posC4)); ImGui::TextDisabled("Intens.");
-                ImGui::SameLine(     INDENT(posD4)); ImGui::TextDisabled("colorVel"); 
-                
+                ImGui::SameLine(     INDENT(posD4)); ImGui::TextDisabled("colorVel");
+
+
                 ImGui::PushItemWidth(wButt4);
                 {
-                    ImGui::SetCursorPosX(posA);
+                    //ImGui::SetCursorPosX(posA);
+                ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(posA, 0));
+                ImGui::Dummy(ImVec2(0,0));
+
+
                     float f = cmSet->getRange(); 
                     if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.0025, 0.0, 200.0, "% .3f",1.0f,ImVec2(.93,0.5))) cmSet->setRange(f);
                 }
@@ -557,14 +570,17 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                 // Image Palette
                 ////////////////////////////////////
                 ImGui::SetCursorPosX(border);
-                ImGui::Image(reinterpret_cast<ImTextureID>((int64) cmSet->getModfTex()), ImVec2(w,buttY));
+                ImGui::Image(int64_t(cmSet->getModfTex()), ImVec2(w,buttY));
 
 
                 // HLSL Controls
                 ////////////////////////////////////
                 ImGui::PushItemWidth(wButt3);        
                 {
-                    ImGui::SetCursorPosX(border);
+                    //ImGui::SetCursorPosX(border);
+                ImGui::SetCursorScreenPos(ImGui::GetCursorScreenPos() + ImVec2(border, 0));
+                ImGui::Dummy(ImVec2(0,0));
+
                     float f = cmSet->getH();                    
                     //if(ImGui::DragFloatEx(buildID(base, idA++, id), &f,.001, -1.0, 1.0, "%.3f",1.0f,ImVec2(.93,0.5))) particles->getCMTex()->setH(f);
                     if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_H, 0.0025f, ImVec2(wButt3, buttY)))  cmSet->setH(f);
@@ -581,10 +597,10 @@ void particlesDlgClass::viewSettings(particlesBaseClass *particles, char id)
                     if(ImGui::hslTuning(buildID(base, idA++, id), &f, HSL_TUNING_L, 0.0025f, ImVec2(wButt3, buttY),ImVec2(3, 3))) cmSet->setL(f);
                 }
                 ImGui::PopItemWidth();
-                
-                ImGui::SetCursorPosX(INDENT(border)); ImGui::TextDisabled("Hue"); 
+
+                ImGui::SetCursorPosX(INDENT(border)); ImGui::TextDisabled("Hue");
                 ImGui::SameLine(INDENT(posB3));       ImGui::TextDisabled("Saturation"); 
-                ImGui::SameLine(INDENT(posC3));       ImGui::TextDisabled("Lightness"); 
+                ImGui::SameLine(INDENT(posC3));       ImGui::TextDisabled("Lightness");
 
             ImGui::EndChild();
             ImGui::PopStyleVar();
@@ -2016,7 +2032,7 @@ void particleEditDlgClass::view()
         dotsTextureClass *dots = &pSys->getDotTex();
 
         //ImGui::SetCursorPosX(border);
-        ImGui::Image(reinterpret_cast<ImTextureID>((int64) dots->getTexID()), ImVec2(wButt,wButt));
+        ImGui::Image(int64_t(dots->getTexID()), ImVec2(wButt,wButt));
         char txt[32];
 
 
