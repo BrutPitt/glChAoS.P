@@ -1,13 +1,13 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2020 Michele Morrone
+//  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  https://michelemorrone.eu - https://BrutPitt.com
+//  https://michelemorrone.eu - https://brutpitt.com
 //
-//  twitter: https://twitter.com/BrutPitt - github: https://github.com/BrutPitt
+//  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 //
-//  mailto:brutpitt@gmail.com - mailto:me@michelemorrone.eu
-//  
+//  direct mail: brutpitt(at)gmail.com - me(at)michelemorrone.eu
+//
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
 #include "imguiControls.h"
@@ -183,32 +183,36 @@ bool DragFloatEx(const char* label, float *v, float v_speed, float v_min, float 
         format = DataTypeGetInfo(data_type)->PrintFmt;
 
     // Tabbing or CTRL-clicking on Drag turns it into an InputText
-    const bool hovered = ItemHoverable(frame_bb, id);
+    const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.ItemFlags);
     bool temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
     if (!temp_input_is_active)
     {
-        const bool focus_requested = temp_input_allowed && (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_FocusedByTabbing) != 0;
-        const bool clicked = (hovered && g.IO.MouseClicked[0]);
+        // Tabbing or CTRL-clicking on Drag turns it into an InputText
+        const bool clicked = hovered && IsMouseClicked(0, ImGuiInputFlags_None, id);
         const bool double_clicked = (hovered && g.IO.MouseDoubleClicked[0]);
-        if (focus_requested || clicked || double_clicked || g.NavActivateId == id || g.NavActivateInputId == id)
+        const bool make_active = (clicked || double_clicked || g.NavActivateId == id);
+        if (make_active && (clicked || double_clicked))
+            SetKeyOwner(ImGuiKey_MouseLeft, id);
+        if (make_active && temp_input_allowed)
+            if ((clicked && g.IO.KeyCtrl) || double_clicked || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
+                temp_input_is_active = true;
+
+        // (Optional) simple click (without moving) turns Drag into an InputText
+        if (g.IO.ConfigDragClickToInputText && temp_input_allowed && !temp_input_is_active)
+            if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * .5))
+            {
+                g.NavActivateId = id;
+                g.NavActivateFlags = ImGuiActivateFlags_PreferInput;
+                temp_input_is_active = true;
+            }
+
+        if (make_active && !temp_input_is_active)
         {
             SetActiveID(id, window);
             SetFocusID(id, window);
             FocusWindow(window);
             g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
-            if (temp_input_allowed)
-                if (focus_requested || (clicked && g.IO.KeyCtrl) || double_clicked || g.NavActivateInputId == id)
-                    temp_input_is_active = true;
         }
-
-        // Experimental: simple click (without moving) turns Drag into an InputText
-        if (g.IO.ConfigDragClickToInputText && temp_input_allowed && !temp_input_is_active)
-            if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * 0.5f))
-            {
-                g.NavActivateId = g.NavActivateInputId = id;
-                g.NavActivateFlags = ImGuiActivateFlags_PreferInput;
-                temp_input_is_active = true;
-            }
     }
 
     if (temp_input_is_active)
@@ -220,7 +224,7 @@ bool DragFloatEx(const char* label, float *v, float v_speed, float v_min, float 
 
     // Draw frame
     const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
-    RenderNavHighlight(frame_bb, id);
+    RenderNavCursor(frame_bb, id);
     RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
 
     // Drag behavior
