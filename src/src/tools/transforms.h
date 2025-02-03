@@ -15,8 +15,7 @@
 #include <glad/glad.h>
 #endif
 
-#include "vGizmo.h"
-#include "vGizmoMath.h"
+#include "vGizmo3D.h"
 
 
 #define GLAPP_USE_MATRIX_BUFFERS

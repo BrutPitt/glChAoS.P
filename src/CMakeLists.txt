@@ -189,8 +189,8 @@ set(SRC "${CMAKE_SOURCE_DIR}/src")
         ${SRC}/tools/mmFBO.h
         ${SRC}/tools/transforms.h
         ${SRC}/tools/vgMath.h
-        ${SRC}/tools/vgConfig.h
-        ${SRC}/tools/vGizmo.h
+        ${SRC}/tools/vgMath_config.h
+        ${SRC}/tools/vGizmo3D.h
         ${SRC}/ui/uiAttractorsDlg.cpp
         ${SRC}/ui/uiMainDlg.cpp
         ${SRC}/ui/uiMainDlg.h
@@ -282,9 +282,9 @@ if(BUILD_wglChAoSP OR BUILD_wglChAoSP_lowres)
     #endif()
     include_directories(${SRC})
     include_directories(${SRC}/tools)
+    include_directories(${SRC}/tools/gizmos)
     include_directories(${SRC}/libs)
-    include_directories(${SRC}/libs)
-    #add also environment include
+    include_directories(${SRC}/../../Shaders) #JetBrains: to show files, located in a different dir, into project toolWindow
     #include_directories(AFTER $ENV{INCLUDE})
 
 # -o ${PROJECT_NAME}.html ->  CMAKE_EXECUTABLE_SUFFIX  .html .bc, .js (default), etc
@@ -474,6 +474,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${SRC}/libs)
 #target_include_directories(${PROJECT_NAME} PUBLIC $ENV{INCLUDE})
 
 add_definitions(-DVGM_USES_TEMPLATE -DGLFW_INCLUDE_NONE -DIMGUI_IMPL_OPENGL_LOADER_GLAD -DGLM_ENABLE_EXPERIMENTAL -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS)
+target_compile_definitions(${PROJECT_NAME} PUBLIC -D_GLIBCXX_USE_CXX11_ABI=0)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     if(WIN32)

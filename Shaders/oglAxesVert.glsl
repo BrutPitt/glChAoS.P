@@ -2,7 +2,7 @@
 //  Copyright (c) 2018-2024 Michele Morrone
 //  All rights reserved.
 //
-//  https://michelemorrone.eu - https://glchaosp.com - https://brutpitt.com
+//  https://michelemorrone.eu - https://brutpitt.com
 //
 //  X: https://x.com/BrutPitt - GitHub: https://github.com/BrutPitt
 //
@@ -10,12 +10,11 @@
 //
 //  This software is distributed under the terms of the BSD 2-Clause license
 //------------------------------------------------------------------------------
-#line 13    //#version dynamically inserted
-
+#line 14
 layout (location = 1) in vec3 vPos;
 layout (location = 2) in vec3 normal;
 
-// cant use direct location... for EMS and webgl
+// I cant use direct location... for EMS and webgl
 //layout (location = 4) uniform mat4 pMat;
 //layout (location = 5) uniform mat4 mvMat;
 //layout (location = 6) uniform mat4 zoomF;
@@ -31,7 +30,7 @@ out gl_PerVertex
 };
 #endif
 
-// cant use blocks... for EMS and webgl
+// I cant use blocks... for EMS and webgl
 
 #ifdef GL_ES
 out vec4 vsColor;
@@ -50,6 +49,7 @@ out vsOut {
 const vec4 blue  = vec4(0.10, 0.10, 0.70, 1.0);
 const vec4 green = vec4(0.10, 0.70, 0.10, 1.0);
 const vec4 red   = vec4(0.70, 0.10, 0.10, 1.0);
+
 
 //fast 90' rotation around fixzed axis
 vec3 rotOnX(vec3 v) { return vec3(v.x, v.z, -v.y); }
@@ -70,4 +70,5 @@ void main(void)
     vsNormal = normalize(mat3(mvMat) * newNorm);
     
     gl_Position = position;
+    //gl_Position = 
 }

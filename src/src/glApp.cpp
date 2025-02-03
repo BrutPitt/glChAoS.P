@@ -237,38 +237,28 @@ void toggleFullscreenOnOff(GLFWwindow* window)
 
 GLFWmonitor* getCurrentMonitor(GLFWwindow *window)
 {
-    int nmonitors, i;
-    int wx, wy, ww, wh;
-    int mx, my, mw, mh;
-    int overlap, bestoverlap;
-    GLFWmonitor *bestmonitor;
-    GLFWmonitor **monitors;
-    const GLFWvidmode *mode;
+    int nmonitors, bestoverlap {0};;
+    GLFWmonitor *bestmonitor = nullptr;
+    GLFWmonitor **monitors = glfwGetMonitors(&nmonitors);
 
-    bestoverlap = 0;
-    bestmonitor = NULL;
+    int wx, wy; glfwGetWindowPos (window, &wx, &wy);
+    int ww, wh; glfwGetWindowSize(window, &ww, &wh);
 
-    glfwGetWindowPos(window, &wx, &wy);
-    glfwGetWindowSize(window, &ww, &wh);
-    monitors = glfwGetMonitors(&nmonitors);
+    for (int i = 0; i < nmonitors; i++) {
+        const GLFWvidmode *mode = glfwGetVideoMode(monitors[i]);
+        int mx, my; glfwGetMonitorPos(monitors[i], &mx, &my);
 
-    for (i = 0; i < nmonitors; i++) {
-        mode = glfwGetVideoMode(monitors[i]);
-        glfwGetMonitorPos(monitors[i], &mx, &my);
-        mw = mode->width;
-        mh = mode->height;
-
-        overlap =
-            std::max(0, std::min(wx + ww, mx + mw) - std::max(wx, mx)) *
-            std::max(0, std::min(wy + wh, my + mh) - std::max(wy, my));
+        const int overlap = std::max(0, std::min(wx + ww, mx + mode->width ) - std::max(wx, mx)) *
+                            std::max(0, std::min(wy + wh, my + mode->height) - std::max(wy, my));
 
         if (bestoverlap < overlap) {
             bestoverlap = overlap;
             bestmonitor = monitors[i];
         }
     }
-    return bestmonitor;
+    return bestmonitor ? bestmonitor : throw "no monitor found!";
 }
+
 #endif
 
 // Interface

@@ -130,12 +130,13 @@ public:
         vaoCube    = new vaoAxesClass<float>(cubeVtx.data(), GLuint(cubeVtx.size()));
         vaoConeCap = new vaoAxesClass<float>(capVtx.data() , GLuint(capVtx.size() ));
 #else
+
         buildCone(allAxes, arrowDim-coneHgt, arrowDim, coneRadius, coneSlices);
         buildCyl (allAxes,  startArrow,arrowDim-coneHgt, cylRadius, cylSlices);
         if(showFullAxes) { 
             buildCyl (allAxes,  -arrowDim,-startArrow, cylRadius, cylSlices);
             buildCap (allAxes,  -arrowDim,-startArrow, cylRadius, cylSlices);
-        } 
+        }
         if(showCube) {
             buildCube(allAxes, cubeSize);
         }
@@ -185,20 +186,24 @@ public:
 
     vg::vGizmo3D &getGizmo() { return transforms->getTrackball(); }
 
+    vec3 &getLightPos() { return lightPos; }
+
+    void cubeMgnitude(float mag) { cubeSize *= mag; }
+
 
 private:
     float startArrow;
     // C++ 11 initializations
     const float arrowDim = 1.0f;
     const float cylRadius = 0.015f;
-    const float cubeSize = 0.04f;
+          float cubeSize = 0.04f;
     const float coneHgt  = .25f;
     const float coneRadius = .05f;
     const int coneSlices = 25;
     const int cylSlices = 13;
     
     transformsClass *transforms;
-    GLuint _pMat, _mvMat, _zoomF;
+    GLuint _pMat, _mvMat, _zoomF, _light;
     bool showFullAxes = true, showCube = false;
 
     
@@ -207,6 +212,7 @@ private:
  
     vec3 axesZoom = vec3(1.f);
     vec3 zoomFactor = vec3(1.f);
+    vec3 lightPos {100.0f, 100.0f, 50.0f};
 
 #ifdef GLAPP_MINIMIZE_VERTEX
     vaoAxesClass<float> *vaoCone, *vaoConeCap, *vaoCyl, *vaoCube;

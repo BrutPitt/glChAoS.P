@@ -293,7 +293,8 @@ void oglAxes::initShaders(const char *vtxDefs,  const char *fragDefs)
 
     _pMat  = getUniformLocation("pMat");
     _mvMat = getUniformLocation("mvMat");
-    _zoomF = getUniformLocation("zoomF");    
+    _zoomF = getUniformLocation("zoomF");
+    _light = getUniformLocation("light_position");
     
 }
 
@@ -321,6 +322,7 @@ void oglAxes::render()
     //USE_PROGRAM
     bindShaderProg();
     setUniform3fv(_zoomF, 1, value_ptr(zoom));
+    setUniform3fv(_light, 1, value_ptr(lightPos));
     setUniformMatrix4fv(_pMat , 1, GL_FALSE, value_ptr(getTransforms()->tM.pMatrix) );
     setUniformMatrix4fv(_mvMat, 1, GL_FALSE, value_ptr(getTransforms()->tM.mvMatrix));
 

@@ -89,6 +89,7 @@ void glWindow::onInit()
     vgizmo.setDollyControl((vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) 0);
     vgizmo.setPanControl(  (vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) GLFW_MOD_CONTROL|GLFW_MOD_SUPER);
 
+    vgizmo.setGizmoSecondaryRotControl((vgButtons) GLFW_MOUSE_BUTTON_RIGHT, (vgModifiers) GLFW_MOD_ALT);
 
     vgizmo.setRotationCenter(attractorsList.get()->getTGT());
     vgizmo.viewportSize(theApp->GetWidth(), theApp->GetHeight());

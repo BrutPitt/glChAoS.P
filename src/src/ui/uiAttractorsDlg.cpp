@@ -443,12 +443,12 @@ void attractorDlgClass::view()
         ImGui::Columns(2);
 
     #ifdef GLCHAOSP_LIGHTVER
-        const float szReg = .3f;
+        const float szReg = .6f;
     #else
-        const float szReg = .25f;
+        const float szReg = .5f;
     #endif
 
-        if(firstTime) { ImGui::SetColumnWidth(0, (ImGui::GetContentRegionAvail() + ImGui::GetCursorScreenPos() - ImGui::GetWindowPos()).x*szReg); firstTime = false; }
+        if(firstTime) { ImGui::SetColumnWidth(0, (ImGui::GetContentRegionAvail()).x*szReg); firstTime = false; }
 #else
         const float szReg = 1.f;
 #endif

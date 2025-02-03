@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2018-2024 Michele Morrone
+//  Copyright (c) 2018-2025 Michele Morrone
 //  All rights reserved.
 //
 //  https://michelemorrone.eu - https://brutpitt.com
@@ -12,7 +12,7 @@
 //------------------------------------------------------------------------------
 #pragma once
 
-#include "vgConfig.h"
+#include "vgMath_config.h"
 
 #ifdef VGM_USES_DOUBLE_PRECISION
     #define VG_T_TYPE double
@@ -21,38 +21,9 @@
     #define VG_T_TYPE float
 #endif
 
-#ifdef VGIZMO_USES_GLM
-    #ifndef VGM_USES_TEMPLATE
-        #define VGM_USES_TEMPLATE    // glm uses template ==> vGizmo needs to know
-    #endif
-
-    #define VGM_NAMESPACE glm
-
-    #include <glm/glm.hpp>
-    #include <glm/gtx/vector_angle.hpp>
-    #include <glm/gtx/exterior_product.hpp>
-    #include <glm/gtc/type_ptr.hpp>
-    #include <glm/gtc/quaternion.hpp>
-    #include <glm/gtc/matrix_transform.hpp>
-
-    using tVec2 = glm::tvec2<VG_T_TYPE>;
-    using tVec3 = glm::tvec3<VG_T_TYPE>;
-    using tVec4 = glm::tvec4<VG_T_TYPE>;
-    using tQuat = glm::tquat<VG_T_TYPE>;
-    using tMat3 = glm::tmat3x3<VG_T_TYPE>;
-    using tMat4 = glm::tmat4x4<VG_T_TYPE>;
-
-    #define T_PI glm::pi<VG_T_TYPE>()
-    #define T_INV_PI glm::one_over_pi<VG_T_TYPE>()
-
-    #define VGIZMO_BASE_CLASS virtualGizmoBaseClass<T>
-    #define TEMPLATE_TYPENAME_T  template<typename T>
-
-#else // use vGizmoMath
-
-    #include <math.h>
     #include <cmath>
-    #include <stdint.h>
+    #include <cstdint>
+    #include <assert.h>
     #define VGM_NAMESPACE vgm
 
     #ifdef VGM_USES_TEMPLATE
@@ -100,6 +71,7 @@ namespace vgm {
 
 TEMPLATE_TYPENAME_T class Vec3;
 TEMPLATE_TYPENAME_T class Vec4;
+TEMPLATE_TYPENAME_T class Mat3;
 TEMPLATE_TYPENAME_T class Mat4;
 
 #if !defined(VGM_USES_TEMPLATE)
@@ -228,10 +200,12 @@ TEMPLATE_TYPENAME_T class Quat {
 public:
     T x, y, z, w;
 
-    Quat()                              = default;
     Quat(const QUAT_T&)                 = default;
-    Quat(T w, T x, T y, T z)            : x(x),   y(y),   z(z),   w(w)   {}
-    explicit Quat(T s, const VEC3_T& v) : x(v.x), y(v.y), z(v.z), w(s)   {}
+    Quat()                              : x(T(0)), y(T(0)), z(T(0)), w(T(1)) {}
+    Quat(T w, T x, T y, T z)            : x(x),    y(y),    z(z),    w(w)    {}
+    explicit Quat(T s, const VEC3_T& v) : x(v.x),  y(v.y),  z(v.z),  w(s)    {}
+    Quat(const MAT3_T &m);
+    Quat(const MAT4_T &m);
 
     Quat operator-() const { return Quat(-w, -x, -y, -z); }
 
@@ -256,6 +230,8 @@ public:
 
     explicit operator const T *() const { return &x; }
     explicit operator       T *()       { return &x; }
+    explicit operator const T &() const { return  x; }
+    explicit operator       T &()       { return  x; }
 };
 // Mat3
 //////////////////////////
@@ -276,6 +252,7 @@ public:
     Mat3(T v0x, T v0y, T v0z,
          T v1x, T v1y, T v1z,
          T v2x, T v2y, T v2z) : v { VEC3_T(v0x, v0y, v0z), VEC3_T(v1x, v1y, v1z), VEC3_T(v2x, v2y, v2z) } {}
+    explicit Mat3(QUAT_T const& q);
 
     const VEC3_T& operator[](int i) const { return v[i]; }
           VEC3_T& operator[](int i)       { return v[i]; }
@@ -310,6 +287,8 @@ public:
                                                        m02 * v.x + m12 * v.y + m22 * v.z }; }
     explicit operator const T *() const { return &m00; }
     explicit operator       T *()       { return &m00; }
+    explicit operator const T &() const { return  m00; }
+    explicit operator       T &()       { return  m00; }
 };
 // Mat4
 //////////////////////////
@@ -331,6 +310,7 @@ public:
          T v1x, T v1y, T v1z, T v1w,
          T v2x, T v2y, T v2z, T v2w,
          T v3x, T v3y, T v3z, T v3w) : v {VEC4_T(v0x, v0y, v0z, v0w), VEC4_T(v1x, v1y, v1z, v1w), VEC4_T(v2x, v2y, v2z, v2w), VEC4_T(v3x, v3y, v3z, v3w) } {}
+    Mat4(QUAT_T const& q);
 
     const VEC4_T& operator[](int i) const { return v[i]; }
           VEC4_T& operator[](int i)       { return v[i]; }
@@ -372,21 +352,28 @@ public:
                                                        m03 * v.x + m13 * v.y + m23 * v.z + m33 * v.w }; }
     explicit operator const T *() const { return &m00; }
     explicit operator       T *()       { return &m00; }
+    explicit operator const T &() const { return  m00; }
+    explicit operator       T &()       { return  m00; }
 };
 // cast / conversion
 //////////////////////////
 TEMPLATE_TYPENAME_T inline VEC2_T::Vec2(const VEC3_T& v) : VEC2_T{ v.x, v.y } {}
 TEMPLATE_TYPENAME_T inline VEC3_T::Vec3(const VEC4_T& v) : VEC3_T{ v.x, v.y, v.z } {}
 TEMPLATE_TYPENAME_T inline MAT3_T::Mat3(const MAT4_T& m) : v { VEC3_T(m.v[0]), m.v[1], m.v[2] } {}
-TEMPLATE_TYPENAME_T inline MAT3_T mat3_cast(QUAT_T const& q) {
+TEMPLATE_TYPENAME_T inline MAT3_T::Mat3(QUAT_T const& q) {
     T xx(q.x * q.x); T yy(q.y * q.y); T zz(q.z * q.z);
     T xz(q.x * q.z); T xy(q.x * q.y); T yz(q.y * q.z);
     T wx(q.w * q.x); T wy(q.w * q.y); T wz(q.w * q.z);
 
-    return { T(1) - T(2) * (yy + zz),         T(2) * (xy + wz),         T(2) * (xz - wy),
-                    T(2) * (xy - wz),  T(1) - T(2) * (xx + zz),         T(2) * (yz + wx),
-                    T(2) * (xz + wy),         T(2) * (yz - wx),  T(1) - T(2) * (xx + yy) }; }
-TEMPLATE_TYPENAME_T inline MAT4_T mat4_cast(QUAT_T const& q) { return { mat3_cast(q) }; }
+    *this = { T(1) - T(2) * (yy + zz),         T(2) * (xy + wz),         T(2) * (xz - wy),
+                     T(2) * (xy - wz),  T(1) - T(2) * (xx + zz),         T(2) * (yz + wx),
+                     T(2) * (xz + wy),         T(2) * (yz - wx),  T(1) - T(2) * (xx + yy) }; }
+TEMPLATE_TYPENAME_T inline MAT4_T::Mat4(QUAT_T const& q)     {  *this = MAT4_T(MAT3_T(q)); }
+TEMPLATE_TYPENAME_T inline MAT3_T mat3_cast(QUAT_T const& q) { return MAT3_T(q); }
+TEMPLATE_TYPENAME_T inline MAT4_T mat4_cast(QUAT_T const& q) { return MAT3_T(q); }
+TEMPLATE_TYPENAME_T inline VEC3_T getTranslationVec(const MAT4_T& m) { return { m.v[3] }; }
+
+
 inline float uintBitsToFloat(uint32_t const v) { return *((float *)(&v)); }
 inline uint32_t floatBitsToUint(float const v) { return *((uint32_t *)(&v)); }
 // dot
@@ -426,6 +413,8 @@ TEMPLATE_TYPENAME_T inline VEC2_T normalize(const VEC2_T& v) { return v / length
 TEMPLATE_TYPENAME_T inline VEC3_T normalize(const VEC3_T& v) { return v / length(v); }
 TEMPLATE_TYPENAME_T inline VEC4_T normalize(const VEC4_T& v) { return v / length(v); }
 TEMPLATE_TYPENAME_T inline QUAT_T normalize(const QUAT_T& q) { return q / length(q); }
+TEMPLATE_TYPENAME_T inline MAT3_T normalize(const MAT3_T& m) { return m / sqrt(dot(m.v[0],m.v[0])+dot(m.v[1],m.v[1])+dot(m.v[2],m.v[2])); }
+TEMPLATE_TYPENAME_T inline MAT3_T normalize(const MAT4_T& m) { return m / sqrt(dot(m.v[0],m.v[0])+dot(m.v[1],m.v[1])+dot(m.v[2],m.v[2])+dot(m.v[3],m.v[3])); }
 // mix
 //////////////////////////
 TEMPLATE_TYPENAME_T inline      T mix(const      T  x, const      T  y, const T a)   { return x + (y-x) * a; }
@@ -434,9 +423,9 @@ TEMPLATE_TYPENAME_T inline VEC3_T mix(const VEC3_T& x, const VEC3_T& y, const T 
 TEMPLATE_TYPENAME_T inline VEC4_T mix(const VEC4_T& x, const VEC4_T& y, const T a)   { return x + (y-x) * a; }
 // pow
 //////////////////////////
-TEMPLATE_TYPENAME_T inline VEC2_T pow(const VEC2_T& b, const VEC2_T& e) { return { ::pow(b.x,e.x), ::pow(b.y,e.y) }; }
-TEMPLATE_TYPENAME_T inline VEC3_T pow(const VEC3_T& b, const VEC3_T& e) { return { ::pow(b.x,e.x), ::pow(b.y,e.y), ::pow(b.z,e.z) }; }
-TEMPLATE_TYPENAME_T inline VEC4_T pow(const VEC4_T& b, const VEC4_T& e) { return { ::pow(b.x,e.x), ::pow(b.y,e.y), ::pow(b.z,e.z), ::pow(b.w,e.w) }; }
+TEMPLATE_TYPENAME_T inline VEC2_T pow(const VEC2_T& b, const VEC2_T& e) { return { std::pow(b.x,e.x), std::pow(b.y,e.y) }; }
+TEMPLATE_TYPENAME_T inline VEC3_T pow(const VEC3_T& b, const VEC3_T& e) { return { std::pow(b.x,e.x), std::pow(b.y,e.y), std::pow(b.z,e.z) }; }
+TEMPLATE_TYPENAME_T inline VEC4_T pow(const VEC4_T& b, const VEC4_T& e) { return { std::pow(b.x,e.x), std::pow(b.y,e.y), std::pow(b.z,e.z), std::pow(b.w,e.w) }; }
 // value_ptr
 //////////////////////////
 TEMPLATE_TYPENAME_T inline T *value_ptr(const VEC2_T &v) { return const_cast<T *>(&v.x); }
@@ -445,6 +434,25 @@ TEMPLATE_TYPENAME_T inline T *value_ptr(const VEC4_T &v) { return const_cast<T *
 TEMPLATE_TYPENAME_T inline T *value_ptr(const QUAT_T &q) { return const_cast<T *>(&q.x); }
 TEMPLATE_TYPENAME_T inline T *value_ptr(const MAT3_T &m) { return const_cast<T *>(&m.m00); }
 TEMPLATE_TYPENAME_T inline T *value_ptr(const MAT4_T &m) { return const_cast<T *>(&m.m00); }
+
+TEMPLATE_TYPENAME_T inline QUAT_T::Quat(const MAT3_T &m) {  // experimental implementation: personal optimization, not full tested but well documented
+    T val;                                                  // credits: https://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2015/01/matrix-to-quat.pdf
+    auto getSqrt = [&](const QUAT_T &q) { return q * T(0.5) / sqrt(val); };
+    if (m.m22 < 0) {
+        if (m.m00 > m.m11)
+            val = T(1) + m.m00 - m.m11 - m.m22, *this = getSqrt(QUAT_T(m.m12-m.m21, val,         m.m01+m.m10, m.m20+m.m02));
+        else
+            val = T(1) - m.m00 + m.m11 - m.m22, *this = getSqrt(QUAT_T(m.m20-m.m02, m.m01+m.m10, val,         m.m12+m.m21));
+    } else  {
+        if (m.m00 < -m.m11)
+            val = T(1) - m.m00 - m.m11 + m.m22, *this = getSqrt(QUAT_T(m.m01-m.m10, m.m20+m.m02, m.m12+m.m21, val        ));
+        else
+            val = T(1) + m.m00 + m.m11 + m.m22, *this = getSqrt(QUAT_T(val,         m.m12-m.m21, m.m20-m.m02, m.m01-m.m10));
+    }
+}
+TEMPLATE_TYPENAME_T inline QUAT_T::Quat(const MAT4_T &m) { *this = QUAT_T((const MAT3_T&) m); }
+TEMPLATE_TYPENAME_T inline QUAT_T quat_cast(const MAT3_T &m) { return QUAT_T(m); }
+
 // transpose
 //////////////////////////
 TEMPLATE_TYPENAME_T inline MAT3_T transpose(MAT3_T m) {
@@ -511,11 +519,24 @@ TEMPLATE_TYPENAME_T inline MAT4_T scale(MAT4_T const& m, VEC3_T const& v) {
     return MAT4_T(m[0] * v[0], m[1] * v[1], m[2] * v[2], m[3]); }
 // quat angle/axis
 //////////////////////////
-TEMPLATE_TYPENAME_T inline QUAT_T angleAxis(T const &a, VEC3_T const &v) {	return QUAT_T(cos(a * T(0.5)), v * sin(a * T(0.5))); }
+TEMPLATE_TYPENAME_T inline QUAT_T angleAxis(T const &a, VEC3_T const &v) { return QUAT_T(cos(a * T(0.5)), v * sin(a * T(0.5))); }
 TEMPLATE_TYPENAME_T inline T angle(QUAT_T const& q) { return acos(q.w) * T(2); }
 TEMPLATE_TYPENAME_T inline VEC3_T axis(QUAT_T const& q) {
     const T t1 = T(1) - q.w * q.w; if(t1 <= T(0)) return VEC3_T(0, 0, 1);
     const T t2 = T(1) / sqrt(t1);  return VEC3_T(q.x * t2, q.y * t2, q.z * t2); }
+
+TEMPLATE_TYPENAME_T inline MAT4_T eulerAngleXYZ(T const& t1, T const& t2, T const& t3) {
+        T c1 = cos(-t1), s1 = sin(-t1);
+        T c2 = cos(-t2), s2 = sin(-t2);
+        T c3 = cos(-t3), s3 = sin(-t3);
+
+        return { c2*c3, -c1*s3 + s1*s2*c3,  s1*s3 + c1*s2*c3, T(0),
+                 c2*s3,  c1*c3 + s1*s2*s3, -s1*c3 + c1*s2*s3, T(0),
+                  -s2 ,      s1*c2       ,      c1*c2       , T(0),
+                 T(0) ,       T(0)       ,       T(0)       , T(1)  }; }
+
+TEMPLATE_TYPENAME_T inline MAT4_T eulerAngleXYZ(VEC3_T const& v) { return eulerAngleXYZ(v.x, v.y, v.z); }
+
 // trigonometric
 //////////////////////////
 TEMPLATE_TYPENAME_T inline T radians(T d) { return d * T(0.0174532925199432957692369076849); }
@@ -525,60 +546,123 @@ TEMPLATE_TYPENAME_T inline T one_over_pi() { return T(0.318309886183790671537767
 
 // lookAt
 //////////////////////////
-TEMPLATE_TYPENAME_T inline MAT4_T lookAt(const VEC3_T& pov, const VEC3_T& tgt, const VEC3_T& up)
+TEMPLATE_TYPENAME_T inline MAT4_T lookAtLH(const VEC3_T& pov, const VEC3_T& tgt, const VEC3_T& up)
 {
-#ifdef VGM_USES_LEFT_HAND_AXES
     VEC3_T k = normalize(tgt - pov), i = normalize(cross(up, k)), j = cross(k, i);
-#else
-    VEC3_T k = normalize(tgt - pov), i = normalize(cross(k, up)), j = cross(i, k);   k = -k;
-#endif
     return {     i.x,          j.x,          k.x,     T(0),
                  i.y,          j.y,          k.y,     T(0),
                  i.z,          j.z,          k.z,     T(0),
             -dot(i, pov), -dot(j, pov), -dot(k, pov), T(1)}; }
+
+TEMPLATE_TYPENAME_T inline MAT4_T lookAtRH(const VEC3_T& pov, const VEC3_T& tgt, const VEC3_T& up)
+{
+    VEC3_T k = normalize(tgt - pov), i = normalize(cross(k, up)), j = cross(i, k);   k = -k;
+    return {     i.x,          j.x,          k.x,     T(0),
+                 i.y,          j.y,          k.y,     T(0),
+                 i.z,          j.z,          k.z,     T(0),
+            -dot(i, pov), -dot(j, pov), -dot(k, pov), T(1)}; }
+
+TEMPLATE_TYPENAME_T inline MAT4_T lookAt(const VEC3_T& pov, const VEC3_T& tgt, const VEC3_T& up)
+{
+#ifdef VGM_USES_LEFT_HAND_AXES
+    return lookAtLH(pov, tgt, up);
+#else
+    return lookAtRH(pov, tgt, up);
+#endif
+}
+#undef cT
+#define cT const T
 // ortho
 //////////////////////////
-TEMPLATE_TYPENAME_T inline MAT4_T ortho(T l, T r, T b, T t, T n, T f)
+TEMPLATE_TYPENAME_T inline MAT4_T ortho_call(cT l, cT r, cT b, cT t, cT n, cT f, cT K, cT f_n)
 {
-#ifdef VGM_USES_LEFT_HAND_AXES
-    const T v = T(2);
-#else
-    const T v = T(-2);
-#endif
+
     return {  T(2)/(r-l),     T(0),         T(0),     T(0),
                 T(0),       T(2)/(t-b),     T(0),     T(0),
-                T(0),         T(0),        v/(f-n),   T(0),
-            -(r+l)/(r-l), -(t+b)/(t-b), -(f+n)/(f-n), T(1)}; }
+                T(0),         T(0),        K/(f-n),   T(0),
+            -(r+l)/(r-l), -(t+b)/(t-b),      f_n,     T(1)}; }
+
+TEMPLATE_TYPENAME_T inline MAT4_T orthoLH_NO(cT l, cT r, cT b, cT t, cT n, cT f) { return ortho_call( l, r, b, t, n, f,  T(2), -(f+n)/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T orthoLH_ZO(cT l, cT r, cT b, cT t, cT n, cT f) { return ortho_call( l, r, b, t, n, f,  T(1), -    n/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T orthoRH_NO(cT l, cT r, cT b, cT t, cT n, cT f) { return ortho_call( l, r, b, t, n, f, -T(2), -(f+n)/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T orthoRH_ZO(cT l, cT r, cT b, cT t, cT n, cT f) { return ortho_call( l, r, b, t, n, f, -T(1), -    n/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T ortho     (cT l, cT r, cT b, cT t, cT n, cT f) {
+#ifdef VGM_USES_LEFT_HAND_AXES
+    #ifdef VGM_USES_ZERO_ONE_ZBUFFER
+        return orthoLH_ZO( l, r, b, t, n, f);
+    #else
+        return orthoLH_NO( l, r, b, t, n, f);
+    #endif
+#else
+    #ifdef VGM_USES_ZERO_ONE_ZBUFFER
+        return orthoRH_ZO( l, r, b, t, n, f);
+    #else
+        return orthoRH_NO( l, r, b, t, n, f);
+    #endif
+#endif
+}
 // perspective
 //////////////////////////
-TEMPLATE_TYPENAME_T inline MAT4_T perspective(T fovy, T a, T n, T f)
+TEMPLATE_TYPENAME_T inline MAT4_T perspective_call(cT fov, cT a, cT K, cT f_n, cT fn_fMn)
 {
+    assert(std::abs(a - std::numeric_limits<T>::epsilon()) > T(0));
+
+    const T hFov = tan(fov * T(.5));
+    return { T(1)/(a*hFov),  T(0),           T(0),      T(0),
+               T(0),        T(1)/(hFov),     T(0),      T(0),
+               T(0),          T(0),           f_n,        K ,
+               T(0),          T(0),          fn_fMn,    T(0)}; }
+
+TEMPLATE_TYPENAME_T inline MAT4_T perspectiveLH_ZO(cT fov, cT a, cT n, cT f) { return perspective_call(fov, a,  T(1),      f/(f-n), -     (f*n)/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T perspectiveLH_NO(cT fov, cT a, cT n, cT f) { return perspective_call(fov, a,  T(1),  (f+n)/(f-n), -(T(2)*f*n)/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T perspectiveRH_ZO(cT fov, cT a, cT n, cT f) { return perspective_call(fov, a, -T(1),      f/(n-f), -     (f*n)/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T perspectiveRH_NO(cT fov, cT a, cT n, cT f) { return perspective_call(fov, a, -T(1), -(f+n)/(f-n), -(T(2)*f*n)/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T perspective     (cT fov, cT a, cT n, cT f) {
 #ifdef VGM_USES_LEFT_HAND_AXES
-    const T v = T(1), f_n = (f+n)/(f-n);
+    #ifdef VGM_USES_ZERO_ONE_ZBUFFER
+        return perspectiveLH_ZO(fov, a, n, f);
+    #else
+        return perspectiveLH_NO(fov, a, n, f);
+    #endif
 #else
-    const T v = T(-1), f_n = -(f+n)/(f-n);
+    #ifdef VGM_USES_ZERO_ONE_ZBUFFER
+        return perspectiveRH_ZO(fov, a, n, f);
+    #else
+        return perspectiveRH_NO(fov, a, n, f);
+    #endif
 #endif
-    const T hFovy = tan(fovy / T(2));
-    return { T(1)/(a*hFovy),  T(0),           T(0),      T(0),
-               T(0),        T(1)/(hFovy),     T(0),      T(0),
-               T(0),          T(0),            f_n,        v ,
-               T(0),          T(0),   -(T(2)*f*n)/(f-n), T(0)}; }
+}
 // perspectiveFov
 //////////////////////////
-TEMPLATE_TYPENAME_T inline MAT4_T perspectiveFov(T fovy, T w, T h, T n, T f) { return perspective(fovy, w/h, n, f); }
+TEMPLATE_TYPENAME_T inline MAT4_T perspectiveFov(cT fov, cT w, cT h, cT n, cT f) { return perspective(fov, w/h, n, f); }
 // frustrum
 //////////////////////////
-TEMPLATE_TYPENAME_T inline MAT4_T frustum(T l, T r, T b, T t, T n, T f)
-{
-#ifdef VGM_USES_LEFT_HAND_AXES
-    const T v = T(1),  f_n =  (f+n)/(f-n);
-#else
-    const T v = T(-1), f_n = -(f+n)/(f-n);
-#endif
+TEMPLATE_TYPENAME_T inline MAT4_T frustum_call(cT l, cT r, cT b, cT t, cT n, cT K, cT f_n, cT fn_fMn) {
     return { (T(2)*n)/(r-l),       T(0),         T(0),         T(0),
                    T(0),     (T(2)*n)/(t-b),     T(0),         T(0),
-                (r+l)/(r-l),    (t+b)/(t-b),      f_n,           v ,
-                   T(0),           T(0),    -(T(2)*f*n)/(f-n), T(0)}; }
+                (r+l)/(r-l),    (t+b)/(t-b),      f_n,           K ,
+                   T(0),           T(0),         fn_fMn,       T(0)}; }
+
+TEMPLATE_TYPENAME_T inline MAT4_T frustumLH_ZO(cT l, cT r, cT b, cT t, cT n, cT f) { return frustum_call(l, r, b, t, n,  T(1),      f/(f-n), -     (f*n)/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T frustumLH_NO(cT l, cT r, cT b, cT t, cT n, cT f) { return frustum_call(l, r, b, t, n,  T(1),  (f+n)/(f-n), -(T(2)*f*n)/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T frustumRH_ZO(cT l, cT r, cT b, cT t, cT n, cT f) { return frustum_call(l, r, b, t, n, -T(1),      f/(n-f), -     (f*n)/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T frustumRH_NO(cT l, cT r, cT b, cT t, cT n, cT f) { return frustum_call(l, r, b, t, n, -T(1), -(f+n)/(f-n), -(T(2)*f*n)/(f-n)); }
+TEMPLATE_TYPENAME_T inline MAT4_T frustum     (cT l, cT r, cT b, cT t, cT n, cT f) {
+#ifdef VGM_USES_LEFT_HAND_AXES
+    #ifdef VGM_USES_ZERO_ONE_ZBUFFER
+        return frustumLH_ZO(l, r, b, t, n, f);
+    #else
+        return frustumLH_NO(l, r, b, t, n, f);
+    #endif
+#else
+    #ifdef VGM_USES_ZERO_ONE_ZBUFFER
+        return frustumRH_ZO(l, r, b, t, n, f);
+    #else
+        return frustumRH_NO(l, r, b, t, n, f);
+    #endif
+#endif
+}
+#undef cT
 
 } // end namespace vgm
 
@@ -680,7 +764,6 @@ TEMPLATE_TYPENAME_T inline MAT4_T frustum(T l, T r, T b, T t, T n, T f)
     #undef MAT4_PRECISION
 
 
-#endif // use vGizmoMath
 #if !defined(VGM_DISABLE_AUTO_NAMESPACE) || defined(VGIZMO_H_FILE)
     using namespace VGM_NAMESPACE;
 #endif

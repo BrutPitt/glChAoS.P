@@ -15,7 +15,7 @@
 #include <array>
 #include <string>
 
-#include <vGizmoMath.h>
+#include <vGizmo3D.h>
 
 #include "ParticlesUtils.h"
 #include "libs/configuru/configuru.hpp"

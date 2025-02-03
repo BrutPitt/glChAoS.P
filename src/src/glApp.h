@@ -61,8 +61,6 @@ class glWindow;
 #endif
 
 bool fileExist(const char *filename);
-
-
 /*
 ///////////////////////////////////////////
 //Data Init for 32/64 bit systems
