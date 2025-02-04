@@ -1,4 +1,4 @@
-<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.5.3</a>  </h1>
+<h1 align="center"> <a href="https://michelemorrone.eu/glchaosp">glChAoS.P &#x22C5; wglChAoS.P - Ver 1.7 (WiP)</a>  </h1>
 
 <p align="center" style="font-size:1.2em;"> 
 <a href="https://michelemorrone.eu/glchaosp"><b>glChAoS.P</b></a> / <a href="https://michelemorrone.eu/glchaosp"><b>wglChAoS.P</b></a>  &#x22C5; open<b style="color: red;">gl</b> / <b style="color: red;">w</b>eb<b style="color: red;">gl</b> &#x22C5; <b style="color: red;">Ch</b>aotic <b style="color: red;">A</b>ttractors <b style="color: red;">o</b>f <b style="color: red;">S</b>light (<b style="color: red;">dot</b>) <b style="color: red;">P</b>articles<br/>
@@ -17,9 +17,9 @@
 
 ## All available releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
 
-### Desktop - v.1.5.3
+### Desktop - v1.7 (WiP)
 - **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **Mac OS** 
-### WebGL - v.1.5.3
+### WebGL - v1.7 (WiP)
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebG 2** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
   - You can select **Advanced Mode** check box (*default*) or deselect it (**Standard Mode**) for low resources devices (mobiles/tablet/smartphones)
   - You can also to explore any single attractor, interactively, staring directly from web-page, using **Explore** button near/below any attractor formula: [**Attractors Formulas**](https://www.michelemorrone.eu/glchaosp/index.html#AttractorsFormula2)
@@ -34,7 +34,7 @@ To view all "chaotic-objects" currently inserted in current release, follow the 
 <p>&nbsp;<br></p>
 <p>&nbsp;<br></p>
 
-## Latest features from ver.1.5.3
+## Latest features from ver.1.6 
 <h3 align="center">  TransformFeedback → multiDot particles emitter </h3>
 Now all dp/dt attractors (yellow tag) have an additional new emitter type to visualize them in a progressive way and/or with multiDot (spray) effect.\
 Is also possible to travel, in first person (cockpit view), within the particles, following the evolution of the attractors.
