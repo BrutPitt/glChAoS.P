@@ -18,7 +18,7 @@
 ## All available releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
 
 ### Desktop - v1.7 (WiP)
-- **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** / **Mac OS** 
+- **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** /  ~~Mac OS~~
 ### WebGL - v1.7 (WiP)
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebG 2** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
   - You can select **Advanced Mode** check box (*default*) or deselect it (**Standard Mode**) for low resources devices (mobiles/tablet/smartphones)
