@@ -677,6 +677,13 @@ void mainGLApp::mainLoop()
     }
 }
 
+#if defined(WIN32) || defined(_WIN32)
+extern "C" {
+    __declspec(dllexport) DWORD NvOptimusEnablement = 1;
+    __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
 // classic entry point
 /////////////////////////////////////////////////
 int main(int argc, char **argv)
