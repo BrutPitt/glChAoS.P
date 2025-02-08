@@ -18,7 +18,7 @@
 ## All available releases &nbsp; &nbsp; ==> [**Release Notes**](https://github.com/BrutPitt/glChAoS.P/releases) (what's new)
 
 ### Desktop - v1.7 (WiP)
-- **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** /  ~~Mac OS~~
+- **[glChAoS.P](https://github.com/BrutPitt/glChAoS.P/releases)** - **DeskTop** - binaries available **Windows** / **Linux** /  **MacOS** 
 ### WebGL - v1.7 (WiP)
 - **[wglChAoS.P](https://michelemorrone.eu/glchaosp/webGL.html)** - **WebG 2** via **webAssembly** - **live** / **online** using your browser - also for mobile devices 
   - You can select **Advanced Mode** check box (*default*) or deselect it (**Standard Mode**) for low resources devices (mobiles/tablet/smartphones)
@@ -40,9 +40,8 @@ Now all dp/dt attractors (yellow tag) have an additional new emitter type to vis
 Is also possible to travel, in first person (cockpit view), within the particles, following the evolution of the attractors.
 
 
-<p align="center"><a href="https://www.michelemorrone.eu/glchaosp/dtAttractors.html#Lorenz"> 
-<img src="https://raw.githubusercontent.com/BrutPitt/myRepos/master/glChAoSP/screenShots/lorenz1.gif" style="width: 1024px;"></a>
-</p>
+https://github.com/user-attachments/assets/49faf143-8d25-4ba8-a240-4d184491f6a9
+
 
 ***Lorenz Attractor** - click on image to "explore" it in WebGL*  
 &nbsp; &nbsp; &nbsp; &nbsp;*use "**v**" key or "**cockpit**" button (from **Attractors** tools window) to switch to subjective view (on right)*
